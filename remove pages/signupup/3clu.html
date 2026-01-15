@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3 clu   </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+        
+        * {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideLeft {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .animate-scaleIn {
+            animation: scaleIn 0.5s ease-out forwards;
+        }
+
+        .animate-slideLeft {
+            animation: slideLeft 0.5s ease-out forwards;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            transform: translateY(-2px);
+        }
+
+        .avatar-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .avatar-card:hover {
+            transform: translateY(-8px) scale(1.05);
+        }
+
+        .avatar-card.selected {
+            transform: scale(1.1);
+        }
+
+        .person-card {
+            transition: all 0.3s ease;
+        }
+
+        .person-card:hover {
+            transform: translateX(-5px);
+        }
+
+        .interest-tag {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .interest-tag:hover {
+            transform: translateY(-3px);
+        }
+
+        .interest-tag.selected {
+            transform: scale(1.05);
+        }
+
+        .progress-circle {
+            transition: all 0.4s ease;
+        }
+
+        .btn-primary {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-primary:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .bg-mesh {
+            background-color: #6366f1;
+            background-image: 
+                radial-gradient(at 40% 20%, hsla(28,100%,74%,1) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, hsla(189,100%,56%,1) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, hsla(355,100%,93%,1) 0px, transparent 50%),
+                radial-gradient(at 80% 50%, hsla(340,100%,76%,1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, hsla(22,100%,77%,1) 0px, transparent 50%),
+                radial-gradient(at 80% 100%, hsla(242,100%,70%,1) 0px, transparent 50%);
+        }
+
+        .skip-btn {
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+
+        .skip-btn:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-mesh min-h-screen overflow-x-hidden">
+    
+    <div class="min-h-screen flex items-center justify-center p-4 md:p-8">
+        <div class="w-full max-w-5xl">
+            
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fadeInUp">
+                <div class="inline-block mb-4">
+                    <div class="text-7xl mb-3">🎌</div>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-black text-white mb-3 drop-shadow-lg">
+                    مرحباً بك في عالم الأنمي
+                </h1>
+                <p class="text-white/90 text-lg">دعنا نعرف المزيد عنك لنصنع تجربة مثالية</p>
+            </div>
+
+            <!-- Progress Dots -->
+            <div class="flex justify-center items-center gap-3 mb-12 animate-scaleIn">
+                <div class="progress-circle w-3 h-3 rounded-full bg-white shadow-lg" data-step="1"></div>
+                <div class="progress-circle w-3 h-3 rounded-full bg-white/30" data-step="2"></div>
+                <div class="progress-circle w-3 h-3 rounded-full bg-white/30" data-step="3"></div>
+                <div class="progress-circle w-3 h-3 rounded-full bg-white/30" data-step="4"></div>
+            </div>
+
+            <!-- Main Card -->
+            <div class="glass-effect rounded-3xl shadow-2xl p-6 md:p-12 animate-slideLeft">
+                
+                <!-- Step 1: Quick Start -->
+                <div class="step-content active" data-step="1">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-white mb-2">لنبدأ بسرعة! ⚡</h2>
+                        <p class="text-white/80">فقط المعلومات الأساسية</p>
+                    </div>
+
+                    <div class="max-w-md mx-auto space-y-5">
+                        <div>
+                            <input type="text" id="fullName" 
+                                class="w-full px-5 py-4 bg-white/20 border-2 border-white/30 rounded-2xl text-white placeholder-white/60 text-lg focus:bg-white/30 focus:border-white focus:outline-none transition-all duration-300"
+                                placeholder="✨ اسمك الكامل">
+                        </div>
+
+                        <div>
+                            <input type="email" id="email" 
+                                class="w-full px-5 py-4 bg-white/20 border-2 border-white/30 rounded-2xl text-white placeholder-white/60 text-lg focus:bg-white/30 focus:border-white focus:outline-none transition-all duration-300"
+                                placeholder="📧 بريدك الإلكتروني">
+                        </div>
+
+                        <div>
+                            <input type="password" id="password" 
+                                class="w-full px-5 py-4 bg-white/20 border-2 border-white/30 rounded-2xl text-white placeholder-white/60 text-lg focus:bg-white/30 focus:border-white focus:outline-none transition-all duration-300"
+                                placeholder="🔒 كلمة المرور">
+                        </div>
+
+                        <button onclick="goToStep(2)" 
+                            class="btn-primary w-full py-4 bg-white text-indigo-600 rounded-2xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 mt-8">
+                            المتابعة →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Choose Avatar -->
+                <div class="step-content" data-step="2">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-white mb-2">اختر شخصيتك 🎭</h2>
+                        <p class="text-white/80">اختر الأفاتار الذي يعبر عنك</p>
+                    </div>
+
+                    <div class="grid grid-cols-3 md:grid-cols-6 gap-4 mb-8" id="avatarGrid">
+                        <!-- Generated by JS -->
+                    </div>
+
+                    <div class="flex gap-4 mt-8">
+                        <button onclick="goToStep(1)" 
+                            class="flex-1 py-4 bg-white/20 text-white rounded-2xl font-bold text-lg hover:bg-white/30 transition-all duration-300">
+                            → رجوع
+                        </button>
+                        <button onclick="goToStep(3)" 
+                            class="flex-1 btn-primary py-4 bg-white text-indigo-600 rounded-2xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                            التالي ←
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Interests -->
+                <div class="step-content" data-step="3">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-white mb-2">ما الذي تحبه؟ ❤️</h2>
+                        <p class="text-white/80">اختر ما يعجبك (يمكنك اختيار أكثر من خيار)</p>
+                    </div>
+
+                    <div class="space-y-6 mb-6">
+                        <div>
+                            <h3 class="text-white font-bold mb-3 text-lg">🎬 نوع الأنمي المفضل</h3>
+                            <div class="flex flex-wrap gap-2" id="animeTypes">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-white font-bold mb-3 text-lg">📚 المانجا والكوميكس</h3>
+                            <div class="flex flex-wrap gap-2" id="mangaTypes">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-white font-bold mb-3 text-lg">🎮 اهتمامات أخرى</h3>
+                            <div class="flex flex-wrap gap-2" id="otherInterests">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 mt-8">
+                        <button onclick="goToStep(2)" 
+                            class="flex-1 py-4 bg-white/20 text-white rounded-2xl font-bold text-lg hover:bg-white/30 transition-all duration-300">
+                            → رجوع
+                        </button>
+                        <button onclick="goToStep(4)" 
+                            class="flex-1 btn-primary py-4 bg-white text-indigo-600 rounded-2xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                            التالي ←
+                        </button>
+                    </div>
+
+                    <button onclick="goToStep(4)" class="skip-btn w-full text-center text-white/70 mt-4 text-sm hover:text-white transition-all">
+                        تخطي هذه الخطوة ←
+                    </button>
+                </div>
+
+                <!-- Step 4: Follow Creators -->
+                <div class="step-content" data-step="4">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-white mb-2">تابع مبدعين 👥</h2>
+                        <p class="text-white/80">ابدأ رحلتك بمتابعة بعض المراجعين والرسامين</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4 mb-6" id="creatorsList">
+                        <!-- Generated by JS -->
+                    </div>
+
+                    <div class="flex gap-4 mt-8">
+                        <button onclick="goToStep(3)" 
+                            class="flex-1 py-4 bg-white/20 text-white rounded-2xl font-bold text-lg hover:bg-white/30 transition-all duration-300">
+                            → رجوع
+                        </button>
+                        <button onclick="completeSignup()" 
+                            class="flex-1 btn-primary py-4 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-2xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                            إنهاء التسجيل ✨
+                        </button>
+                    </div>
+
+                    <button onclick="completeSignup()" class="skip-btn w-full text-center text-white/70 mt-4 text-sm hover:text-white transition-all">
+                        تخطي والبدء مباشرة ←
+                    </button>
+                </div>
+
+                <!-- Success Screen -->
+                <div class="step-content text-center" data-step="success">
+                    <div class="py-12">
+                        <div class="text-8xl mb-6 animate-bounce">🎉</div>
+                        <h2 class="text-4xl font-black text-white mb-4">
+                            أهلاً بك في المجتمع!
+                        </h2>
+                        <p class="text-white/90 text-xl mb-8">
+                            حسابك جاهز. استعد لاستكشاف عالم الأنمي!
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                            <button class="flex-1 py-4 bg-white text-indigo-600 rounded-2xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                                استكشف الآن 🚀
+                            </button>
+                            <button class="flex-1 py-4 bg-white/20 text-white rounded-2xl font-bold text-lg hover:bg-white/30 transition-all duration-300">
+                                الذهاب للملف الشخصي
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Info -->
+            <div class="text-center mt-6 text-white/70 text-sm">
+                لديك حساب بالفعل؟ <a href="#" class="text-white font-bold hover:underline">تسجيل الدخول</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            currentStep: 1,
+            selectedAvatar: null,
+            interests: {
+                anime: [],
+                manga: [],
+                other: []
+            },
+            following: []
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initAvatars();
+            initInterests();
+            initCreators();
+        });
+
+        function initAvatars() {
+            const avatars = [
+                { emoji: '😊', name: 'سعيد' },
+                { emoji: '😎', name: 'كول' },
+                { emoji: '🤓', name: 'أوتاكو' },
+                { emoji: '😺', name: 'قطة' },
+                { emoji: '🦊', name: 'ثعلب' },
+                { emoji: '🐼', name: 'باندا' },
+                { emoji: '🐰', name: 'أرنب' },
+                { emoji: '🦁', name: 'أسد' },
+                { emoji: '🐯', name: 'نمر' },
+                { emoji: '🐸', name: 'ضفدع' },
+                { emoji: '🦄', name: 'يونيكورن' },
+                { emoji: '🐉', name: 'تنين' }
+            ];
+
+            const grid = document.getElementById('avatarGrid');
+            avatars.forEach((avatar, idx) => {
+                const card = document.createElement('div');
+                card.className = 'avatar-card bg-white/20 backdrop-blur-sm rounded-2xl p-4 cursor-pointer hover:bg-white/30 border-2 border-transparent';
+                card.innerHTML = `
+                    <div class="text-5xl text-center">${avatar.emoji}</div>
+                `;
+                card.onclick = () => selectAvatar(card, idx);
+                grid.appendChild(card);
+            });
+        }
+
+        function selectAvatar(element, index) {
+            document.querySelectorAll('.avatar-card').forEach(el => {
+                el.classList.remove('selected', 'border-white', 'bg-white/40');
+            });
+            element.classList.add('selected', 'border-white', 'bg-white/40');
+            state.selectedAvatar = index;
+        }
+
+        function initInterests() {
+            const animeTypes = [
+                'شونين 🔥', 'شوجو 💕', 'سينين 🎭', 'أكشن ⚔️', 
+                'رومانسي 💖', 'كوميدي 😄', 'خيال علمي 🚀', 'رعب 👻',
+                'رياضي ⚽', 'موسيقي 🎵', 'ميكا 🤖', 'إيسيكاي 🌟'
+            ];
+
+            const mangaTypes = [
+                'مانجا يابانية 🇯🇵', 'مانهوا كورية 🇰🇷', 'مانهوا صينية 🇨🇳',
+                'كوميكس أمريكية 🦸', 'مارفل 🕷️', 'DC 🦇',
+                'ويب تون 📱', 'لايت نوفل 📖'
+            ];
+
+            const otherInterests = [
+                'ألعاب فيديو 🎮', 'موسيقى أنمي 🎵', 'كوسبلاي 🎭',
+                'رسم فان آرت 🎨', 'كتابة قصص ✍️', 'جمع فيجر 🗿',
+                'مشاهدة مراجعات 📺', 'قراءة نظريات 🔍'
+            ];
+
+            createInterestTags('animeTypes', animeTypes, 'anime');
+            createInterestTags('mangaTypes', mangaTypes, 'manga');
+            createInterestTags('otherInterests', otherInterests, 'other');
+        }
+
+        function createInterestTags(containerId, items, category) {
+            const container = document.getElementById(containerId);
+            items.forEach(item => {
+                const tag = document.createElement('button');
+                tag.type = 'button';
+                tag.className = 'interest-tag px-5 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/30 border-2 border-transparent transition-all duration-300';
+                tag.textContent = item;
+                tag.onclick = () => toggleInterest(tag, item, category);
+                container.appendChild(tag);
+            });
+        }
+
+        function toggleInterest(element, item, category) {
+            const isSelected = state.interests[category].includes(item);
+            
+            if (isSelected) {
+                state.interests[category] = state.interests[category].filter(i => i !== item);
+                element.classList.remove('selected', 'bg-white', 'text-indigo-600', 'scale-105', 'border-white');
+                element.classList.add('bg-white/20', 'text-white');
+            } else {
+                state.interests[category].push(item);
+                element.classList.remove('bg-white/20', 'text-white');
+                element.classList.add('selected', 'bg-white', 'text-indigo-600', 'scale-105', 'border-white');
+            }
+        }
+
+        function initCreators() {
+            const creators = [
+                { name: 'أحمد الناقد', role: 'مراجع أنمي', followers: '50K', emoji: '🎬' },
+                { name: 'سارة الفنانة', role: 'رسامة فان آرت', followers: '30K', emoji: '🎨' },
+                { name: 'محمد الكاتب', role: 'كاتب مانجا', followers: '25K', emoji: '✍️' },
+                { name: 'ليلى المبدعة', role: 'كوسبلاير', followers: '40K', emoji: '🎭' }
+            ];
+
+            const list = document.getElementById('creatorsList');
+            creators.forEach((creator, idx) => {
+                const card = document.createElement('div');
+                card.className = 'person-card bg-white/20 backdrop-blur-sm rounded-2xl p-5 hover:bg-white/30 transition-all duration-300';
+                card.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="text-4xl">${creator.emoji}</div>
+                        <div class="flex-1">
+                            <h3 class="text-white font-bold text-lg">${creator.name}</h3>
+                            <p class="text-white/70 text-sm">${creator.role}</p>
+                            <p class="text-white/50 text-xs mt-1">${creator.followers} متابع</p>
+                        </div>
+                        <button onclick="toggleFollow(${idx}, this)" 
+                            class="px-6 py-2 bg-white text-indigo-600 rounded-xl font-bold hover:scale-110 transition-all duration-300 whitespace-nowrap">
+                            متابعة +
+                        </button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function toggleFollow(index, button) {
+            const isFollowing = state.following.includes(index);
+            
+            if (isFollowing) {
+                state.following = state.following.filter(i => i !== index);
+                button.textContent = 'متابعة +';
+                button.className = 'px-6 py-2 bg-white text-indigo-600 rounded-xl font-bold hover:scale-110 transition-all duration-300 whitespace-nowrap';
+            } else {
+                state.following.push(index);
+                button.textContent = 'متابَع ✓';
+                button.className = 'px-6 py-2 bg-white/30 text-white rounded-xl font-bold hover:scale-110 transition-all duration-300 whitespace-nowrap';
+            }
+        }
+
+        function goToStep(step) {
+            // Validate current step
+            if (state.currentStep === 1 && step > 1) {
+                const name = document.getElementById('fullName').value;
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                if (!name || !email || !password) {
+                    alert('يرجى ملء جميع الحقول');
+                    return;
+                }
+
+                if (!email.includes('@')) {
+                    alert('يرجى إدخال بريد إلكتروني صحيح');
+                    return;
+                }
+
+                if (password.length < 6) {
+                    alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+                    return;
+                }
+            }
+
+            // Hide all steps
+            document.querySelectorAll('.step-content').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show target step
+            document.querySelector(`[data-step="${step}"]`).classList.add('active');
+
+            // Update progress
+            document.querySelectorAll('.progress-circle').forEach((circle, idx) => {
+                if (idx + 1 < step) {
+                    circle.className = 'progress-circle w-3 h-3 rounded-full bg-white shadow-lg';
+                } else if (idx + 1 === step) {
+                    circle.className = 'progress-circle w-4 h-4 rounded-full bg-white shadow-lg';
+                } else {
+                    circle.className = 'progress-circle w-3 h-3 rounded-full bg-white/30';
+                }
+            });
+
+            state.currentStep = step;
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function completeSignup() {
+            const userData = {
+                name: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                avatar: state.selectedAvatar,
+                interests: state.interests,
+                following: state.following
+            };
+
+            console.log('User Data:', userData);
+
+            // Show success
+            document.querySelectorAll('.step-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector('[data-step="success"]').classList.add('active');
+            
+            // Hide progress
+            document.querySelectorAll('.progress-circle').forEach(circle => {
+                circle.style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html>

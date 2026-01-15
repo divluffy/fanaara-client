@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>انضم إلى عالم الأنمي</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+    
+    * {
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Decorative background elements */
+    .bg-decoration {
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .sakura {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: rgba(255, 182, 193, 0.5);
+      border-radius: 50% 0 50% 0;
+      animation: fall 8s infinite linear;
+    }
+
+    @keyframes fall {
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+      background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+      animation: blob-float 6s infinite ease-in-out;
+    }
+
+    @keyframes blob-float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(20px, -20px) scale(1.1); }
+    }
+
+    /* Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+    }
+
+    /* Step transitions */
+    .step-enter {
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(50px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .step-exit {
+      animation: slideOut 0.3s ease-in;
+    }
+
+    @keyframes slideOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(-50px); }
+    }
+
+    /* Shake animation */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    .shake {
+      animation: shake 0.3s ease-in-out;
+    }
+
+    /* Success glow */
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.5); }
+      50% { box-shadow: 0 0 40px rgba(34, 197, 94, 0.8); }
+    }
+
+    .success-glow {
+      animation: glow 1.5s infinite;
+    }
+
+    /* Confetti */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      animation: confetti-fall 3s linear forwards;
+    }
+
+    @keyframes confetti-fall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* Ripple effect */
+    .ripple {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ripple::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .ripple:active::after {
+      width: 300px;
+      height: 300px;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+    }
+
+    /* Chip animation */
+    .chip {
+      transition: all 0.3s ease;
+    }
+
+    .chip:hover {
+      transform: translateY(-2px);
+    }
+
+    .chip.selected {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border-color: transparent;
+    }
+
+    /* Avatar option hover */
+    .avatar-option {
+      transition: all 0.3s ease;
+    }
+
+    .avatar-option:hover {
+      transform: scale(1.05);
+    }
+
+    /* Creator card */
+    .creator-card {
+      transition: all 0.3s ease;
+    }
+
+    .creator-card:hover {
+      transform: translateY(-5px);
+    }
+
+    /* Stagger animation for lists */
+    @keyframes stagger-in {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stagger-item {
+      animation: stagger-in 0.5s ease-out backwards;
+    }
+
+    /* Progress bar fill */
+    @keyframes progress-fill {
+      from { width: 0%; }
+    }
+
+    .progress-fill {
+      animation: progress-fill 0.8s ease-out;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center p-4">
+  
+  <!-- Background decorations -->
+  <div class="bg-decoration w-full h-full">
+    <div class="blob" style="width: 300px; height: 300px; top: 10%; left: 10%; animation-delay: 0s;"></div>
+    <div class="blob" style="width: 200px; height: 200px; top: 60%; right: 15%; animation-delay: 2s;"></div>
+    <div class="blob" style="width: 250px; height: 250px; bottom: 10%; left: 50%; animation-delay: 4s;"></div>
+  </div>
+
+  <!-- Main container -->
+  <div class="relative z-10 w-full max-w-2xl">
+    
+    <!-- Logo/Header -->
+    <div class="text-center mb-6">
+      <div class="inline-block glass rounded-full p-4 mb-4">
+        <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold text-white mb-2">مرحباً بك في عالم الأنمي</h1>
+      <p class="text-white text-opacity-90">انضم إلى مجتمعنا المذهل</p>
+    </div>
+
+    <!-- Progress stepper -->
+    <div class="glass rounded-2xl p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex-1" id="stepper"></div>
+      </div>
+      <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+        <div id="progress-bar" class="bg-gradient-to-r from-pink-400 to-purple-500 h-2 rounded-full progress-fill transition-all duration-500" style="width: 20%"></div>
+      </div>
+    </div>
+
+    <!-- Main form card -->
+    <div class="glass rounded-3xl p-8 mb-6">
+      <div id="step-container" class="min-h-[400px]"></div>
+    </div>
+
+    <!-- Navigation buttons -->
+    <div class="flex gap-4 justify-between">
+      <button id="prev-btn" class="glass ripple px-8 py-4 rounded-full text-white font-bold hover:bg-white hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+        السابق
+      </button>
+      <button id="next-btn" class="ripple px-8 py-4 rounded-full text-white font-bold bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 transition-all duration-300 shadow-lg">
+        التالي
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Data
+    const mockCreators = [
+      { id: 1, name: 'محمد الأوتاكو', category: 'Anime', followers: '15K', avatar: '🎭', bio: 'مراجع أنمي شونين' },
+      { id: 2, name: 'سارة المانجا', category: 'Manga', followers: '12K', avatar: '📚', bio: 'خبيرة مانجا رومانسي' },
+      { id: 3, name: 'أحمد AMV', category: 'AMV', followers: '20K', avatar: '🎬', bio: 'صانع فيديوهات أنمي' },
+      { id: 4, name: 'ليلى الكوسبلاي', category: 'Cosplay', followers: '18K', avatar: '✨', bio: 'فنانة كوسبلاي' },
+      { id: 5, name: 'يوسف الآيسيكاي', category: 'Anime', followers: '10K', avatar: '🗡️', bio: 'عاشق الآيسيكاي' },
+      { id: 6, name: 'نور الفانتازي', category: 'Manga', followers: '14K', avatar: '🌟', bio: 'قارئة مانجا فانتازي' }
+    ];
+
+    const mockGenres = [
+      'Shonen', 'Seinen', 'Shoujo', 'Isekai', 'Romance', 'Action', 'Fantasy', 'Slice of Life',
+      'Mecha', 'Horror', 'Comedy', 'Drama', 'Sports', 'Mystery', 'Psychological'
+    ];
+
+    const mockAvatars = [
+      { id: 1, emoji: '🦊', label: 'Fox Spirit' },
+      { id: 2, emoji: '🐉', label: 'Dragon' },
+      { id: 3, emoji: '⚔️', label: 'Warrior' },
+      { id: 4, emoji: '🌸', label: 'Sakura' },
+      { id: 5, emoji: '🎭', label: 'Mask' },
+      { id: 6, emoji: '✨', label: 'Magic' },
+      { id: 7, emoji: '🌙', label: 'Moon' },
+      { id: 8, emoji: '🔥', label: 'Fire' }
+    ];
+
+    const contentTypes = ['Anime', 'Manga', 'Manhwa', 'Comics', 'Light Novels', 'Webtoons'];
+
+    // State
+    let currentStep = 0;
+    let formData = {
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      country: '',
+      city: '',
+      bio: '',
+      birthdate: '',
+      social: '',
+      avatar: null,
+      uploadedAvatar: null,
+      followedCreators: [],
+      selectedGenres: [],
+      selectedContentTypes: []
+    };
+
+    const steps = [
+      { title: 'معلومات التسجيل', icon: '👤' },
+      { title: 'معلومات عامة', icon: '📝' },
+      { title: 'صورة الملف', icon: '🎨' },
+      { title: 'متابعة المبدعين', icon: '⭐' },
+      { title: 'الاهتمامات', icon: '💖' }
+    ];
+
+    // Initialize
+    function init() {
+      renderStepper();
+      renderStep();
+      updateButtons();
+      createSakura();
+    }
+
+    // Create falling sakura petals
+    function createSakura() {
+      for (let i = 0; i < 10; i++) {
+        const sakura = document.createElement('div');
+        sakura.className = 'sakura';
+        sakura.style.left = Math.random() * 100 + '%';
+        sakura.style.animationDelay = Math.random() * 8 + 's';
+        sakura.style.animationDuration = (Math.random() * 4 + 6) + 's';
+        document.querySelector('.bg-decoration').appendChild(sakura);
+      }
+    }
+
+    // Render stepper
+    function renderStepper() {
+      const stepper = document.getElementById('stepper');
+      stepper.innerHTML = steps.map((step, i) => `
+        <div class="flex-1 text-center">
+          <div class="inline-flex items-center justify-center w-10 h-10 rounded-full ${i === currentStep ? 'bg-white text-purple-600' : i < currentStep ? 'bg-green-400 text-white' : 'bg-white bg-opacity-30 text-white'} font-bold transition-all duration-300">
+            ${i < currentStep ? '✓' : step.icon}
+          </div>
+          <p class="text-xs text-white mt-2 hidden md:block">${step.title}</p>
+        </div>
+      `).join('');
+    }
+
+    // Update progress bar
+    function updateProgress() {
+      const progress = ((currentStep + 1) / steps.length) * 100;
+      document.getElementById('progress-bar').style.width = progress + '%';
+    }
+
+    // Render current step
+    function renderStep() {
+      const container = document.getElementById('step-container');
+      container.innerHTML = '';
+      
+      const stepDiv = document.createElement('div');
+      stepDiv.className = 'step-enter';
+
+      switch(currentStep) {
+        case 0:
+          stepDiv.innerHTML = renderStep1();
+          break;
+        case 1:
+          stepDiv.innerHTML = renderStep2();
+          break;
+        case 2:
+          stepDiv.innerHTML = renderStep3();
+          break;
+        case 3:
+          stepDiv.innerHTML = renderStep4();
+          break;
+        case 4:
+          stepDiv.innerHTML = renderStep5();
+          break;
+      }
+
+      container.appendChild(stepDiv);
+      attachEventListeners();
+    }
+
+    // Step 1: Basic info
+    function renderStep1() {
+      return `
+        <h2 class="text-2xl font-bold text-white mb-6">معلومات التسجيل الأساسية</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-white mb-2">اسم المستخدم</label>
+            <input type="text" id="username" value="${formData.username}" 
+              class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all"
+              placeholder="اختر اسماً رائعاً">
+            <p class="text-red-300 text-sm mt-1 hidden" id="username-error"></p>
+          </div>
+          
+          <div>
+            <label class="block text-white mb-2">البريد الإلكتروني</label>
+            <input type="email" id="email" value="${formData.email}"
+              class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all"
+              placeholder="your@email.com">
+            <p class="text-red-300 text-sm mt-1 hidden" id="email-error"></p>
+          </div>
+
+          <div>
+            <label class="block text-white mb-2">كلمة المرور</label>
+            <div class="relative">
+              <input type="password" id="password" value="${formData.password}"
+                class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all"
+                placeholder="••••••••">
+              <button type="button" onclick="togglePassword('password')" class="absolute left-3 top-1/2 -translate-y-1/2 text-white hover:text-pink-300 transition-colors">
+                👁️
+              </button>
+            </div>
+            <p class="text-red-300 text-sm mt-1 hidden" id="password-error"></p>
+          </div>
+
+          <div>
+            <label class="block text-white mb-2">تأكيد كلمة المرور</label>
+            <div class="relative">
+              <input type="password" id="confirmPassword" value="${formData.confirmPassword}"
+                class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all"
+                placeholder="••••••••">
+              <button type="button" onclick="togglePassword('confirmPassword')" class="absolute left-3 top-1/2 -translate-y-1/2 text-white hover:text-pink-300 transition-colors">
+                👁️
+              </button>
+            </div>
+            <p class="text-red-300 text-sm mt-1 hidden" id="confirmPassword-error"></p>
+          </div>
+        </div>
+      `;
+    }
+
+    // Step 2: General info
+    function renderStep2() {
+      return `
+        <h2 class="text-2xl font-bold text-white mb-6">معلومات عامة</h2>
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-white mb-2">الدولة</label>
+              <input type="text" id="country" value="${formData.country}"
+                class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all"
+                placeholder="مثال: مصر">
+            </div>
+            <div>
+              <label class="block text-white mb-2">المدينة</label>
+              <input type="text" id="city" value="${formData.city}"
+                class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all"
+                placeholder="مثال: القاهرة">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-white mb-2">نبذة عنك</label>
+            <textarea id="bio" rows="3" class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all resize-none"
+              placeholder="أخبرنا عن اهتماماتك في الأنمي...">${formData.bio}</textarea>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-white mb-2">تاريخ الميلاد (اختياري)</label>
+              <input type="date" id="birthdate" value="${formData.birthdate}"
+                class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all">
+            </div>
+            <div>
+              <label class="block text-white mb-2">حساب تويتر/X (اختياري)</label>
+              <input type="text" id="social" value="${formData.social}"
+                class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all"
+                placeholder="@username">
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Step 3: Avatar
+    function renderStep3() {
+      return `
+        <h2 class="text-2xl font-bold text-white mb-6">اختر صورة الملف الشخصي</h2>
+        
+        <div class="mb-6">
+          <label class="block text-center">
+            <div class="glass rounded-2xl p-8 cursor-pointer hover:bg-opacity-25 transition-all">
+              <div class="text-6xl mb-2">📸</div>
+              <p class="text-white">انقر لرفع صورة</p>
+              <p class="text-white text-opacity-70 text-sm">أو اختر من الترشيحات أدناه</p>
+            </div>
+            <input type="file" id="avatar-upload" accept="image/*" class="hidden">
+          </label>
+        </div>
+
+        <div id="avatar-preview" class="mb-6 hidden">
+          <div class="text-center">
+            <img id="preview-img" class="w-32 h-32 rounded-full mx-auto border-4 border-white shadow-lg">
+          </div>
+        </div>
+
+        <h3 class="text-xl font-bold text-white mb-4 text-center">أو اختر أفاتار جاهز</h3>
+        <div class="grid grid-cols-4 gap-4">
+          ${mockAvatars.map(av => `
+            <div class="avatar-option glass rounded-2xl p-4 text-center cursor-pointer ${formData.avatar === av.id ? 'ring-4 ring-pink-400' : ''}"
+              onclick="selectAvatar(${av.id})">
+              <div class="text-4xl mb-2">${av.emoji}</div>
+              <p class="text-white text-xs">${av.label}</p>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // Step 4: Follow creators
+    function renderStep4() {
+      return `
+        <h2 class="text-2xl font-bold text-white mb-4">تابع بعض المبدعين</h2>
+        
+        <div class="mb-4">
+          <input type="text" id="creator-search" placeholder="ابحث عن مبدعين..."
+            class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all">
+        </div>
+
+        <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+          <button onclick="filterCreators('all')" class="chip glass px-4 py-2 rounded-full text-white text-sm whitespace-nowrap">الكل</button>
+          <button onclick="filterCreators('Anime')" class="chip glass px-4 py-2 rounded-full text-white text-sm whitespace-nowrap">Anime</button>
+          <button onclick="filterCreators('Manga')" class="chip glass px-4 py-2 rounded-full text-white text-sm whitespace-nowrap">Manga</button>
+          <button onclick="filterCreators('Cosplay')" class="chip glass px-4 py-2 rounded-full text-white text-sm whitespace-nowrap">Cosplay</button>
+          <button onclick="filterCreators('AMV')" class="chip glass px-4 py-2 rounded-full text-white text-sm whitespace-nowrap">AMV</button>
+        </div>
+
+        <div id="creators-list" class="space-y-3 max-h-96 overflow-y-auto">
+          ${mockCreators.map((creator, i) => `
+            <div class="creator-card stagger-item glass rounded-xl p-4 flex items-center gap-4" style="animation-delay: ${i * 0.1}s">
+              <div class="text-4xl">${creator.avatar}</div>
+              <div class="flex-1">
+                <h3 class="text-white font-bold">${creator.name}</h3>
+                <p class="text-white text-opacity-70 text-sm">${creator.bio}</p>
+                <p class="text-pink-300 text-xs">${creator.followers} متابع</p>
+              </div>
+              <button onclick="toggleFollow(${creator.id})" 
+                class="ripple px-4 py-2 rounded-full text-sm font-bold transition-all ${formData.followedCreators.includes(creator.id) ? 'bg-white text-purple-600' : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'}">
+                ${formData.followedCreators.includes(creator.id) ? 'متابع' : 'متابعة'}
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // Step 5: Interests
+    function renderStep5() {
+      const profileComplete = calculateProfileCompletion();
+      return `
+        <h2 class="text-2xl font-bold text-white mb-4">اختر اهتماماتك</h2>
+        
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-2">
+            <p class="text-white">اكتمال الملف الشخصي</p>
+            <p class="text-white font-bold">${profileComplete}%</p>
+          </div>
+          <div class="w-full bg-white bg-opacity-20 rounded-full h-3">
+            <div class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full progress-fill transition-all duration-500" style="width: ${profileComplete}%"></div>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-bold text-white mb-3">أنواع المحتوى</h3>
+        <div class="flex flex-wrap gap-2 mb-6">
+          ${contentTypes.map(type => `
+            <button onclick="toggleContentType('${type}')" 
+              class="chip glass px-4 py-2 rounded-full text-white text-sm ${formData.selectedContentTypes.includes(type) ? 'selected' : ''}">
+              ${type}
+            </button>
+          `).join('')}
+        </div>
+
+        <h3 class="text-lg font-bold text-white mb-3">التصنيفات المفضلة</h3>
+        <div class="flex flex-wrap gap-2">
+          ${mockGenres.map(genre => `
+            <button onclick="toggleGenre('${genre}')" 
+              class="chip glass px-4 py-2 rounded-full text-white text-sm ${formData.selectedGenres.includes(genre) ? 'selected' : ''}">
+              ${genre}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // Calculate profile completion
+    function calculateProfileCompletion() {
+      let score = 0;
+      if (formData.username) score += 15;
+      if (formData.email) score += 15;
+      if (formData.password) score += 15;
+      if (formData.country) score += 10;
+      if (formData.bio) score += 10;
+      if (formData.avatar || formData.uploadedAvatar) score += 15;
+      if (formData.followedCreators.length > 0) score += 10;
+      if (formData.selectedGenres.length > 0) score += 10;
+      return Math.min(100, score);
+    }
+
+    // Event listeners
+    function attachEventListeners() {
+      // Step 1
+      const username = document.getElementById('username');
+      const email = document.getElementById('email');
+      const password = document.getElementById('password');
+      const confirmPassword = document.getElementById('confirmPassword');
+
+      if (username) username.addEventListener('input', (e) => formData.username = e.target.value);
+      if (email) email.addEventListener('input', (e) => formData.email = e.target.value);
+      if (password) password.addEventListener('input', (e) => formData.password = e.target.value);
+      if (confirmPassword) confirmPassword.addEventListener('input', (e) => formData.confirmPassword = e.target.value);
+
+      // Step 2
+      const country = document.getElementById('country');
+      const city = document.getElementById('city');
+      const bio = document.getElementById('bio');
+      const birthdate = document.getElementById('birthdate');
+      const social = document.getElementById('social');
+
+      if (country) country.addEventListener('input', (e) => formData.country = e.target.value);
+      if (city) city.addEventListener('input', (e) => formData.city = e.target.value);
+      if (bio) bio.addEventListener('input', (e) => formData.bio = e.target.value);
+      if (birthdate) birthdate.addEventListener('input', (e) => formData.birthdate = e.target.value);
+      if (social) social.addEventListener('input', (e) => formData.social = e.target.value);
+
+      // Step 3
+      const avatarUpload = document.getElementById('avatar-upload');
+      if (avatarUpload) {
+        avatarUpload.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              formData.uploadedAvatar = event.target.result;
+              document.getElementById('avatar-preview').classList.remove('hidden');
+              document.getElementById('preview-img').src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      // Step 4
+      const creatorSearch = document.getElementById('creator-search');
+      if (creatorSearch) {
+        creatorSearch.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase();
+          const filtered = mockCreators.filter(c => 
+            c.name.toLowerCase().includes(query) || c.bio.toLowerCase().includes(query)
+          );
+          renderCreatorsList(filtered);
+        });
+      }
+    }
+
+    // Toggle password visibility
+    window.togglePassword = function(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    };
+
+    // Validate step 1
+    function validateStep1() {
+      let valid = true;
+      const usernameError = document.getElementById('username-error');
+      const emailError = document.getElementById('email-error');
+      const passwordError = document.getElementById('password-error');
+      const confirmPasswordError = document.getElementById('confirmPassword-error');
+
+      usernameError.classList.add('hidden');
+      emailError.classList.add('hidden');
+      passwordError.classList.add('hidden');
+      confirmPasswordError.classList.add('hidden');
+
+      if (!formData.username || formData.username.length < 3) {
+        usernameError.textContent = 'اسم المستخدم يجب أن يكون 3 أحرف على الأقل';
+        usernameError.classList.remove('hidden');
+        document.getElementById('username').classList.add('shake');
+        setTimeout(() => document.getElementById('username').classList.remove('shake'), 300);
+        valid = false;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!formData.email || !emailRegex.test(formData.email)) {
+        emailError.textContent = 'البريد الإلكتروني غير صحيح';
+        emailError.classList.remove('hidden');
+        document.getElementById('email').classList.add('shake');
+        setTimeout(() => document.getElementById('email').classList.remove('shake'), 300);
+        valid = false;
+      }
+
+      if (!formData.password || formData.password.length < 6) {
+        passwordError.textContent = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+        passwordError.classList.remove('hidden');
+        document.getElementById('password').classList.add('shake');
+        setTimeout(() => document.getElementById('password').classList.remove('shake'), 300);
+        valid = false;
+      }
+
+      if (formData.password !== formData.confirmPassword) {
+        confirmPasswordError.textContent = 'كلمة المرور غير متطابقة';
+        confirmPasswordError.classList.remove('hidden');
+        document.getElementById('confirmPassword').classList.add('shake');
+        setTimeout(() => document.getElementById('confirmPassword').classList.remove('shake'), 300);
+        valid = false;
+      }
+
+      return valid;
+    }
+
+    // Select avatar
+    window.selectAvatar = function(id) {
+      formData.avatar = id;
+      formData.uploadedAvatar = null;
+      renderStep();
+    };
+
+    // Toggle follow
+    window.toggleFollow = function(id) {
+      const index = formData.followedCreators.indexOf(id);
+      if (index > -1) {
+        formData.followedCreators.splice(index, 1);
+      } else {
+        formData.followedCreators.push(id);
+      }
+      renderStep();
+    };
+
+    // Filter creators
+    window.filterCreators = function(category) {
+      const filtered = category === 'all' 
+        ? mockCreators 
+        : mockCreators.filter(c => c.category === category);
+      renderCreatorsList(filtered);
+    };
+
+    // Render creators list
+    function renderCreatorsList(creators) {
+      const list = document.getElementById('creators-list');
+      list.innerHTML = creators.map((creator, i) => `
+        <div class="creator-card stagger-item glass rounded-xl p-4 flex items-center gap-4" style="animation-delay: ${i * 0.1}s">
+          <div class="text-4xl">${creator.avatar}</div>
+          <div class="flex-1">
+            <h3 class="text-white font-bold">${creator.name}</h3>
+            <p class="text-white text-opacity-70 text-sm">${creator.bio}</p>
+            <p class="text-pink-300 text-xs">${creator.followers} متابع</p>
+          </div>
+          <button onclick="toggleFollow(${creator.id})" 
+            class="ripple px-4 py-2 rounded-full text-sm font-bold transition-all ${formData.followedCreators.includes(creator.id) ? 'bg-white text-purple-600' : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'}">
+            ${formData.followedCreators.includes(creator.id) ? 'متابع' : 'متابعة'}
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Toggle genre
+    window.toggleGenre = function(genre) {
+      const index = formData.selectedGenres.indexOf(genre);
+      if (index > -1) {
+        formData.selectedGenres.splice(index, 1);
+      } else {
+        formData.selectedGenres.push(genre);
+      }
+      renderStep();
+    };
+
+    // Toggle content type
+    window.toggleContentType = function(type) {
+      const index = formData.selectedContentTypes.indexOf(type);
+      if (index > -1) {
+        formData.selectedContentTypes.splice(index, 1);
+      } else {
+        formData.selectedContentTypes.push(type);
+      }
+      renderStep();
+    };
+
+    // Navigation
+    document.getElementById('prev-btn').addEventListener('click', () => {
+      if (currentStep > 0) {
+        currentStep--;
+        renderStepper();
+        renderStep();
+        updateButtons();
+        updateProgress();
+      }
+    });
+
+    document.getElementById('next-btn').addEventListener('click', () => {
+      if (currentStep === 0 && !validateStep1()) {
+        return;
+      }
+
+      if (currentStep < steps.length - 1) {
+        currentStep++;
+        renderStepper();
+        renderStep();
+        updateButtons();
+        updateProgress();
+      } else {
+        showSuccessScreen();
+      }
+    });
+
+    // Update buttons
+    function updateButtons() {
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+
+      prevBtn.disabled = currentStep === 0;
+      nextBtn.textContent = currentStep === steps.length - 1 ? 'إنشاء الحساب' : 'التالي';
+    }
+
+    // Show success screen
+    function showSuccessScreen() {
+      const container = document.getElementById('step-container');
+      container.innerHTML = `
+        <div class="text-center py-8">
+          <div class="text-8xl mb-6 animate-bounce">🎉</div>
+          <h2 class="text-3xl font-bold text-white mb-4">تم إنشاء حسابك بنجاح!</h2>
+          <p class="text-white text-opacity-90 mb-8">مرحباً بك في عائلتنا يا ${formData.username}! 🌸</p>
+          
+          <div class="glass rounded-2xl p-6 mb-6 success-glow">
+            <p class="text-white mb-4">لقد اخترت:</p>
+            <div class="space-y-2 text-white text-opacity-80">
+              <p>✨ ${formData.followedCreators.length} مبدعين متابعين</p>
+              <p>💖 ${formData.selectedGenres.length} تصنيفات مفضلة</p>
+              <p>📚 ${formData.selectedContentTypes.length} أنواع محتوى</p>
+            </div>
+          </div>
+
+          <button onclick="goToDashboard()" class="ripple px-8 py-4 rounded-full text-white font-bold bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 transition-all duration-300 shadow-lg">
+            انتقل إلى لوحة التحكم
+          </button>
+        </div>
+      `;
+
+      // Create confetti
+      createConfetti();
+      
+      // Hide navigation buttons
+      document.getElementById('prev-btn').classList.add('hidden');
+      document.getElementById('next-btn').classList.add('hidden');
+    }
+
+    // Create confetti effect
+    function createConfetti() {
+      const colors = ['#ff6b9d', '#c44569', '#ffa502', '#ff6348', '#a29bfe', '#6c5ce7'];
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 2 + 's';
+        document.body.appendChild(confetti);
+        
+        setTimeout(() => confetti.remove(), 3000);
+      }
+    }
+
+    // Go to dashboard (mock)
+    window.goToDashboard = function() {
+      alert('🎊 مبروك! سيتم الانتقال إلى لوحة التحكم...');
+      location.reload();
+    };
+
+    // Initialize app
+    init();
+  </script>
+</body>
+</html>

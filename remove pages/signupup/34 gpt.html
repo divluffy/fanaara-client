@@ -1,0 +1,2225 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>Ink Registry — تفعيل التقنية</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          boxShadow: {
+            ink: "0 30px 80px rgba(0,0,0,.55)",
+            aura: "0 0 0 1px rgba(148,163,184,.12), 0 0 40px rgba(34,211,238,.10), 0 0 120px rgba(168,85,247,.08)"
+          },
+          borderRadius: {
+            xl2: "1.25rem"
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --bg0:#070A10;
+      --bg1:#0B1020;
+      --ink:#0b1223;
+      --paper:#E9E2D6;
+      --paper2:#D9D1C5;
+      --slate:#94a3b8;
+      --a0:#22d3ee;
+      --a1:#a855f7;
+      --a2:#60a5fa;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+    }
+
+    /* ---------- Backdrop: Night city + cursed aura + noise + scribbles ---------- */
+    body{
+      background: radial-gradient(1000px 700px at 70% 20%, rgba(168,85,247,.15), transparent 55%),
+                  radial-gradient(900px 650px at 35% 55%, rgba(34,211,238,.12), transparent 60%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+    .backdrop{
+      position:fixed; inset:0;
+      pointer-events:none;
+      z-index:-10;
+    }
+    /* Skyline silhouette (CSS only) */
+    .skyline{
+      position:absolute; inset:auto 0 0 0; height:34vh;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.65)),
+        repeating-linear-gradient(90deg,
+          rgba(2,6,23,.95) 0 26px, rgba(2,6,23,.75) 26px 34px,
+          rgba(2,6,23,.92) 34px 60px, rgba(2,6,23,.80) 60px 74px
+        );
+      mask-image: linear-gradient(180deg, transparent 0%, black 25%, black 100%);
+      filter: blur(.2px);
+      opacity:.85;
+    }
+    /* Scribble ink layer via SVG data-uri */
+    .scribbles{
+      position:absolute; inset:0;
+      opacity:.22;
+      mix-blend-mode: screen;
+      background-size: 520px 520px;
+      background-repeat: repeat;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520' viewBox='0 0 520 520'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2322d3ee' stop-opacity='.35'/%3E%3Cstop offset='1' stop-color='%23a855f7' stop-opacity='.25'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg fill='none' stroke='url(%23g)' stroke-width='1.2' stroke-linecap='round' stroke-opacity='.65'%3E%3Cpath d='M25 90 C140 10, 240 170, 360 80 S495 120, 500 240'/%3E%3Cpath d='M40 300 C160 200, 220 420, 360 320 S470 280, 490 420'/%3E%3Cpath d='M60 200 C120 260, 220 120, 300 210 S420 340, 500 210'/%3E%3Cpath d='M20 420 C120 380, 170 500, 300 460 S420 420, 510 480'/%3E%3Cpath d='M110 30 C150 130, 70 150, 140 250 S260 350, 200 520'/%3E%3Cpath d='M380 0 C340 140, 470 170, 390 280 S270 420, 420 520'/%3E%3Cpath d='M0 140 C110 160, 150 60, 240 120 S360 220, 520 150'/%3E%3Cpath d='M0 260 C120 280, 180 220, 260 260 S360 330, 520 290'/%3E%3C/g%3E%3Cg fill='none' stroke='%23e2e8f0' stroke-opacity='.08'%3E%3Cpath d='M10 10 H510 V510 H10 Z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    /* Static noise overlay */
+    .noise{
+      position:absolute; inset:0;
+      opacity:.10;
+      mix-blend-mode: overlay;
+      background-size: 240px 240px;
+      background-repeat: repeat;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+    }
+    /* Big aura bloom */
+    .aura{
+      position:absolute; inset:-20%;
+      background:
+        radial-gradient(closest-side at 30% 30%, rgba(34,211,238,.16), transparent 65%),
+        radial-gradient(closest-side at 70% 35%, rgba(168,85,247,.16), transparent 68%),
+        radial-gradient(closest-side at 55% 75%, rgba(96,165,250,.12), transparent 70%);
+      filter: blur(18px) saturate(1.2);
+      animation: auraDrift 12s ease-in-out infinite;
+      opacity:.9;
+    }
+    @keyframes auraDrift{
+      0%,100%{ transform: translate3d(0,0,0) scale(1); }
+      50%{ transform: translate3d(1.5%, -1.2%, 0) scale(1.03); }
+    }
+
+    /* Floating talisman papers */
+    .papers{ position:absolute; inset:0; }
+    .paper{
+      position:absolute;
+      width: 150px; height: 200px;
+      border-radius: 14px 14px 18px 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.02)),
+        radial-gradient(140px 120px at 40% 30%, rgba(255,255,255,.08), transparent 55%),
+        linear-gradient(180deg, rgba(233,226,214,.06), rgba(217,209,197,.02));
+      border: 1px solid rgba(148,163,184,.12);
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      backdrop-filter: blur(2px);
+      transform: rotate(var(--r,0deg));
+      opacity: .75;
+      animation: floaty var(--d,10s) ease-in-out infinite;
+      overflow:hidden;
+    }
+    .paper:before{
+      content:"";
+      position:absolute; inset:10px 10px 12px 10px;
+      border-radius: 10px;
+      background:
+        linear-gradient(90deg, rgba(34,211,238,.08), rgba(168,85,247,.06)),
+        repeating-linear-gradient(180deg,
+          rgba(226,232,240,.12) 0 2px,
+          rgba(226,232,240,0) 2px 10px
+        );
+      mask-image: radial-gradient(120px 140px at 50% 45%, black 35%, transparent 74%);
+      opacity:.9;
+    }
+    .paper:after{
+      content:"";
+      position:absolute; left:12px; right:12px; top:18px; bottom:18px;
+      background:
+        radial-gradient(10px 10px at 20% 20%, rgba(34,211,238,.25), transparent 70%),
+        radial-gradient(10px 10px at 80% 35%, rgba(168,85,247,.22), transparent 70%),
+        radial-gradient(12px 12px at 45% 70%, rgba(96,165,250,.20), transparent 70%);
+      filter: blur(.2px);
+      opacity:.7;
+      mix-blend-mode: screen;
+    }
+    @keyframes floaty{
+      0%,100%{ transform: translate3d(0,0,0) rotate(var(--r,0deg)); }
+      50%{ transform: translate3d(0, -16px, 0) rotate(calc(var(--r,0deg) + 1.2deg)); }
+    }
+
+    /* ---------- UI micro-interactions ---------- */
+    .ink-glitch{
+      animation: inkGlitch 260ms ease-out both;
+    }
+    @keyframes inkGlitch{
+      0%{ filter: brightness(1) saturate(1); transform: translate3d(0,0,0); }
+      35%{ filter: brightness(1.08) saturate(1.2); transform: translate3d(-1px,0,0); }
+      65%{ filter: brightness(.98) saturate(1.05); transform: translate3d(1px,-1px,0); }
+      100%{ filter: brightness(1) saturate(1); transform: translate3d(0,0,0); }
+    }
+
+    .peel-in{
+      transform-origin: top center;
+      animation: peelIn 360ms cubic-bezier(.2,.8,.2,1) both;
+    }
+    @keyframes peelIn{
+      0%{ opacity:0; transform: translateY(-6px) rotateX(10deg); clip-path: polygon(0 0, 100% 0, 100% 4%, 0 10%); }
+      65%{ opacity:1; transform: translateY(0) rotateX(0deg); clip-path: polygon(0 0, 100% 0, 100% 98%, 0 92%); }
+      100%{ opacity:1; transform: translateY(0) rotateX(0deg); clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+    }
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      *{ animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+      .aura{ display:none; }
+    }
+
+    /* Arabic readability */
+    body{
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Tahoma, Arial, "Noto Sans Arabic", sans-serif;
+      letter-spacing: .01em;
+    }
+    .muted{ color: rgba(226,232,240,.68); }
+    .ring-soft:focus{
+      outline:none;
+      box-shadow: 0 0 0 1px rgba(148,163,184,.18), 0 0 0 4px rgba(34,211,238,.12);
+      border-color: rgba(34,211,238,.35);
+    }
+
+    /* Avatar HUD frame */
+    .hud{
+      position:absolute; inset:0;
+      pointer-events:none;
+      border-radius: 18px;
+      overflow:hidden;
+    }
+    .hud:before{
+      content:"";
+      position:absolute; inset:10px;
+      border-radius: 14px;
+      border: 1px dashed rgba(148,163,184,.22);
+      mask-image: radial-gradient(220px 220px at 50% 45%, black 55%, transparent 80%);
+      opacity:.9;
+    }
+    .hud:after{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(120px 120px at 15% 18%, rgba(34,211,238,.12), transparent 65%),
+        radial-gradient(140px 140px at 85% 30%, rgba(168,85,247,.10), transparent 65%),
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0));
+      mix-blend-mode: screen;
+      opacity:.9;
+    }
+
+    .aura-on{
+      position:relative;
+    }
+    .aura-on:before{
+      content:"";
+      position:absolute;
+      inset:-16px;
+      border-radius: 24px;
+      background:
+        radial-gradient(closest-side at 50% 50%, rgba(34,211,238,.22), transparent 70%),
+        radial-gradient(closest-side at 30% 40%, rgba(168,85,247,.20), transparent 70%),
+        radial-gradient(closest-side at 70% 55%, rgba(96,165,250,.16), transparent 72%);
+      filter: blur(10px);
+      opacity:.95;
+      animation: auraPulse 1.4s ease-in-out infinite;
+      z-index:0;
+    }
+    @keyframes auraPulse{
+      0%,100%{ transform: scale(1); opacity:.85; }
+      50%{ transform: scale(1.03); opacity:1; }
+    }
+
+    /* Scrollbar subtle (optional) */
+    ::-webkit-scrollbar{ width: 10px; height:10px; }
+    ::-webkit-scrollbar-thumb{ background: rgba(148,163,184,.18); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover{ background: rgba(148,163,184,.26); }
+
+    /* Tiny badge pulse (for "Quick finish") */
+    .pulse-badge{ animation: pulseBadge 1.2s ease-in-out infinite; }
+    @keyframes pulseBadge{
+      0%,100%{ transform: translateY(0); opacity:.95; }
+      50%{ transform: translateY(-1px); opacity:1; }
+    }
+  </style>
+</head>
+
+<body class="text-slate-100">
+  <!-- Backdrop -->
+  <div class="backdrop" aria-hidden="true">
+    <div class="aura"></div>
+    <div class="scribbles"></div>
+    <div class="noise"></div>
+
+    <div class="papers">
+      <div class="paper" style="--r:-8deg; --d:10s; left:7%; top:10%;"></div>
+      <div class="paper" style="--r:10deg; --d:12s; left:18%; top:56%; width:130px; height:175px;"></div>
+      <div class="paper" style="--r:-14deg; --d:11s; left:40%; top:16%; width:160px; height:210px;"></div>
+      <div class="paper" style="--r:7deg; --d:13s; left:62%; top:8%; width:140px; height:190px;"></div>
+      <div class="paper" style="--r:-6deg; --d:9s; left:74%; top:54%; width:150px; height:200px;"></div>
+      <div class="paper" style="--r:12deg; --d:14s; left:86%; top:22%; width:120px; height:165px;"></div>
+      <div class="paper" style="--r:-11deg; --d:12s; left:52%; top:62%; width:135px; height:180px;"></div>
+      <div class="paper" style="--r:5deg; --d:10s; left:30%; top:78%; width:120px; height:160px;"></div>
+    </div>
+
+    <div class="skyline"></div>
+  </div>
+
+  <!-- App -->
+  <div class="min-h-screen">
+    <!-- Header -->
+    <header class="sticky top-0 z-30">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 pt-4 pb-3">
+        <div class="rounded-xl2 border border-white/10 bg-slate-950/55 backdrop-blur-md shadow-ink">
+          <div class="flex items-center justify-between px-4 sm:px-6 py-4">
+            <div class="flex items-center gap-3">
+              <div class="relative">
+                <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-400/20 via-slate-900 to-fuchsia-500/15 border border-white/10 shadow-aura"></div>
+                <div class="absolute -bottom-1 -left-1 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-slate-950/60 text-slate-200">
+                  ختم
+                </div>
+              </div>
+              <div>
+                <div class="text-base sm:text-lg font-semibold tracking-tight">
+                  Ink Registry
+                </div>
+                <div class="text-xs sm:text-sm muted">
+                  تسجيل سريع — طلاسم/حبر/هالة ليلية (بدون شعارات أو شخصيات)
+                </div>
+              </div>
+            </div>
+
+            <div class="hidden sm:flex items-center gap-3">
+              <div id="progressPill" class="px-3 py-1.5 rounded-full border border-white/10 bg-slate-950/40 text-xs muted">
+                <span class="text-slate-100">التقدّم:</span>
+                <span id="progressText">0%</span>
+              </div>
+              <button id="btnQuickFinishTop" class="hidden px-3 py-1.5 rounded-full text-xs font-semibold border border-emerald-400/20 bg-emerald-400/10 hover:bg-emerald-400/15 transition pulse-badge">
+                إنهاء سريع ✦
+              </button>
+            </div>
+          </div>
+
+          <div class="px-4 sm:px-6 pb-4">
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-slate-950/35">
+                <span class="h-1.5 w-1.5 rounded-full bg-cyan-400/80"></span>
+                وحدات قابلة للطي
+              </span>
+              <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-slate-950/35">
+                <span class="h-1.5 w-1.5 rounded-full bg-fuchsia-400/80"></span>
+                Avatar + قص/تكبير/سحب
+              </span>
+              <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-slate-950/35">
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-300/80"></span>
+                RTL + prefers-reduced-motion
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="mx-auto max-w-6xl px-4 sm:px-6 pb-28 lg:pb-10">
+      <div class="grid lg:grid-cols-12 gap-5 lg:gap-6">
+        <!-- Left: Preview / Success -->
+        <section class="lg:col-span-5">
+          <div class="lg:sticky lg:top-[110px] space-y-5">
+            <!-- Preview card -->
+            <div class="rounded-xl2 border border-white/10 bg-slate-950/55 backdrop-blur-md shadow-ink overflow-hidden">
+              <div class="px-4 sm:px-6 py-5">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <h2 class="text-lg sm:text-xl font-semibold tracking-tight">بطاقة الملف</h2>
+                    <p class="text-xs sm:text-sm muted mt-1">
+                      تحديث مباشر — نفسّرها كـ “طاقة مُفعّلة” بشكل هادئ.
+                    </p>
+                  </div>
+                  <div class="text-xs px-3 py-1.5 rounded-full border border-white/10 bg-slate-950/45 muted">
+                    معاينة
+                  </div>
+                </div>
+
+                <div class="mt-5 grid grid-cols-12 gap-4 items-stretch">
+                  <div class="col-span-5">
+                    <div id="previewAuraWrap" class="relative rounded-xl2 border border-white/10 bg-slate-950/40 overflow-hidden">
+                      <div class="absolute inset-0 opacity-70"
+                           style="background:
+                            radial-gradient(140px 120px at 30% 25%, rgba(34,211,238,.12), transparent 60%),
+                            radial-gradient(160px 140px at 70% 55%, rgba(168,85,247,.10), transparent 65%),
+                            linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));">
+                      </div>
+                      <div class="relative p-3">
+                        <div class="relative rounded-xl bg-slate-950/65 border border-white/10 overflow-hidden">
+                          <div class="absolute inset-0 opacity-60"
+                               style="background:
+                                radial-gradient(90px 90px at 25% 20%, rgba(34,211,238,.10), transparent 62%),
+                                radial-gradient(100px 100px at 80% 35%, rgba(168,85,247,.10), transparent 62%);">
+                          </div>
+
+                          <!-- Preview image -->
+                          <div class="relative p-3">
+                            <img id="previewAvatarImg" alt="Avatar Preview" class="w-full aspect-square rounded-lg border border-white/10 bg-slate-900/40 object-cover" />
+                            <div class="hud"></div>
+                          </div>
+                        </div>
+
+                        <div class="mt-3 flex items-center justify-between gap-2">
+                          <div class="min-w-0">
+                            <div class="text-sm font-semibold truncate" id="previewName">—</div>
+                            <div class="text-xs muted truncate" id="previewHandle">@—</div>
+                          </div>
+                          <div class="flex items-center gap-1">
+                            <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] border border-white/10 bg-slate-950/45">
+                              <span class="h-1.5 w-1.5 rounded-full bg-cyan-400/80"></span>
+                              <span id="previewGrade">Novice</span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-3 rounded-xl border border-white/10 bg-slate-950/35 p-3">
+                      <div class="text-xs muted">ختم المعاينة</div>
+                      <div class="mt-2 flex items-center justify-between">
+                        <div class="text-xs">
+                          <span class="muted">Code:</span>
+                          <span id="sealCode" class="font-mono text-slate-100"></span>
+                        </div>
+                        <button id="btnReseedSeal" class="text-xs px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition">
+                          إعادة ختم
+                        </button>
+                      </div>
+                      <div class="mt-2">
+                        <div id="sealSvgWrap" class="w-full aspect-[3/1] rounded-lg border border-white/10 bg-slate-950/45 flex items-center justify-center overflow-hidden"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-span-7">
+                    <div class="rounded-xl border border-white/10 bg-slate-950/40 p-4 sm:p-5 h-full">
+                      <div class="flex items-center justify-between">
+                        <div class="text-sm font-semibold">حالة التفعيل</div>
+                        <div id="reqBadge" class="text-xs px-2.5 py-1 rounded-full border border-white/10 bg-slate-950/45 muted">
+                          المطلوب: <span id="reqStatus">غير مكتمل</span>
+                        </div>
+                      </div>
+
+                      <div class="mt-4 space-y-3">
+                        <div class="flex items-start gap-3">
+                          <div id="dotAccount" class="mt-1.5 h-2.5 w-2.5 rounded-full bg-white/10"></div>
+                          <div class="min-w-0">
+                            <div class="text-sm font-semibold">Account</div>
+                            <div class="text-xs muted">اسم + بريد + كلمة مرور</div>
+                          </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                          <div id="dotAvatar" class="mt-1.5 h-2.5 w-2.5 rounded-full bg-white/10"></div>
+                          <div class="min-w-0">
+                            <div class="text-sm font-semibold">Avatar</div>
+                            <div class="text-xs muted">اختيار مقترح أو رفع مخصص مع قص</div>
+                          </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                          <div id="dotSocial" class="mt-1.5 h-2.5 w-2.5 rounded-full bg-white/10"></div>
+                          <div class="min-w-0">
+                            <div class="text-sm font-semibold">Social/Interests</div>
+                            <div class="text-xs muted">اختياري — متابعة/اهتمامات/Grade</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="mt-5">
+                        <div class="rounded-xl border border-white/10 bg-gradient-to-br from-cyan-400/10 via-slate-950/40 to-fuchsia-500/10 p-4">
+                          <div class="text-sm font-semibold">مختصر سريع</div>
+                          <div class="mt-2 text-xs muted leading-relaxed">
+                            عند اكتمال المطلوبين، يظهر زر <span class="text-slate-100 font-semibold">“إنهاء سريع”</span>.
+                            الوحدات قابلة للطي لتقليل طول التسجيل.
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="mt-4">
+                        <button id="btnFinishFromPreview"
+                                class="w-full hidden items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold border border-emerald-400/25 bg-emerald-400/10 hover:bg-emerald-400/15 transition">
+                          تفعيل التقنية الآن
+                          <span class="text-emerald-200">✦</span>
+                        </button>
+                        <div id="finishHint" class="text-xs muted mt-2">
+                          أكمل Account و Avatar لإتاحة التفعيل.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="border-t border-white/10 bg-slate-950/35 px-4 sm:px-6 py-3">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs muted">
+                  <span>Transitions: Ink glitch + Talisman peel (لطيف)</span>
+                  <span>لا صور خارجية — كل شيء SVG/CSS/Canvas</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mini tips -->
+            <div class="rounded-xl2 border border-white/10 bg-slate-950/45 backdrop-blur-md p-4 sm:p-5">
+              <div class="text-sm font-semibold">ملاحظة واجهة</div>
+              <div class="mt-2 text-xs muted leading-relaxed">
+                يمكنك اختيار Avatar مقترح (SVG) أو رفع صورة ثم قص/تكبير/سحب. جرّب تفعيل “Cursed Aura” لإضافة توهج متحرك حول الأفاتار.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right: Modules -->
+        <section class="lg:col-span-7">
+          <div class="rounded-xl2 border border-white/10 bg-slate-950/55 backdrop-blur-md shadow-ink overflow-hidden">
+            <div class="px-4 sm:px-6 py-5">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <h1 class="text-xl sm:text-2xl font-semibold tracking-tight">تسجيل بلمسة “حبر/طلاسم”</h1>
+                  <p class="text-xs sm:text-sm muted mt-1">قسّمنا التسجيل إلى وحدات قابلة للطي لتقليل الطول.</p>
+                </div>
+                <div class="hidden sm:flex items-center gap-2">
+                  <button id="btnCollapseAll" class="px-3 py-2 rounded-lg text-xs border border-white/10 bg-white/5 hover:bg-white/10 transition">
+                    طيّ الكل
+                  </button>
+                  <button id="btnExpandReq" class="px-3 py-2 rounded-lg text-xs border border-cyan-400/20 bg-cyan-400/10 hover:bg-cyan-400/15 transition">
+                    فتح المطلوب
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="px-3 sm:px-4 pb-6">
+              <!-- Accordion -->
+              <div class="space-y-3">
+                <!-- Module: Account (required) -->
+                <article class="rounded-xl border border-white/10 bg-slate-950/35 overflow-hidden" data-module="account">
+                  <button class="w-full text-right px-4 sm:px-5 py-4 flex items-center justify-between gap-3 hover:bg-white/5 transition"
+                          type="button" data-acc-toggle>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm sm:text-base font-semibold">Account</span>
+                        <span class="text-[11px] px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/10 text-amber-200">مطلوب</span>
+                        <span id="statusAccount" class="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-slate-950/45 muted">غير مكتمل</span>
+                      </div>
+                      <div class="text-xs muted mt-1 truncate">بيانات أساسية — لا نطيل.</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs muted" id="accountSummary">—</span>
+                      <span class="text-slate-200/80">▾</span>
+                    </div>
+                  </button>
+
+                  <div class="px-4 sm:px-5 pb-5 hidden" data-acc-panel>
+                    <div class="peel-in">
+                      <div class="grid sm:grid-cols-2 gap-3">
+                        <div>
+                          <label class="text-xs muted" for="inDisplay">الاسم الظاهر</label>
+                          <input id="inDisplay" class="mt-1 w-full px-3 py-2.5 rounded-xl border border-white/10 bg-slate-950/55 ring-soft placeholder:text-slate-500"
+                                 placeholder="مثال: dev.luffy" autocomplete="nickname" />
+                          <p class="mt-1 text-[11px] text-rose-200/80 hidden" id="errDisplay">مطلوب.</p>
+                        </div>
+
+                        <div>
+                          <label class="text-xs muted" for="inHandle">المعرّف</label>
+                          <div class="mt-1 flex items-center gap-2">
+                            <span class="px-2.5 py-2.5 rounded-xl border border-white/10 bg-slate-950/55 text-xs muted">@</span>
+                            <input id="inHandle" class="w-full px-3 py-2.5 rounded-xl border border-white/10 bg-slate-950/55 ring-soft placeholder:text-slate-500"
+                                   placeholder="handle" autocomplete="username" />
+                          </div>
+                          <p class="mt-1 text-[11px] text-rose-200/80 hidden" id="errHandle">مطلوب (حروف/أرقام/underscore).</p>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                          <label class="text-xs muted" for="inEmail">البريد</label>
+                          <input id="inEmail" type="email" class="mt-1 w-full px-3 py-2.5 rounded-xl border border-white/10 bg-slate-950/55 ring-soft placeholder:text-slate-500"
+                                 placeholder="you@domain.com" autocomplete="email" />
+                          <p class="mt-1 text-[11px] text-rose-200/80 hidden" id="errEmail">بريد غير صالح.</p>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                          <label class="text-xs muted" for="inPass">كلمة المرور</label>
+                          <div class="mt-1 relative">
+                            <input id="inPass" type="password" class="w-full px-3 py-2.5 rounded-xl border border-white/10 bg-slate-950/55 ring-soft placeholder:text-slate-500"
+                                   placeholder="••••••••" autocomplete="new-password" />
+                            <button id="btnTogglePass" type="button"
+                                    class="absolute left-2 top-1/2 -translate-y-1/2 text-xs px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition">
+                              إظهار
+                            </button>
+                          </div>
+                          <div class="mt-2 flex items-center justify-between gap-2">
+                            <p class="text-[11px] muted">٨+ أحرف — أضف رقمًا لثبات أفضل.</p>
+                            <p class="text-[11px] text-rose-200/80 hidden" id="errPass">مطلوب (٨+).</p>
+                          </div>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                          <label class="flex items-center gap-2 text-xs muted select-none">
+                            <input id="inTerms" type="checkbox" class="accent-cyan-400" />
+                            أوافق على “ميثاق الحبر” (شكل UI فقط)
+                          </label>
+                          <p class="mt-1 text-[11px] text-rose-200/80 hidden" id="errTerms">مطلوب.</p>
+                        </div>
+                      </div>
+
+                      <div class="mt-4 flex flex-wrap items-center gap-2">
+                        <button type="button" data-next="avatar"
+                                class="px-4 py-2.5 rounded-xl font-semibold border border-cyan-400/20 bg-cyan-400/10 hover:bg-cyan-400/15 transition">
+                          التالي: Avatar
+                        </button>
+                        <button type="button" data-mark="account"
+                                class="px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition">
+                          حفظ
+                        </button>
+                        <span id="accountInlineStatus" class="text-xs muted"></span>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+
+                <!-- Module: Avatar (required) -->
+                <article class="rounded-xl border border-white/10 bg-slate-950/35 overflow-hidden" data-module="avatar">
+                  <button class="w-full text-right px-4 sm:px-5 py-4 flex items-center justify-between gap-3 hover:bg-white/5 transition"
+                          type="button" data-acc-toggle>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm sm:text-base font-semibold">Avatar</span>
+                        <span class="text-[11px] px-2 py-0.5 rounded-full border border-amber-400/20 bg-amber-400/10 text-amber-200">مطلوب</span>
+                        <span id="statusAvatar" class="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-slate-950/45 muted">غير مكتمل</span>
+                      </div>
+                      <div class="text-xs muted mt-1 truncate">أقنعة/ملامح SVG + رفع مخصص مع قص.</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs muted" id="avatarSummary">—</span>
+                      <span class="text-slate-200/80">▾</span>
+                    </div>
+                  </button>
+
+                  <div class="px-4 sm:px-5 pb-5 hidden" data-acc-panel>
+                    <div class="peel-in">
+                      <div class="grid lg:grid-cols-12 gap-4">
+                        <!-- Suggested -->
+                        <div class="lg:col-span-7">
+                          <div class="flex items-center justify-between gap-2">
+                            <div>
+                              <div class="text-sm font-semibold">Suggested — Talisman Masks / Sorcerer Looks</div>
+                              <div class="text-xs muted mt-1">30 خيار تجريدي بختم عام (بدون رموز معروفة).</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                              <button id="btnGenSet" type="button"
+                                      class="px-3 py-2 rounded-lg text-xs font-semibold border border-fuchsia-400/20 bg-fuchsia-400/10 hover:bg-fuchsia-400/15 transition">
+                                Generate Set
+                              </button>
+                              <button id="btnShowAll" type="button"
+                                      class="px-3 py-2 rounded-lg text-xs border border-white/10 bg-white/5 hover:bg-white/10 transition">
+                                عرض الكل
+                              </button>
+                            </div>
+                          </div>
+
+                          <div class="mt-3 rounded-xl border border-white/10 bg-slate-950/40 p-3">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                              <div class="text-xs muted">
+                                <span class="text-slate-100 font-semibold" id="setLabel">مجموعة مختارة</span>
+                                <span class="muted">·</span>
+                                <span id="favCount">0</span> مفضلة
+                              </div>
+                              <button id="btnRandomAccent" type="button"
+                                      class="text-xs px-3 py-2 rounded-lg border border-cyan-400/20 bg-cyan-400/10 hover:bg-cyan-400/15 transition">
+                                تبديل الحبر
+                              </button>
+                            </div>
+
+                            <div id="svgGrid" class="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2"></div>
+
+                            <div class="mt-3 flex items-center justify-between gap-2">
+                              <div class="text-xs muted">
+                                اختر واحدًا أو ارفع صورة. (التحديد هنا يكفي كمطلوب)
+                              </div>
+                              <button id="btnUseFavorite" type="button"
+                                      class="text-xs px-3 py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition">
+                                استخدام أول مفضلة
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Custom Upload + Crop -->
+                        <div class="lg:col-span-5">
+                          <div class="text-sm font-semibold">Custom Upload</div>
+                          <div class="text-xs muted mt-1">قص + تكبير + سحب + HUD frame + خيار Cursed Aura.</div>
+
+                          <div class="mt-3 rounded-xl border border-white/10 bg-slate-950/40 p-3">
+                            <div class="flex items-center justify-between gap-2">
+                              <label class="text-xs px-3 py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition cursor-pointer">
+                                رفع صورة
+                                <input id="fileAvatar" type="file" accept="image/*" class="hidden" />
+                              </label>
+                              <button id="btnClearUpload" type="button"
+                                      class="text-xs px-3 py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition">
+                                مسح
+                              </button>
+                            </div>
+
+                            <div class="mt-3">
+                              <div id="cropWrap" class="relative rounded-xl2 border border-white/10 bg-slate-950/55 overflow-hidden">
+                                <div class="relative p-3">
+                                  <div id="cropAuraWrap" class="relative rounded-xl border border-white/10 bg-slate-950/55 overflow-hidden">
+                                    <canvas id="cropCanvas" width="256" height="256" class="w-full aspect-square block bg-slate-900/40"></canvas>
+                                    <div class="hud"></div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="mt-3 grid grid-cols-2 gap-2">
+                                <div class="col-span-2">
+                                  <label class="text-xs muted">Zoom</label>
+                                  <input id="zoomRange" type="range" min="1" max="3" step="0.01" value="1.2" class="w-full" />
+                                </div>
+                                <button id="btnResetCrop" type="button"
+                                        class="px-3 py-2 rounded-lg text-xs border border-white/10 bg-white/5 hover:bg-white/10 transition">
+                                  Reset
+                                </button>
+                                <label class="px-3 py-2 rounded-lg text-xs border border-cyan-400/20 bg-cyan-400/10 hover:bg-cyan-400/15 transition flex items-center gap-2 cursor-pointer select-none">
+                                  <input id="chkAura" type="checkbox" class="accent-cyan-400" />
+                                  Cursed Aura
+                                </label>
+                              </div>
+
+                              <div class="mt-3 flex items-center justify-between gap-2">
+                                <button id="btnCommitUpload" type="button"
+                                        class="px-4 py-2.5 rounded-xl font-semibold border border-emerald-400/20 bg-emerald-400/10 hover:bg-emerald-400/15 transition">
+                                  اعتماد الأفاتار
+                                </button>
+                                <span id="uploadHint" class="text-xs muted">اسحب داخل المربع لتعديل القص.</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="mt-3 rounded-xl border border-white/10 bg-slate-950/35 p-3">
+                            <div class="text-xs muted">ملاحظة</div>
+                            <div class="mt-1 text-xs muted leading-relaxed">
+                              إذا اخترت SVG من المقترحات، لا تحتاج رفعًا. إذا رفعت، اضغط “اعتماد الأفاتار”.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="mt-4 flex flex-wrap items-center gap-2">
+                        <button type="button" data-next="social"
+                                class="px-4 py-2.5 rounded-xl font-semibold border border-cyan-400/20 bg-cyan-400/10 hover:bg-cyan-400/15 transition">
+                          التالي: Social/Interests (اختياري)
+                        </button>
+                        <button type="button" data-mark="avatar"
+                                class="px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition">
+                          حفظ
+                        </button>
+                        <span id="avatarInlineStatus" class="text-xs muted"></span>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+
+                <!-- Module: Social / Interests (optional) -->
+                <article class="rounded-xl border border-white/10 bg-slate-950/35 overflow-hidden" data-module="social">
+                  <button class="w-full text-right px-4 sm:px-5 py-4 flex items-center justify-between gap-3 hover:bg-white/5 transition"
+                          type="button" data-acc-toggle>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm sm:text-base font-semibold">Social/Interests</span>
+                        <span class="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-slate-950/45 muted">اختياري</span>
+                        <span id="statusSocial" class="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-slate-950/45 muted">اختياري</span>
+                      </div>
+                      <div class="text-xs muted mt-1 truncate">Follow + اهتمامات + Top3 + Grade</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs muted" id="socialSummary">—</span>
+                      <span class="text-slate-200/80">▾</span>
+                    </div>
+                  </button>
+
+                  <div class="px-4 sm:px-5 pb-5 hidden" data-acc-panel>
+                    <div class="peel-in">
+                      <div class="grid lg:grid-cols-12 gap-4">
+                        <!-- Follow -->
+                        <div class="lg:col-span-6">
+                          <div class="text-sm font-semibold">Follow 2–3 creators (mock)</div>
+                          <div class="text-xs muted mt-1">اختيار بسيط لتغذية البداية.</div>
+
+                          <div class="mt-3 space-y-2" id="creatorList"></div>
+
+                          <div class="mt-3 text-xs muted">
+                            المتابعة المختارة: <span id="followCount" class="text-slate-100 font-semibold">0</span>
+                          </div>
+                        </div>
+
+                        <!-- Interests -->
+                        <div class="lg:col-span-6">
+                          <div class="flex items-center justify-between gap-2">
+                            <div>
+                              <div class="text-sm font-semibold">Interests</div>
+                              <div class="text-xs muted mt-1">Chips + بحث + Top3 ranking.</div>
+                            </div>
+                            <div class="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-slate-950/45 muted">
+                              Top3: <span id="top3Count">0</span>/3
+                            </div>
+                          </div>
+
+                          <div class="mt-3">
+                            <input id="interestSearch"
+                                   class="w-full px-3 py-2.5 rounded-xl border border-white/10 bg-slate-950/55 ring-soft placeholder:text-slate-500"
+                                   placeholder="ابحث: أكشن، شونن، فانتازيا..." />
+                          </div>
+
+                          <div class="mt-3 flex flex-wrap gap-2" id="interestChips"></div>
+
+                          <div class="mt-4 rounded-xl border border-white/10 bg-slate-950/40 p-3">
+                            <div class="text-xs muted">Top 3 — ترتيب الأختام</div>
+                            <div class="mt-2 grid grid-cols-3 gap-2" id="top3Slots"></div>
+                            <div class="mt-2 text-[11px] muted">
+                              اضغط شارة اهتمام لإضافتها لأول خانة فارغة. اضغط الخانة لإزالة.
+                            </div>
+                          </div>
+
+                          <div class="mt-4 rounded-xl border border-white/10 bg-slate-950/40 p-3">
+                            <div class="text-sm font-semibold">Grade</div>
+                            <div class="text-xs muted mt-1">UI فقط</div>
+                            <div class="mt-3 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Grade">
+                              <button type="button" class="gradeBtn px-3 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition text-sm" data-grade="Novice">Novice</button>
+                              <button type="button" class="gradeBtn px-3 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition text-sm" data-grade="Skilled">Skilled</button>
+                              <button type="button" class="gradeBtn px-3 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition text-sm" data-grade="Expert">Expert</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="mt-4 flex flex-wrap items-center gap-2">
+                        <button id="btnFinishOptional" type="button"
+                                class="px-4 py-2.5 rounded-xl font-semibold border border-emerald-400/20 bg-emerald-400/10 hover:bg-emerald-400/15 transition">
+                          تفعيل التقنية
+                        </button>
+                        <span class="text-xs muted">يمكنك التفعيل حتى بدون هذه الوحدة (اختياري).</span>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop sticky actions -->
+          <div class="hidden lg:block mt-5">
+            <div class="sticky top-[calc(110px+470px)] rounded-xl2 border border-white/10 bg-slate-950/55 backdrop-blur-md shadow-ink">
+              <div class="px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <div class="text-sm font-semibold">إجراءات</div>
+                  <div class="text-xs muted mt-1">
+                    المطلوب: Account + Avatar
+                    <span class="muted">·</span>
+                    <span id="deskReqState" class="text-slate-100">غير مكتمل</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button id="btnQuickFinishDesk"
+                          class="hidden px-4 py-2.5 rounded-xl font-semibold border border-emerald-400/25 bg-emerald-400/10 hover:bg-emerald-400/15 transition pulse-badge">
+                    إنهاء سريع ✦
+                  </button>
+                  <button id="btnFinishDesk"
+                          class="px-4 py-2.5 rounded-xl font-semibold border border-cyan-400/20 bg-cyan-400/10 hover:bg-cyan-400/15 transition">
+                    تفعيل
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Mobile sticky actions -->
+    <div class="lg:hidden fixed bottom-0 inset-x-0 z-40">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 pb-4">
+        <div class="rounded-xl2 border border-white/10 bg-slate-950/70 backdrop-blur-md shadow-ink">
+          <div class="px-4 py-3 flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <div class="text-xs muted">المطلوب</div>
+              <div id="mobReqState" class="text-sm font-semibold truncate">غير مكتمل</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnQuickFinishMobile"
+                      class="hidden px-3.5 py-2.5 rounded-xl text-sm font-semibold border border-emerald-400/25 bg-emerald-400/10 hover:bg-emerald-400/15 transition pulse-badge">
+                إنهاء سريع
+              </button>
+              <button id="btnFinishMobile"
+                      class="px-3.5 py-2.5 rounded-xl text-sm font-semibold border border-cyan-400/20 bg-cyan-400/10 hover:bg-cyan-400/15 transition">
+                تفعيل
+              </button>
+            </div>
+          </div>
+          <div class="px-4 pb-3">
+            <div class="h-1.5 rounded-full bg-white/5 overflow-hidden">
+              <div id="progressBar" class="h-full w-0 rounded-full bg-gradient-to-r from-cyan-400/70 via-sky-400/60 to-fuchsia-500/60"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-label="Technique Activated">
+      <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+      <div class="relative min-h-screen flex items-center justify-center p-4 sm:p-6">
+        <div class="w-full max-w-2xl rounded-xl2 border border-white/10 bg-slate-950/70 backdrop-blur-md shadow-ink overflow-hidden">
+          <div class="px-4 sm:px-6 py-5 border-b border-white/10 bg-gradient-to-br from-cyan-400/10 via-slate-950/45 to-fuchsia-500/10">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="text-xl sm:text-2xl font-semibold tracking-tight">Technique Activated</div>
+                <div class="text-xs sm:text-sm muted mt-1">تم تفعيل الختم الرقمي وبناء بطاقة الملف.</div>
+              </div>
+              <button id="btnCloseSuccess" class="px-3 py-2 rounded-lg text-xs border border-white/10 bg-white/5 hover:bg-white/10 transition">
+                إغلاق
+              </button>
+            </div>
+          </div>
+
+          <div class="p-4 sm:p-6">
+            <div class="grid sm:grid-cols-12 gap-4">
+              <div class="sm:col-span-5">
+                <div class="rounded-xl2 border border-white/10 bg-slate-950/55 p-3">
+                  <div class="text-xs muted">الختم</div>
+                  <div class="mt-2 w-full aspect-square rounded-xl border border-white/10 bg-slate-950/55 flex items-center justify-center overflow-hidden">
+                    <div id="successSeal" class="w-full h-full"></div>
+                  </div>
+                  <div class="mt-3 text-xs">
+                    <span class="muted">Code:</span>
+                    <span id="successCode" class="font-mono text-slate-100"></span>
+                  </div>
+                  <div class="mt-1 text-[11px] muted" id="successDate"></div>
+                </div>
+              </div>
+
+              <div class="sm:col-span-7">
+                <div class="rounded-xl2 border border-white/10 bg-slate-950/55 p-4 sm:p-5">
+                  <div class="flex items-center justify-between gap-2">
+                    <div>
+                      <div class="text-sm font-semibold">Profile Card</div>
+                      <div class="text-xs muted mt-1">نسخة نهائية بعد التفعيل</div>
+                    </div>
+                    <span class="text-[11px] px-2 py-0.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 text-emerald-200">
+                      Active
+                    </span>
+                  </div>
+
+                  <div class="mt-4 flex items-start gap-3">
+                    <div class="relative w-20 h-20 rounded-xl2 border border-white/10 bg-slate-900/40 overflow-hidden">
+                      <img id="successAvatar" class="w-full h-full object-cover" alt="Final Avatar" />
+                      <div class="hud"></div>
+                    </div>
+                    <div class="min-w-0">
+                      <div id="successName" class="text-base font-semibold truncate">—</div>
+                      <div id="successHandle" class="text-sm muted truncate">@—</div>
+                      <div class="mt-2 flex flex-wrap gap-2">
+                        <span class="text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-slate-950/45">
+                          Grade: <span id="successGrade" class="text-slate-100 font-semibold">Novice</span>
+                        </span>
+                        <span class="text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-slate-950/45">
+                          Follows: <span id="successFollows" class="text-slate-100 font-semibold">0</span>
+                        </span>
+                        <span class="text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-slate-950/45">
+                          Top3: <span id="successTop3" class="text-slate-100 font-semibold">—</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 rounded-xl border border-white/10 bg-slate-950/40 p-3">
+                    <div class="text-xs muted">رسالة قصيرة</div>
+                    <div class="mt-1 text-sm leading-relaxed">
+                      تم قفل إعداداتك بختم حبرٍ رقمي.
+                      <span class="muted">يمكنك تعديلها لاحقًا — هذا مجرد UI.</span>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 flex flex-wrap items-center gap-2">
+                    <button id="btnRestart" class="px-4 py-2.5 rounded-xl font-semibold border border-white/10 bg-white/5 hover:bg-white/10 transition">
+                      بدء من جديد
+                    </button>
+                    <button id="btnCloseSuccess2" class="px-4 py-2.5 rounded-xl font-semibold border border-cyan-400/20 bg-cyan-400/10 hover:bg-cyan-400/15 transition">
+                      إغلاق
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="border-t border-white/10 px-4 sm:px-6 py-3 bg-slate-950/45">
+            <div class="text-xs muted">
+              “Ink glitch minimal” + “Talisman peel” — باحترام prefers-reduced-motion.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* -----------------------------
+      Utilities
+    ------------------------------ */
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    function nowISO(){
+      const d = new Date();
+      return d.toISOString();
+    }
+    function safeHandle(s){
+      return (s||"")
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "_")
+        .replace(/[^\w]/g, "")
+        .slice(0, 24);
+    }
+    function isEmail(s){
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s||"").trim());
+    }
+    function isStrongPass(s){
+      return (s||"").length >= 8;
+    }
+    function prefersReducedMotion(){
+      return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+
+    /* -----------------------------
+      Seal (digital stamp) generator
+    ------------------------------ */
+    function randHex(n=8){
+      const chars = "0123456789ABCDEF";
+      let out = "";
+      crypto.getRandomValues(new Uint8Array(n)).forEach(v => out += chars[v % chars.length]);
+      return out;
+    }
+    function sealSVG(code){
+      // generic glyphs, no known symbols
+      const glyphs = "ZXCVBNMASDFGHJKLQWERTYUIOP1234567890";
+      let ring = "";
+      for(let i=0;i<34;i++){
+        ring += glyphs[(code.charCodeAt(i%code.length)+i*7) % glyphs.length] + " ";
+      }
+
+      const a = code.slice(0,4), b = code.slice(4,8);
+      const svg =
+`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="rgba(34,211,238,.85)"/>
+      <stop offset="1" stop-color="rgba(168,85,247,.85)"/>
+    </linearGradient>
+    <filter id="blur">
+      <feGaussianBlur stdDeviation="1.1"/>
+    </filter>
+  </defs>
+  <g opacity=".95">
+    <path d="M20 20 H300 V100 H20 Z" fill="rgba(2,6,23,.55)" stroke="rgba(226,232,240,.12)"/>
+    <g transform="translate(36,18)">
+      <g opacity=".9">
+        <circle cx="44" cy="42" r="30" fill="none" stroke="url(#g)" stroke-width="2.2"/>
+        <circle cx="44" cy="42" r="22" fill="none" stroke="rgba(226,232,240,.18)" stroke-width="1.2" stroke-dasharray="4 4"/>
+        <path d="M26 42 L62 42 M44 24 L44 60" stroke="rgba(226,232,240,.25)" stroke-width="1.2"/>
+        <circle cx="44" cy="42" r="3.2" fill="url(#g)"/>
+      </g>
+
+      <g transform="translate(98,0)">
+        <path d="M0 10 H152" stroke="rgba(226,232,240,.14)"/>
+        <path d="M0 74 H152" stroke="rgba(226,232,240,.14)"/>
+        <text x="0" y="36" fill="rgba(226,232,240,.88)" font-size="18" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">SEAL-${a}-${b}</text>
+        <text x="0" y="58" fill="rgba(148,163,184,.82)" font-size="10" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">${ring.trim()}</text>
+      </g>
+    </g>
+
+    <g opacity=".26" filter="url(#blur)">
+      <path d="M28 88 C80 60, 120 106, 168 78 S260 88, 292 64" fill="none" stroke="url(#g)" stroke-width="2.4"/>
+      <path d="M28 32 C92 20, 120 46, 176 30 S246 26, 292 44" fill="none" stroke="url(#g)" stroke-width="2"/>
+    </g>
+  </g>
+</svg>`;
+      return svg;
+    }
+
+    /* -----------------------------
+      Avatar SVG generator (30 abstract options)
+    ------------------------------ */
+    function seededRNG(seed){
+      let s = seed >>> 0;
+      return function(){
+        // xorshift32
+        s ^= s << 13; s >>>= 0;
+        s ^= s >> 17; s >>>= 0;
+        s ^= s << 5;  s >>>= 0;
+        return (s >>> 0) / 4294967296;
+      }
+    }
+    function maskSVG(seed, accent="cyan"){
+      const r = seededRNG(seed);
+      const bg = `rgba(2,6,23,.55)`;
+      const stroke = `rgba(226,232,240,.20)`;
+
+      const ax = r()*10-5, ay = r()*10-5;
+      const w = 96, h = 104;
+      const rx = 18 + r()*8, ry = 22 + r()*10;
+
+      const eyeY = 52 + r()*8;
+      const eyeX = 44 + r()*8;
+      const eyeGap = 18 + r()*8;
+      const eyeR = 5 + r()*4;
+
+      const mouthY = 78 + r()*8;
+      const mouthW = 22 + r()*20;
+
+      const sealCount = 3 + Math.floor(r()*3);
+
+      const accentMap = {
+        cyan: ["rgba(34,211,238,.85)", "rgba(34,211,238,.18)"],
+        fuchsia: ["rgba(168,85,247,.85)", "rgba(168,85,247,.18)"],
+        sky: ["rgba(96,165,250,.85)", "rgba(96,165,250,.18)"],
+        emerald: ["rgba(52,211,153,.85)", "rgba(52,211,153,.18)"],
+        amber: ["rgba(251,191,36,.85)", "rgba(251,191,36,.18)"]
+      };
+      const [accStrong, accSoft] = accentMap[accent] || accentMap.cyan;
+
+      let seals = "";
+      for(let i=0;i<sealCount;i++){
+        const sx = 26 + r()*76;
+        const sy = 22 + r()*84;
+        const sr = 4 + r()*3.5;
+        const rot = (r()*60-30).toFixed(2);
+        seals += `
+          <g transform="translate(${sx.toFixed(2)},${sy.toFixed(2)}) rotate(${rot})" opacity=".9">
+            <circle r="${sr.toFixed(2)}" fill="${accSoft}" stroke="${accStrong}" stroke-width="1"/>
+            <path d="M${(-sr*0.8).toFixed(2)} 0 H${(sr*0.8).toFixed(2)}" stroke="rgba(226,232,240,.25)" stroke-width="1" stroke-linecap="round"/>
+            <path d="M0 ${(-sr*0.8).toFixed(2)} V${(sr*0.8).toFixed(2)}" stroke="rgba(226,232,240,.18)" stroke-width="1" stroke-linecap="round"/>
+          </g>`;
+      }
+
+      const brow = r() > .5 ? "M36 46 C48 38, 56 38, 68 46" : "M34 44 C50 50, 54 50, 70 44";
+      const cheek = r() > .5 ? "M28 64 C36 62, 36 70, 28 68" : "M76 64 C68 62, 68 70, 76 68";
+      const cuts = r() > .5
+        ? `<path d="M24 28 C38 34, 46 26, 58 30" stroke="${accStrong}" stroke-opacity=".35" stroke-width="2" fill="none" stroke-linecap="round"/>`
+        : `<path d="M74 30 C62 36, 58 28, 44 32" stroke="${accStrong}" stroke-opacity=".35" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+
+      const svg =
+`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="g${seed}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${accStrong}" stop-opacity=".85"/>
+      <stop offset="1" stop-color="rgba(148,163,184,.10)" stop-opacity=".85"/>
+    </linearGradient>
+    <filter id="glow${seed}">
+      <feGaussianBlur stdDeviation="1.3" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect x="10" y="10" width="108" height="108" rx="18" fill="${bg}" stroke="rgba(226,232,240,.10)"/>
+  <g transform="translate(${ax.toFixed(2)},${ay.toFixed(2)})">
+    <rect x="${(64-w/2).toFixed(2)}" y="${(64-h/2).toFixed(2)}" width="${w}" height="${h}" rx="${rx.toFixed(2)}" fill="rgba(15,23,42,.55)" stroke="${stroke}" />
+    <path d="${brow}" stroke="rgba(226,232,240,.22)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <g opacity=".95">
+      <circle cx="${(64-eyeGap/2).toFixed(2)}" cy="${eyeY.toFixed(2)}" r="${eyeR.toFixed(2)}" fill="rgba(226,232,240,.9)"/>
+      <circle cx="${(64+eyeGap/2).toFixed(2)}" cy="${(eyeY + (r()*2-1)*2).toFixed(2)}" r="${(eyeR*(.9+r()*.4)).toFixed(2)}" fill="rgba(226,232,240,.9)"/>
+      <circle cx="${(64-eyeGap/2).toFixed(2)}" cy="${eyeY.toFixed(2)}" r="${(eyeR*.45).toFixed(2)}" fill="rgba(2,6,23,.75)"/>
+      <circle cx="${(64+eyeGap/2).toFixed(2)}" cy="${(eyeY + (r()*2-1)*2).toFixed(2)}" r="${(eyeR*.45).toFixed(2)}" fill="rgba(2,6,23,.75)"/>
+    </g>
+
+    <path d="M${(64-mouthW/2).toFixed(2)} ${mouthY.toFixed(2)} C ${(64-mouthW/4).toFixed(2)} ${(mouthY+6).toFixed(2)}, ${(64+mouthW/4).toFixed(2)} ${(mouthY-6).toFixed(2)}, ${(64+mouthW/2).toFixed(2)} ${mouthY.toFixed(2)}"
+          stroke="rgba(226,232,240,.22)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="${cheek}" stroke="rgba(226,232,240,.16)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    ${cuts}
+
+    <g filter="url(#glow${seed})">
+      <path d="M38 24 C52 16, 76 16, 90 24" stroke="url(#g${seed})" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".9"/>
+      <path d="M30 96 C44 106, 84 106, 98 96" stroke="url(#g${seed})" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".65"/>
+    </g>
+
+    <g opacity=".95">
+      ${seals}
+    </g>
+
+    <g opacity=".55">
+      <path d="M22 40 C28 42, 30 36, 36 40" stroke="rgba(226,232,240,.12)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M92 40 C98 42, 100 36, 106 40" stroke="rgba(226,232,240,.12)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <g opacity=".22">
+    <path d="M20 108 C36 96, 46 112, 64 100 S94 112, 108 98" stroke="${accStrong}" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>`;
+      return svg;
+    }
+
+    function svgToDataUri(svg){
+      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    }
+
+    /* -----------------------------
+      State
+    ------------------------------ */
+    const state = {
+      sealCode: randHex(8),
+      required: {
+        account: false,
+        avatar: false
+      },
+      account: {
+        display: "",
+        handle: "",
+        email: "",
+        pass: "",
+        terms: false
+      },
+      avatar: {
+        type: "none", // "svg" | "upload"
+        svgId: null,
+        svgAccent: "cyan",
+        svgFav: new Set(),
+        dataUrl: "" // final chosen avatar (svg uri or canvas data)
+      },
+      social: {
+        follows: new Set(),
+        interests: [],
+        top3: [null, null, null],
+        grade: "Novice"
+      }
+    };
+
+    /* -----------------------------
+      Elements
+    ------------------------------ */
+    const el = {
+      progressText: $("#progressText"),
+      progressBar: $("#progressBar"),
+      progressPill: $("#progressPill"),
+      reqStatus: $("#reqStatus"),
+      reqBadge: $("#reqBadge"),
+
+      dotAccount: $("#dotAccount"),
+      dotAvatar: $("#dotAvatar"),
+      dotSocial: $("#dotSocial"),
+
+      statusAccount: $("#statusAccount"),
+      statusAvatar: $("#statusAvatar"),
+      statusSocial: $("#statusSocial"),
+
+      accountSummary: $("#accountSummary"),
+      avatarSummary: $("#avatarSummary"),
+      socialSummary: $("#socialSummary"),
+
+      inDisplay: $("#inDisplay"),
+      inHandle: $("#inHandle"),
+      inEmail: $("#inEmail"),
+      inPass: $("#inPass"),
+      inTerms: $("#inTerms"),
+
+      errDisplay: $("#errDisplay"),
+      errHandle: $("#errHandle"),
+      errEmail: $("#errEmail"),
+      errPass: $("#errPass"),
+      errTerms: $("#errTerms"),
+
+      btnTogglePass: $("#btnTogglePass"),
+
+      previewAvatarImg: $("#previewAvatarImg"),
+      previewName: $("#previewName"),
+      previewHandle: $("#previewHandle"),
+      previewGrade: $("#previewGrade"),
+      previewAuraWrap: $("#previewAuraWrap"),
+
+      sealCode: $("#sealCode"),
+      sealSvgWrap: $("#sealSvgWrap"),
+      btnReseedSeal: $("#btnReseedSeal"),
+
+      deskReqState: $("#deskReqState"),
+      mobReqState: $("#mobReqState"),
+
+      btnQuickFinishTop: $("#btnQuickFinishTop"),
+      btnQuickFinishDesk: $("#btnQuickFinishDesk"),
+      btnQuickFinishMobile: $("#btnQuickFinishMobile"),
+
+      btnFinishDesk: $("#btnFinishDesk"),
+      btnFinishMobile: $("#btnFinishMobile"),
+      btnFinishFromPreview: $("#btnFinishFromPreview"),
+      finishHint: $("#finishHint"),
+      btnFinishOptional: $("#btnFinishOptional"),
+
+      btnCollapseAll: $("#btnCollapseAll"),
+      btnExpandReq: $("#btnExpandReq"),
+
+      svgGrid: $("#svgGrid"),
+      btnGenSet: $("#btnGenSet"),
+      btnShowAll: $("#btnShowAll"),
+      btnRandomAccent: $("#btnRandomAccent"),
+      btnUseFavorite: $("#btnUseFavorite"),
+      setLabel: $("#setLabel"),
+      favCount: $("#favCount"),
+
+      fileAvatar: $("#fileAvatar"),
+      cropCanvas: $("#cropCanvas"),
+      cropAuraWrap: $("#cropAuraWrap"),
+      zoomRange: $("#zoomRange"),
+      chkAura: $("#chkAura"),
+      btnResetCrop: $("#btnResetCrop"),
+      btnCommitUpload: $("#btnCommitUpload"),
+      btnClearUpload: $("#btnClearUpload"),
+      uploadHint: $("#uploadHint"),
+
+      creatorList: $("#creatorList"),
+      followCount: $("#followCount"),
+      interestSearch: $("#interestSearch"),
+      interestChips: $("#interestChips"),
+      top3Slots: $("#top3Slots"),
+      top3Count: $("#top3Count"),
+
+      successModal: $("#successModal"),
+      btnCloseSuccess: $("#btnCloseSuccess"),
+      btnCloseSuccess2: $("#btnCloseSuccess2"),
+      btnRestart: $("#btnRestart"),
+      successSeal: $("#successSeal"),
+      successCode: $("#successCode"),
+      successDate: $("#successDate"),
+      successAvatar: $("#successAvatar"),
+      successName: $("#successName"),
+      successHandle: $("#successHandle"),
+      successGrade: $("#successGrade"),
+      successFollows: $("#successFollows"),
+      successTop3: $("#successTop3")
+    };
+
+    /* -----------------------------
+      Accordion behavior
+    ------------------------------ */
+    function openModule(name){
+      const article = document.querySelector(`[data-module="${name}"]`);
+      if(!article) return;
+      const panel = article.querySelector("[data-acc-panel]");
+      const btn = article.querySelector("[data-acc-toggle]");
+      if(!panel || !btn) return;
+
+      // Close others (soft)
+      $$("[data-acc-panel]").forEach(p=>{
+        if(p !== panel) p.classList.add("hidden");
+      });
+
+      panel.classList.remove("hidden");
+      btn.classList.add("ink-glitch");
+      setTimeout(()=>btn.classList.remove("ink-glitch"), 320);
+
+      // Scroll into view (respect reduced motion)
+      if(!prefersReducedMotion()){
+        article.scrollIntoView({behavior:"smooth", block:"start"});
+      }else{
+        article.scrollIntoView({behavior:"auto", block:"start"});
+      }
+    }
+    function toggleModule(article){
+      const panel = article.querySelector("[data-acc-panel]");
+      const btn = article.querySelector("[data-acc-toggle]");
+      if(!panel || !btn) return;
+      const willOpen = panel.classList.contains("hidden");
+      if(willOpen){
+        openModule(article.dataset.module);
+      }else{
+        panel.classList.add("hidden");
+        btn.classList.add("ink-glitch");
+        setTimeout(()=>btn.classList.remove("ink-glitch"), 320);
+      }
+    }
+
+    $$("[data-acc-toggle]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        toggleModule(btn.closest("article"));
+      });
+    });
+
+    $$("[data-next]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        openModule(b.getAttribute("data-next"));
+      });
+    });
+
+    $("#btnCollapseAll").addEventListener("click", ()=>{
+      $$("[data-acc-panel]").forEach(p=>p.classList.add("hidden"));
+    });
+    $("#btnExpandReq").addEventListener("click", ()=>{
+      openModule("account");
+    });
+
+    /* -----------------------------
+      Account validation & bindings
+    ------------------------------ */
+    function setValidityBadge(elBadge, ok, textOk="مكتمل", textNo="غير مكتمل"){
+      elBadge.textContent = ok ? textOk : textNo;
+      elBadge.className = "text-[11px] px-2 py-0.5 rounded-full border bg-slate-950/45";
+      if(ok){
+        elBadge.classList.add("border-emerald-400/20");
+        elBadge.classList.add("text-emerald-200");
+      }else{
+        elBadge.classList.add("border-white/10");
+        elBadge.classList.add("muted");
+      }
+    }
+
+    function validateAccount(showErrors=false){
+      const display = el.inDisplay.value.trim();
+      const handle = safeHandle(el.inHandle.value);
+      const email = el.inEmail.value.trim();
+      const pass = el.inPass.value;
+      const terms = el.inTerms.checked;
+
+      state.account.display = display;
+      state.account.handle = handle;
+      state.account.email = email;
+      state.account.pass = pass;
+      state.account.terms = terms;
+
+      const vDisplay = display.length > 0;
+      const vHandle = handle.length >= 3;
+      const vEmail = isEmail(email);
+      const vPass  = isStrongPass(pass);
+      const vTerms = terms === true;
+
+      if(showErrors){
+        el.errDisplay.classList.toggle("hidden", vDisplay);
+        el.errHandle.classList.toggle("hidden", vHandle);
+        el.errEmail.classList.toggle("hidden", vEmail);
+        el.errPass.classList.toggle("hidden", vPass);
+        el.errTerms.classList.toggle("hidden", vTerms);
+      }
+
+      // Write back normalized handle without breaking typing too much
+      if(el.inHandle.value !== handle && document.activeElement !== el.inHandle){
+        el.inHandle.value = handle;
+      }
+
+      const ok = vDisplay && vHandle && vEmail && vPass && vTerms;
+      state.required.account = ok;
+
+      // summaries
+      el.accountSummary.textContent = ok ? `@${handle}` : "—";
+      setValidityBadge(el.statusAccount, ok);
+
+      // preview
+      el.previewName.textContent = display || "—";
+      el.previewHandle.textContent = handle ? ("@" + handle) : "@—";
+
+      // dots
+      el.dotAccount.className = "mt-1.5 h-2.5 w-2.5 rounded-full " + (ok ? "bg-emerald-400/80" : "bg-white/10");
+
+      return ok;
+    }
+
+    el.inDisplay.addEventListener("input", ()=>{ validateAccount(false); refreshAll(); });
+    el.inHandle.addEventListener("input", ()=>{ validateAccount(false); refreshAll(); });
+    el.inEmail.addEventListener("input", ()=>{ validateAccount(false); refreshAll(); });
+    el.inPass.addEventListener("input", ()=>{ validateAccount(false); refreshAll(); });
+    el.inTerms.addEventListener("change", ()=>{ validateAccount(false); refreshAll(); });
+
+    $("[data-mark='account']").addEventListener("click", ()=>{
+      const ok = validateAccount(true);
+      $("#accountInlineStatus").textContent = ok ? "تم الحفظ." : "تحقق من الحقول المطلوبة.";
+      flashInline($("#accountInlineStatus"), ok);
+      refreshAll();
+      if(ok) openModule("avatar");
+    });
+
+    el.btnTogglePass.addEventListener("click", ()=>{
+      const isPass = el.inPass.type === "password";
+      el.inPass.type = isPass ? "text" : "password";
+      el.btnTogglePass.textContent = isPass ? "إخفاء" : "إظهار";
+    });
+
+    function flashInline(node, ok){
+      node.className = "text-xs";
+      node.classList.add(ok ? "text-emerald-200" : "text-rose-200");
+      setTimeout(()=> node.classList.add("muted"), 800);
+      setTimeout(()=> node.textContent = "", 2000);
+    }
+
+    /* -----------------------------
+      Suggested Avatar Grid
+    ------------------------------ */
+    const ALL_AVATARS = Array.from({length:30}, (_,i)=>({
+      id: i+1,
+      seed: 1000 + (i+1)*73
+    }));
+    const ACCENTS = ["cyan","fuchsia","sky","emerald","amber"];
+
+    let showAll = false;
+    let currentSet = [];
+
+    function pickSet(){
+      // pick 12 unique
+      const pool = [...ALL_AVATARS];
+      for(let i=pool.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      currentSet = pool.slice(0, 12);
+      el.setLabel.textContent = "مجموعة مختارة";
+      renderGrid();
+    }
+
+    function renderGrid(){
+      const list = showAll ? ALL_AVATARS : currentSet;
+      el.svgGrid.innerHTML = "";
+      el.favCount.textContent = state.avatar.svgFav.size;
+
+      list.forEach(item=>{
+        const svg = maskSVG(item.seed, state.avatar.svgAccent);
+        const uri = svgToDataUri(svg);
+        const isSelected = (state.avatar.type === "svg" && state.avatar.svgId === item.id);
+        const isFav = state.avatar.svgFav.has(item.id);
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className =
+          "group relative rounded-xl border bg-slate-950/50 p-2 transition overflow-hidden " +
+          (isSelected ? "border-cyan-400/35 ring-1 ring-cyan-400/20" : "border-white/10 hover:border-white/20");
+        btn.setAttribute("aria-label", "اختيار Avatar مقترح");
+
+        btn.innerHTML = `
+          <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition"
+               style="background: radial-gradient(120px 120px at 30% 25%, rgba(34,211,238,.10), transparent 60%),
+                              radial-gradient(120px 120px at 75% 65%, rgba(168,85,247,.08), transparent 62%);"></div>
+          <img alt="" src="${uri}" class="relative w-full aspect-square rounded-lg border border-white/10 bg-slate-900/40 object-cover" />
+          <div class="absolute top-2 left-2 flex items-center gap-1">
+            <span class="text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-slate-950/65 ${isSelected ? "text-cyan-200" : "muted"}">
+              #${item.id}
+            </span>
+          </div>
+          <button type="button" data-fav="${item.id}"
+                  class="absolute top-2 right-2 text-[11px] px-2 py-1 rounded-full border ${isFav ? "border-fuchsia-400/30 bg-fuchsia-400/15 text-fuchsia-200" : "border-white/10 bg-slate-950/55 muted"} hover:bg-white/10 transition">
+            ${isFav ? "★" : "☆"}
+          </button>
+        `;
+
+        btn.addEventListener("click", (e)=>{
+          // prevent inner fav button from selecting? (we still allow select when clicking it)
+          if(e.target && e.target.matches("[data-fav]")) return;
+          state.avatar.type = "svg";
+          state.avatar.svgId = item.id;
+          state.avatar.dataUrl = uri;
+
+          // set preview
+          el.previewAvatarImg.src = state.avatar.dataUrl;
+          el.avatarSummary.textContent = `SVG #${item.id}`;
+          validateAvatar(false);
+          refreshAll();
+        });
+
+        // fav toggle
+        btn.querySelector("[data-fav]").addEventListener("click", (e)=>{
+          e.stopPropagation();
+          const id = Number(e.currentTarget.getAttribute("data-fav"));
+          if(state.avatar.svgFav.has(id)) state.avatar.svgFav.delete(id);
+          else state.avatar.svgFav.add(id);
+          renderGrid();
+        });
+
+        el.svgGrid.appendChild(btn);
+      });
+
+      if(showAll) el.setLabel.textContent = "كل الخيارات (30)";
+      el.favCount.textContent = state.avatar.svgFav.size;
+    }
+
+    el.btnGenSet.addEventListener("click", ()=>{
+      pickSet();
+      // subtle glitch on grid container
+      el.svgGrid.classList.add("ink-glitch");
+      setTimeout(()=> el.svgGrid.classList.remove("ink-glitch"), 320);
+    });
+
+    el.btnShowAll.addEventListener("click", ()=>{
+      showAll = !showAll;
+      el.btnShowAll.textContent = showAll ? "عرض أقل" : "عرض الكل";
+      renderGrid();
+    });
+
+    el.btnRandomAccent.addEventListener("click", ()=>{
+      const next = ACCENTS[(ACCENTS.indexOf(state.avatar.svgAccent)+1) % ACCENTS.length];
+      state.avatar.svgAccent = next;
+      renderGrid();
+      // if selected svg, regenerate it with new accent
+      if(state.avatar.type === "svg" && state.avatar.svgId){
+        const item = ALL_AVATARS.find(a=>a.id===state.avatar.svgId);
+        if(item){
+          const uri = svgToDataUri(maskSVG(item.seed, state.avatar.svgAccent));
+          state.avatar.dataUrl = uri;
+          el.previewAvatarImg.src = uri;
+        }
+      }
+      refreshAll();
+    });
+
+    el.btnUseFavorite.addEventListener("click", ()=>{
+      const first = state.avatar.svgFav.values().next().value;
+      if(!first) return;
+      const item = ALL_AVATARS.find(a=>a.id===first);
+      if(!item) return;
+      const uri = svgToDataUri(maskSVG(item.seed, state.avatar.svgAccent));
+      state.avatar.type = "svg";
+      state.avatar.svgId = item.id;
+      state.avatar.dataUrl = uri;
+      el.previewAvatarImg.src = uri;
+      el.avatarSummary.textContent = `SVG ★ #${item.id}`;
+      validateAvatar(false);
+      refreshAll();
+    });
+
+    /* -----------------------------
+      Upload cropper (Canvas)
+    ------------------------------ */
+    const crop = {
+      img: null,
+      hasImage: false,
+      scale: 1.2,
+      x: 0,
+      y: 0,
+      dragging: false,
+      last: {x:0,y:0}
+    };
+
+    const ctx = el.cropCanvas.getContext("2d");
+
+    function roundRectPath(ctx, x,y,w,h,r){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+rr, y);
+      ctx.arcTo(x+w, y, x+w, y+h, rr);
+      ctx.arcTo(x+w, y+h, x, y+h, rr);
+      ctx.arcTo(x, y+h, x, y, rr);
+      ctx.arcTo(x, y, x+w, y, rr);
+      ctx.closePath();
+    }
+
+    function drawCrop(){
+      const W = el.cropCanvas.width, H = el.cropCanvas.height;
+      ctx.clearRect(0,0,W,H);
+
+      // background
+      const g = ctx.createLinearGradient(0,0,W,H);
+      g.addColorStop(0, "rgba(2,6,23,.75)");
+      g.addColorStop(1, "rgba(15,23,42,.75)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,W,H);
+
+      // aura hint lines
+      ctx.globalAlpha = .22;
+      ctx.strokeStyle = "rgba(34,211,238,.55)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(W*0.32, H*0.26, 34, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.strokeStyle = "rgba(168,85,247,.45)";
+      ctx.beginPath();
+      ctx.arc(W*0.72, H*0.56, 44, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // clip to rounded square for photo
+      const pad = 10;
+      roundRectPath(ctx, pad, pad, W-pad*2, H-pad*2, 18);
+      ctx.save();
+      ctx.clip();
+
+      if(crop.hasImage && crop.img){
+        const img = crop.img;
+        const iw = img.naturalWidth, ih = img.naturalHeight;
+
+        // cover fit with scale + translate
+        const baseScale = Math.max((W)/(iw), (H)/(ih));
+        const s = baseScale * crop.scale;
+
+        const dw = iw*s;
+        const dh = ih*s;
+        const dx = (W - dw)/2 + crop.x;
+        const dy = (H - dh)/2 + crop.y;
+
+        ctx.drawImage(img, dx, dy, dw, dh);
+
+        // subtle overlay "ink wash"
+        ctx.globalAlpha = .18;
+        const wash = ctx.createRadialGradient(W*0.3,H*0.3,10, W*0.5,H*0.5,160);
+        wash.addColorStop(0, "rgba(34,211,238,.22)");
+        wash.addColorStop(0.55, "rgba(168,85,247,.16)");
+        wash.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = wash;
+        ctx.fillRect(0,0,W,H);
+        ctx.globalAlpha = 1;
+      }else{
+        // placeholder glyph
+        ctx.globalAlpha = .85;
+        ctx.fillStyle = "rgba(226,232,240,.75)";
+        ctx.font = "700 12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("DROP / UPLOAD", W/2, H/2 - 6);
+        ctx.globalAlpha = .6;
+        ctx.font = "500 11px ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Tahoma, Arial";
+        ctx.fillText("اسحب للصورة داخل المربع", W/2, H/2 + 14);
+        ctx.globalAlpha = 1;
+      }
+
+      ctx.restore();
+
+      // frame corners
+      ctx.globalAlpha = .65;
+      ctx.strokeStyle = "rgba(226,232,240,.22)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(pad+0.5, pad+0.5, W-pad*2-1, H-pad*2-1);
+      ctx.globalAlpha = 1;
+    }
+
+    function loadImageFromFile(file){
+      return new Promise((resolve, reject)=>{
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = ()=>{
+          URL.revokeObjectURL(url);
+          resolve(img);
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    el.fileAvatar.addEventListener("change", async (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      try{
+        const img = await loadImageFromFile(file);
+        crop.img = img;
+        crop.hasImage = true;
+        crop.scale = parseFloat(el.zoomRange.value || "1.2") || 1.2;
+        crop.x = 0; crop.y = 0;
+        drawCrop();
+        el.uploadHint.textContent = "اسحب لتغيير الموضع، ثم اضغط “اعتماد الأفاتار”.";
+        // not auto-commit; user decides
+      }catch(err){
+        el.uploadHint.textContent = "تعذر تحميل الصورة.";
+      }
+    });
+
+    el.zoomRange.addEventListener("input", ()=>{
+      crop.scale = parseFloat(el.zoomRange.value);
+      drawCrop();
+    });
+
+    // Drag to reposition
+    function canvasPoint(evt){
+      const rect = el.cropCanvas.getBoundingClientRect();
+      const x = (evt.clientX - rect.left) * (el.cropCanvas.width / rect.width);
+      const y = (evt.clientY - rect.top) * (el.cropCanvas.height / rect.height);
+      return {x,y};
+    }
+
+    el.cropCanvas.addEventListener("pointerdown", (e)=>{
+      if(!crop.hasImage) return;
+      crop.dragging = true;
+      el.cropCanvas.setPointerCapture(e.pointerId);
+      crop.last = canvasPoint(e);
+    });
+    el.cropCanvas.addEventListener("pointermove", (e)=>{
+      if(!crop.dragging) return;
+      const p = canvasPoint(e);
+      const dx = p.x - crop.last.x;
+      const dy = p.y - crop.last.y;
+      crop.last = p;
+      crop.x += dx;
+      crop.y += dy;
+      drawCrop();
+    });
+    el.cropCanvas.addEventListener("pointerup", ()=>{
+      crop.dragging = false;
+    });
+    el.cropCanvas.addEventListener("pointercancel", ()=>{
+      crop.dragging = false;
+    });
+
+    el.btnResetCrop.addEventListener("click", ()=>{
+      crop.scale = 1.2;
+      el.zoomRange.value = "1.2";
+      crop.x = 0; crop.y = 0;
+      drawCrop();
+    });
+
+    el.chkAura.addEventListener("change", ()=>{
+      el.cropAuraWrap.classList.toggle("aura-on", el.chkAura.checked);
+      el.previewAuraWrap.classList.toggle("aura-on", el.chkAura.checked);
+    });
+
+    el.btnClearUpload.addEventListener("click", ()=>{
+      el.fileAvatar.value = "";
+      crop.img = null;
+      crop.hasImage = false;
+      crop.x = 0; crop.y = 0;
+      el.uploadHint.textContent = "ارفع صورة ثم اضغط “اعتماد الأفاتار”.";
+      drawCrop();
+    });
+
+    el.btnCommitUpload.addEventListener("click", ()=>{
+      if(!crop.hasImage){
+        el.avatarInlineStatus.textContent = "ارفع صورة أولًا.";
+        flashInline(el.avatarInlineStatus, false);
+        return;
+      }
+      // commit upload as final avatar
+      state.avatar.type = "upload";
+      state.avatar.svgId = null;
+      state.avatar.dataUrl = el.cropCanvas.toDataURL("image/png");
+      el.previewAvatarImg.src = state.avatar.dataUrl;
+      el.avatarSummary.textContent = "Upload (cropped)";
+      validateAvatar(false);
+      refreshAll();
+
+      el.avatarInlineStatus.textContent = "تم اعتماد الأفاتار.";
+      flashInline(el.avatarInlineStatus, true);
+    });
+
+    /* -----------------------------
+      Avatar validation
+    ------------------------------ */
+    function validateAvatar(showErrors=false){
+      const ok = !!(state.avatar.dataUrl && state.avatar.dataUrl.length > 20);
+      state.required.avatar = ok;
+      setValidityBadge(el.statusAvatar, ok);
+      el.dotAvatar.className = "mt-1.5 h-2.5 w-2.5 rounded-full " + (ok ? "bg-emerald-400/80" : "bg-white/10");
+      return ok;
+    }
+
+    $("[data-mark='avatar']").addEventListener("click", ()=>{
+      const ok = validateAvatar(false);
+      $("#avatarInlineStatus").textContent = ok ? "تم الحفظ." : "اختر Avatar أو اعتمد رفعًا.";
+      flashInline($("#avatarInlineStatus"), ok);
+      refreshAll();
+      if(ok) openModule("social");
+    });
+
+    /* -----------------------------
+      Social (mock): creators
+    ------------------------------ */
+    const creators = [
+      {id:"ink_1", name:"Sumi Atelier", desc:"خطوط/مؤثرات حبر — محتوى ليلي"},
+      {id:"ink_2", name:"Paper Ward", desc:"تصميم أوراق/طلاسم عامة"},
+      {id:"ink_3", name:"Aura Lab", desc:"تدرجات/هالات minimal"},
+      {id:"ink_4", name:"Glyph Notes", desc:"رموز عامة + UI patterns"},
+      {id:"ink_5", name:"Night City Cuts", desc:"أسلوب حديث/أسود"}
+    ];
+
+    function renderCreators(){
+      el.creatorList.innerHTML = "";
+      creators.forEach(c=>{
+        const followed = state.social.follows.has(c.id);
+        const card = document.createElement("div");
+        card.className = "rounded-xl border border-white/10 bg-slate-950/40 p-3 flex items-center justify-between gap-3";
+        card.innerHTML = `
+          <div class="min-w-0">
+            <div class="text-sm font-semibold truncate">${c.name}</div>
+            <div class="text-xs muted truncate">${c.desc}</div>
+          </div>
+          <button type="button"
+            class="px-3 py-2 rounded-lg text-xs font-semibold border transition
+              ${followed ? "border-emerald-400/20 bg-emerald-400/10 hover:bg-emerald-400/15 text-emerald-200"
+                         : "border-white/10 bg-white/5 hover:bg-white/10 muted"}">
+            ${followed ? "Following" : "Follow"}
+          </button>
+        `;
+        card.querySelector("button").addEventListener("click", ()=>{
+          if(state.social.follows.has(c.id)){
+            state.social.follows.delete(c.id);
+          }else{
+            // cap to 3 for UI
+            if(state.social.follows.size >= 3) return;
+            state.social.follows.add(c.id);
+          }
+          renderCreators();
+          refreshAll();
+        });
+        el.creatorList.appendChild(card);
+      });
+      el.followCount.textContent = state.social.follows.size;
+    }
+
+    /* -----------------------------
+      Interests: chips + search + top3
+    ------------------------------ */
+    const interestPool = [
+      "أكشن","شونن","سينين","فانتازيا","خيال علمي","مدينة ليلية","غموض","رعب",
+      "مدرسة","سحر عام","قتال تكتيكي","تصميم شخصيات","كوميديا","دراما","مغامرة",
+      "Mecha","Cyber","Stealth","Worldbuilding","أنمي أصلي","مانجا","ويب تون","روايات خفيفة",
+      "OST","AMV","Cosplay","Fanart","نقاشات","مراجعات","تحليل حلقات","تجميعات"
+    ];
+
+    function renderChips(){
+      const q = (el.interestSearch.value || "").trim().toLowerCase();
+      el.interestChips.innerHTML = "";
+      interestPool
+        .filter(t => !q || t.toLowerCase().includes(q))
+        .slice(0, 24)
+        .forEach(t=>{
+          const selected = state.social.interests.includes(t);
+          const inTop3 = state.social.top3.includes(t);
+
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className =
+            "text-xs px-3 py-2 rounded-full border transition " +
+            (selected ? "border-cyan-400/25 bg-cyan-400/10 hover:bg-cyan-400/15 text-cyan-200"
+                      : "border-white/10 bg-white/5 hover:bg-white/10 muted");
+          chip.textContent = t + (inTop3 ? " ✦" : "");
+          chip.addEventListener("click", ()=>{
+            if(!selected){
+              state.social.interests.push(t);
+              // add to top3 if there is a slot
+              const i = state.social.top3.indexOf(null);
+              if(i !== -1) state.social.top3[i] = t;
+            }else{
+              state.social.interests = state.social.interests.filter(x=>x!==t);
+              state.social.top3 = state.social.top3.map(x=> x===t ? null : x);
+            }
+            renderChips();
+            renderTop3();
+            refreshAll();
+          });
+          el.interestChips.appendChild(chip);
+        });
+    }
+
+    function renderTop3(){
+      el.top3Slots.innerHTML = "";
+      state.social.top3.forEach((v, i)=>{
+        const slot = document.createElement("button");
+        slot.type = "button";
+        slot.className =
+          "h-10 rounded-xl border text-xs transition flex items-center justify-center gap-2 " +
+          (v ? "border-fuchsia-400/20 bg-fuchsia-400/10 hover:bg-fuchsia-400/15 text-fuchsia-200"
+             : "border-white/10 bg-white/5 hover:bg-white/10 muted");
+        slot.innerHTML = v ? `<span class="font-semibold">${i+1}</span><span class="truncate">${v}</span>` : `<span class="font-semibold">${i+1}</span><span>فارغ</span>`;
+        slot.addEventListener("click", ()=>{
+          if(v){
+            state.social.top3[i] = null;
+            renderTop3();
+            renderChips();
+            refreshAll();
+          }
+        });
+        el.top3Slots.appendChild(slot);
+      });
+
+      const count = state.social.top3.filter(Boolean).length;
+      el.top3Count.textContent = String(count);
+    }
+
+    el.interestSearch.addEventListener("input", renderChips);
+
+    /* -----------------------------
+      Grade selector
+    ------------------------------ */
+    function renderGrade(){
+      $$(".gradeBtn").forEach(b=>{
+        const on = b.dataset.grade === state.social.grade;
+        b.className = "gradeBtn px-3 py-2.5 rounded-xl border transition text-sm " +
+          (on ? "border-cyan-400/25 bg-cyan-400/10 text-cyan-200"
+              : "border-white/10 bg-white/5 hover:bg-white/10");
+      });
+      el.previewGrade.textContent = state.social.grade;
+    }
+    $$(".gradeBtn").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        state.social.grade = b.dataset.grade;
+        renderGrade();
+        refreshAll();
+      });
+    });
+
+    /* -----------------------------
+      Global progress + quick finish
+    ------------------------------ */
+    function setReqPills(){
+      const allOk = state.required.account && state.required.avatar;
+      el.reqStatus.textContent = allOk ? "مكتمل" : "غير مكتمل";
+      el.reqStatus.className = allOk ? "text-emerald-200 font-semibold" : "text-amber-200 font-semibold";
+
+      el.reqBadge.className = "text-xs px-2.5 py-1 rounded-full border bg-slate-950/45";
+      el.reqBadge.classList.add(allOk ? "border-emerald-400/20" : "border-amber-400/20");
+      el.reqBadge.classList.add(allOk ? "text-emerald-200" : "text-amber-200");
+
+      el.deskReqState.textContent = allOk ? "مكتمل" : "غير مكتمل";
+      el.mobReqState.textContent = allOk ? "مكتمل — يمكنك الإنهاء" : "غير مكتمل";
+      $("#reqBadge").classList.toggle("pulse-badge", !allOk);
+
+      const showQuick = allOk;
+      [el.btnQuickFinishTop, el.btnQuickFinishDesk, el.btnQuickFinishMobile].forEach(btn=>{
+        btn.classList.toggle("hidden", !showQuick);
+        btn.classList.toggle("inline-flex", showQuick);
+      });
+
+      el.btnFinishFromPreview.classList.toggle("hidden", !allOk);
+      el.btnFinishFromPreview.classList.toggle("flex", allOk);
+      el.finishHint.classList.toggle("hidden", allOk);
+
+      // dots social (optional)
+      el.dotSocial.className = "mt-1.5 h-2.5 w-2.5 rounded-full " + (state.social.follows.size>0 || state.social.interests.length>0 ? "bg-cyan-400/60" : "bg-white/10");
+
+      // summary social
+      const t3 = state.social.top3.filter(Boolean);
+      el.socialSummary.textContent = (state.social.follows.size || t3.length) ? `${state.social.follows.size} follow · ${t3.length}/3` : "—";
+    }
+
+    function calcProgress(){
+      // weighted: account 45, avatar 45, optional 10
+      let p = 0;
+      p += state.required.account ? 45 : 0;
+      p += state.required.avatar  ? 45 : 0;
+
+      let opt = 0;
+      if(state.social.follows.size > 0) opt += 4;
+      if(state.social.interests.length > 0) opt += 3;
+      if(state.social.top3.filter(Boolean).length > 0) opt += 2;
+      if(state.social.grade) opt += 1;
+      p += Math.min(10, opt);
+
+      return clamp(p, 0, 100);
+    }
+
+    function refreshAll(){
+      // account
+      validateAccount(false);
+      validateAvatar(false);
+
+      // progress
+      const p = calcProgress();
+      el.progressText.textContent = `${p}%`;
+      el.progressBar.style.width = `${p}%`;
+
+      // requirement pills
+      setReqPills();
+
+      // preview avatar fallback
+      if(!state.avatar.dataUrl){
+        // set a default generated seed
+        const seed = 1000 + 73;
+        const uri = svgToDataUri(maskSVG(seed, state.avatar.svgAccent));
+        el.previewAvatarImg.src = uri;
+      }
+
+      // avatar summary
+      if(state.avatar.type === "svg" && state.avatar.svgId){
+        el.avatarSummary.textContent = `SVG #${state.avatar.svgId}`;
+      }else if(state.avatar.type === "upload"){
+        el.avatarSummary.textContent = "Upload (cropped)";
+      }else{
+        el.avatarSummary.textContent = "—";
+      }
+
+      // account summary line
+      if(state.required.account){
+        el.accountSummary.textContent = `@${state.account.handle}`;
+      }
+
+      // update seal
+      el.sealCode.textContent = state.sealCode;
+      el.sealSvgWrap.innerHTML = sealSVG(state.sealCode);
+
+      // success-ready button state
+      const ready = state.required.account && state.required.avatar;
+      el.btnFinishDesk.classList.toggle("opacity-60", !ready);
+      el.btnFinishDesk.classList.toggle("pointer-events-none", !ready);
+      el.btnFinishMobile.classList.toggle("opacity-60", !ready);
+      el.btnFinishMobile.classList.toggle("pointer-events-none", !ready);
+      el.btnFinishOptional.classList.toggle("opacity-60", !ready);
+      el.btnFinishOptional.classList.toggle("pointer-events-none", !ready);
+
+      // update req header quick finish
+      // (already handled)
+    }
+
+    /* -----------------------------
+      Finish flow
+    ------------------------------ */
+    function openSuccess(){
+      // Fill modal
+      el.successCode.textContent = state.sealCode;
+      el.successDate.textContent = `UTC: ${nowISO().replace("T"," ").replace("Z","")}`;
+      el.successSeal.innerHTML = sealSVG(state.sealCode).replace('viewBox="0 0 320 120"', 'viewBox="0 0 320 120" preserveAspectRatio="xMidYMid meet"');
+
+      el.successName.textContent = state.account.display || "—";
+      el.successHandle.textContent = "@" + (state.account.handle || "—");
+      el.successGrade.textContent = state.social.grade || "Novice";
+      el.successFollows.textContent = String(state.social.follows.size);
+
+      const top3 = state.social.top3.filter(Boolean);
+      el.successTop3.textContent = top3.length ? top3.join(" · ") : "—";
+
+      // Avatar
+      const avatarUrl = state.avatar.dataUrl || el.previewAvatarImg.src;
+      el.successAvatar.src = avatarUrl;
+
+      // show
+      el.successModal.classList.remove("hidden");
+
+      // subtle entry animation (if not reduced motion)
+      if(!prefersReducedMotion()){
+        const box = el.successModal.querySelector(".w-full.max-w-2xl");
+        box.classList.add("peel-in");
+        setTimeout(()=> box.classList.remove("peel-in"), 420);
+      }
+    }
+    function closeSuccess(){
+      el.successModal.classList.add("hidden");
+    }
+
+    function tryFinish(){
+      const a = validateAccount(true);
+      const v = validateAvatar(false);
+      refreshAll();
+
+      if(!a){
+        openModule("account");
+        $("#accountInlineStatus").textContent = "أكمل المطلوب.";
+        flashInline($("#accountInlineStatus"), false);
+        return;
+      }
+      if(!v){
+        openModule("avatar");
+        $("#avatarInlineStatus").textContent = "اختر/اعتمد Avatar.";
+        flashInline($("#avatarInlineStatus"), false);
+        return;
+      }
+      openSuccess();
+    }
+
+    // Finish buttons
+    [el.btnFinishDesk, el.btnFinishMobile, el.btnFinishFromPreview, el.btnFinishOptional].forEach(btn=>{
+      btn.addEventListener("click", tryFinish);
+    });
+    [el.btnQuickFinishTop, el.btnQuickFinishDesk, el.btnQuickFinishMobile].forEach(btn=>{
+      btn.addEventListener("click", tryFinish);
+    });
+
+    el.btnCloseSuccess.addEventListener("click", closeSuccess);
+    el.btnCloseSuccess2.addEventListener("click", closeSuccess);
+    el.successModal.addEventListener("click", (e)=>{
+      if(e.target === el.successModal) closeSuccess();
+    });
+    document.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape" && !el.successModal.classList.contains("hidden")){
+        closeSuccess();
+      }
+    });
+
+    el.btnRestart.addEventListener("click", ()=>{
+      // reset state
+      state.sealCode = randHex(8);
+      state.required.account = false;
+      state.required.avatar = false;
+
+      state.account = {display:"", handle:"", email:"", pass:"", terms:false};
+
+      state.avatar.type = "none";
+      state.avatar.svgId = null;
+      state.avatar.dataUrl = "";
+      state.avatar.svgFav = new Set();
+      state.avatar.svgAccent = "cyan";
+
+      state.social.follows = new Set();
+      state.social.interests = [];
+      state.social.top3 = [null,null,null];
+      state.social.grade = "Novice";
+
+      // reset inputs
+      el.inDisplay.value = "";
+      el.inHandle.value = "";
+      el.inEmail.value = "";
+      el.inPass.value = "";
+      el.inTerms.checked = false;
+
+      // reset cropper
+      el.fileAvatar.value = "";
+      crop.img = null; crop.hasImage = false; crop.scale=1.2; crop.x=0; crop.y=0;
+      el.zoomRange.value = "1.2";
+      el.chkAura.checked = false;
+      el.cropAuraWrap.classList.remove("aura-on");
+      el.previewAuraWrap.classList.remove("aura-on");
+      drawCrop();
+
+      // close success
+      closeSuccess();
+
+      // regenerate set + UI
+      pickSet();
+      renderCreators();
+      renderChips();
+      renderTop3();
+      renderGrade();
+      refreshAll();
+      openModule("account");
+    });
+
+    el.btnReseedSeal.addEventListener("click", ()=>{
+      state.sealCode = randHex(8);
+      refreshAll();
+    });
+
+    /* -----------------------------
+      Init
+    ------------------------------ */
+    function init(){
+      // default seal
+      el.sealCode.textContent = state.sealCode;
+      el.sealSvgWrap.innerHTML = sealSVG(state.sealCode);
+
+      // default preview avatar
+      const defaultUri = svgToDataUri(maskSVG(ALL_AVATARS[0].seed, state.avatar.svgAccent));
+      el.previewAvatarImg.src = defaultUri;
+
+      // build avatar set
+      pickSet();
+      renderGrid();
+
+      // crop placeholder
+      drawCrop();
+
+      // creators + interests
+      renderCreators();
+      // selected lists
+      state.social.interests = [];
+      renderChips();
+      renderTop3();
+      renderGrade();
+
+      // open required first
+      openModule("account");
+
+      refreshAll();
+    }
+    init();
+  </script>
+</body>
+</html>

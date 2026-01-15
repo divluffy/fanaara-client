@@ -1,0 +1,1350 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>تسجيل المجتمع — Cozy Slice-of-Life</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Cozy little touches */
+    .fade-in { animation: fadeIn .28s ease-out; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform: translateY(0);} }
+
+    .grain:before{
+      content:"";
+      position:absolute; inset:0;
+      background-image:
+        radial-gradient(rgba(255,255,255,.10) 1px, transparent 1px),
+        radial-gradient(rgba(0,0,0,.06) 1px, transparent 1px);
+      background-size: 22px 22px, 28px 28px;
+      background-position: 0 0, 10px 14px;
+      opacity:.22;
+      pointer-events:none;
+      mix-blend-mode: overlay;
+    }
+
+    /* Simple square crop frame */
+    .crop-frame{
+      width: 240px; height: 240px;
+      border-radius: 24px;
+      overflow: hidden;
+      position: relative;
+      background: rgba(255,255,255,.55);
+      box-shadow: 0 14px 50px rgba(0,0,0,.12);
+      border: 1px solid rgba(255,255,255,.65);
+      backdrop-filter: blur(8px);
+    }
+    .crop-frame:after{
+      content:"";
+      position:absolute; inset:14px;
+      border-radius: 18px;
+      outline: 2px dashed rgba(236, 72, 153, .35);
+      outline-offset: -2px;
+      pointer-events:none;
+    }
+    .crop-img{
+      position:absolute;
+      left:50%; top:50%;
+      transform: translate(-50%, -50%);
+      transform-origin: center;
+      user-select:none;
+      pointer-events:none;
+      max-width:none;
+    }
+
+    /* Chip + menu aesthetics */
+    .chip{
+      border: 1px solid rgba(255,255,255,.7);
+      background: rgba(255,255,255,.55);
+      backdrop-filter: blur(8px);
+    }
+    .menu-row{
+      border: 1px solid rgba(255,255,255,.65);
+      background: rgba(255,255,255,.55);
+      backdrop-filter: blur(8px);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen text-stone-800">
+  <!-- Background -->
+  <div class="relative min-h-screen overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-amber-200 via-rose-200 to-indigo-200"></div>
+
+    <!-- Cozy blobs -->
+    <div class="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-rose-300/60 blur-3xl"></div>
+    <div class="absolute top-24 -right-24 w-96 h-96 rounded-full bg-amber-300/60 blur-3xl"></div>
+    <div class="absolute bottom-0 left-1/3 w-[36rem] h-[36rem] rounded-full bg-indigo-300/60 blur-3xl"></div>
+
+    <div class="absolute inset-0 grain"></div>
+
+    <!-- Layout -->
+    <div class="relative mx-auto max-w-5xl px-4 py-10 sm:py-14">
+      <!-- Header -->
+      <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div class="space-y-1">
+          <div class="inline-flex items-center gap-2 rounded-full bg-white/55 px-3 py-1.5 text-sm shadow-sm ring-1 ring-white/60 backdrop-blur">
+            <span class="text-lg">🍵</span>
+            <span>مساحة هادئة لعشّاق الأنمي والمانجا والقصص المصوّرة</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">
+            خلّينا نجهّز حسابك… خطوة خطوة، بهدوء 🌇
+          </h1>
+          <p class="text-stone-700">
+            صفحات قليلة فقط، وبعدين تدخل المجتمع وتبدأ تتصفّح وتتعرف على ناس يشبهونك.
+          </p>
+        </div>
+
+        <!-- Progress -->
+        <div id="progressWrap" class="w-full sm:w-[320px] rounded-2xl bg-white/55 p-4 shadow-sm ring-1 ring-white/60 backdrop-blur">
+          <div class="flex items-center justify-between text-xs text-stone-700">
+            <span id="stepLabel">الخطوة 1 من 8</span>
+            <span id="stepHint" class="opacity-80">على مهلك ✨</span>
+          </div>
+          <div class="mt-3 relative h-2 rounded-full bg-stone-200/70 overflow-hidden">
+            <div id="progressBar" class="absolute inset-y-0 right-0 w-0 bg-gradient-to-l from-rose-400 to-amber-400"></div>
+            <div id="progressDot" class="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow ring-2 ring-rose-300"
+                 style="right: 0%;"></div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Card -->
+      <main class="mt-8">
+        <div class="rounded-[28px] bg-white/55 shadow-xl ring-1 ring-white/60 backdrop-blur px-5 py-6 sm:px-10 sm:py-10">
+          <!-- Steps container -->
+          <div id="steps" class="space-y-8">
+
+            <!-- Step 0: Welcome + name + looking for -->
+            <section class="step fade-in" data-step="0">
+              <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                <div class="space-y-3">
+                  <h2 class="text-xl sm:text-2xl font-bold">أهلًا بك 👋</h2>
+                  <p class="text-stone-700 leading-relaxed">
+                    قبل ما نبدأ… خلّينا نعرف اسمك اللي تحب يظهر للناس، وإيش تبي من المجتمع.
+                  </p>
+                  <div class="inline-flex items-center gap-2 rounded-2xl px-3 py-2 bg-white/60 ring-1 ring-white/70">
+                    <span>🌿</span>
+                    <span class="text-sm text-stone-700">نحافظ على الهدوء: لا سبام، لا ضغط، بس متعة.</span>
+                  </div>
+                </div>
+
+                <div class="hidden sm:flex items-center gap-3 text-sm text-stone-600">
+                  <span class="inline-flex items-center gap-2 rounded-full bg-white/60 px-3 py-1 ring-1 ring-white/70">
+                    <span>🕯️</span><span>Cozy</span>
+                  </span>
+                  <span class="inline-flex items-center gap-2 rounded-full bg-white/60 px-3 py-1 ring-1 ring-white/70">
+                    <span>📚</span><span>Slice-of-life</span>
+                  </span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-2">
+                <div class="space-y-2">
+                  <label class="text-sm font-semibold">اسمك في المجتمع</label>
+                  <input id="displayName" type="text" placeholder="مثال: لوفّي / Sakura / dev.luffy"
+                         class="w-full rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                  <p class="text-xs text-stone-600">خليه بسيط… مثل اسمك على كوب قهوة ☕</p>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="text-sm font-semibold">إيش تبحث عنه هنا؟</label>
+                  <div class="grid grid-cols-1 gap-2">
+                    <label class="menu-row rounded-2xl px-4 py-3 flex items-center justify-between cursor-pointer hover:shadow-sm transition">
+                      <span class="flex items-center gap-2"><span>💬</span> نقاشات هادئة</span>
+                      <input class="lookingFor accent-rose-500" type="checkbox" value="نقاشات" />
+                    </label>
+                    <label class="menu-row rounded-2xl px-4 py-3 flex items-center justify-between cursor-pointer hover:shadow-sm transition">
+                      <span class="flex items-center gap-2"><span>🎯</span> توصيات ذكية</span>
+                      <input class="lookingFor accent-rose-500" type="checkbox" value="توصيات" />
+                    </label>
+                    <label class="menu-row rounded-2xl px-4 py-3 flex items-center justify-between cursor-pointer hover:shadow-sm transition">
+                      <span class="flex items-center gap-2"><span>🎨</span> رسومات وفان آرت</span>
+                      <input class="lookingFor accent-rose-500" type="checkbox" value="رسومات" />
+                    </label>
+                  </div>
+                  <p class="text-xs text-stone-600">اختر أكثر من خيار لو تحب ✨</p>
+                </div>
+              </div>
+
+              <div id="err0" class="hidden rounded-2xl bg-rose-50/80 p-4 ring-1 ring-rose-200 text-sm text-rose-700"></div>
+            </section>
+
+            <!-- Step 1: Email/Password + alias option -->
+            <section class="step hidden fade-in" data-step="1">
+              <div class="space-y-2">
+                <h2 class="text-xl sm:text-2xl font-bold">كيف تحب تسجّل؟ 🔐</h2>
+                <p class="text-stone-700">
+                  تقدر تسجّل بإيميل وكلمة مرور… أو باسم مستعار (بدون OAuth حقيقي، فقط تجربة هادئة).
+                </p>
+              </div>
+
+              <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="space-y-2">
+                  <label class="text-sm font-semibold">Email</label>
+                  <input id="email" type="email" placeholder="you@cozy.club"
+                         class="w-full rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-semibold">Password</label>
+                  <input id="password" type="password" placeholder="••••••••"
+                         class="w-full rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                  <p class="text-xs text-stone-600">(عرض توضيحي) ننصح دائمًا بكلمة قوية.</p>
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label class="menu-row rounded-2xl px-4 py-3 flex items-center justify-between cursor-pointer hover:shadow-sm transition">
+                    <span class="flex items-center gap-2">
+                      <span>🕵️‍♂️</span>
+                      التسجيل باسم مستعار فقط (بدون إيميل)
+                    </span>
+                    <input id="useAlias" type="checkbox" class="accent-rose-500" />
+                  </label>
+                </div>
+
+                <div id="aliasWrap" class="sm:col-span-2 hidden">
+                  <div class="space-y-2">
+                    <label class="text-sm font-semibold">الاسم المستعار</label>
+                    <input id="alias" type="text" placeholder="مثال: MoonTea / QuietOtaku"
+                           class="w-full rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                    <p class="text-xs text-stone-600">إذا فعلت الاسم المستعار، الإيميل/الباسورد يصير اختياري.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div id="err1" class="hidden rounded-2xl bg-rose-50/80 p-4 ring-1 ring-rose-200 text-sm text-rose-700"></div>
+            </section>
+
+            <!-- Step 2: Country/Language + Bio + fav character -->
+            <section class="step hidden fade-in" data-step="2">
+              <div class="space-y-2">
+                <h2 class="text-xl sm:text-2xl font-bold">خلّينا نضيف شوية روح ✍️</h2>
+                <p class="text-stone-700">
+                  تفاصيل بسيطة تساعدنا نقترح لك ناس ومواضيع مناسبة.
+                </p>
+              </div>
+
+              <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="space-y-2">
+                  <label class="text-sm font-semibold">البلد</label>
+                  <select id="country"
+                          class="w-full rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300">
+                    <option value="">اختر</option>
+                    <option>السعودية</option><option>الإمارات</option><option>مصر</option><option>الأردن</option>
+                    <option>العراق</option><option>المغرب</option><option>الجزائر</option><option>تونس</option>
+                    <option>فلسطين</option><option>سوريا</option><option>لبنان</option><option>الكويت</option>
+                    <option>قطر</option><option>البحرين</option><option>عُمان</option>
+                    <option>بلد آخر</option>
+                  </select>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="text-sm font-semibold">اللغة المفضلة</label>
+                  <select id="language"
+                          class="w-full rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300">
+                    <option value="">اختر</option>
+                    <option>العربية</option>
+                    <option>English</option>
+                    <option>日本語</option>
+                    <option>Français</option>
+                  </select>
+                </div>
+
+                <div class="sm:col-span-2 space-y-2">
+                  <label class="text-sm font-semibold">Bio قصيرة (اختياري)</label>
+                  <textarea id="bio" rows="3" placeholder="مثال: أحب الأنمي الهادئ، وأجمع مانجا… وأكره الحرق 😄"
+                            class="w-full rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300"></textarea>
+                </div>
+
+                <div class="sm:col-span-2 space-y-2">
+                  <label class="text-sm font-semibold">أفضل شخصية/بطل عندك</label>
+                  <input id="favCharacter" type="text" placeholder="مثال: L / Naruto / Mikasa / Spider-Man"
+                         class="w-full rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                  <p class="text-xs text-stone-600">ولا يهم لو ما عندك—اكتب “غير متأكد” 😉</p>
+                </div>
+              </div>
+
+              <div id="err2" class="hidden rounded-2xl bg-rose-50/80 p-4 ring-1 ring-rose-200 text-sm text-rose-700"></div>
+            </section>
+
+            <!-- Step 3: Avatar preset + upload + simple CSS crop -->
+            <section class="step hidden fade-in" data-step="3">
+              <div class="space-y-2">
+                <h2 class="text-xl sm:text-2xl font-bold">صورة رمزية بسيطة 🎭</h2>
+                <p class="text-stone-700">
+                  اختر أفاتار جاهز… أو ارفع صورة. لو رفعت، تقدر “تقص” مربع بشكل بسيط (CSS فقط).
+                </p>
+              </div>
+
+              <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-7 items-start">
+                <div class="space-y-4">
+                  <div class="text-sm font-semibold">أفاتارات جاهزة</div>
+
+                  <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    <!-- Presets injected by JS -->
+                    <div id="presetGrid" class="contents"></div>
+                  </div>
+
+                  <div class="mt-6 space-y-2">
+                    <label class="text-sm font-semibold">رفع صورة (اختياري)</label>
+                    <input id="avatarFile" type="file" accept="image/*"
+                           class="w-full rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                    <p class="text-xs text-stone-600">ملاحظة: القص هنا بسيط—مربع + تحريك/تكبير.</p>
+                  </div>
+
+                  <div id="cropControls" class="hidden mt-4 space-y-3">
+                    <div class="flex items-center justify-between gap-3 text-sm">
+                      <span class="font-semibold">تكبير</span>
+                      <input id="zoom" type="range" min="1" max="2.6" step="0.01" value="1.2" class="w-full accent-rose-500" />
+                    </div>
+                    <div class="flex items-center justify-between gap-3 text-sm">
+                      <span class="font-semibold">تحريك أفقي</span>
+                      <input id="panX" type="range" min="-120" max="120" step="1" value="0" class="w-full accent-rose-500" />
+                    </div>
+                    <div class="flex items-center justify-between gap-3 text-sm">
+                      <span class="font-semibold">تحريك عمودي</span>
+                      <input id="panY" type="range" min="-120" max="120" step="1" value="0" class="w-full accent-rose-500" />
+                    </div>
+
+                    <label class="menu-row rounded-2xl px-4 py-3 flex items-center justify-between cursor-pointer hover:shadow-sm transition">
+                      <span class="flex items-center gap-2">
+                        <span>✅</span> اعتماد القص الحالي كأفاتار
+                      </span>
+                      <button id="applyCrop" type="button"
+                              class="rounded-xl bg-stone-900 text-white px-4 py-2 text-sm hover:opacity-90 active:opacity-80">
+                        اعتماد
+                      </button>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="space-y-4">
+                  <div class="text-sm font-semibold">المعاينة</div>
+
+                  <div class="flex flex-col items-center gap-4">
+                    <div class="crop-frame">
+                      <img id="cropImg" class="crop-img hidden" alt="Avatar preview" />
+                      <div id="cropEmpty" class="absolute inset-0 grid place-items-center text-stone-600">
+                        <div class="text-center space-y-1">
+                          <div class="text-3xl">🖼️</div>
+                          <div class="text-sm">اختر أفاتار أو ارفع صورة</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="rounded-2xl bg-white/60 ring-1 ring-white/70 px-4 py-3 text-sm text-stone-700 w-full">
+                      <div class="flex items-start gap-2">
+                        <span>💡</span>
+                        <p>
+                          إن ما تبي تشيل هم الصور الآن—عادي. تقدر تغيّر الأفاتار لاحقًا.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="err3" class="hidden rounded-2xl bg-rose-50/80 p-4 ring-1 ring-rose-200 text-sm text-rose-700"></div>
+            </section>
+
+            <!-- Step 4: Interests as cafe menus -->
+            <section class="step hidden fade-in" data-step="4">
+              <div class="space-y-2">
+                <h2 class="text-xl sm:text-2xl font-bold">قائمة الاهتمامات… على طريقة المقهى ☕📜</h2>
+                <p class="text-stone-700">
+                  اختر اللي تحبه. كل اختيار يساعدنا نفهم ذوقك أكثر (بدون مبالغة).
+                </p>
+              </div>
+
+              <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-bold">Anime Genres</h3>
+                    <span class="text-xs text-stone-600">اختياراتك</span>
+                  </div>
+                  <div id="menuAnime" class="space-y-2"></div>
+                </div>
+
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-bold">Manga</h3>
+                    <span class="text-xs text-stone-600">اختياراتك</span>
+                  </div>
+                  <div id="menuManga" class="space-y-2"></div>
+                </div>
+
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-bold">Comics</h3>
+                    <span class="text-xs text-stone-600">اختياراتك</span>
+                  </div>
+                  <div id="menuComics" class="space-y-2"></div>
+                </div>
+              </div>
+
+              <div class="mt-6 rounded-2xl bg-white/60 ring-1 ring-white/70 px-4 py-3">
+                <div class="flex items-start gap-2">
+                  <span>🧁</span>
+                  <p class="text-sm text-stone-700">
+                    ما فيه صح أو غلط… هذه “قائمة” ذوقك فقط.
+                  </p>
+                </div>
+              </div>
+
+              <div id="err4" class="hidden rounded-2xl bg-rose-50/80 p-4 ring-1 ring-rose-200 text-sm text-rose-700"></div>
+            </section>
+
+            <!-- Step 5: Follow suggestions (8 similar people) -->
+            <section class="step hidden fade-in" data-step="5">
+              <div class="space-y-2">
+                <h2 class="text-xl sm:text-2xl font-bold">ناس ممكن تعجبك 🤝</h2>
+                <p class="text-stone-700">
+                  اختر تتابع أي شخص تحسّه قريب من ذوقك. (مجرد اقتراحات لطيفة)
+                </p>
+              </div>
+
+              <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="suggestGrid">
+                <!-- suggestions injected -->
+              </div>
+
+              <div class="mt-6 rounded-2xl bg-white/60 ring-1 ring-white/70 px-4 py-3 text-sm text-stone-700">
+                <div class="flex items-start gap-2">
+                  <span>🧭</span>
+                  <p>
+                    تقدر تتخطّى هذه الخطوة لو تحب—بس المتابعة تخلي الـ feed ألطف من البداية.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 6: Content mute + spoilers -->
+            <section class="step hidden fade-in" data-step="6">
+              <div class="space-y-2">
+                <h2 class="text-xl sm:text-2xl font-bold">مواضيع تحب تتجنبها؟ 🤫</h2>
+                <p class="text-stone-700">
+                  اختر كلمات/مواضيع ما تبغاها تظهر لك كثير. وكمان فعّل درع الحرق لو تبغى.
+                </p>
+              </div>
+
+              <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                <div class="space-y-3">
+                  <div class="text-sm font-semibold">Content Mute</div>
+                  <div class="flex flex-wrap gap-2" id="muteChips"></div>
+
+                  <div class="mt-4 space-y-2">
+                    <label class="text-sm font-semibold">أضف كلمة كتم (اختياري)</label>
+                    <div class="flex gap-2">
+                      <input id="muteInput" type="text" placeholder="مثال: gore / romance / ending"
+                             class="flex-1 rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-white/70 shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                      <button id="addMute" type="button"
+                              class="rounded-2xl bg-stone-900 text-white px-5 py-3 text-sm hover:opacity-90 active:opacity-80">
+                        إضافة
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="space-y-3">
+                  <div class="text-sm font-semibold">Spoilers</div>
+
+                  <label class="menu-row rounded-2xl px-4 py-3 flex items-center justify-between cursor-pointer hover:shadow-sm transition">
+                    <span class="flex items-center gap-2">
+                      <span>🛡️</span> تفعيل درع الحرق (إخفاء/تمويه السبويلرز)
+                    </span>
+                    <input id="spoilerShield" type="checkbox" class="accent-rose-500" checked />
+                  </label>
+
+                  <label class="menu-row rounded-2xl px-4 py-3 flex items-center justify-between cursor-pointer hover:shadow-sm transition">
+                    <span class="flex items-center gap-2">
+                      <span>🫧</span> تذكير لطيف قبل فتح منشور فيه حرق
+                    </span>
+                    <input id="spoilerPrompt" type="checkbox" class="accent-rose-500" checked />
+                  </label>
+
+                  <div class="rounded-2xl bg-white/60 ring-1 ring-white/70 px-4 py-3 text-sm text-stone-700">
+                    <div class="flex items-start gap-2">
+                      <span>🌙</span>
+                      <p>
+                        هدفنا: تصفّح مريح بدون “انفجار أحداث” فجأة.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="err6" class="hidden rounded-2xl bg-rose-50/80 p-4 ring-1 ring-rose-200 text-sm text-rose-700"></div>
+            </section>
+
+            <!-- Step 7: Final review -->
+            <section class="step hidden fade-in" data-step="7">
+              <div class="space-y-2">
+                <h2 class="text-xl sm:text-2xl font-bold">مراجعة سريعة قبل الدخول ✅</h2>
+                <p class="text-stone-700">
+                  إذا كل شيء تمام… اضغط “ادخل المجتمع”.
+                </p>
+              </div>
+
+              <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="rounded-2xl bg-white/60 ring-1 ring-white/70 p-4 space-y-2">
+                  <div class="text-sm font-semibold">الهوية</div>
+                  <div id="reviewIdentity" class="text-sm text-stone-700 leading-relaxed"></div>
+                </div>
+
+                <div class="rounded-2xl bg-white/60 ring-1 ring-white/70 p-4 space-y-2">
+                  <div class="text-sm font-semibold">الاهتمامات</div>
+                  <div id="reviewInterests" class="text-sm text-stone-700 leading-relaxed"></div>
+                </div>
+
+                <div class="rounded-2xl bg-white/60 ring-1 ring-white/70 p-4 space-y-2">
+                  <div class="text-sm font-semibold">الخصوصية/الراحة</div>
+                  <div id="reviewComfort" class="text-sm text-stone-700 leading-relaxed"></div>
+                </div>
+              </div>
+
+              <div class="mt-6 rounded-2xl bg-white/60 ring-1 ring-white/70 px-4 py-3 text-sm text-stone-700">
+                <div class="flex items-start gap-2">
+                  <span>🫶</span>
+                  <p>هذا مجرد نموذج UI/UX (بدون إرسال بيانات حقيقي). الهدف: تجربة تسجيل لطيفة ومريحة.</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 8: Success page -->
+            <section class="step hidden fade-in" data-step="8">
+              <div class="text-center space-y-4">
+                <div class="text-5xl">🎉</div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold">تم! جاهز تدخل المجتمع</h2>
+                <p class="text-stone-700 max-w-2xl mx-auto leading-relaxed">
+                  حسابك أصبح جاهزًا. خذ نفس… وابدأ تصفحًا هادئًا. إذا تبي تغيّر أي شيء، تقدر من الإعدادات لاحقًا.
+                </p>
+
+                <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <button id="ctaBrowse" type="button"
+                          class="rounded-2xl bg-stone-900 text-white px-8 py-3 text-base font-semibold hover:opacity-90 active:opacity-80 shadow">
+                    ابدأ التصفح 🌿
+                  </button>
+                  <button id="ctaRestart" type="button"
+                          class="rounded-2xl bg-white/70 ring-1 ring-white/70 px-8 py-3 text-base font-semibold hover:bg-white/80 active:opacity-90">
+                    رجّعني للبداية
+                  </button>
+                </div>
+
+                <div class="mt-6 rounded-2xl bg-white/60 ring-1 ring-white/70 p-4 text-sm text-stone-700 max-w-2xl mx-auto">
+                  <div class="flex items-start gap-2 justify-center">
+                    <span>📌</span>
+                    <p>
+                      CTA تجريبي: يفتح “صفحة تصفّح” داخل نفس الـ HTML (مجرد واجهة).
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Fake browse panel -->
+                <div id="browsePanel" class="hidden mt-8 text-right max-w-5xl mx-auto">
+                  <div class="rounded-[28px] bg-white/60 ring-1 ring-white/70 p-6 sm:p-8 shadow-lg">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div class="space-y-1">
+                        <div class="text-sm text-stone-600">الصفحة الرئيسية (تجريبية)</div>
+                        <div class="text-xl font-bold">أهلًا <span id="helloName">صديقنا</span> 👀</div>
+                        <div class="text-sm text-stone-700">هنا ممكن تبدأ الـ feed، التوصيات، والمتابعة…</div>
+                      </div>
+                      <div class="flex flex-wrap gap-2 justify-start sm:justify-end">
+                        <span class="chip rounded-full px-3 py-1 text-sm">🗂️ أحدث المنشورات</span>
+                        <span class="chip rounded-full px-3 py-1 text-sm">⭐ توصيات اليوم</span>
+                        <span class="chip rounded-full px-3 py-1 text-sm">🧑‍🤝‍🧑 من تتابعهم</span>
+                      </div>
+                    </div>
+
+                    <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <div class="rounded-2xl bg-white/70 ring-1 ring-white/70 p-4">
+                        <div class="text-sm font-semibold">بوست لطيف</div>
+                        <p class="mt-2 text-sm text-stone-700 leading-relaxed">
+                          “إيش آخر حلقة/فصل خلّاك تبتسم؟ أنا كنت محتاج شيء هادي اليوم.” 🌙
+                        </p>
+                      </div>
+                      <div class="rounded-2xl bg-white/70 ring-1 ring-white/70 p-4">
+                        <div class="text-sm font-semibold">توصية هادئة</div>
+                        <p class="mt-2 text-sm text-stone-700 leading-relaxed">
+                          جرّب عمل قائمة “Watchlist” صغيرة: 3 أعمال فقط للأسبوع… عشان ما تحس بثقل الخيارات. 🍡
+                        </p>
+                      </div>
+                      <div class="rounded-2xl bg-white/70 ring-1 ring-white/70 p-4">
+                        <div class="text-sm font-semibold">نصيحة ضد الحرق</div>
+                        <p class="mt-2 text-sm text-stone-700 leading-relaxed">
+                          لو درع الحرق مفعّل، المنشورات اللي فيها Spoilers بتنتمسح تلقائيًا — وتفتحها بإرادتك. 🛡️
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-center">
+                      <button type="button" id="ctaBackToWizard"
+                              class="rounded-2xl bg-white/70 ring-1 ring-white/70 px-6 py-3 text-sm font-semibold hover:bg-white/80">
+                        العودة لإعدادات التسجيل
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+          </div>
+
+          <!-- Nav -->
+          <div id="navBar" class="mt-10 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <button id="btnBack" type="button"
+                    class="rounded-2xl bg-white/70 ring-1 ring-white/70 px-6 py-3 font-semibold hover:bg-white/80 active:opacity-90">
+              ← رجوع
+            </button>
+
+            <div class="flex items-center justify-between sm:justify-end gap-3">
+              <button id="btnSkip" type="button"
+                      class="rounded-2xl bg-white/40 ring-1 ring-white/60 px-6 py-3 font-semibold text-stone-700 hover:bg-white/60 active:opacity-90">
+                تخطّي
+              </button>
+              <button id="btnNext" type="button"
+                      class="rounded-2xl bg-stone-900 text-white px-6 py-3 font-semibold hover:opacity-90 active:opacity-80 shadow">
+                التالي →
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      <footer class="mt-6 text-center text-xs text-stone-700/80">
+        <span class="inline-flex items-center gap-2 rounded-full bg-white/45 ring-1 ring-white/60 px-3 py-1.5 backdrop-blur">
+          <span>🌇</span>
+          <span>واجهة تسجيل Wizard في صفحة واحدة — Tailwind CDN + JS داخلي</span>
+        </span>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // ----------------------------
+    // Cozy Wizard State
+    // ----------------------------
+    const TOTAL_STEPS = 9; // 0..8 (8 is success)
+    const LAST_WIZARD_STEP = 7; // last step before success
+    let step = 0;
+
+    const state = {
+      displayName: "",
+      lookingFor: [],
+      email: "",
+      password: "",
+      useAlias: false,
+      alias: "",
+
+      country: "",
+      language: "",
+      bio: "",
+      favCharacter: "",
+
+      avatarPreset: null,
+      avatarDataUrl: null,   // raw uploaded image as data url
+      avatarApplied: null,   // "applied" avatar representation (data url or preset svg)
+      crop: { zoom: 1.2, panX: 0, panY: 0 },
+
+      interests: { anime: [], manga: [], comics: [] },
+
+      follows: new Set(),
+
+      mutes: new Set(["gore", "nsfw", "ending spoilers", "politics"]),
+      spoilerShield: true,
+      spoilerPrompt: true,
+    };
+
+    // ----------------------------
+    // DOM Helpers
+    // ----------------------------
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    const stepsEl = $("#steps");
+    const progressWrap = $("#progressWrap");
+    const progressBar = $("#progressBar");
+    const progressDot = $("#progressDot");
+    const stepLabel = $("#stepLabel");
+    const stepHint = $("#stepHint");
+
+    const btnBack = $("#btnBack");
+    const btnNext = $("#btnNext");
+    const btnSkip = $("#btnSkip");
+    const navBar = $("#navBar");
+
+    function showError(stepIndex, msg) {
+      const el = $("#err" + stepIndex);
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove("hidden");
+    }
+    function clearError(stepIndex) {
+      const el = $("#err" + stepIndex);
+      if (!el) return;
+      el.textContent = "";
+      el.classList.add("hidden");
+    }
+
+    function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+    // ----------------------------
+    // Progress UI
+    // ----------------------------
+    function updateProgress() {
+      // Hide progress on success
+      if (step === 8) {
+        progressWrap.classList.add("hidden");
+        navBar.classList.add("hidden");
+        return;
+      } else {
+        progressWrap.classList.remove("hidden");
+        navBar.classList.remove("hidden");
+      }
+
+      const visibleSteps = LAST_WIZARD_STEP + 1; // 8 steps (0..7)
+      const current = step + 1; // 1..8
+      stepLabel.textContent = `الخطوة ${current} من ${visibleSteps}`;
+
+      const hints = [
+        "بداية دافئة ✨",
+        "أمان وراحة 🔐",
+        "تعريف بسيط ✍️",
+        "أفاتار لطيف 🎭",
+        "قائمة ذوقك ☕",
+        "ناس يشبهونك 🤝",
+        "راحة بدون ضجيج 🤫",
+        "لمسة أخيرة ✅"
+      ];
+      stepHint.textContent = hints[step] || "على مهلك ✨";
+
+      const t = step / (visibleSteps - 1); // 0..1
+      const pct = Math.round(t * 100);
+
+      // RTL: we animate from right to left by adjusting width + dot "right"
+      progressBar.style.width = pct + "%";
+      progressDot.style.right = pct + "%";
+    }
+
+    function showStep(next) {
+      step = clamp(next, 0, TOTAL_STEPS - 1);
+      $$(".step").forEach(s => s.classList.add("hidden"));
+      const active = stepsEl.querySelector(`[data-step="${step}"]`);
+      if (active) active.classList.remove("hidden");
+
+      btnBack.disabled = (step === 0);
+      btnBack.classList.toggle("opacity-50", btnBack.disabled);
+      btnBack.classList.toggle("cursor-not-allowed", btnBack.disabled);
+
+      // Skip behavior: allow skipping follow suggestions step
+      btnSkip.classList.toggle("hidden", !(step === 5));
+
+      // Next button label
+      if (step === 7) btnNext.textContent = "ادخل المجتمع 🌿";
+      else btnNext.textContent = "التالي →";
+
+      updateProgress();
+
+      // Step-specific refreshes
+      if (step === 5) renderSuggestions();
+      if (step === 6) renderMuteChips();
+      if (step === 7) renderReview();
+    }
+
+    // ----------------------------
+    // Step 0 bindings
+    // ----------------------------
+    $("#displayName").addEventListener("input", (e) => state.displayName = e.target.value.trim());
+
+    $$(".lookingFor").forEach(cb => {
+      cb.addEventListener("change", () => {
+        state.lookingFor = $$(".lookingFor").filter(x => x.checked).map(x => x.value);
+      });
+    });
+
+    // ----------------------------
+    // Step 1 bindings
+    // ----------------------------
+    $("#email").addEventListener("input", (e) => state.email = e.target.value.trim());
+    $("#password").addEventListener("input", (e) => state.password = e.target.value);
+    $("#useAlias").addEventListener("change", (e) => {
+      state.useAlias = e.target.checked;
+      $("#aliasWrap").classList.toggle("hidden", !state.useAlias);
+    });
+    $("#alias").addEventListener("input", (e) => state.alias = e.target.value.trim());
+
+    // ----------------------------
+    // Step 2 bindings
+    // ----------------------------
+    $("#country").addEventListener("change", (e) => state.country = e.target.value);
+    $("#language").addEventListener("change", (e) => state.language = e.target.value);
+    $("#bio").addEventListener("input", (e) => state.bio = e.target.value.trim());
+    $("#favCharacter").addEventListener("input", (e) => state.favCharacter = e.target.value.trim());
+
+    // ----------------------------
+    // Avatar presets + crop
+    // ----------------------------
+    const presetAvatars = [
+      { id:"tea", emoji:"🍵", label:"Tea" },
+      { id:"cat", emoji:"🐾", label:"Cat" },
+      { id:"moon", emoji:"🌙", label:"Moon" },
+      { id:"spark", emoji:"✨", label:"Spark" },
+      { id:"ramen", emoji:"🍜", label:"Ramen" },
+      { id:"book", emoji:"📚", label:"Book" },
+      { id:"pen", emoji:"🖊️", label:"Pen" },
+      { id:"leaf", emoji:"🍃", label:"Leaf" },
+    ];
+
+    function presetSvgData(emoji) {
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256">
+          <defs>
+            <radialGradient id="g" cx="30%" cy="25%" r="90%">
+              <stop offset="0%" stop-color="#fff" stop-opacity="0.9"/>
+              <stop offset="40%" stop-color="#fde68a" stop-opacity="0.9"/>
+              <stop offset="75%" stop-color="#fda4af" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#a5b4fc" stop-opacity="0.9"/>
+            </radialGradient>
+            <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity="0.18"/>
+            </filter>
+          </defs>
+          <rect width="256" height="256" rx="44" fill="url(#g)"/>
+          <circle cx="128" cy="128" r="86" fill="rgba(255,255,255,0.55)" filter="url(#s)"/>
+          <text x="128" y="150" font-size="86" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
+        </svg>
+      `.trim();
+      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    }
+
+    function renderPresets() {
+      const grid = $("#presetGrid");
+      grid.innerHTML = "";
+      presetAvatars.forEach(p => {
+        const dataUrl = presetSvgData(p.emoji);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className =
+          "group rounded-2xl bg-white/60 ring-1 ring-white/70 p-2 hover:shadow-sm transition flex flex-col items-center gap-2";
+        btn.innerHTML = `
+          <img alt="${p.label}" src="${dataUrl}" class="w-16 h-16 rounded-xl ring-1 ring-white/70" />
+          <span class="text-xs text-stone-700">${p.label}</span>
+        `;
+        btn.addEventListener("click", () => {
+          state.avatarPreset = p.id;
+          state.avatarApplied = dataUrl;
+          state.avatarDataUrl = null;
+          $("#cropControls").classList.add("hidden");
+          setCropPreview(dataUrl, false);
+          highlightSelectedPreset(p.id);
+        });
+        grid.appendChild(btn);
+      });
+    }
+
+    function highlightSelectedPreset(id) {
+      // Simple: add a ring to selected preset by matching image src
+      const grid = $("#presetGrid");
+      Array.from(grid.children).forEach((child, i) => {
+        const p = presetAvatars[i];
+        child.classList.toggle("ring-2", p.id === id);
+        child.classList.toggle("ring-rose-300", p.id === id);
+      });
+    }
+
+    const cropImg = $("#cropImg");
+    const cropEmpty = $("#cropEmpty");
+
+    function setCropPreview(src, isUploaded) {
+      cropImg.src = src;
+      cropImg.classList.remove("hidden");
+      cropEmpty.classList.add("hidden");
+
+      if (isUploaded) {
+        $("#cropControls").classList.remove("hidden");
+      }
+      applyCropTransform();
+    }
+
+    function applyCropTransform() {
+      const { zoom, panX, panY } = state.crop;
+      cropImg.style.transform = `translate(calc(-50% + ${panX}px), calc(-50% + ${panY}px)) scale(${zoom})`;
+    }
+
+    $("#zoom").addEventListener("input", (e) => {
+      state.crop.zoom = parseFloat(e.target.value);
+      applyCropTransform();
+    });
+    $("#panX").addEventListener("input", (e) => {
+      state.crop.panX = parseInt(e.target.value, 10);
+      applyCropTransform();
+    });
+    $("#panY").addEventListener("input", (e) => {
+      state.crop.panY = parseInt(e.target.value, 10);
+      applyCropTransform();
+    });
+
+    $("#avatarFile").addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.avatarDataUrl = reader.result;
+        state.avatarPreset = null;
+        highlightSelectedPreset(null);
+
+        // Reset crop defaults
+        state.crop = { zoom: 1.2, panX: 0, panY: 0 };
+        $("#zoom").value = state.crop.zoom;
+        $("#panX").value = state.crop.panX;
+        $("#panY").value = state.crop.panY;
+
+        setCropPreview(state.avatarDataUrl, true);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // "Apply crop" - we won't do real pixel crop; we store current transform settings.
+    // In a real app you'd render to canvas. Here we simply treat the transformed preview as "applied".
+    $("#applyCrop").addEventListener("click", () => {
+      if (!state.avatarDataUrl) return;
+      // Mark "applied" as uploaded (with current crop settings)
+      state.avatarApplied = "uploaded-with-css-crop";
+      // keep avatarDataUrl + crop state
+      alert("تم اعتماد القص (بشكل تجريبي). 👍");
+    });
+
+    // ----------------------------
+    // Interests "Cafe menu"
+    // ----------------------------
+    const menuData = {
+      anime: [
+        { name: "Slice of Life", note: "لطيف وهادئ", icon:"🍃" },
+        { name: "Fantasy", note: "عالم جديد", icon:"🗺️" },
+        { name: "Shounen", note: "حماس", icon:"🔥" },
+        { name: "Mystery", note: "ألغاز", icon:"🕯️" },
+        { name: "Romance", note: "مشاعر", icon:"🌸" },
+        { name: "Comedy", note: "ضحكة", icon:"🍡" },
+      ],
+      manga: [
+        { name: "Seinen", note: "نضج", icon:"🖤" },
+        { name: "Drama", note: "عمق", icon:"🎭" },
+        { name: "Sports", note: "إصرار", icon:"🏀" },
+        { name: "Isekai", note: "انتقال", icon:"🚪" },
+        { name: "Horror", note: "توتر", icon:"🫣" },
+        { name: "Short stories", note: "خفيف", icon:"📄" },
+      ],
+      comics: [
+        { name: "Superhero", note: "أبطال", icon:"🦸" },
+        { name: "Indie", note: "تجريبي", icon:"🎨" },
+        { name: "Sci-Fi", note: "مستقبل", icon:"🛰️" },
+        { name: "Detective", note: "تحقيق", icon:"🕵️" },
+        { name: "Graphic novels", note: "سرد طويل", icon:"📘" },
+        { name: "Humor", note: "خفة", icon:"😄" },
+      ],
+    };
+
+    function makeMenuRow(category, item) {
+      const id = `${category}:${item.name}`;
+      const label = document.createElement("label");
+      label.className = "menu-row rounded-2xl px-4 py-3 flex items-center justify-between cursor-pointer hover:shadow-sm transition";
+      label.innerHTML = `
+        <span class="flex items-center gap-2">
+          <span>${item.icon}</span>
+          <span class="font-semibold">${item.name}</span>
+          <span class="text-xs text-stone-600">— ${item.note}</span>
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <span class="text-xs text-stone-500">★</span>
+          <input data-id="${id}" class="interest accent-rose-500" type="checkbox" />
+        </span>
+      `;
+      const cb = label.querySelector("input");
+      cb.addEventListener("change", () => {
+        const arr = state.interests[category];
+        if (cb.checked) {
+          if (!arr.includes(item.name)) arr.push(item.name);
+        } else {
+          const idx = arr.indexOf(item.name);
+          if (idx >= 0) arr.splice(idx, 1);
+        }
+      });
+      return label;
+    }
+
+    function renderMenus() {
+      const a = $("#menuAnime");
+      const m = $("#menuManga");
+      const c = $("#menuComics");
+      a.innerHTML = ""; m.innerHTML = ""; c.innerHTML = "";
+
+      menuData.anime.forEach(item => a.appendChild(makeMenuRow("anime", item)));
+      menuData.manga.forEach(item => m.appendChild(makeMenuRow("manga", item)));
+      menuData.comics.forEach(item => c.appendChild(makeMenuRow("comics", item)));
+    }
+
+    // ----------------------------
+    // Suggestions (8 similar people)
+    // ----------------------------
+    const peoplePool = [
+      { id:"p1", name:"Mina", handle:"@mint_tea", vibe:"هادئة", tags:["Slice of Life","Romance","Comedy"], wants:["نقاشات","توصيات"] },
+      { id:"p2", name:"Omar", handle:"@panel_nerd", vibe:"محلل", tags:["Mystery","Detective","Seinen"], wants:["نقاشات"] },
+      { id:"p3", name:"Rana", handle:"@soft_sketch", vibe:"فنانة", tags:["Fantasy","Indie","Graphic novels"], wants:["رسومات"] },
+      { id:"p4", name:"Yuki", handle:"@moon_isekai", vibe:"مغامر", tags:["Isekai","Fantasy","Shounen"], wants:["توصيات"] },
+      { id:"p5", name:"Hassan", handle:"@spoiler_shield", vibe:"منظم", tags:["Sci-Fi","Mystery","Drama"], wants:["نقاشات","توصيات"] },
+      { id:"p6", name:"Sara", handle:"@slice_daily", vibe:"يوميّات", tags:["Slice of Life","Short stories","Graphic novels"], wants:["نقاشات"] },
+      { id:"p7", name:"Noor", handle:"@laughing_mochi", vibe:"مرِح", tags:["Comedy","Humor","Superhero"], wants:["نقاشات","رسومات"] },
+      { id:"p8", name:"Fahad", handle:"@court_sports", vibe:"متحمس", tags:["Sports","Shounen","Superhero"], wants:["نقاشات","توصيات"] },
+      { id:"p9", name:"Laila", handle:"@pink_romance", vibe:"دافئة", tags:["Romance","Drama","Fantasy"], wants:["توصيات"] },
+      { id:"p10", name:"Kareem", handle:"@indie_ink", vibe:"فضولي", tags:["Indie","Graphic novels","Sci-Fi"], wants:["رسومات","توصيات"] },
+      { id:"p11", name:"Aya", handle:"@mystery_candle", vibe:"غامضة", tags:["Mystery","Detective","Horror"], wants:["نقاشات"] },
+      { id:"p12", name:"Zaid", handle:"@quiet_reader", vibe:"قارئ", tags:["Seinen","Drama","Short stories"], wants:["توصيات"] },
+    ];
+
+    function scorePerson(p) {
+      let score = 0;
+
+      // lookingFor overlap
+      const lf = new Set(state.lookingFor);
+      p.wants.forEach(w => { if (lf.has(w)) score += 3; });
+
+      // interests overlap (flatten)
+      const selected = new Set([
+        ...state.interests.anime,
+        ...state.interests.manga,
+        ...state.interests.comics,
+      ]);
+      p.tags.forEach(t => { if (selected.has(t)) score += 4; });
+
+      // bonus if favorite character exists (just a fun nudge)
+      if (state.favCharacter && state.favCharacter.length >= 2) score += 1;
+
+      return score;
+    }
+
+    function reasonFor(p) {
+      const selected = new Set([
+        ...state.interests.anime,
+        ...state.interests.manga,
+        ...state.interests.comics,
+      ]);
+      const overlapTag = p.tags.find(t => selected.has(t));
+      const overlapWant = p.wants.find(w => state.lookingFor.includes(w));
+
+      if (overlapTag && overlapWant) return `لأنك اخترت “${overlapTag}” وتبحث عن “${overlapWant}”.`;
+      if (overlapTag) return `لأنك اخترت “${overlapTag}”.`;
+      if (overlapWant) return `لأنك تبحث عن “${overlapWant}”.`;
+      if (state.language) return `لأن إعداداتك تشير إلى ذوق متنوّع—اقتراح لطيف للتجربة.`;
+      return `اقتراح لطيف لبدء المتابعة.`;
+    }
+
+    function avatarBadgeFor(name) {
+      // small cozy badge using first letter
+      const letter = (name && name[0]) ? name[0] : "🙂";
+      return `
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-200 via-rose-200 to-indigo-200 ring-1 ring-white/70 shadow-sm grid place-items-center text-sm font-bold">
+          ${letter}
+        </div>
+      `;
+    }
+
+    function renderSuggestions() {
+      const grid = $("#suggestGrid");
+      grid.innerHTML = "";
+
+      const ranked = [...peoplePool]
+        .map(p => ({ p, s: scorePerson(p) }))
+        .sort((a,b) => b.s - a.s)
+        .slice(0, 8)
+        .map(x => x.p);
+
+      ranked.forEach(p => {
+        const card = document.createElement("label");
+        card.className =
+          "rounded-2xl bg-white/60 ring-1 ring-white/70 p-4 hover:shadow-sm transition cursor-pointer flex flex-col gap-3";
+        const checked = state.follows.has(p.id);
+        const reason = reasonFor(p);
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              ${avatarBadgeFor(p.name)}
+              <div class="min-w-0">
+                <div class="font-bold leading-tight">${p.name}</div>
+                <div class="text-xs text-stone-600">${p.handle} · ${p.vibe}</div>
+              </div>
+            </div>
+            <input type="checkbox" class="accent-rose-500" ${checked ? "checked" : ""} />
+          </div>
+
+          <div class="text-xs text-stone-700 leading-relaxed">
+            <span class="inline-flex items-center gap-1 rounded-full bg-white/60 ring-1 ring-white/70 px-2 py-1">
+              <span>🧠</span><span>${reason}</span>
+            </span>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            ${p.tags.slice(0,3).map(t => `<span class="chip rounded-full px-3 py-1 text-xs">${t}</span>`).join("")}
+          </div>
+        `;
+
+        const cb = card.querySelector("input[type='checkbox']");
+        cb.addEventListener("change", () => {
+          if (cb.checked) state.follows.add(p.id);
+          else state.follows.delete(p.id);
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
+    // ----------------------------
+    // Content mute + spoilers
+    // ----------------------------
+    function renderMuteChips() {
+      const wrap = $("#muteChips");
+      wrap.innerHTML = "";
+
+      const mutes = Array.from(state.mutes).slice(0, 24);
+      mutes.forEach(word => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip rounded-full px-3 py-2 text-sm hover:shadow-sm transition inline-flex items-center gap-2";
+        chip.innerHTML = `<span>🔕</span><span>${escapeHtml(word)}</span><span class="opacity-60">×</span>`;
+        chip.addEventListener("click", () => {
+          state.mutes.delete(word);
+          renderMuteChips();
+        });
+        wrap.appendChild(chip);
+      });
+
+      if (mutes.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "text-sm text-stone-600";
+        empty.textContent = "ما فيه كلمات كتم حاليًا.";
+        wrap.appendChild(empty);
+      }
+    }
+
+    $("#addMute").addEventListener("click", () => {
+      const v = $("#muteInput").value.trim();
+      if (!v) return;
+      state.mutes.add(v);
+      $("#muteInput").value = "";
+      renderMuteChips();
+    });
+
+    $("#spoilerShield").addEventListener("change", (e) => state.spoilerShield = e.target.checked);
+    $("#spoilerPrompt").addEventListener("change", (e) => state.spoilerPrompt = e.target.checked);
+
+    // ----------------------------
+    // Review
+    // ----------------------------
+    function fmtList(arr) {
+      if (!arr || arr.length === 0) return "—";
+      return arr.map(x => `“${x}”`).join("، ");
+    }
+
+    function renderReview() {
+      const identity = $("#reviewIdentity");
+      const interests = $("#reviewInterests");
+      const comfort = $("#reviewComfort");
+
+      const name = state.displayName || "—";
+      const lf = fmtList(state.lookingFor);
+
+      let auth = "—";
+      if (state.useAlias && state.alias) auth = `اسم مستعار: “${escapeHtml(state.alias)}”`;
+      else if (state.email) auth = `Email: ${escapeHtml(state.email)}`;
+      else auth = "لم يتم إدخال بيانات تسجيل (تجريبي)";
+
+      const loc = [state.country, state.language].filter(Boolean).join(" · ") || "—";
+      const bio = state.bio ? escapeHtml(state.bio) : "—";
+      const fav = state.favCharacter ? escapeHtml(state.favCharacter) : "—";
+
+      identity.innerHTML = `
+        <div>الاسم: <b>${escapeHtml(name)}</b></div>
+        <div class="mt-1">تبحث عن: <b>${escapeHtml(lf)}</b></div>
+        <div class="mt-1">الدخول: <b>${auth}</b></div>
+        <div class="mt-1">البلد/اللغة: <b>${escapeHtml(loc)}</b></div>
+        <div class="mt-1">أفضل شخصية: <b>${escapeHtml(fav)}</b></div>
+        <div class="mt-2 text-xs text-stone-600">Bio: ${bio}</div>
+      `;
+
+      const ani = fmtList(state.interests.anime);
+      const man = fmtList(state.interests.manga);
+      const com = fmtList(state.interests.comics);
+
+      interests.innerHTML = `
+        <div>Anime: <b>${escapeHtml(ani)}</b></div>
+        <div class="mt-1">Manga: <b>${escapeHtml(man)}</b></div>
+        <div class="mt-1">Comics: <b>${escapeHtml(com)}</b></div>
+        <div class="mt-2 text-xs text-stone-600">متابعة: <b>${state.follows.size}</b> أشخاص</div>
+      `;
+
+      const muteList = Array.from(state.mutes).slice(0, 12);
+      comfort.innerHTML = `
+        <div>كلمات الكتم: <b>${muteList.length ? escapeHtml(muteList.join("، ")) : "—"}</b></div>
+        <div class="mt-1">درع الحرق: <b>${state.spoilerShield ? "مفعّل 🛡️" : "غير مفعّل"}</b></div>
+        <div class="mt-1">تذكير قبل الحرق: <b>${state.spoilerPrompt ? "مفعّل 🫧" : "غير مفعّل"}</b></div>
+      `;
+    }
+
+    // ----------------------------
+    // Navigation + Validation
+    // ----------------------------
+    function validateCurrentStep() {
+      if (step === 0) {
+        clearError(0);
+        if (!state.displayName) {
+          showError(0, "اكتب اسم بسيط عشان نكمل 🙂");
+          return false;
+        }
+        if (!state.lookingFor || state.lookingFor.length === 0) {
+          showError(0, "اختر على الأقل شيء واحد: نقاشات / توصيات / رسومات ✨");
+          return false;
+        }
+      }
+
+      if (step === 1) {
+        clearError(1);
+        if (state.useAlias) {
+          if (!state.alias) {
+            showError(1, "اكتب اسم مستعار (أو ألغِ خيار الاسم المستعار).");
+            return false;
+          }
+        } else {
+          // email+password minimal validation
+          if (!state.email || !state.email.includes("@")) {
+            showError(1, "اكتب Email صحيح (شكلًا).");
+            return false;
+          }
+          if (!state.password || state.password.length < 6) {
+            showError(1, "كلمة المرور لازم تكون 6 أحرف على الأقل (للتجربة).");
+            return false;
+          }
+        }
+      }
+
+      if (step === 2) {
+        clearError(2);
+        if (!state.country) {
+          showError(2, "اختر بلدك (حتى لو “بلد آخر”).");
+          return false;
+        }
+        if (!state.language) {
+          showError(2, "اختر اللغة المفضلة.");
+          return false;
+        }
+        if (!state.favCharacter) {
+          showError(2, "اكتب أفضل شخصية/بطل… أو اكتب “غير متأكد”.");
+          return false;
+        }
+      }
+
+      if (step === 3) {
+        clearError(3);
+        // optional; but require some avatar selection for nicer experience
+        if (!state.avatarPreset && !state.avatarDataUrl) {
+          showError(3, "اختر أفاتار جاهز أو ارفع صورة (اختياري… بس يضيف لمسة لطيفة).");
+          // allow passing anyway? We'll allow but show message and still pass if user presses next again.
+          return true; // not blocking
+        }
+      }
+
+      if (step === 4) {
+        clearError(4);
+        const count = state.interests.anime.length + state.interests.manga.length + state.interests.comics.length;
+        if (count === 0) {
+          showError(4, "اختر على الأقل اهتمام واحد… عشان نعرف ذوقك ☕");
+          return false;
+        }
+      }
+
+      // Step 6 no strict validation
+      return true;
+    }
+
+    btnBack.addEventListener("click", () => {
+      if (step > 0) showStep(step - 1);
+    });
+
+    btnNext.addEventListener("click", () => {
+      if (!validateCurrentStep()) return;
+
+      if (step === 7) {
+        // Final "enter community"
+        // Save a little summary to localStorage for demo
+        const summary = {
+          displayName: state.displayName,
+          lookingFor: state.lookingFor,
+          interests: state.interests,
+          follows: Array.from(state.follows),
+          mutes: Array.from(state.mutes),
+          spoilerShield: state.spoilerShield,
+          spoilerPrompt: state.spoilerPrompt,
+        };
+        try { localStorage.setItem("cozy_signup_demo", JSON.stringify(summary)); } catch (e) {}
+        showStep(8);
+        return;
+      }
+
+      showStep(step + 1);
+    });
+
+    btnSkip.addEventListener("click", () => {
+      // Only for step 5
+      if (step === 5) showStep(6);
+    });
+
+    // Success CTAs
+    $("#ctaBrowse").addEventListener("click", () => {
+      $("#browsePanel").classList.remove("hidden");
+      $("#helloName").textContent = state.displayName || "صديقنا";
+      // little scroll into view
+      $("#browsePanel").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    $("#ctaRestart").addEventListener("click", () => {
+      // Simple reset of UI (not full wipe)
+      step = 0;
+      showStep(0);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    $("#ctaBackToWizard").addEventListener("click", () => {
+      // go to review step for adjustments
+      showStep(7);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // ----------------------------
+    // Utilities
+    // ----------------------------
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // ----------------------------
+    // Init
+    // ----------------------------
+    renderPresets();
+    renderMenus();
+
+    // Keep preview empty until selection
+    // Default spoiler options already set
+
+    // Initialize lookingFor from UI
+    state.lookingFor = $$(".lookingFor").filter(x => x.checked).map(x => x.value);
+
+    // Start
+    showStep(0);
+  </script>
+</body>
+</html>

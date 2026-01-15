@@ -1,0 +1,1290 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>One Screen Smart Signup</title>
+
+    <script>
+      tailwind = {
+        config: {
+          theme: {
+            extend: {
+              boxShadow: {
+                glow: "0 18px 60px rgba(0,0,0,.18)",
+              },
+              borderRadius: {
+                xl2: "1.25rem",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      :root{
+        --h1: 215;
+        --h2: 295;
+        --grain: .06;
+
+        --accent: hsl(var(--h1) 92% 60%);
+        --accent2: hsl(var(--h2) 92% 58%);
+        --ink: 15 23 42; /* slate-900-ish */
+        --card: 255 255 255;
+        --muted: 100 116 139; /* slate-500-ish */
+
+        --aura1: 330;
+        --aura2: 210;
+      }
+
+      body{
+        background: radial-gradient(1200px 800px at 15% 5%,
+            hsl(var(--h1) 90% 66% / .24),
+            transparent 60%),
+          radial-gradient(900px 700px at 80% 18%,
+            hsl(var(--h2) 90% 62% / .18),
+            transparent 55%),
+          radial-gradient(1100px 900px at 55% 120%,
+            hsl(calc((var(--h1) + var(--h2))/2) 90% 55% / .12),
+            transparent 60%),
+          linear-gradient(180deg, #0b1220 0%, #0a1020 35%, #070b14 100%);
+        color: rgb(var(--card));
+        min-height: 100vh;
+      }
+
+      /* soft moving glow */
+      .bg-anim::before{
+        content:"";
+        position: fixed;
+        inset: -20%;
+        background:
+          radial-gradient(650px 520px at 30% 35%, hsl(var(--h1) 92% 60% / .22), transparent 60%),
+          radial-gradient(760px 600px at 78% 50%, hsl(var(--h2) 92% 58% / .18), transparent 60%),
+          radial-gradient(520px 520px at 45% 88%, hsl(var(--h1) 92% 60% / .12), transparent 62%);
+        filter: blur(14px);
+        transform: translate3d(0,0,0);
+        animation: floatGlow 12s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+        opacity: .95;
+      }
+      @keyframes floatGlow{
+        0%,100%{ transform: translate3d(0,0,0) scale(1); }
+        50%{ transform: translate3d(-2.5%,1.5%,0) scale(1.03); }
+      }
+
+      /* grain */
+      .bg-anim::after{
+        content:"";
+        position: fixed;
+        inset: 0;
+        pointer-events:none;
+        z-index: 0;
+        opacity: var(--grain);
+        background-image:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+        background-size: 180px 180px;
+        mix-blend-mode: overlay;
+      }
+
+      /* card glass */
+      .glass{
+        background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+        border: 1px solid rgba(255,255,255,.14);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      /* accordion animation */
+      .cell-content{
+        overflow: hidden;
+        max-height: 0px;
+        transition: max-height 420ms cubic-bezier(.2,.8,.2,1);
+      }
+      .cell.open .cell-content{ max-height: 1200px; }
+      .cell.open .chev{ transform: rotate(180deg); }
+      .chev{ transition: transform 240ms ease; }
+
+      /* speech bubble */
+      .bubble{
+        position: relative;
+        border: 1px solid rgba(255,255,255,.18);
+        background: rgba(255,255,255,.08);
+      }
+      .bubble:after{
+        content:"";
+        position:absolute;
+        inset-inline-end: 18px;
+        bottom:-8px;
+        width: 14px;
+        height: 14px;
+        background: rgba(255,255,255,.08);
+        border-right: 1px solid rgba(255,255,255,.18);
+        border-bottom: 1px solid rgba(255,255,255,.18);
+        transform: rotate(45deg);
+      }
+
+      /* sparkles */
+      .sparkle{
+        filter: drop-shadow(0 10px 18px rgba(0,0,0,.18));
+        opacity:.9;
+        animation: twinkle 2.4s ease-in-out infinite;
+      }
+      .sparkle:nth-child(2){ animation-delay: .35s; }
+      .sparkle:nth-child(3){ animation-delay: .75s; }
+      @keyframes twinkle{
+        0%,100%{ transform: translateY(0) scale(1); opacity:.85; }
+        50%{ transform: translateY(-4px) scale(1.06); opacity:1; }
+      }
+
+      /* little sticker float */
+      .sticker{
+        filter: drop-shadow(0 18px 28px rgba(0,0,0,.22));
+        animation: stickerFloat 7s ease-in-out infinite;
+      }
+      @keyframes stickerFloat{
+        0%,100%{ transform: translateY(0) rotate(-2deg); }
+        50%{ transform: translateY(-8px) rotate(2deg); }
+      }
+
+      /* input focus accent */
+      .focus-accent:focus{
+        outline: none !important;
+        box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 30%, transparent);
+        border-color: color-mix(in oklab, var(--accent) 55%, white 0%);
+      }
+
+      /* aura ring */
+      .aura-ring{
+        background: conic-gradient(from 160deg,
+          hsl(var(--aura1) 90% 62%),
+          hsl(var(--aura2) 90% 60%),
+          hsl(calc((var(--aura1) + var(--aura2))/2) 90% 60%),
+          hsl(var(--aura1) 90% 62%));
+      }
+
+      /* stamp */
+      .stamp{
+        transform: rotate(-12deg);
+        border: 3px dashed rgba(255,255,255,.55);
+        text-shadow: 0 2px 0 rgba(0,0,0,.25);
+      }
+
+      /* safe area */
+      .safe-bottom{ padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
+    </style>
+  </head>
+
+  <body class="bg-anim">
+    <!-- Decorations -->
+    <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      <div class="sticker absolute -top-2 -left-2 text-5xl select-none">🪄</div>
+      <div class="sticker absolute top-10 right-6 text-4xl select-none">🐾</div>
+      <div class="sticker absolute bottom-24 left-6 text-4xl select-none">🍡</div>
+
+      <div class="absolute top-24 left-10 flex gap-3 select-none">
+        <div class="sparkle text-2xl">✨</div>
+        <div class="sparkle text-xl">✦</div>
+        <div class="sparkle text-2xl">✨</div>
+      </div>
+
+      <div class="absolute bottom-40 right-10 flex gap-3 select-none">
+        <div class="sparkle text-xl">✦</div>
+        <div class="sparkle text-2xl">✨</div>
+        <div class="sparkle text-xl">✦</div>
+      </div>
+    </div>
+
+    <main class="relative z-10 mx-auto w-full max-w-md px-4 pb-40 pt-6">
+      <!-- Header -->
+      <header class="mb-4">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-extrabold tracking-tight">
+              انضم لعالمك ✨
+            </h1>
+            <p class="mt-1 text-sm text-white/80">
+              <span class="font-semibold text-white">٣ عناصر فقط مطلوبة</span> — والباقي اختياري مع “لاحقًا”.
+            </p>
+          </div>
+
+          <div class="glass bubble rounded-2xl px-3 py-2 text-center">
+            <div class="text-xs text-white/70">تقدّم المطلوب</div>
+            <div class="mt-0.5 text-base font-extrabold">
+              <span id="reqDone">0</span><span class="text-white/70">/</span><span id="reqTotal">3</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 glass rounded-2xl p-3">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-xl">💬</span>
+              <div>
+                <div class="text-sm font-bold">بدون خطوات تقريبًا</div>
+                <div class="text-xs text-white/70">افتح خلية، عبّي اللي تبيه، والباقي لاحقًا.</div>
+              </div>
+            </div>
+            <div class="text-xs text-white/70">
+              <span class="inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1">
+                <span class="inline-block h-2 w-2 rounded-full" style="background: var(--accent)"></span>
+                <span id="ctaHint">ابدأ بالهوية</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Cells -->
+      <section id="cells" class="space-y-3">
+        <!-- Identity -->
+        <section class="cell glass rounded-2xl shadow-glow" data-theme="identity" id="cell-identity">
+          <button type="button" class="cell-header w-full p-4" aria-expanded="false">
+            <div class="flex w-full items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-2xl">🪪</span>
+                <div class="text-right">
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-base font-extrabold">الهوية</h2>
+                    <span class="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold">مطلوب</span>
+                  </div>
+                  <p class="mt-0.5 text-xs text-white/70">الاسم + البريد + كلمة المرور</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span id="identityBadge" class="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/80">
+                  غير مكتمل
+                </span>
+                <svg class="chev h-5 w-5 text-white/80" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </button>
+
+          <div class="cell-content">
+            <div class="p-4 pt-0 space-y-4">
+              <div class="glass rounded-2xl p-3">
+                <label class="block text-xs font-bold text-white/80 mb-2" for="name">الاسم</label>
+                <div class="relative">
+                  <input id="name" type="text" autocomplete="name" placeholder="مثال: لوفي"
+                    class="focus-accent w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-white/50" />
+                  <span id="nameOk" class="hidden absolute left-3 top-1/2 -translate-y-1/2 text-lg">✅</span>
+                </div>
+                <p id="nameErr" class="mt-2 hidden text-xs text-rose-200">اكتب اسمًا واضحًا (حرفين على الأقل).</p>
+              </div>
+
+              <div class="glass rounded-2xl p-3">
+                <label class="block text-xs font-bold text-white/80 mb-2" for="email">البريد الإلكتروني</label>
+                <div class="relative">
+                  <input id="email" type="email" autocomplete="email" placeholder="you@animeverse.com"
+                    class="focus-accent w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-white/50" />
+                  <span id="emailOk" class="hidden absolute left-3 top-1/2 -translate-y-1/2 text-lg">✅</span>
+                </div>
+                <p id="emailErr" class="mt-2 hidden text-xs text-rose-200">تأكد من صيغة البريد.</p>
+              </div>
+
+              <div class="glass rounded-2xl p-3">
+                <div class="flex items-center justify-between gap-3">
+                  <label class="block text-xs font-bold text-white/80 mb-2" for="password">كلمة المرور</label>
+                  <button id="togglePw" type="button" class="text-xs font-bold text-white/75 hover:text-white">
+                    إظهار
+                  </button>
+                </div>
+
+                <div class="relative">
+                  <input id="password" type="password" autocomplete="new-password" placeholder="••••••••"
+                    class="focus-accent w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-white/50" />
+                  <span id="pwOk" class="hidden absolute left-3 top-1/2 -translate-y-1/2 text-lg">✅</span>
+                </div>
+
+                <div class="mt-3">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-white/70">القوة</span>
+                    <span id="pwLabel" class="font-bold text-white/80">—</span>
+                  </div>
+                  <div class="mt-2 h-2 w-full rounded-full bg-white/10 overflow-hidden">
+                    <div id="pwBar" class="h-full w-0 rounded-full" style="background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 220ms ease;"></div>
+                  </div>
+
+                  <ul class="mt-3 space-y-1 text-xs text-white/70">
+                    <li class="flex items-center justify-between gap-2">
+                      <span>٨ أحرف أو أكثر</span>
+                      <span id="rLen" class="opacity-70">◻︎</span>
+                    </li>
+                    <li class="flex items-center justify-between gap-2">
+                      <span>حروف + أرقام</span>
+                      <span id="rMix" class="opacity-70">◻︎</span>
+                    </li>
+                    <li class="flex items-center justify-between gap-2">
+                      <span>رمز خاص (اختياري لكنه أفضل)</span>
+                      <span id="rSym" class="opacity-70">◻︎</span>
+                    </li>
+                  </ul>
+
+                  <p id="pwErr" class="mt-2 hidden text-xs text-rose-200">خلّها أقوى شوي: ٨ أحرف + حروف وأرقام.</p>
+                </div>
+              </div>
+
+              <div class="glass bubble rounded-2xl px-4 py-3">
+                <div class="flex items-start gap-3">
+                  <span class="text-xl">🗯️</span>
+                  <p class="text-sm text-white/85 leading-relaxed">
+                    تقدر تكمل الآن بالمطلوب فقط… وبعدها تختار أفاتار واهتماماتك عالراحة.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Avatar -->
+        <section class="cell glass rounded-2xl" data-theme="avatar" id="cell-avatar">
+          <button type="button" class="cell-header w-full p-4" aria-expanded="false">
+            <div class="flex w-full items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-2xl">🧑‍🎨</span>
+                <div class="text-right">
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-base font-extrabold">الأفاتار</h2>
+                    <span class="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold text-white/80">سريع</span>
+                  </div>
+                  <p class="mt-0.5 text-xs text-white/70">Aura + اختيار أفاتار + رفع صورة (اختياري)</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span id="avatarBadge" class="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/70">
+                  اختياري
+                </span>
+                <svg class="chev h-5 w-5 text-white/80" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </button>
+
+          <div class="cell-content">
+            <div class="p-4 pt-0 space-y-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div class="aura-ring rounded-full p-[3px]">
+                    <div class="h-14 w-14 rounded-full bg-black/25 flex items-center justify-center border border-white/15">
+                      <span id="avatarPreview" class="text-2xl">🦊</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="text-sm font-extrabold">معاينة</div>
+                    <div id="avatarMeta" class="text-xs text-white/70">اختر Aura وأفاتار… أو ارفع صورة.</div>
+                  </div>
+                </div>
+
+                <button id="avatarLater" type="button" class="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 text-xs font-extrabold text-white/80 hover:bg-white/15">
+                  لاحقًا
+                </button>
+              </div>
+
+              <div class="glass rounded-2xl p-3">
+                <div class="text-xs font-extrabold text-white/80 mb-2">Aura</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" class="auraBtn rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-right hover:bg-white/15" data-aura="sakura" data-a1="330" data-a2="210">
+                    <div class="text-sm font-extrabold">ساكورا</div>
+                    <div class="text-xs text-white/70">ورد + سماوي</div>
+                  </button>
+                  <button type="button" class="auraBtn rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-right hover:bg-white/15" data-aura="neon" data-a1="120" data-a2="290">
+                    <div class="text-sm font-extrabold">نيون</div>
+                    <div class="text-xs text-white/70">أخضر + بنفسجي</div>
+                  </button>
+                  <button type="button" class="auraBtn rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-right hover:bg-white/15" data-aura="sunset" data-a1="18" data-a2="320">
+                    <div class="text-sm font-extrabold">غروب</div>
+                    <div class="text-xs text-white/70">برتقالي + فوشيا</div>
+                  </button>
+                  <button type="button" class="auraBtn rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-right hover:bg-white/15" data-aura="midnight" data-a1="220" data-a2="170">
+                    <div class="text-sm font-extrabold">منتصف الليل</div>
+                    <div class="text-xs text-white/70">أزرق + زمردي</div>
+                  </button>
+                </div>
+              </div>
+
+              <div class="glass rounded-2xl p-3">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs font-extrabold text-white/80 mb-2">اختر أفاتار</div>
+                  <div class="text-xs text-white/70">شبكة سريعة</div>
+                </div>
+                <div class="mt-2 grid grid-cols-4 gap-2">
+                  <button type="button" class="avatarBtn rounded-2xl border border-white/15 bg-white/10 py-3 text-2xl hover:bg-white/15" data-emo="🦊">🦊</button>
+                  <button type="button" class="avatarBtn rounded-2xl border border-white/15 bg-white/10 py-3 text-2xl hover:bg-white/15" data-emo="🐉">🐉</button>
+                  <button type="button" class="avatarBtn rounded-2xl border border-white/15 bg-white/10 py-3 text-2xl hover:bg-white/15" data-emo="🦄">🦄</button>
+                  <button type="button" class="avatarBtn rounded-2xl border border-white/15 bg-white/10 py-3 text-2xl hover:bg-white/15" data-emo="🐱">🐱</button>
+                  <button type="button" class="avatarBtn rounded-2xl border border-white/15 bg-white/10 py-3 text-2xl hover:bg-white/15" data-emo="🦈">🦈</button>
+                  <button type="button" class="avatarBtn rounded-2xl border border-white/15 bg-white/10 py-3 text-2xl hover:bg-white/15" data-emo="🦁">🦁</button>
+                  <button type="button" class="avatarBtn rounded-2xl border border-white/15 bg-white/10 py-3 text-2xl hover:bg-white/15" data-emo="🦉">🦉</button>
+                  <button type="button" class="avatarBtn rounded-2xl border border-white/15 bg-white/10 py-3 text-2xl hover:bg-white/15" data-emo="🪼">🪼</button>
+                </div>
+              </div>
+
+              <div class="glass rounded-2xl p-3">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-xs font-extrabold text-white/80">رفع صورة</div>
+                    <div class="text-xs text-white/70">PNG/JPG (اختياري)</div>
+                  </div>
+                  <label class="cursor-pointer rounded-2xl border border-white/15 bg-white/10 px-4 py-2 text-xs font-extrabold text-white/80 hover:bg-white/15">
+                    اختر ملف
+                    <input id="avatarUpload" type="file" accept="image/*" class="hidden" />
+                  </label>
+                </div>
+
+                <div id="uploadPreviewWrap" class="mt-3 hidden">
+                  <div class="flex items-center gap-3">
+                    <div class="aura-ring rounded-full p-[3px]">
+                      <img id="uploadPreview" alt="معاينة الصورة" class="h-14 w-14 rounded-full object-cover border border-white/15 bg-black/25" />
+                    </div>
+                    <div class="text-xs text-white/70">
+                      تم اختيار صورة — ستظهر في ملفك.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Follows -->
+        <section class="cell glass rounded-2xl" data-theme="follows" id="cell-follows">
+          <button type="button" class="cell-header w-full p-4" aria-expanded="false">
+            <div class="flex w-full items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-2xl">🤝</span>
+                <div class="text-right">
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-base font-extrabold">المتابعات</h2>
+                    <span class="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold text-white/80">اختياري</span>
+                  </div>
+                  <p class="mt-0.5 text-xs text-white/70">تابع ٣ صُنّاع (ممتع… ويساعدنا نفهم ذوقك)</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span id="followsBadge" class="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/70">
+                  0/3
+                </span>
+                <svg class="chev h-5 w-5 text-white/80" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </button>
+
+          <div class="cell-content">
+            <div class="p-4 pt-0 space-y-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="glass bubble rounded-2xl px-4 py-3">
+                  <div class="text-sm font-extrabold">اختر ٣</div>
+                  <div class="text-xs text-white/70">اسحب يمين/يسار… واكبس متابعة.</div>
+                </div>
+                <button id="followsLater" type="button" class="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 text-xs font-extrabold text-white/80 hover:bg-white/15">
+                  لاحقًا
+                </button>
+              </div>
+
+              <div class="relative">
+                <div class="absolute left-0 top-1/2 -translate-y-1/2 z-10">
+                  <button id="prevCreators" type="button" class="rounded-full bg-black/25 border border-white/15 p-2 hover:bg-black/35" aria-label="السابق">
+                    <span class="text-lg">›</span>
+                  </button>
+                </div>
+                <div class="absolute right-0 top-1/2 -translate-y-1/2 z-10">
+                  <button id="nextCreators" type="button" class="rounded-full bg-black/25 border border-white/15 p-2 hover:bg-black/35" aria-label="التالي">
+                    <span class="text-lg">‹</span>
+                  </button>
+                </div>
+
+                <div id="creators" class="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory px-9 py-1">
+                  <!-- cards -->
+                  <article class="creator snap-center min-w-[78%] glass rounded-2xl p-4" data-id="c1">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="flex items-center gap-3">
+                        <div class="aura-ring rounded-2xl p-[3px]">
+                          <div class="h-12 w-12 rounded-2xl bg-black/25 border border-white/15 flex items-center justify-center text-2xl">🗡️</div>
+                        </div>
+                        <div>
+                          <div class="text-sm font-extrabold">Kira Ink</div>
+                          <div class="text-xs text-white/70">@kira.ink · مانغا</div>
+                        </div>
+                      </div>
+                      <button type="button" class="followBtn rounded-2xl bg-white/10 border border-white/15 px-4 py-2 text-xs font-extrabold hover:bg-white/15">
+                        متابعة
+                      </button>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      <span class="rounded-full bg-white/10 px-3 py-1 text-xs">#Shonen</span>
+                      <span class="rounded-full bg-white/10 px-3 py-1 text-xs">#Inking</span>
+                    </div>
+                  </article>
+
+                  <article class="creator snap-center min-w-[78%] glass rounded-2xl p-4" data-id="c2">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="flex items-center gap-3">
+                        <div class="aura-ring rounded-2xl p-[3px]">
+                          <div class="h-12 w-12 rounded-2xl bg-black/25 border border-white/15 flex items-center justify-center text-2xl">🎬</div>
+                        </div>
+                        <div>
+                          <div class="text-sm font-extrabold">Ramen Cuts</div>
+                          <div class="text-xs text-white/70">@ramencuts · مراجعات</div>
+                        </div>
+                      </div>
+                      <button type="button" class="followBtn rounded-2xl bg-white/10 border border-white/15 px-4 py-2 text-xs font-extrabold hover:bg-white/15">
+                        متابعة
+                      </button>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      <span class="rounded-full bg-white/10 px-3 py-1 text-xs">#Reactions</span>
+                      <span class="rounded-full bg-white/10 px-3 py-1 text-xs">#Seasonal</span>
+                    </div>
+                  </article>
+
+                  <article class="creator snap-center min-w-[78%] glass rounded-2xl p-4" data-id="c3">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="flex items-center gap-3">
+                        <div class="aura-ring rounded-2xl p-[3px]">
+                          <div class="h-12 w-12 rounded-2xl bg-black/25 border border-white/15 flex items-center justify-center text-2xl">🎧</div>
+                        </div>
+                        <div>
+                          <div class="text-sm font-extrabold">Lo-Fi Sensei</div>
+                          <div class="text-xs text-white/70">@lofi.sensei · موسيقى</div>
+                        </div>
+                      </div>
+                      <button type="button" class="followBtn rounded-2xl bg-white/10 border border-white/15 px-4 py-2 text-xs font-extrabold hover:bg-white/15">
+                        متابعة
+                      </button>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      <span class="rounded-full bg-white/10 px-3 py-1 text-xs">#Study</span>
+                      <span class="rounded-full bg-white/10 px-3 py-1 text-xs">#OST</span>
+                    </div>
+                  </article>
+
+                  <article class="creator snap-center min-w-[78%] glass rounded-2xl p-4" data-id="c4">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="flex items-center gap-3">
+                        <div class="aura-ring rounded-2xl p-[3px]">
+                          <div class="h-12 w-12 rounded-2xl bg-black/25 border border-white/15 flex items-center justify-center text-2xl">🧩</div>
+                        </div>
+                        <div>
+                          <div class="text-sm font-extrabold">Panel Theory</div>
+                          <div class="text-xs text-white/70">@paneltheory · تحليل</div>
+                        </div>
+                      </div>
+                      <button type="button" class="followBtn rounded-2xl bg-white/10 border border-white/15 px-4 py-2 text-xs font-extrabold hover:bg-white/15">
+                        متابعة
+                      </button>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      <span class="rounded-full bg-white/10 px-3 py-1 text-xs">#Writing</span>
+                      <span class="rounded-full bg-white/10 px-3 py-1 text-xs">#Lore</span>
+                    </div>
+                  </article>
+                </div>
+              </div>
+
+              <div class="glass rounded-2xl p-3">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs text-white/70">محدد الآن</div>
+                  <div class="text-sm font-extrabold">
+                    <span id="followCount">0</span><span class="text-white/60">/</span><span class="text-white/85">3</span>
+                  </div>
+                </div>
+                <div class="mt-2 h-2 w-full rounded-full bg-white/10 overflow-hidden">
+                  <div id="followBar" class="h-full w-0 rounded-full" style="background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 220ms ease;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Interests -->
+        <section class="cell glass rounded-2xl" data-theme="interests" id="cell-interests">
+          <button type="button" class="cell-header w-full p-4" aria-expanded="false">
+            <div class="flex w-full items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-2xl">🏷️</span>
+                <div class="text-right">
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-base font-extrabold">الاهتمامات</h2>
+                    <span class="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold text-white/80">اختياري</span>
+                  </div>
+                  <p class="mt-0.5 text-xs text-white/70">Chips + تصنيفات + بحث سريع</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span id="interestsBadge" class="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/70">
+                  0 محدد
+                </span>
+                <svg class="chev h-5 w-5 text-white/80" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </button>
+
+          <div class="cell-content">
+            <div class="p-4 pt-0 space-y-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="glass bubble rounded-2xl px-4 py-3">
+                  <div class="text-sm font-extrabold">اختيارات سريعة</div>
+                  <div class="text-xs text-white/70">اختَر كم Chip… وتقدر تغير لاحقًا.</div>
+                </div>
+                <button id="interestsLater" type="button" class="rounded-2xl border border-white/15 bg-white/10 px-4 py-2 text-xs font-extrabold text-white/80 hover:bg-white/15">
+                  لاحقًا
+                </button>
+              </div>
+
+              <div class="glass rounded-2xl p-3">
+                <div class="text-xs font-extrabold text-white/80 mb-2">المحدد</div>
+                <div id="selectedChips" class="flex flex-wrap gap-2">
+                  <span class="text-xs text-white/60">ولا شيء… لسه 🙂</span>
+                </div>
+              </div>
+
+              <div class="glass rounded-2xl p-3">
+                <div class="text-xs font-extrabold text-white/80 mb-2">أفضل تصنيفات</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" class="chipBtn rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-right hover:bg-white/15" data-chip="Shonen">🔥 Shonen</button>
+                  <button type="button" class="chipBtn rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-right hover:bg-white/15" data-chip="Isekai">🚪 Isekai</button>
+                  <button type="button" class="chipBtn rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-right hover:bg-white/15" data-chip="Slice of Life">☕ Slice of Life</button>
+                  <button type="button" class="chipBtn rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-right hover:bg-white/15" data-chip="Seinen">🕯️ Seinen</button>
+                </div>
+              </div>
+
+              <div class="glass rounded-2xl p-3">
+                <label class="block text-xs font-extrabold text-white/80 mb-2" for="interestSearch">بحث</label>
+                <input id="interestSearch" type="text" placeholder="اكتب: mecha / romance / horror ..."
+                  class="focus-accent w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-white/50" />
+
+                <div id="searchResults" class="mt-3 grid grid-cols-2 gap-2"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <!-- Sticky CTA -->
+    <div class="fixed inset-x-0 bottom-0 z-20 safe-bottom">
+      <div class="mx-auto w-full max-w-md px-4">
+        <div class="glass rounded-2xl shadow-glow p-3">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <div class="text-xs text-white/70">جاهزية الحساب</div>
+              <div class="mt-0.5 flex items-center gap-2">
+                <span class="inline-flex h-2 w-2 rounded-full" style="background: var(--accent)"></span>
+                <div class="text-sm font-extrabold truncate" id="ctaTitle">ابدأ بإدخال الهوية</div>
+              </div>
+              <div class="mt-1 text-xs text-white/70" id="ctaSub">
+                المطلوب فقط: الاسم + البريد + كلمة المرور.
+              </div>
+            </div>
+
+            <button id="ctaBtn" type="button"
+              class="shrink-0 rounded-2xl px-5 py-3 text-sm font-extrabold text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              style="background: linear-gradient(90deg, var(--accent), var(--accent2));">
+              أكمل المطلوب
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Overlay -->
+    <div id="success" class="hidden fixed inset-0 z-50">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div class="absolute inset-x-0 top-10 mx-auto w-full max-w-md px-4">
+        <div class="glass rounded-2xl p-4 shadow-glow">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="inline-flex stamp rounded-2xl px-4 py-2 text-2xl font-black"
+                style="background: linear-gradient(90deg, var(--accent), var(--accent2)); color:#0b1220;">
+                JOINED
+              </div>
+              <h3 class="mt-3 text-xl font-extrabold">تم الانضمام!</h3>
+              <p class="mt-1 text-sm text-white/80">أهلاً <span id="welcomeName" class="font-extrabold">—</span> 👋</p>
+            </div>
+            <button id="closeSuccess" type="button" class="rounded-2xl bg-white/10 border border-white/15 px-3 py-2 text-xs font-extrabold text-white/80 hover:bg-white/15">
+              إغلاق
+            </button>
+          </div>
+
+          <div class="mt-4 glass rounded-2xl p-4">
+            <div class="flex items-center gap-3">
+              <div class="aura-ring rounded-2xl p-[3px]">
+                <div class="h-14 w-14 rounded-2xl bg-black/25 border border-white/15 flex items-center justify-center overflow-hidden">
+                  <span id="finalAvatarEmoji" class="text-2xl">🦊</span>
+                  <img id="finalAvatarImg" alt="" class="hidden h-full w-full object-cover" />
+                </div>
+              </div>
+              <div>
+                <div class="text-sm font-extrabold">بطاقة ترحيب</div>
+                <div class="text-xs text-white/70">
+                  تقدر الآن تكمل الأفاتار والمتابعات والاهتمامات… أو تروح مباشرة للمنصة.
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex gap-2">
+              <button id="goCustomize" type="button" class="flex-1 rounded-2xl bg-white/10 border border-white/15 px-4 py-3 text-xs font-extrabold text-white/85 hover:bg-white/15">
+                أكمل التخصيص
+              </button>
+              <button id="goHome" type="button" class="flex-1 rounded-2xl px-4 py-3 text-xs font-extrabold text-slate-900"
+                style="background: linear-gradient(90deg, var(--accent), var(--accent2));">
+                ادخل الآن
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4 flex justify-center gap-3 select-none">
+            <span class="sparkle text-2xl">✨</span>
+            <span class="sparkle text-xl">✦</span>
+            <span class="sparkle text-2xl">✨</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ---------- helpers ----------
+      const $ = (s, root=document) => root.querySelector(s);
+      const $$ = (s, root=document) => Array.from(root.querySelectorAll(s));
+
+      const rootStyle = document.documentElement.style;
+
+      const THEMES = {
+        identity: { h1: 210, h2: 295, hint: "أدخل الهوية" },
+        avatar:   { h1: 330, h2: 210, hint: "اختَر أفاتار" },
+        follows:  { h1: 140, h2: 290, hint: "تابع صُنّاع" },
+        interests:{ h1: 35,  h2: 200, hint: "اختَر اهتمامات" },
+      };
+
+      const state = {
+        name: "",
+        email: "",
+        password: "",
+        nameValid: false,
+        emailValid: false,
+        pwValid: false,
+        pwScore: 0,
+
+        aura: null,
+        avatarEmoji: "🦊",
+        avatarUploadedUrl: null,
+        avatarDone: false,
+
+        follows: new Set(),
+        followsLater: false,
+
+        chips: new Set(),
+        interestsLater: false,
+
+        avatarLater: false,
+      };
+
+      function setTheme(key){
+        const t = THEMES[key] || THEMES.identity;
+        rootStyle.setProperty("--h1", t.h1);
+        rootStyle.setProperty("--h2", t.h2);
+        $("#ctaHint").textContent = t.hint;
+      }
+
+      function openCell(cell){
+        $$(".cell").forEach(c => {
+          const btn = $(".cell-header", c);
+          if (c === cell){
+            c.classList.add("open");
+            btn?.setAttribute("aria-expanded", "true");
+          } else {
+            c.classList.remove("open");
+            btn?.setAttribute("aria-expanded", "false");
+          }
+        });
+
+        const themeKey = cell?.dataset?.theme;
+        if (themeKey) setTheme(themeKey);
+
+        // smooth max-height recalculation for the opened one
+        const content = $(".cell-content", cell);
+        if (content){
+          // Force reflow to apply transitions cleanly
+          content.style.maxHeight = content.scrollHeight + "px";
+          // reset after a bit to allow content growth
+          window.setTimeout(() => {
+            if (cell.classList.contains("open")) content.style.maxHeight = "1200px";
+          }, 450);
+        }
+      }
+
+      function closeCell(cell){
+        cell.classList.remove("open");
+        const btn = $(".cell-header", cell);
+        btn?.setAttribute("aria-expanded", "false");
+        const content = $(".cell-content", cell);
+        if (content) content.style.maxHeight = "0px";
+      }
+
+      function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+      // ---------- validation ----------
+      function validateName(v){
+        const ok = (v || "").trim().length >= 2;
+        state.nameValid = ok;
+        $("#nameErr").classList.toggle("hidden", ok || v.length === 0);
+        $("#nameOk").classList.toggle("hidden", !ok);
+        return ok;
+      }
+
+      function validateEmail(v){
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const ok = re.test((v || "").trim());
+        state.emailValid = ok;
+        $("#emailErr").classList.toggle("hidden", ok || v.length === 0);
+        $("#emailOk").classList.toggle("hidden", !ok);
+        return ok;
+      }
+
+      function scorePassword(v){
+        const s = v || "";
+        const len8 = s.length >= 8;
+        const len12 = s.length >= 12;
+        const hasLetter = /[A-Za-z\u0600-\u06FF]/.test(s);
+        const hasNum = /\d/.test(s);
+        const hasSym = /[^A-Za-z\u0600-\u06FF0-9]/.test(s);
+
+        let score = 0;
+        if (len8) score++;
+        if (hasLetter && hasNum) score++;
+        if (hasSym) score++;
+        if (len12) score++;
+
+        score = clamp(score, 0, 4);
+        state.pwScore = score;
+
+        // rules UI
+        $("#rLen").textContent = len8 ? "✅" : "◻︎";
+        $("#rMix").textContent = (hasLetter && hasNum) ? "✅" : "◻︎";
+        $("#rSym").textContent = hasSym ? "✅" : "◻︎";
+
+        const pct = (score / 4) * 100;
+        $("#pwBar").style.width = pct + "%";
+
+        const labels = ["ضعيفة", "مقبولة", "جيدة", "قوية", "خارقة"];
+        $("#pwLabel").textContent = labels[score] || "—";
+
+        const ok = len8 && hasLetter && hasNum;
+        state.pwValid = ok;
+        $("#pwErr").classList.toggle("hidden", ok || s.length === 0);
+        $("#pwOk").classList.toggle("hidden", !ok);
+
+        return ok;
+      }
+
+      function requiredDone(){
+        let done = 0;
+        if (state.nameValid) done++;
+        if (state.emailValid) done++;
+        if (state.pwValid) done++;
+        return done;
+      }
+
+      function updateBadges(){
+        // Identity badge
+        const r = requiredDone();
+        $("#reqDone").textContent = r;
+
+        const identityDone = (r === 3);
+        $("#identityBadge").textContent = identityDone ? "مكتمل ✅" : "غير مكتمل";
+        $("#identityBadge").className =
+          "rounded-full px-3 py-1 text-xs font-bold " +
+          (identityDone ? "bg-white/15 text-white" : "bg-white/10 text-white/80");
+
+        // Avatar badge
+        const avatarIsDone = state.avatarDone;
+        const avatarLater = state.avatarLater;
+        $("#avatarBadge").textContent = avatarLater ? "لاحقًا" : (avatarIsDone ? "جاهز ✨" : "اختياري");
+        $("#avatarBadge").className =
+          "rounded-full px-3 py-1 text-xs font-bold " +
+          (avatarLater ? "bg-white/10 text-white/70" : (avatarIsDone ? "bg-white/15 text-white" : "bg-white/10 text-white/70"));
+
+        // Follows badge
+        const f = state.follows.size;
+        const fLater = state.followsLater;
+        $("#followsBadge").textContent = fLater ? "لاحقًا" : `${Math.min(f,3)}/3`;
+        $("#followsBadge").className =
+          "rounded-full px-3 py-1 text-xs font-bold " +
+          (fLater ? "bg-white/10 text-white/70" : (f >= 3 ? "bg-white/15 text-white" : "bg-white/10 text-white/70"));
+
+        // Interests badge
+        const ic = state.chips.size;
+        const iLater = state.interestsLater;
+        $("#interestsBadge").textContent = iLater ? "لاحقًا" : (ic ? `${ic} محدد` : "0 محدد");
+        $("#interestsBadge").className =
+          "rounded-full px-3 py-1 text-xs font-bold " +
+          (iLater ? "bg-white/10 text-white/70" : (ic ? "bg-white/15 text-white" : "bg-white/10 text-white/70"));
+      }
+
+      function updateCTA(){
+        const done = requiredDone();
+        const btn = $("#ctaBtn");
+
+        const needName = !state.nameValid;
+        const needEmail = state.nameValid && !state.emailValid;
+        const needPw = state.nameValid && state.emailValid && !state.pwValid;
+
+        if (needName){
+          $("#ctaTitle").textContent = "اكتب اسمك";
+          $("#ctaSub").textContent = "حرفين أو أكثر… وخلاص ✅";
+          btn.textContent = "أدخل الاسم";
+          btn.disabled = true;
+        } else if (needEmail){
+          $("#ctaTitle").textContent = "أدخل بريدك";
+          $("#ctaSub").textContent = "صيغة بريد صحيحة تكفينا.";
+          btn.textContent = "أدخل البريد";
+          btn.disabled = true;
+        } else if (needPw){
+          $("#ctaTitle").textContent = "اختر كلمة مرور قوية";
+          $("#ctaSub").textContent = "٨ أحرف + حروف وأرقام (ورمز اختياري).";
+          btn.textContent = "قوّي كلمة المرور";
+          btn.disabled = true;
+        } else {
+          $("#ctaTitle").textContent = "جاهز للانضمام";
+          const extras = [];
+          if (!state.avatarDone && !state.avatarLater) extras.push("أفاتار");
+          if (state.follows.size < 3 && !state.followsLater) extras.push("متابعات");
+          if (state.chips.size === 0 && !state.interestsLater) extras.push("اهتمامات");
+
+          $("#ctaSub").textContent = extras.length
+            ? `اختياري قبل الدخول: ${extras.join(" + ")} — أو “لاحقًا”.`
+            : "كل شيء تمام… لننطلق.";
+
+          btn.textContent = "انضم الآن";
+          btn.disabled = false;
+        }
+
+        $("#reqDone").textContent = done;
+        updateBadges();
+      }
+
+      // ---------- interests ----------
+      const INTEREST_POOL = [
+        "Mecha","Romance","Horror","Comedy","Fantasy","Cyberpunk","Samurai",
+        "Mystery","Sports","Idols","Vtubers","Cosplay","Art","AMV","Light Novels",
+        "Manhwa","Webtoon","Ghibli Vibes","Dark Academia","Music OST","Collectibles",
+      ];
+
+      function renderSearchResults(q=""){
+        const wrap = $("#searchResults");
+        wrap.innerHTML = "";
+
+        const query = (q || "").trim().toLowerCase();
+        const items = INTEREST_POOL
+          .filter(x => !state.chips.has(x))
+          .filter(x => !query || x.toLowerCase().includes(query))
+          .slice(0, 8);
+
+        if (!items.length){
+          wrap.innerHTML = `<div class="col-span-2 text-xs text-white/60">ما لقيت شيء… جرّب كلمة ثانية.</div>`;
+          return;
+        }
+
+        items.forEach(tag => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-right text-sm font-extrabold hover:bg-white/15";
+          btn.textContent = "＋ " + tag;
+          btn.addEventListener("click", () => {
+            state.chips.add(tag);
+            state.interestsLater = false;
+            renderSelectedChips();
+            renderSearchResults($("#interestSearch").value);
+            updateCTA();
+          });
+          wrap.appendChild(btn);
+        });
+      }
+
+      function renderSelectedChips(){
+        const wrap = $("#selectedChips");
+        wrap.innerHTML = "";
+        if (state.chips.size === 0){
+          wrap.innerHTML = `<span class="text-xs text-white/60">ولا شيء… لسه 🙂</span>`;
+          return;
+        }
+
+        state.chips.forEach(tag => {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-2 text-xs font-extrabold hover:bg-white/15";
+          chip.innerHTML = `<span>${tag}</span><span class="text-white/70">✕</span>`;
+          chip.addEventListener("click", () => {
+            state.chips.delete(tag);
+            renderSelectedChips();
+            renderSearchResults($("#interestSearch").value);
+            updateCTA();
+          });
+          wrap.appendChild(chip);
+        });
+      }
+
+      // ---------- follows ----------
+      function updateFollowsUI(){
+        const count = state.follows.size;
+        $("#followCount").textContent = Math.min(count,3);
+        $("#followBar").style.width = (Math.min(count,3) / 3) * 100 + "%";
+        updateCTA();
+      }
+
+      // ---------- avatar ----------
+      function markAvatarDone(){
+        state.avatarDone = !!(state.aura || state.avatarEmoji || state.avatarUploadedUrl);
+        $("#avatarMeta").textContent =
+          state.avatarUploadedUrl ? "صورة مرفوعة ✅" :
+          (state.aura ? `Aura: ${state.aura} ✅` : "اختر Aura وأفاتار… أو ارفع صورة.");
+        updateCTA();
+      }
+
+      function setAura(a1, a2, name){
+        rootStyle.setProperty("--aura1", a1);
+        rootStyle.setProperty("--aura2", a2);
+        state.aura = name;
+        state.avatarLater = false;
+
+        $$(".auraBtn").forEach(b => b.classList.remove("ring-2","ring-white/50"));
+        const selected = $(`.auraBtn[data-aura="${name}"]`);
+        selected?.classList.add("ring-2","ring-white/50");
+
+        markAvatarDone();
+      }
+
+      function setAvatarEmoji(emo){
+        state.avatarEmoji = emo;
+        state.avatarLater = false;
+        $("#avatarPreview").textContent = emo;
+
+        $$(".avatarBtn").forEach(b => b.classList.remove("ring-2","ring-white/50"));
+        const selected = $(`.avatarBtn[data-emo="${CSS.escape(emo)}"]`);
+        selected?.classList.add("ring-2","ring-white/50");
+
+        markAvatarDone();
+      }
+
+      // ---------- success ----------
+      function showSuccess(){
+        $("#welcomeName").textContent = (state.name || "").trim() || "صديقنا";
+        $("#finalAvatarEmoji").textContent = state.avatarEmoji || "🦊";
+
+        const img = $("#finalAvatarImg");
+        if (state.avatarUploadedUrl){
+          img.src = state.avatarUploadedUrl;
+          img.classList.remove("hidden");
+          $("#finalAvatarEmoji").classList.add("hidden");
+        } else {
+          img.classList.add("hidden");
+          $("#finalAvatarEmoji").classList.remove("hidden");
+        }
+
+        $("#success").classList.remove("hidden");
+      }
+
+      function hideSuccess(){
+        $("#success").classList.add("hidden");
+      }
+
+      // ---------- init ----------
+      // Accordion handlers
+      $$(".cell").forEach(cell => {
+        const header = $(".cell-header", cell);
+        header.addEventListener("click", () => {
+          const isOpen = cell.classList.contains("open");
+          if (isOpen) {
+            closeCell(cell);
+            setTheme("identity");
+          } else {
+            openCell(cell);
+          }
+        });
+      });
+
+      // Open identity by default
+      openCell($("#cell-identity"));
+
+      // Identity inputs
+      $("#name").addEventListener("input", (e) => {
+        state.name = e.target.value;
+        validateName(state.name);
+        updateCTA();
+      });
+      $("#email").addEventListener("input", (e) => {
+        state.email = e.target.value;
+        validateEmail(state.email);
+        updateCTA();
+      });
+      $("#password").addEventListener("input", (e) => {
+        state.password = e.target.value;
+        scorePassword(state.password);
+        updateCTA();
+      });
+
+      $("#togglePw").addEventListener("click", () => {
+        const pw = $("#password");
+        const isPw = pw.type === "password";
+        pw.type = isPw ? "text" : "password";
+        $("#togglePw").textContent = isPw ? "إخفاء" : "إظهار";
+      });
+
+      // Aura buttons
+      $$(".auraBtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const a1 = Number(btn.dataset.a1 || 330);
+          const a2 = Number(btn.dataset.a2 || 210);
+          const name = btn.dataset.aura || "sakura";
+          setAura(a1, a2, name);
+        });
+      });
+
+      // Avatar grid
+      $$(".avatarBtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          setAvatarEmoji(btn.dataset.emo || "🦊");
+        });
+      });
+
+      // Upload
+      $("#avatarUpload").addEventListener("change", (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const url = URL.createObjectURL(file);
+        state.avatarUploadedUrl = url;
+        state.avatarLater = false;
+
+        $("#uploadPreview").src = url;
+        $("#uploadPreviewWrap").classList.remove("hidden");
+        markAvatarDone();
+      });
+
+      // Avatar Later
+      $("#avatarLater").addEventListener("click", () => {
+        state.avatarLater = true;
+        closeCell($("#cell-avatar"));
+        updateCTA();
+      });
+
+      // Follows follow buttons
+      $$(".creator").forEach(card => {
+        const id = card.dataset.id;
+        const btn = $(".followBtn", card);
+        btn.addEventListener("click", () => {
+          state.followsLater = false;
+
+          if (state.follows.has(id)){
+            state.follows.delete(id);
+            btn.textContent = "متابعة";
+            btn.classList.remove("bg-white/15");
+            btn.classList.add("bg-white/10");
+          } else {
+            // cap at 3 for the "game"
+            if (state.follows.size >= 3) return;
+            state.follows.add(id);
+            btn.textContent = "تتابع ✅";
+            btn.classList.remove("bg-white/10");
+            btn.classList.add("bg-white/15");
+          }
+
+          updateFollowsUI();
+        });
+      });
+
+      $("#followsLater").addEventListener("click", () => {
+        state.followsLater = true;
+        closeCell($("#cell-follows"));
+        updateCTA();
+      });
+
+      // Creators carousel controls
+      const creators = $("#creators");
+      $("#prevCreators").addEventListener("click", () => {
+        creators.scrollBy({ left: 320, behavior: "smooth" });
+      });
+      $("#nextCreators").addEventListener("click", () => {
+        creators.scrollBy({ left: -320, behavior: "smooth" });
+      });
+
+      // Interests chips
+      $$(".chipBtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.interestsLater = false;
+          const tag = btn.dataset.chip;
+          if (!tag) return;
+
+          if (state.chips.has(tag)){
+            state.chips.delete(tag);
+            btn.classList.remove("ring-2","ring-white/50");
+          } else {
+            state.chips.add(tag);
+            btn.classList.add("ring-2","ring-white/50");
+          }
+          renderSelectedChips();
+          renderSearchResults($("#interestSearch").value);
+          updateCTA();
+        });
+      });
+
+      $("#interestSearch").addEventListener("input", (e) => {
+        renderSearchResults(e.target.value);
+      });
+
+      $("#interestsLater").addEventListener("click", () => {
+        state.interestsLater = true;
+        closeCell($("#cell-interests"));
+        updateCTA();
+      });
+
+      // CTA action
+      $("#ctaBtn").addEventListener("click", () => {
+        // if somehow clicked while invalid, open the right cell
+        if (!state.nameValid || !state.emailValid || !state.pwValid){
+          openCell($("#cell-identity"));
+          return;
+        }
+        showSuccess();
+      });
+
+      $("#closeSuccess").addEventListener("click", hideSuccess);
+      $("#goCustomize").addEventListener("click", () => {
+        hideSuccess();
+        // open avatar if not later, else open interests
+        if (!state.avatarLater) openCell($("#cell-avatar"));
+        else if (!state.interestsLater) openCell($("#cell-interests"));
+        else openCell($("#cell-follows"));
+      });
+      $("#goHome").addEventListener("click", () => {
+        hideSuccess();
+        // tiny delight: flash theme to identity
+        setTheme("identity");
+      });
+
+      // initial defaults
+      setAura(330, 210, "sakura");
+      setAvatarEmoji("🦊");
+      renderSelectedChips();
+      renderSearchResults("");
+      updateFollowsUI();
+      validateName("");
+      validateEmail("");
+      scorePassword("");
+      updateCTA();
+    </script>
+  </body>
+</html>

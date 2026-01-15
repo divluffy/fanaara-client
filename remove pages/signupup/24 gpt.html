@@ -1,0 +1,2317 @@
+<!doctype html>
+<html lang="ar" dir="rtl" class="h-full">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#060A12" />
+  <title>NEO-PILOT REGISTRY // SYSTEM BOOT</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'monospace'],
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'Apple Color Emoji', 'Segoe UI Emoji'],
+          },
+          boxShadow: {
+            glow: '0 0 0 1px rgba(120,255,230,0.18), 0 0 24px rgba(120,255,230,0.08)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --bg:#060A12;
+      --panel: rgba(10,16,28,0.72);
+      --panel2: rgba(10,16,28,0.45);
+      --line: rgba(120,255,230,0.18);
+      --line2: rgba(120,255,230,0.10);
+      --text: rgba(230,245,255,0.92);
+      --muted: rgba(230,245,255,0.62);
+      --accent: rgba(120,255,230,0.92);
+      --accent2: rgba(130,160,255,0.75);
+      --warn: rgba(255,198,120,0.9);
+      --good: rgba(120,255,180,0.92);
+      --bad: rgba(255,120,160,0.92);
+      --scan: rgba(120,255,230,0.18);
+      --radius: 18px;
+      --radius2: 14px;
+    }
+
+    html,body{ background: var(--bg); color: var(--text); }
+    body{ overflow-x:hidden; }
+
+    /* Background layers */
+    .bg-grid{
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:
+        radial-gradient(1000px 700px at 78% 20%, rgba(120,255,230,0.10), transparent 60%),
+        radial-gradient(900px 650px at 18% 80%, rgba(130,160,255,0.10), transparent 55%),
+        linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.25));
+    }
+    .bg-grid::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        linear-gradient(to right, rgba(120,255,230,0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(120,255,230,0.06) 1px, transparent 1px);
+      background-size: 42px 42px;
+      opacity:0.35;
+      filter: drop-shadow(0 0 10px rgba(120,255,230,0.06));
+      transform: translateZ(0);
+      animation: gridFloat 12s ease-in-out infinite;
+    }
+    .bg-grid::after{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        linear-gradient(90deg, rgba(120,255,230,0.0), rgba(120,255,230,0.05), rgba(120,255,230,0.0));
+      opacity:0.22;
+      mask-image: radial-gradient(450px 220px at 60% 20%, black 55%, transparent 75%);
+      animation: sweep 7s linear infinite;
+    }
+    @keyframes gridFloat{
+      0%,100%{ transform: translate3d(0,0,0) scale(1); opacity:0.33; }
+      50%{ transform: translate3d(0,-8px,0) scale(1.01); opacity:0.38; }
+    }
+    @keyframes sweep{
+      0%{ transform: translateX(-40%); }
+      100%{ transform: translateX(40%); }
+    }
+
+    .scanlines{
+      position:fixed; inset:0; pointer-events:none; z-index:1;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.02),
+        rgba(255,255,255,0.02) 1px,
+        rgba(0,0,0,0.0) 3px,
+        rgba(0,0,0,0.0) 6px
+      );
+      opacity:0.12;
+      mix-blend-mode: overlay;
+    }
+
+    .soft-glitch{
+      animation: softGlitch 8s infinite steps(1,end);
+    }
+    @keyframes softGlitch{
+      0%, 93%, 100% { transform:none; filter:none; }
+      94% { transform: translate3d(1px,0,0); filter: drop-shadow(-1px 0 rgba(130,160,255,0.22)); }
+      95% { transform: translate3d(-1px,0,0); filter: drop-shadow(1px 0 rgba(120,255,230,0.22)); }
+      96% { transform:none; filter:none; }
+    }
+
+    /* Panels */
+    .panel{
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset;
+      backdrop-filter: blur(14px);
+    }
+    .panel2{
+      background: var(--panel2);
+      border: 1px solid var(--line2);
+      border-radius: var(--radius2);
+      backdrop-filter: blur(10px);
+    }
+    .hairline{
+      border: 1px solid rgba(120,255,230,0.14);
+    }
+
+    /* HUD bars */
+    .bar{
+      position:relative;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(120,255,230,0.10);
+      overflow:hidden;
+      border: 1px solid rgba(120,255,230,0.16);
+    }
+    .bar > i{
+      position:absolute; inset:0;
+      width:40%;
+      background: linear-gradient(90deg, rgba(120,255,230,0.0), rgba(120,255,230,0.65), rgba(130,160,255,0.55));
+      filter: blur(0.2px);
+      animation: barMove 1.8s linear infinite;
+    }
+    @keyframes barMove{
+      0%{ transform: translateX(-120%); }
+      100%{ transform: translateX(260%); }
+    }
+
+    /* Iris wipe overlay */
+    .iris{
+      position:fixed; inset:0; pointer-events:none; z-index:60;
+      background: radial-gradient(circle at var(--ix,50%) var(--iy,50%), rgba(0,0,0,0) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0.70) 45%, rgba(0,0,0,0.88) 100%);
+      opacity:0;
+      transition: opacity 220ms ease;
+    }
+    .iris.on{ opacity:1; }
+    .snap{
+      animation: snapIn 220ms ease both;
+    }
+    @keyframes snapIn{
+      from{ transform: translate3d(0,6px,0) scale(0.985); opacity:0.75; }
+      to{ transform:none; opacity:1; }
+    }
+
+    /* Avatar scan overlay */
+    .scanOverlay{
+      position:absolute; inset:0;
+      border-radius: 18px;
+      border:1px solid rgba(120,255,230,0.28);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.55) inset, 0 0 24px rgba(120,255,230,0.08);
+      overflow:hidden;
+      pointer-events:none;
+    }
+    .scanOverlay::before{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        linear-gradient(90deg, rgba(120,255,230,0.0), rgba(120,255,230,0.07), rgba(120,255,230,0.0)),
+        linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.22));
+      opacity:0.8;
+    }
+    .scanOverlay::after{
+      content:"";
+      position:absolute; left:-30%; right:-30%;
+      height: 10%;
+      top:-20%;
+      background: linear-gradient(180deg, rgba(120,255,230,0.0), rgba(120,255,230,0.18), rgba(120,255,230,0.0));
+      filter: blur(0.5px);
+      animation: scanline 1.9s linear infinite;
+      opacity:0.85;
+    }
+    @keyframes scanline{
+      0%{ transform: translateY(-10%); }
+      100%{ transform: translateY(130%); }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .bg-grid::before,.bg-grid::after,.soft-glitch,.bar>i,.scanOverlay::after{ animation:none !important; }
+      .snap{ animation:none !important; }
+    }
+    html[data-motion="reduced"] .bg-grid::before,
+    html[data-motion="reduced"] .bg-grid::after,
+    html[data-motion="reduced"] .soft-glitch,
+    html[data-motion="reduced"] .bar>i,
+    html[data-motion="reduced"] .scanOverlay::after,
+    html[data-motion="reduced"] .particlesCanvas{
+      animation:none !important;
+    }
+
+    /* Inputs */
+    .field{
+      background: rgba(6,10,18,0.6);
+      border: 1px solid rgba(120,255,230,0.18);
+      border-radius: 14px;
+      outline: none;
+      color: var(--text);
+    }
+    .field:focus{
+      border-color: rgba(120,255,230,0.45);
+      box-shadow: 0 0 0 3px rgba(120,255,230,0.12);
+    }
+
+    /* Chips */
+    .chip{
+      border: 1px solid rgba(120,255,230,0.18);
+      background: rgba(10,16,28,0.35);
+      border-radius: 999px;
+      padding: 6px 10px;
+      cursor: pointer;
+      user-select:none;
+    }
+    .chip[aria-pressed="true"]{
+      border-color: rgba(120,255,230,0.45);
+      background: rgba(120,255,230,0.10);
+      box-shadow: 0 0 0 1px rgba(120,255,230,0.12) inset;
+    }
+
+    /* Sticky bottom safe-area */
+    .safeBottom{
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    }
+    .safeTop{
+      padding-top: calc(12px + env(safe-area-inset-top));
+    }
+
+    /* Scrollbar subtle */
+    .scrollThin::-webkit-scrollbar{ height: 10px; width:10px; }
+    .scrollThin::-webkit-scrollbar-thumb{ background: rgba(120,255,230,0.12); border-radius: 999px; border: 2px solid rgba(0,0,0,0); background-clip: padding-box; }
+    .scrollThin::-webkit-scrollbar-track{ background: rgba(255,255,255,0.02); border-radius: 999px; }
+
+    /* Toast */
+    .toast{
+      position: fixed;
+      z-index: 80;
+      inset-inline: 14px;
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      display:none;
+    }
+    .toast.show{ display:block; }
+
+    /* Success overlay */
+    .successOverlay{
+      position:fixed; inset:0; z-index:90;
+      display:none;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(12px);
+    }
+    .successOverlay.show{ display:flex; }
+    .stamp{
+      border: 2px solid rgba(120,255,230,0.65);
+      border-radius: 14px;
+      padding: 10px 14px;
+      transform: rotate(-6deg);
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.55) inset, 0 0 20px rgba(120,255,230,0.10);
+      position:relative;
+      overflow:hidden;
+    }
+    .stamp::after{
+      content:"";
+      position:absolute; inset:-40%;
+      background: repeating-linear-gradient(45deg, rgba(120,255,230,0.0), rgba(120,255,230,0.0) 7px, rgba(120,255,230,0.08) 7px, rgba(120,255,230,0.08) 12px);
+      opacity:0.6;
+      transform: rotate(12deg);
+    }
+
+    /* Canvas */
+    .particlesCanvas{
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      opacity:0.7;
+    }
+  </style>
+</head>
+
+<body class="h-full font-sans antialiased">
+  <div class="bg-grid"></div>
+  <canvas id="particles" class="particlesCanvas"></canvas>
+  <div class="scanlines"></div>
+  <div class="iris" id="iris"></div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast">
+    <div class="panel px-4 py-3 flex items-start gap-3 shadow-glow">
+      <div class="mt-0.5">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2l10 18H2L12 2z" stroke="rgba(255,198,120,0.95)" stroke-width="1.6"/>
+          <path d="M12 9v4" stroke="rgba(255,198,120,0.95)" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M12 16.6h.01" stroke="rgba(255,198,120,0.95)" stroke-width="2.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <div class="text-sm font-mono" id="toastTitle">تنبيه</div>
+        <div class="text-xs text-white/70 mt-1" id="toastMsg">...</div>
+      </div>
+      <button class="text-xs text-white/70 hover:text-white font-mono" id="toastClose">إغلاق</button>
+    </div>
+  </div>
+
+  <!-- Success -->
+  <div id="success" class="successOverlay items-center justify-center p-4">
+    <div class="w-full max-w-3xl panel p-5 md:p-7 shadow-glow snap">
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div class="text-xs font-mono text-white/60">SYSTEM</div>
+          <div class="text-2xl md:text-3xl font-semibold tracking-wide soft-glitch">ACCESS GRANTED</div>
+          <div class="text-sm text-white/70 mt-2">تم توثيق ملفّك كـ <span class="font-mono text-white" id="successCallsign">PILOT</span> داخل سجلّ NEO-PILOT.</div>
+        </div>
+        <div class="stamp">
+          <div class="relative z-10">
+            <div class="text-xs font-mono text-white/70">NEO-PILOT REGISTRY</div>
+            <div class="text-lg font-semibold tracking-widest">AUTHORIZED</div>
+            <div class="text-[11px] font-mono text-white/60 mt-1" id="successStampId">ID: 000000</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 grid md:grid-cols-2 gap-4">
+        <div class="panel2 p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs font-mono text-white/60">PROFILE CARD</div>
+              <div class="text-lg font-semibold mt-1" id="successName">—</div>
+              <div class="text-sm text-white/70 font-mono" id="successEmail">—</div>
+            </div>
+            <div class="w-16 h-16 rounded-2xl hairline bg-black/30 overflow-hidden grid place-items-center relative">
+              <div id="successAvatar" class="w-full h-full"></div>
+              <div class="absolute inset-0 pointer-events-none" style="box-shadow: inset 0 0 0 1px rgba(120,255,230,0.18);"></div>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="panel2 p-3">
+              <div class="text-[11px] font-mono text-white/60">ROLE</div>
+              <div class="text-sm font-semibold mt-1">PILOT</div>
+            </div>
+            <div class="panel2 p-3">
+              <div class="text-[11px] font-mono text-white/60">STATUS</div>
+              <div class="text-sm font-semibold mt-1" style="color: rgba(120,255,180,0.95)">SYNCED</div>
+            </div>
+          </div>
+
+          <div class="mt-3 text-xs text-white/70 leading-relaxed">
+            تم تفعيل خصائص HUD الأساسية. يمكنك الآن الانتقال إلى سطح القيادة (Dashboard) داخل المنصة.
+          </div>
+        </div>
+
+        <div class="panel2 p-4">
+          <div class="flex items-center justify-between">
+            <div class="text-xs font-mono text-white/60">BADGE</div>
+            <button id="downloadBadge" class="text-xs font-mono px-3 py-2 rounded-xl hairline bg-white/5 hover:bg-white/10">تنزيل الشارة</button>
+          </div>
+          <div class="mt-3 grid grid-cols-2 gap-3">
+            <div class="panel2 p-3">
+              <div class="text-[11px] font-mono text-white/60">FANDOM</div>
+              <div class="text-sm mt-1" id="successFandom">—</div>
+            </div>
+            <div class="panel2 p-3">
+              <div class="text-[11px] font-mono text-white/60">SOCIAL</div>
+              <div class="text-sm mt-1" id="successSocial">—</div>
+            </div>
+          </div>
+
+          <div class="mt-3 panel2 p-3">
+            <div class="text-[11px] font-mono text-white/60">BADGE PREVIEW</div>
+            <div class="mt-2 flex items-center gap-3">
+              <canvas id="badgeCanvas" width="160" height="160" class="rounded-2xl hairline bg-black/30"></canvas>
+              <div class="text-xs text-white/70 leading-relaxed">
+                نسخة مصغّرة تلقائية (dual-avatar) لواجهات التعليقات والملفّات السريعة.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center justify-end gap-3">
+        <button id="successClose" class="px-4 py-2 rounded-xl hairline bg-white/5 hover:bg-white/10 font-mono text-sm">إغلاق</button>
+        <button id="resetAll" class="px-4 py-2 rounded-xl hairline bg-white/5 hover:bg-white/10 font-mono text-sm">إعادة ضبط</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top header -->
+  <header class="relative z-10 safeTop px-4 md:px-6 pt-4 md:pt-6">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-4 flex-wrap">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl panel grid place-items-center shadow-glow">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 14.5c2.2-4.6 6.4-7.5 8-7.5s5.8 2.9 8 7.5" stroke="rgba(120,255,230,0.85)" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M7.2 14.5c1.3-2.7 3.7-4.4 4.8-4.4s3.5 1.7 4.8 4.4" stroke="rgba(130,160,255,0.75)" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M12 16.7c1.2 0 2.2-.98 2.2-2.2S13.2 12.3 12 12.3 9.8 13.28 9.8 14.5 10.8 16.7 12 16.7z" stroke="rgba(230,245,255,0.8)" stroke-width="1.4"/>
+            <path d="M3.5 19.5h17" stroke="rgba(120,255,230,0.25)" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs font-mono text-white/60">NEO-PILOT REGISTRY</div>
+          <div class="text-lg md:text-xl font-semibold tracking-wide soft-glitch">SYSTEM BOOT · SIGNUP</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <div class="panel2 px-3 py-2 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-2xl hairline bg-black/30 overflow-hidden grid place-items-center relative">
+            <div id="miniAvatar" class="w-full h-full"></div>
+            <div class="absolute inset-0 pointer-events-none" style="box-shadow: inset 0 0 0 1px rgba(120,255,230,0.18);"></div>
+          </div>
+          <div class="leading-tight">
+            <div class="text-[11px] font-mono text-white/60">ACTIVE PILOT</div>
+            <div class="text-sm font-semibold" id="miniCallsign">—</div>
+          </div>
+        </div>
+
+        <button id="toggleMotion" class="panel2 px-3 py-2 font-mono text-xs hover:bg-white/5 flex items-center gap-2" aria-pressed="false">
+          <span class="inline-flex w-2 h-2 rounded-full" style="background: rgba(120,255,180,0.9)"></span>
+          Motion: ON
+        </button>
+
+        <button id="toggleSwipe" class="panel2 px-3 py-2 font-mono text-xs hover:bg-white/5 flex items-center gap-2" aria-pressed="true">
+          <span class="inline-flex w-2 h-2 rounded-full" style="background: rgba(120,255,230,0.9)"></span>
+          Swipe: ON
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Progress -->
+  <section class="relative z-10 px-4 md:px-6 mt-4">
+    <div class="max-w-6xl mx-auto panel px-4 py-4 md:px-5 md:py-5 shadow-glow">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div class="text-xs font-mono text-white/60">BOOT PROGRESS</div>
+          <div class="text-sm text-white/80 mt-1">
+            <span class="font-mono text-white" id="progressPct">0%</span>
+            <span class="text-white/60">·</span>
+            <span class="font-mono" id="progressText">0 OK / 5 Pending</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-xs font-mono text-white/60">STATE</div>
+          <div id="systemStatePill" class="text-xs font-mono px-3 py-1.5 rounded-full hairline bg-white/5">PENDING</div>
+        </div>
+      </div>
+
+      <div class="mt-3 bar">
+        <i id="progressGlow"></i>
+        <div id="progressFill" style="width:0%" class="h-full rounded-full bg-white/10"></div>
+      </div>
+
+      <div class="mt-3 grid md:grid-cols-3 gap-3">
+        <div class="panel2 p-3 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-mono text-white/60">SYNC</div>
+            <div class="text-sm font-semibold mt-1" id="diagSync">LINKING…</div>
+          </div>
+          <div class="w-20 bar"><i></i></div>
+        </div>
+        <div class="panel2 p-3 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-mono text-white/60">CORE TEMP</div>
+            <div class="text-sm font-semibold mt-1" id="diagTemp">36.8°C</div>
+          </div>
+          <div class="w-20 bar"><i></i></div>
+        </div>
+        <div class="panel2 p-3 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-mono text-white/60">FIREWALL</div>
+            <div class="text-sm font-semibold mt-1" id="diagFirewall">ARMED</div>
+          </div>
+          <div class="w-20 bar"><i></i></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main -->
+  <main class="relative z-10 px-4 md:px-6 mt-4 pb-28 md:pb-8">
+    <div class="max-w-6xl mx-auto grid lg:grid-cols-5 gap-4 md:gap-5">
+      <!-- Left HUD -->
+      <aside class="lg:col-span-2 panel p-4 md:p-5 shadow-glow">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <div class="text-xs font-mono text-white/60">HUD DIAGNOSTICS</div>
+            <div class="text-sm text-white/80 mt-1">اختر “Module” للتحرير السريع. الحالة تتحدّث تلقائيًا.</div>
+          </div>
+          <div class="hidden lg:block">
+            <svg width="90" height="42" viewBox="0 0 90 42" fill="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="g1" x1="0" y1="0" x2="90" y2="42" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="rgba(120,255,230,0.75)"/>
+                  <stop offset="1" stop-color="rgba(130,160,255,0.65)"/>
+                </linearGradient>
+              </defs>
+              <path d="M4 30c14-18 26-18 40 0s26 18 42 0" stroke="url(#g1)" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M6 36h78" stroke="rgba(120,255,230,0.18)" stroke-width="1.2" stroke-linecap="round"/>
+              <circle cx="45" cy="20" r="4" stroke="rgba(230,245,255,0.7)" stroke-width="1.2"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Modules (desktop list) -->
+        <div class="mt-4">
+          <div class="text-[11px] font-mono text-white/60">MODULES</div>
+          <div id="moduleList" class="mt-2 space-y-2">
+            <!-- injected -->
+          </div>
+        </div>
+
+        <!-- Mobile top modules bar (visible on small screens) -->
+        <div class="mt-4 lg:hidden">
+          <div class="text-[11px] font-mono text-white/60">QUICK BAR</div>
+          <div id="moduleBar" class="mt-2 flex gap-2 overflow-x-auto scrollThin pb-1">
+            <!-- injected -->
+          </div>
+        </div>
+
+        <!-- Boot log -->
+        <div class="mt-4">
+          <div class="flex items-center justify-between">
+            <div class="text-[11px] font-mono text-white/60">BOOT LOG</div>
+            <button id="clearLog" class="text-[11px] font-mono text-white/60 hover:text-white">CLEAR</button>
+          </div>
+          <div class="mt-2 panel2 p-3 h-52 overflow-auto scrollThin font-mono text-[11px] leading-relaxed text-white/70" id="bootLog" aria-live="polite"></div>
+        </div>
+
+        <!-- Mock signals -->
+        <div class="mt-4 grid grid-cols-2 gap-3">
+          <div class="panel2 p-3">
+            <div class="text-[11px] font-mono text-white/60">SIGNAL</div>
+            <div class="mt-2 flex items-center justify-between">
+              <div class="text-xs font-mono" id="signalText">NEARBY</div>
+              <div class="w-16 bar"><i></i></div>
+            </div>
+          </div>
+          <div class="panel2 p-3">
+            <div class="text-[11px] font-mono text-white/60">LATENCY</div>
+            <div class="mt-2 flex items-center justify-between">
+              <div class="text-xs font-mono" id="latencyText">9ms</div>
+              <div class="w-16 bar"><i></i></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right Form -->
+      <section class="lg:col-span-3 panel p-4 md:p-5 shadow-glow" id="formArea">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <div class="text-xs font-mono text-white/60">REGISTRATION CORE</div>
+            <div class="text-sm text-white/80 mt-1">Modules قابلة للطي — بدون أرقام، فقط حالة الإقلاع.</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="saveDraft" class="text-xs font-mono px-3 py-2 rounded-xl hairline bg-white/5 hover:bg-white/10">حفظ التقدّم</button>
+            <button id="loadDraft" class="text-xs font-mono px-3 py-2 rounded-xl hairline bg-white/5 hover:bg-white/10">استرجاع</button>
+          </div>
+        </div>
+
+        <div class="mt-4 space-y-3" id="modules">
+          <!-- Account -->
+          <div class="panel2 overflow-hidden" data-module="account">
+            <button class="w-full flex items-center justify-between gap-3 p-4 text-right moduleHeader" aria-expanded="true">
+              <div>
+                <div class="text-xs font-mono text-white/60">MODULE</div>
+                <div class="text-base font-semibold">Account Core</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono px-2.5 py-1 rounded-full hairline bg-white/5 statusPill" data-status-for="account">PENDING</span>
+                <svg class="w-5 h-5 text-white/60" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </button>
+            <div class="p-4 pt-0 moduleBody">
+              <div class="grid md:grid-cols-2 gap-3">
+                <div>
+                  <label class="text-xs font-mono text-white/60">Email</label>
+                  <input id="email" type="email" autocomplete="email" class="mt-1 w-full px-4 py-3 field" placeholder="you@domain.com" />
+                </div>
+                <div>
+                  <label class="text-xs font-mono text-white/60">Password</label>
+                  <input id="password" type="password" autocomplete="new-password" class="mt-1 w-full px-4 py-3 field" placeholder="••••••••" />
+                  <div class="text-[11px] text-white/60 mt-1">حد أدنى 8 أحرف + رقم واحد على الأقل.</div>
+                </div>
+              </div>
+
+              <div class="grid md:grid-cols-2 gap-3 mt-3">
+                <div>
+                  <label class="text-xs font-mono text-white/60">Confirm</label>
+                  <input id="confirm" type="password" autocomplete="new-password" class="mt-1 w-full px-4 py-3 field" placeholder="••••••••" />
+                </div>
+                <div class="flex items-end">
+                  <label class="flex items-center gap-2 text-sm text-white/80 select-none">
+                    <input id="terms" type="checkbox" class="accent-[rgba(120,255,230,0.95)] w-5 h-5" />
+                    أوافق على شروط النظام وسياسة الخصوصية
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Identity -->
+          <div class="panel2 overflow-hidden" data-module="identity">
+            <button class="w-full flex items-center justify-between gap-3 p-4 text-right moduleHeader" aria-expanded="false">
+              <div>
+                <div class="text-xs font-mono text-white/60">MODULE</div>
+                <div class="text-base font-semibold">Identity Link</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono px-2.5 py-1 rounded-full hairline bg-white/5 statusPill" data-status-for="identity">PENDING</span>
+                <svg class="w-5 h-5 text-white/60" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </button>
+            <div class="p-4 pt-0 moduleBody hidden">
+              <div class="grid md:grid-cols-2 gap-3">
+                <div>
+                  <label class="text-xs font-mono text-white/60">Callsign</label>
+                  <input id="callsign" type="text" class="mt-1 w-full px-4 py-3 field font-mono" placeholder="NOVA-07" maxlength="16" />
+                  <div class="text-[11px] text-white/60 mt-1">اسم طيّارك داخل المجتمع. أحرف/أرقام وشرطات مسموحة.</div>
+                </div>
+                <div>
+                  <label class="text-xs font-mono text-white/60">Display Name</label>
+                  <input id="displayName" type="text" class="mt-1 w-full px-4 py-3 field" placeholder="اسم للملف العام" maxlength="24" />
+                </div>
+              </div>
+
+              <div class="grid md:grid-cols-3 gap-3 mt-3">
+                <div>
+                  <label class="text-xs font-mono text-white/60">Region</label>
+                  <select id="region" class="mt-1 w-full px-4 py-3 field">
+                    <option value="">اختر…</option>
+                    <option>الشرق الأوسط</option>
+                    <option>أوروبا</option>
+                    <option>أمريكا الشمالية</option>
+                    <option>أمريكا الجنوبية</option>
+                    <option>آسيا</option>
+                    <option>إفريقيا</option>
+                    <option>أوقيانوسيا</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-xs font-mono text-white/60">Timezone</label>
+                  <input id="timezone" type="text" class="mt-1 w-full px-4 py-3 field font-mono" placeholder="Asia/Jerusalem" />
+                </div>
+                <div>
+                  <label class="text-xs font-mono text-white/60">Pronouns</label>
+                  <select id="pronouns" class="mt-1 w-full px-4 py-3 field">
+                    <option value="">اختياري</option>
+                    <option>he/him</option>
+                    <option>she/her</option>
+                    <option>they/them</option>
+                    <option>أي/أي</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mt-3 panel2 p-3">
+                <div class="text-[11px] font-mono text-white/60">SUGGESTED ALIASES (MOCK)</div>
+                <div id="aliasSuggestions" class="mt-2 flex flex-wrap gap-2"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avatar -->
+          <div class="panel2 overflow-hidden" data-module="avatar">
+            <button class="w-full flex items-center justify-between gap-3 p-4 text-right moduleHeader" aria-expanded="false">
+              <div>
+                <div class="text-xs font-mono text-white/60">MODULE</div>
+                <div class="text-base font-semibold">Avatar System</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono px-2.5 py-1 rounded-full hairline bg-white/5 statusPill" data-status-for="avatar">PENDING</span>
+                <svg class="w-5 h-5 text-white/60" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </button>
+            <div class="p-4 pt-0 moduleBody hidden">
+              <div class="grid md:grid-cols-3 gap-3 items-start">
+                <div class="md:col-span-2">
+                  <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <div class="text-sm text-white/80">اختر “Pilot Avatar” مولّد أو ارفع صورة وخصّصها (crop/zoom/drag) مع HUD.</div>
+                    <div class="flex items-center gap-2">
+                      <button id="tabSuggested" class="text-xs font-mono px-3 py-2 rounded-xl hairline bg-white/10">Suggested</button>
+                      <button id="tabUpload" class="text-xs font-mono px-3 py-2 rounded-xl hairline bg-white/5 hover:bg-white/10">Upload</button>
+                    </div>
+                  </div>
+
+                  <!-- Suggested -->
+                  <div id="suggestedPane" class="mt-3">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                      <div class="text-[11px] font-mono text-white/60">LAYERED SVG GENERATOR</div>
+                      <div class="flex items-center gap-2">
+                        <button id="gen5" class="text-xs font-mono px-3 py-2 rounded-xl hairline bg-white/5 hover:bg-white/10">Generate 5</button>
+                        <button id="openFavs" class="text-xs font-mono px-3 py-2 rounded-xl hairline bg-white/5 hover:bg-white/10">المفضلة</button>
+                      </div>
+                    </div>
+                    <div id="avatarGrid" class="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+
+                    <div id="favsDrawer" class="mt-3 hidden panel2 p-3">
+                      <div class="flex items-center justify-between">
+                        <div class="text-[11px] font-mono text-white/60">FAVORITES</div>
+                        <button id="closeFavs" class="text-[11px] font-mono text-white/60 hover:text-white">CLOSE</button>
+                      </div>
+                      <div id="favGrid" class="mt-2 grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+                    </div>
+                  </div>
+
+                  <!-- Upload -->
+                  <div id="uploadPane" class="mt-3 hidden">
+                    <div class="grid md:grid-cols-2 gap-3">
+                      <div>
+                        <label class="text-xs font-mono text-white/60">Upload Image</label>
+                        <input id="upload" type="file" accept="image/*" class="mt-1 w-full px-4 py-3 field" />
+                        <div class="text-[11px] text-white/60 mt-1">سيتم إنشاء نسخة HUD + شارة مصغّرة تلقائيًا عند تفعيل Dual.</div>
+                      </div>
+                      <div class="flex items-end gap-2">
+                        <label class="flex items-center gap-2 text-sm text-white/80 select-none">
+                          <input id="dualAvatar" type="checkbox" class="accent-[rgba(120,255,230,0.95)] w-5 h-5" checked />
+                          Dual-Avatar (badge)
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="mt-3 grid md:grid-cols-2 gap-3 items-start">
+                      <div class="panel2 p-3">
+                        <div class="flex items-center justify-between">
+                          <div class="text-[11px] font-mono text-white/60">CROP · ZOOM · DRAG</div>
+                          <button id="applyUpload" class="text-xs font-mono px-3 py-2 rounded-xl hairline bg-white/5 hover:bg-white/10">Apply</button>
+                        </div>
+
+                        <div class="mt-3 relative rounded-[18px] overflow-hidden hairline bg-black/30" style="aspect-ratio:1/1;">
+                          <canvas id="cropCanvas" width="512" height="512" class="w-full h-full block"></canvas>
+                          <div class="scanOverlay"></div>
+                          <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-3 pointer-events-none">
+                            <div class="panel2 px-3 py-2 text-[11px] font-mono text-white/70">HUD FRAME</div>
+                            <div class="panel2 px-3 py-2 text-[11px] font-mono text-white/70">ID: <span id="hudIdTag">—</span></div>
+                          </div>
+                        </div>
+
+                        <div class="mt-3">
+                          <label class="text-[11px] font-mono text-white/60">ZOOM</label>
+                          <input id="zoom" type="range" min="0.6" max="2.8" step="0.01" value="1.0" class="w-full mt-2" />
+                        </div>
+                        <div class="mt-2 text-[11px] text-white/60">اسحب الصورة داخل المربع لتحديد القص.</div>
+                      </div>
+
+                      <div class="panel2 p-3">
+                        <div class="text-[11px] font-mono text-white/60">PREVIEW</div>
+                        <div class="mt-3 grid grid-cols-2 gap-3">
+                          <div class="rounded-[18px] hairline bg-black/30 overflow-hidden relative" style="aspect-ratio:1/1;">
+                            <div id="uploadPreview" class="w-full h-full grid place-items-center text-white/40 text-xs font-mono">NO IMAGE</div>
+                            <div class="scanOverlay"></div>
+                          </div>
+                          <div class="rounded-[18px] hairline bg-black/30 overflow-hidden grid place-items-center" style="aspect-ratio:1/1;">
+                            <canvas id="uploadBadge" width="256" height="256" class="w-full h-full block"></canvas>
+                          </div>
+                        </div>
+                        <div class="mt-3 panel2 p-3">
+                          <div class="text-[11px] font-mono text-white/60">TIP</div>
+                          <div class="text-xs text-white/70 mt-1">للشكل الأنمي: ركّز على تباين قوي + قص قريب للوجه/الرمز.</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Active avatar preview -->
+                <div class="panel2 p-3">
+                  <div class="flex items-center justify-between">
+                    <div class="text-[11px] font-mono text-white/60">ACTIVE AVATAR</div>
+                    <span class="text-[11px] font-mono text-white/60" id="avatarSource">—</span>
+                  </div>
+                  <div class="mt-3 rounded-[18px] hairline bg-black/30 overflow-hidden relative" style="aspect-ratio:1/1;">
+                    <div id="activeAvatar" class="w-full h-full"></div>
+                    <div class="scanOverlay"></div>
+                    <div class="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
+                      <div class="panel2 px-2.5 py-1.5 text-[11px] font-mono text-white/70">PILOT</div>
+                      <div class="panel2 px-2.5 py-1.5 text-[11px] font-mono text-white/70">SYNC</div>
+                    </div>
+                    <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
+                      <div class="panel2 px-2.5 py-1.5 text-[11px] font-mono text-white/70" id="activeTag">ID: —</div>
+                      <div class="panel2 px-2.5 py-1.5 text-[11px] font-mono text-white/70">HUD</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-3 grid grid-cols-2 gap-2">
+                    <button id="clearAvatar" class="text-xs font-mono px-3 py-2 rounded-xl hairline bg-white/5 hover:bg-white/10">مسح</button>
+                    <button id="randomizeOne" class="text-xs font-mono px-3 py-2 rounded-xl hairline bg-white/5 hover:bg-white/10">Randomize</button>
+                  </div>
+
+                  <div class="mt-3 text-[11px] text-white/60">
+                    الحالة <span class="font-mono">OK</span> تتطلب اختيار Avatar (مولّد أو مرفوع).
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Social -->
+          <div class="panel2 overflow-hidden" data-module="social">
+            <button class="w-full flex items-center justify-between gap-3 p-4 text-right moduleHeader" aria-expanded="false">
+              <div>
+                <div class="text-xs font-mono text-white/60">MODULE</div>
+                <div class="text-base font-semibold">Social Ports</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono px-2.5 py-1 rounded-full hairline bg-white/5 statusPill" data-status-for="social">PENDING</span>
+                <svg class="w-5 h-5 text-white/60" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </button>
+            <div class="p-4 pt-0 moduleBody hidden">
+              <div class="text-sm text-white/80">اختياري لكن مفيد. اختر منفذًا واحدًا على الأقل لتفعيل “OK”.</div>
+
+              <div class="mt-3 grid md:grid-cols-2 gap-3">
+                <div class="panel2 p-3">
+                  <div class="text-[11px] font-mono text-white/60">PLATFORMS</div>
+                  <div class="mt-2 flex flex-wrap gap-2" id="platformChips"></div>
+                </div>
+                <div class="panel2 p-3">
+                  <div class="text-[11px] font-mono text-white/60">HANDLES</div>
+                  <div class="mt-2 space-y-2" id="handlesArea"></div>
+                </div>
+              </div>
+
+              <div class="mt-3 panel2 p-3">
+                <div class="text-[11px] font-mono text-white/60">PRIVACY</div>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <button class="chip text-xs font-mono" data-privacy="public" aria-pressed="true">PUBLIC</button>
+                  <button class="chip text-xs font-mono" data-privacy="friends" aria-pressed="false">FRIENDS</button>
+                  <button class="chip text-xs font-mono" data-privacy="private" aria-pressed="false">PRIVATE</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fandom -->
+          <div class="panel2 overflow-hidden" data-module="fandom">
+            <button class="w-full flex items-center justify-between gap-3 p-4 text-right moduleHeader" aria-expanded="false">
+              <div>
+                <div class="text-xs font-mono text-white/60">MODULE</div>
+                <div class="text-base font-semibold">Fandom Matrix</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono px-2.5 py-1 rounded-full hairline bg-white/5 statusPill" data-status-for="fandom">PENDING</span>
+                <svg class="w-5 h-5 text-white/60" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </button>
+            <div class="p-4 pt-0 moduleBody hidden">
+              <div class="text-sm text-white/80">اختر 3 اهتمامات على الأقل + عمل مفضّل واحد لإكمال “OK”.</div>
+
+              <div class="mt-3 grid md:grid-cols-2 gap-3">
+                <div class="panel2 p-3">
+                  <div class="text-[11px] font-mono text-white/60">INTERESTS (MOCK)</div>
+                  <div id="interestChips" class="mt-2 flex flex-wrap gap-2"></div>
+                  <div class="mt-2 text-[11px] text-white/60">محدد: <span class="font-mono" id="interestCount">0</span></div>
+                </div>
+
+                <div class="panel2 p-3">
+                  <div class="text-[11px] font-mono text-white/60">FAVORITE SERIES (MOCK)</div>
+                  <input id="favoriteSeries" class="mt-2 w-full px-4 py-3 field" placeholder="اكتب اسم العمل…" list="seriesList" />
+                  <datalist id="seriesList"></datalist>
+
+                  <div class="mt-3 panel2 p-3">
+                    <div class="text-[11px] font-mono text-white/60">CREW PICKS (MOCK)</div>
+                    <div id="celebs" class="mt-2 flex flex-wrap gap-2"></div>
+                    <div class="text-[11px] text-white/60 mt-2">هذه بيانات تجريبية لتجربة واجهة الاختيار.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Desktop submit row -->
+        <div class="mt-4 hidden md:flex items-center justify-between gap-3">
+          <div class="text-xs font-mono text-white/60">TIP: جرّب Generate 5 ثم احفظ مفضلة. أو ارفع صورة وفعّل Dual.</div>
+          <button id="finish" class="px-4 py-3 rounded-2xl font-mono text-sm hairline bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed">
+            إنهاء الإقلاع
+          </button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Mobile bottom sticky bar -->
+  <div class="fixed z-20 bottom-0 inset-x-0 md:hidden safeBottom">
+    <div class="px-4 pb-3">
+      <div class="panel shadow-glow px-4 py-3 flex items-center justify-between gap-3">
+        <div class="min-w-0">
+          <div class="text-[11px] font-mono text-white/60">BOOT</div>
+          <div class="text-sm font-mono text-white truncate"><span id="mPct">0%</span> · <span id="mState">PENDING</span></div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="mJump" class="px-3 py-2 rounded-xl font-mono text-xs hairline bg-white/5 hover:bg-white/10">التالي</button>
+          <button id="mFinish" class="px-4 py-2 rounded-xl font-mono text-xs hairline bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed">
+            إنهاء
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const $ = (sel, root=document) => root.querySelector(sel);
+      const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+      const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+      const now = () => new Date().toISOString().replace('T',' ').replace('Z','Z');
+
+      const iris = $('#iris');
+
+      const modules = [
+        { key:'account',  label:'Account Core',    hint:'Email + Password + Terms' },
+        { key:'identity', label:'Identity Link',  hint:'Callsign + Region + Timezone' },
+        { key:'avatar',   label:'Avatar System',  hint:'Generated أو Upload' },
+        { key:'social',   label:'Social Ports',   hint:'منفذ واحد على الأقل' },
+        { key:'fandom',   label:'Fandom Matrix',  hint:'3 اهتمامات + عمل مفضّل' },
+      ];
+
+      const state = {
+        activeModule: 'account',
+        motionReduced: false,
+        swipeEnabled: true,
+        privacy: 'public',
+        platformSelected: new Set(),
+        handles: {},
+        interests: new Set(),
+        favorites: [],
+        avatar: {
+          type: null,          // 'svg' | 'upload'
+          svg: null,           // string
+          uploadDataUrl: null, // data url
+          badgeDataUrl: null,  // data url
+          config: null,
+        },
+        fields: {
+          email: '',
+          password: '',
+          confirm: '',
+          terms: false,
+          callsign: '',
+          displayName: '',
+          region: '',
+          timezone: '',
+          pronouns: '',
+          favoriteSeries: '',
+          celebPick: '',
+        }
+      };
+
+      // --- Toast ---
+      const toast = $('#toast');
+      const toastTitle = $('#toastTitle');
+      const toastMsg = $('#toastMsg');
+      let toastTimer = null;
+      function showToast(title, msg){
+        toastTitle.textContent = title;
+        toastMsg.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+      }
+      $('#toastClose').addEventListener('click', () => toast.classList.remove('show'));
+
+      // --- Boot log ---
+      const bootLog = $('#bootLog');
+      function log(line, level='INFO'){
+        const t = new Date();
+        const hh = String(t.getHours()).padStart(2,'0');
+        const mm = String(t.getMinutes()).padStart(2,'0');
+        const ss = String(t.getSeconds()).padStart(2,'0');
+        const tag = level.padEnd(5,' ');
+        const el = document.createElement('div');
+        el.textContent = `[${hh}:${mm}:${ss}] ${tag} :: ${line}`;
+        bootLog.appendChild(el);
+        bootLog.scrollTop = bootLog.scrollHeight;
+      }
+      $('#clearLog').addEventListener('click', () => { bootLog.innerHTML=''; log('LOG BUFFER CLEARED'); });
+
+      // --- Motion toggle ---
+      const motionBtn = $('#toggleMotion');
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      state.motionReduced = prefersReduced;
+      function applyMotion(){
+        document.documentElement.dataset.motion = state.motionReduced ? 'reduced' : 'full';
+        motionBtn.setAttribute('aria-pressed', String(state.motionReduced));
+        motionBtn.innerHTML = state.motionReduced
+          ? `<span class="inline-flex w-2 h-2 rounded-full" style="background: rgba(255,198,120,0.9)"></span> Motion: REDUCED`
+          : `<span class="inline-flex w-2 h-2 rounded-full" style="background: rgba(120,255,180,0.9)"></span> Motion: ON`;
+        log(state.motionReduced ? 'MOTION REDUCED ENABLED' : 'MOTION FULL ENABLED');
+      }
+      motionBtn.addEventListener('click', () => {
+        state.motionReduced = !state.motionReduced;
+        applyMotion();
+      });
+
+      // --- Swipe toggle ---
+      const swipeBtn = $('#toggleSwipe');
+      swipeBtn.addEventListener('click', () => {
+        state.swipeEnabled = !state.swipeEnabled;
+        swipeBtn.setAttribute('aria-pressed', String(state.swipeEnabled));
+        swipeBtn.innerHTML = state.swipeEnabled
+          ? `<span class="inline-flex w-2 h-2 rounded-full" style="background: rgba(120,255,230,0.9)"></span> Swipe: ON`
+          : `<span class="inline-flex w-2 h-2 rounded-full" style="background: rgba(255,120,160,0.9)"></span> Swipe: OFF`;
+        log(state.swipeEnabled ? 'SWIPE NAV ENABLED' : 'SWIPE NAV DISABLED');
+      });
+
+      // --- Iris effect ---
+      function irisPulse(clientX, clientY){
+        if(state.motionReduced) return;
+        const x = (clientX ?? window.innerWidth*0.5) / window.innerWidth * 100;
+        const y = (clientY ?? window.innerHeight*0.3) / window.innerHeight * 100;
+        iris.style.setProperty('--ix', x+'%');
+        iris.style.setProperty('--iy', y+'%');
+        iris.classList.add('on');
+        setTimeout(() => iris.classList.remove('on'), 240);
+      }
+
+      // --- Module list / bar ---
+      const moduleList = $('#moduleList');
+      const moduleBar = $('#moduleBar');
+      function makeModuleItem(m, variant='list'){
+        const wrap = document.createElement('button');
+        wrap.className = variant==='bar'
+          ? 'panel2 px-3 py-2 shrink-0 text-right flex items-center gap-2 hover:bg-white/5'
+          : 'panel2 px-3 py-3 w-full text-right flex items-start justify-between gap-3 hover:bg-white/5';
+        wrap.dataset.go = m.key;
+        wrap.innerHTML = `
+          <div class="min-w-0">
+            <div class="text-[11px] font-mono text-white/60">MODULE</div>
+            <div class="text-sm font-semibold truncate">${m.label}</div>
+            ${variant==='list' ? `<div class="text-[11px] text-white/60 mt-1">${m.hint}</div>` : ``}
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-mono px-2.5 py-1 rounded-full hairline bg-white/5 statusPill" data-status-for="${m.key}">PENDING</span>
+            <span class="inline-flex w-2 h-2 rounded-full statusDot" style="background: rgba(255,198,120,0.9)"></span>
+          </div>
+        `;
+        wrap.addEventListener('click', (e) => {
+          irisPulse(e.clientX, e.clientY);
+          gotoModule(m.key);
+        });
+        return wrap;
+      }
+
+      function renderModuleNav(){
+        moduleList.innerHTML = '';
+        moduleBar.innerHTML = '';
+        modules.forEach(m => {
+          moduleList.appendChild(makeModuleItem(m,'list'));
+          moduleBar.appendChild(makeModuleItem(m,'bar'));
+        });
+      }
+
+      // --- Accordions ---
+      function openModuleInForm(key){
+        const host = $('#modules');
+        const block = host.querySelector(`[data-module="${key}"]`);
+        if(!block) return;
+
+        $$('.moduleHeader', host).forEach(btn => {
+          const parent = btn.closest('[data-module]');
+          const body = parent.querySelector('.moduleBody');
+          const isTarget = parent.dataset.module === key;
+          btn.setAttribute('aria-expanded', isTarget ? 'true' : 'false');
+          body.classList.toggle('hidden', !isTarget);
+        });
+
+        block.classList.add('snap');
+        setTimeout(() => block.classList.remove('snap'), 260);
+      }
+
+      function attachAccordionHandlers(){
+        $$('.moduleHeader').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const parent = btn.closest('[data-module]');
+            const key = parent.dataset.module;
+            const expanded = btn.getAttribute('aria-expanded') === 'true';
+            irisPulse(e.clientX, e.clientY);
+            log(`${key.toUpperCase()} MODULE ${expanded ? 'COLLAPSE' : 'EXPAND'}`);
+            if(expanded){
+              btn.setAttribute('aria-expanded','false');
+              parent.querySelector('.moduleBody').classList.add('hidden');
+            }else{
+              gotoModule(key, { openOnly:true });
+            }
+          });
+        });
+      }
+
+      function gotoModule(key, opts={}){
+        state.activeModule = key;
+        openModuleInForm(key);
+        highlightNav(key);
+        const block = $(`[data-module="${key}"]`);
+        if(block && !opts.openOnly){
+          block.scrollIntoView({ behavior: state.motionReduced ? 'auto' : 'smooth', block:'start' });
+        }
+        log(`NAV -> ${key.toUpperCase()}`);
+      }
+
+      function highlightNav(key){
+        $$('[data-go]').forEach(btn => {
+          const on = btn.dataset.go === key;
+          btn.style.borderColor = on ? 'rgba(120,255,230,0.45)' : 'rgba(120,255,230,0.10)';
+          btn.style.boxShadow = on ? '0 0 0 1px rgba(120,255,230,0.10) inset' : 'none';
+        });
+      }
+
+      // --- Status & progress ---
+      const progressFill = $('#progressFill');
+      const progressPct = $('#progressPct');
+      const progressText = $('#progressText');
+      const systemStatePill = $('#systemStatePill');
+      const mPct = $('#mPct');
+      const mState = $('#mState');
+
+      function setPill(el, status){
+        el.textContent = status;
+        el.style.borderColor = status === 'OK' ? 'rgba(120,255,180,0.35)' : status === 'WARN' ? 'rgba(255,198,120,0.35)' : 'rgba(120,255,230,0.14)';
+        el.style.background = status === 'OK' ? 'rgba(120,255,180,0.08)' : status === 'WARN' ? 'rgba(255,198,120,0.08)' : 'rgba(255,255,255,0.03)';
+        el.style.color = status === 'OK' ? 'rgba(120,255,180,0.95)' : status === 'WARN' ? 'rgba(255,198,120,0.95)' : 'rgba(230,245,255,0.85)';
+      }
+
+      function validate(){
+        const f = state.fields;
+
+        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim());
+        const passOk = f.password.length >= 8 && /\d/.test(f.password);
+        const confirmOk = f.confirm === f.password && f.confirm.length > 0;
+        const termsOk = !!f.terms;
+        const accountOk = emailOk && passOk && confirmOk && termsOk;
+
+        const callsignOk = /^[A-Za-z0-9_-]{3,16}$/.test(f.callsign.trim());
+        const regionOk = !!f.region;
+        const tzOk = f.timezone.trim().length >= 3;
+        const identityOk = callsignOk && regionOk && tzOk;
+
+        const avatarOk = !!state.avatar.type;
+
+        const socialOk = state.platformSelected.size >= 1;
+
+        const interestsOk = state.interests.size >= 3;
+        const seriesOk = f.favoriteSeries.trim().length >= 2;
+        const fandomOk = interestsOk && seriesOk;
+
+        return {
+          account: accountOk,
+          identity: identityOk,
+          avatar: avatarOk,
+          social: socialOk,
+          fandom: fandomOk,
+          all: accountOk && identityOk && avatarOk && socialOk && fandomOk,
+          detail: { emailOk, passOk, confirmOk, termsOk, callsignOk, regionOk, tzOk, interestsOk, seriesOk }
+        };
+      }
+
+      function updateStatusUI(){
+        const v = validate();
+        let okCount = 0;
+
+        modules.forEach(m => {
+          const ok = !!v[m.key];
+          if(ok) okCount++;
+          $$(`[data-status-for="${m.key}"]`).forEach(pill => setPill(pill, ok ? 'OK' : 'PENDING'));
+          $$(`[data-go="${m.key}"] .statusDot`).forEach(dot => dot.style.background = ok ? 'rgba(120,255,180,0.95)' : 'rgba(255,198,120,0.95)');
+        });
+
+        const pct = Math.round(okCount / modules.length * 100);
+        progressPct.textContent = `${pct}%`;
+        progressText.textContent = `${okCount} OK / ${modules.length - okCount} Pending`;
+        progressFill.style.width = `${pct}%`;
+
+        const sys = v.all ? 'READY' : 'PENDING';
+        systemStatePill.textContent = sys;
+        systemStatePill.style.borderColor = v.all ? 'rgba(120,255,180,0.45)' : 'rgba(120,255,230,0.18)';
+        systemStatePill.style.background = v.all ? 'rgba(120,255,180,0.08)' : 'rgba(255,255,255,0.03)';
+        systemStatePill.style.color = v.all ? 'rgba(120,255,180,0.95)' : 'rgba(230,245,255,0.85)';
+
+        mPct.textContent = `${pct}%`;
+        mState.textContent = sys;
+
+        $('#finish').disabled = !v.all;
+        $('#mFinish').disabled = !v.all;
+
+        // mini header
+        $('#miniCallsign').textContent = state.fields.callsign?.trim() ? state.fields.callsign.trim() : '—';
+        $('#hudIdTag').textContent = state.fields.callsign?.trim() ? state.fields.callsign.trim() : '—';
+        $('#activeTag').textContent = `ID: ${state.fields.callsign?.trim() ? state.fields.callsign.trim() : '—'}`;
+
+        // diag (tiny variations)
+        $('#diagSync').textContent = v.account ? (v.all ? 'SYNCED' : 'STAGING…') : 'LINKING…';
+        $('#diagFirewall').textContent = v.account ? 'ARMED' : 'LOCKED';
+      }
+
+      function bindFields(){
+        const map = [
+          ['email','email'],
+          ['password','password'],
+          ['confirm','confirm'],
+          ['terms','terms', 'checkbox'],
+          ['callsign','callsign'],
+          ['displayName','displayName'],
+          ['region','region'],
+          ['timezone','timezone'],
+          ['pronouns','pronouns'],
+          ['favoriteSeries','favoriteSeries'],
+        ];
+        map.forEach(([id,key,type]) => {
+          const el = $('#'+id);
+          if(!el) return;
+          const ev = (type==='checkbox') ? 'change' : 'input';
+          el.addEventListener(ev, () => {
+            state.fields[key] = (type==='checkbox') ? el.checked : el.value;
+            if(key === 'callsign'){
+              $('#miniCallsign').textContent = el.value.trim() || '—';
+              $('#hudIdTag').textContent = el.value.trim() || '—';
+            }
+            updateStatusUI();
+            maybeLogField(id);
+            updateActiveAvatarPanels();
+          });
+        });
+      }
+
+      let lastFieldLog = 0;
+      function maybeLogField(id){
+        const t = Date.now();
+        if(t - lastFieldLog > 420){
+          log(`FIELD UPDATE: ${id.toUpperCase()}`);
+          lastFieldLog = t;
+        }
+      }
+
+      // --- Mock data ---
+      const aliasPool = [
+        'NOVA-07','KITSUNE-4','AXIOM-9','ORBIT-13','ZENITH-5','KAIRO-01','ECHO-22','RELAY-3','HORIZON-8','SIGMA-11'
+      ];
+      function renderAliasSuggestions(){
+        const host = $('#aliasSuggestions');
+        host.innerHTML = '';
+        aliasPool.slice(0,8).forEach(a => {
+          const b = document.createElement('button');
+          b.className = 'chip text-xs font-mono';
+          b.textContent = a;
+          b.addEventListener('click', (e) => {
+            irisPulse(e.clientX, e.clientY);
+            $('#callsign').value = a;
+            state.fields.callsign = a;
+            updateStatusUI();
+            updateActiveAvatarPanels();
+            log(`CALLSIGN SUGGESTED -> ${a}`);
+          });
+          host.appendChild(b);
+        });
+      }
+
+      const interestPool = [
+        'Mecha','Cyberpunk','Space Opera','Slice of Life','Shōnen','Seinen','Isekai',
+        'Retro Sci-Fi','Kaiju','Magical Tech','AI Lore','Tactical PvP','Manga','Webtoon',
+        'OST','Cosplay','Lore Hunting','Speedrun','Fanart','Light Novels'
+      ];
+      const seriesPool = [
+        'Neon Genesis Evangelion','Ghost in the Shell','Gundam (UC)','Code Geass','86 Eighty-Six',
+        'Psycho-Pass','Cyberpunk: Edgerunners','Aldnoah.Zero','Gurren Lagann','Knights of Sidonia',
+        'Blame!','Akira','Trigun','Cowboy Bebop','Made in Abyss'
+      ];
+      const celebPool = [
+        'Director: “Unit-0”','Pilot: “Astra”','Engineer: “Hex”','Navigator: “Rin”','Analyst: “Mori”'
+      ];
+
+      function renderInterests(){
+        const host = $('#interestChips');
+        host.innerHTML = '';
+        interestPool.forEach(tag => {
+          const b = document.createElement('button');
+          b.className = 'chip text-xs font-mono';
+          b.textContent = tag;
+          b.setAttribute('aria-pressed', 'false');
+          b.addEventListener('click', (e) => {
+            irisPulse(e.clientX, e.clientY);
+            if(state.interests.has(tag)) state.interests.delete(tag);
+            else state.interests.add(tag);
+            b.setAttribute('aria-pressed', state.interests.has(tag) ? 'true' : 'false');
+            $('#interestCount').textContent = String(state.interests.size);
+            updateStatusUI();
+            log(`INTEREST TOGGLE -> ${tag}`);
+          });
+          host.appendChild(b);
+        });
+
+        const dl = $('#seriesList');
+        dl.innerHTML = '';
+        seriesPool.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s;
+          dl.appendChild(opt);
+        });
+
+        const celebs = $('#celebs');
+        celebs.innerHTML = '';
+        celebPool.forEach(c => {
+          const b = document.createElement('button');
+          b.className = 'chip text-xs font-mono';
+          b.textContent = c;
+          b.addEventListener('click', (e) => {
+            irisPulse(e.clientX, e.clientY);
+            state.fields.celebPick = c;
+            showToast('Crew Pick', `تم اختيار ${c} كتلميح تجريبي.`);
+            log(`CREW PICK -> ${c}`);
+          });
+          celebs.appendChild(b);
+        });
+      }
+
+      // --- Social ports ---
+      const platforms = [
+        { id:'discord',  label:'Discord' },
+        { id:'x',       label:'X' },
+        { id:'twitch',  label:'Twitch' },
+        { id:'youtube', label:'YouTube' },
+        { id:'tiktok',  label:'TikTok' },
+        { id:'github',  label:'GitHub' },
+      ];
+
+      function renderSocial(){
+        const chips = $('#platformChips');
+        const handles = $('#handlesArea');
+        chips.innerHTML = '';
+        handles.innerHTML = '';
+
+        platforms.forEach(p => {
+          const b = document.createElement('button');
+          b.className = 'chip text-xs font-mono';
+          b.textContent = p.label;
+          b.setAttribute('aria-pressed','false');
+          b.addEventListener('click', (e) => {
+            irisPulse(e.clientX, e.clientY);
+            if(state.platformSelected.has(p.id)) state.platformSelected.delete(p.id);
+            else state.platformSelected.add(p.id);
+            b.setAttribute('aria-pressed', state.platformSelected.has(p.id) ? 'true' : 'false');
+            renderHandles();
+            updateStatusUI();
+            log(`PLATFORM TOGGLE -> ${p.id}`);
+          });
+          chips.appendChild(b);
+        });
+
+        function renderHandles(){
+          handles.innerHTML = '';
+          Array.from(state.platformSelected).forEach(pid => {
+            const p = platforms.find(x => x.id === pid);
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2';
+            row.innerHTML = `
+              <div class="text-[11px] font-mono text-white/60 w-20 shrink-0">${p.label}</div>
+              <input class="field px-3 py-2 w-full font-mono text-xs" placeholder="@handle" data-handle-for="${pid}" />
+            `;
+            const input = $('[data-handle-for="'+pid+'"]', row);
+            input.value = state.handles[pid] || '';
+            input.addEventListener('input', () => {
+              state.handles[pid] = input.value;
+              updateStatusUI();
+            });
+            handles.appendChild(row);
+          });
+        }
+
+        // Privacy chips
+        $$('[data-privacy]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            irisPulse(e.clientX, e.clientY);
+            state.privacy = btn.dataset.privacy;
+            $$('[data-privacy]').forEach(x => x.setAttribute('aria-pressed', x === btn ? 'true':'false'));
+            log(`PRIVACY -> ${state.privacy.toUpperCase()}`);
+          });
+        });
+
+        renderHandles();
+      }
+
+      // --- Avatar generator (Layered SVG) ---
+      const AURA = [
+        ['#7AFFE6','#82A0FF'], ['#7AFFB4','#7AFFE6'], ['#FFC678','#7AFFE6'],
+        ['#FF78A0','#82A0FF'], ['#B48CFF','#7AFFE6'], ['#7AFFE6','#B48CFF']
+      ];
+      const HELMET = ['A','B','C','D'];
+      const VISOR = ['V1','V2','V3','V4'];
+      const DECAL = ['D1','D2','D3','D4','D5'];
+      const PATTERN = ['P1','P2','P3','P4'];
+
+      function rnd(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+      function hashId(){
+        const s = Math.random().toString(16).slice(2,10).toUpperCase();
+        return 'NP-' + s;
+      }
+
+      function avatarConfig(seed){
+        // seed optional for deterministic-ish (lightweight)
+        const cfg = {
+          id: hashId(),
+          aura: rnd(AURA),
+          helmet: rnd(HELMET),
+          visor: rnd(VISOR),
+          decal: rnd(DECAL),
+          pattern: rnd(PATTERN),
+          tone: Math.random() < 0.5 ? 'neo' : 'mono'
+        };
+        return cfg;
+      }
+
+      function renderAvatarSVG(cfg, size=240){
+        const [a1,a2] = cfg.aura;
+        const bg = cfg.tone === 'neo' ? 'rgba(8,12,22,1)' : 'rgba(10,16,28,1)';
+        const stroke = 'rgba(230,245,255,0.85)';
+        const line = 'rgba(120,255,230,0.35)';
+        const line2 = 'rgba(130,160,255,0.28)';
+
+        const defs = `
+          <defs>
+            <linearGradient id="aura_${cfg.id}" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="${a1}" stop-opacity="0.85"/>
+              <stop offset="1" stop-color="${a2}" stop-opacity="0.75"/>
+            </linearGradient>
+            <radialGradient id="glow_${cfg.id}" cx="50%" cy="45%" r="60%">
+              <stop offset="0" stop-color="${a1}" stop-opacity="0.35"/>
+              <stop offset="1" stop-color="${a2}" stop-opacity="0.0"/>
+            </radialGradient>
+            <pattern id="pat_${cfg.id}" width="18" height="18" patternUnits="userSpaceOnUse">
+              ${cfg.pattern==='P1' ? `<path d="M0 9h18" stroke="${line}" stroke-width="1" opacity="0.55"/>` : ``}
+              ${cfg.pattern==='P2' ? `<path d="M9 0v18" stroke="${line2}" stroke-width="1" opacity="0.55"/>` : ``}
+              ${cfg.pattern==='P3' ? `<path d="M0 18L18 0" stroke="${line}" stroke-width="1" opacity="0.35"/>` : ``}
+              ${cfg.pattern==='P4' ? `<circle cx="9" cy="9" r="1.2" fill="${line}" opacity="0.5"/>` : ``}
+            </pattern>
+            <filter id="soft_${cfg.id}" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="0.6" result="b"/>
+              <feMerge>
+                <feMergeNode in="b"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+        `;
+
+        const helmetShape = (() => {
+          switch(cfg.helmet){
+            case 'A': return `<path d="M70 188c-8-40 2-88 18-114 12-18 30-30 52-34 22 4 40 16 52 34 16 26 26 74 18 114-14 18-36 30-70 32h-52c-34-2-56-14-70-32z" fill="rgba(0,0,0,0.20)" stroke="${stroke}" stroke-width="1.4"/>`;
+            case 'B': return `<path d="M62 182c-10-44 2-96 22-122 14-18 34-28 56-30 22 2 42 12 56 30 20 26 32 78 22 122-18 22-44 34-78 34h-22c-34 0-60-12-78-34z" fill="rgba(0,0,0,0.20)" stroke="${stroke}" stroke-width="1.4"/>`;
+            case 'C': return `<path d="M74 188c-6-46 10-104 32-128 10-10 24-16 42-18 18 2 32 8 42 18 22 24 38 82 32 128-18 20-46 30-84 30s-66-10-84-30z" fill="rgba(0,0,0,0.20)" stroke="${stroke}" stroke-width="1.4"/>`;
+            default:  return `<path d="M66 186c-12-42-2-98 20-124 16-18 38-28 62-30 24 2 46 12 62 30 22 26 32 82 20 124-20 22-50 34-82 34h-0c-32 0-62-12-82-34z" fill="rgba(0,0,0,0.20)" stroke="${stroke}" stroke-width="1.4"/>`;
+          }
+        })();
+
+        const visorShape = (() => {
+          switch(cfg.visor){
+            case 'V1': return `
+              <path d="M92 126c14-18 34-28 66-28s52 10 66 28c-6 18-20 34-42 40h-48c-22-6-36-22-42-40z" fill="url(#aura_${cfg.id})" opacity="0.9" />
+              <path d="M94 126h124" stroke="rgba(230,245,255,0.55)" stroke-width="1.1" opacity="0.6"/>
+            `;
+            case 'V2': return `
+              <path d="M90 124c10-24 34-38 68-38s58 14 68 38c-10 18-30 32-54 36h-28c-24-4-44-18-54-36z" fill="url(#aura_${cfg.id})" opacity="0.88" />
+              <path d="M102 112h108" stroke="rgba(230,245,255,0.45)" stroke-width="1.1" opacity="0.6"/>
+            `;
+            case 'V3': return `
+              <path d="M96 130c16-22 36-32 62-32s46 10 62 32c-8 16-24 30-44 34h-36c-20-4-36-18-44-34z" fill="url(#aura_${cfg.id})" opacity="0.9" />
+              <path d="M114 140h72" stroke="rgba(0,0,0,0.25)" stroke-width="2" opacity="0.25"/>
+            `;
+            default: return `
+              <path d="M92 124c12-20 34-34 66-34s54 14 66 34c-8 18-26 34-48 38h-36c-22-4-40-20-48-38z" fill="url(#aura_${cfg.id})" opacity="0.9" />
+              <path d="M98 124c10 16 26 26 42 28h36c16-2 32-12 42-28" stroke="rgba(230,245,255,0.35)" stroke-width="1.2" opacity="0.7"/>
+            `;
+          }
+        })();
+
+        const decalShape = (() => {
+          switch(cfg.decal){
+            case 'D1': return `<path d="M116 70l12-10 12 10-12 12-12-12z" fill="rgba(120,255,230,0.20)" stroke="${line}" stroke-width="1.2"/>`;
+            case 'D2': return `<path d="M110 72h36" stroke="${line2}" stroke-width="2" stroke-linecap="round"/><path d="M122 62v22" stroke="${line}" stroke-width="1.5" stroke-linecap="round"/>`;
+            case 'D3': return `<path d="M104 78c14-14 38-14 52 0" stroke="${line}" stroke-width="1.4" stroke-linecap="round"/><path d="M108 86c12-10 32-10 44 0" stroke="${line2}" stroke-width="1.2" stroke-linecap="round"/>`;
+            case 'D4': return `<path d="M118 64l-14 24h28l-14-24z" fill="rgba(130,160,255,0.16)" stroke="${line2}" stroke-width="1.2"/>`;
+            default:  return `<circle cx="128" cy="72" r="10" fill="rgba(120,255,230,0.10)" stroke="${line}" stroke-width="1.2"/><path d="M128 62v20" stroke="${line2}" stroke-width="1.2" />`;
+          }
+        })();
+
+        const mechLines = `
+          <path d="M86 182h84" stroke="rgba(120,255,230,0.25)" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M98 198h60" stroke="rgba(130,160,255,0.20)" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M84 150c14 10 28 16 44 16s30-6 44-16" stroke="rgba(230,245,255,0.25)" stroke-width="1.1" stroke-linecap="round"/>
+          <path d="M78 152l16-18" stroke="rgba(120,255,230,0.18)" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M178 134l18 20" stroke="rgba(130,160,255,0.18)" stroke-width="1.2" stroke-linecap="round"/>
+        `;
+
+        return `
+          <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 256 256" role="img" aria-label="Pilot Avatar ${cfg.id}">
+            ${defs}
+            <rect x="0" y="0" width="256" height="256" fill="${bg}"/>
+            <rect x="0" y="0" width="256" height="256" fill="url(#pat_${cfg.id})" opacity="0.7"/>
+            <circle cx="128" cy="120" r="110" fill="url(#glow_${cfg.id})" opacity="0.9"/>
+            <g filter="url(#soft_${cfg.id})">
+              <path d="M22 212c38-30 76-44 106-44s68 14 106 44" stroke="rgba(120,255,230,0.14)" stroke-width="1.4" stroke-linecap="round"/>
+              ${helmetShape}
+              ${visorShape}
+              ${decalShape}
+              ${mechLines}
+              <path d="M60 92h18" stroke="rgba(230,245,255,0.22)" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M178 92h18" stroke="rgba(230,245,255,0.22)" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M58 210h140" stroke="rgba(120,255,230,0.18)" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M58 210l-10 10" stroke="rgba(120,255,230,0.14)" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M198 210l10 10" stroke="rgba(120,255,230,0.14)" stroke-width="1.2" stroke-linecap="round"/>
+            </g>
+            <g opacity="0.85">
+              <text x="18" y="26" fill="rgba(230,245,255,0.6)" font-family="ui-monospace, Menlo, Monaco, Consolas" font-size="10">NP.REG</text>
+              <text x="18" y="40" fill="rgba(230,245,255,0.6)" font-family="ui-monospace, Menlo, Monaco, Consolas" font-size="10">${cfg.id}</text>
+              <text x="170" y="26" fill="rgba(230,245,255,0.55)" font-family="ui-monospace, Menlo, Monaco, Consolas" font-size="10">HUD</text>
+            </g>
+            <rect x="10" y="10" width="236" height="236" rx="18" fill="none" stroke="rgba(120,255,230,0.18)" />
+          </svg>
+        `;
+      }
+
+      function renderAvatarCard(cfg, isFav=false){
+        const el = document.createElement('div');
+        el.className = 'panel2 p-3';
+        const svg = renderAvatarSVG(cfg, 260);
+        el.innerHTML = `
+          <div class="rounded-[18px] hairline bg-black/30 overflow-hidden relative" style="aspect-ratio:1/1;">
+            <div class="w-full h-full">${svg}</div>
+            <div class="scanOverlay"></div>
+          </div>
+          <div class="mt-3 flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <div class="text-[11px] font-mono text-white/60">ID</div>
+              <div class="text-xs font-mono text-white truncate">${cfg.id}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="text-xs font-mono px-3 py-2 rounded-xl hairline bg-white/5 hover:bg-white/10 actSelect">Select</button>
+              <button class="text-xs font-mono px-3 py-2 rounded-xl hairline ${isFav ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'} actFav" aria-pressed="${isFav}">☆</button>
+            </div>
+          </div>
+        `;
+
+        $('.actSelect', el).addEventListener('click', (e) => {
+          irisPulse(e.clientX, e.clientY);
+          setActiveAvatarSVG(cfg);
+          showToast('Avatar', `تم تفعيل Avatar: ${cfg.id}`);
+          log(`AVATAR SELECT -> ${cfg.id}`);
+          updateStatusUI();
+        });
+
+        $('.actFav', el).addEventListener('click', (e) => {
+          irisPulse(e.clientX, e.clientY);
+          toggleFavorite(cfg);
+          renderFavorites();
+          showToast('Favorites', state.favorites.some(x => x.id===cfg.id) ? 'تمت الإضافة للمفضلة.' : 'تمت الإزالة من المفضلة.');
+          log(`FAV TOGGLE -> ${cfg.id}`);
+        });
+
+        return el;
+      }
+
+      function setActiveAvatarSVG(cfg){
+        state.avatar.type = 'svg';
+        state.avatar.config = cfg;
+        state.avatar.svg = renderAvatarSVG(cfg, 512);
+        state.avatar.uploadDataUrl = null;
+        state.avatar.badgeDataUrl = null;
+        $('#avatarSource').textContent = 'SVG';
+        updateActiveAvatarPanels();
+      }
+
+      function updateActiveAvatarPanels(){
+        const a = state.avatar;
+        const active = $('#activeAvatar');
+        const mini = $('#miniAvatar');
+        const successAv = $('#successAvatar');
+
+        function setNodeHTML(node, html){
+          node.innerHTML = html || '';
+        }
+
+        if(a.type === 'svg' && a.svg){
+          setNodeHTML(active, `<div class="w-full h-full">${a.svg}</div>`);
+          // mini use smaller render to keep light
+          const small = renderAvatarSVG(a.config || avatarConfig(), 64);
+          setNodeHTML(mini, small);
+          setNodeHTML(successAv, `<div class="w-full h-full">${renderAvatarSVG(a.config || avatarConfig(), 96)}</div>`);
+        } else if(a.type === 'upload' && a.uploadDataUrl){
+          setNodeHTML(active, `<img alt="Uploaded avatar" src="${a.uploadDataUrl}" class="w-full h-full object-cover" />`);
+          setNodeHTML(mini, `<img alt="Mini avatar" src="${a.badgeDataUrl || a.uploadDataUrl}" class="w-full h-full object-cover" />`);
+          setNodeHTML(successAv, `<img alt="Success avatar" src="${a.uploadDataUrl}" class="w-full h-full object-cover" />`);
+        } else {
+          // placeholder
+          const ph = `
+            <div class="w-full h-full grid place-items-center">
+              <div class="text-white/40 text-xs font-mono">NO AVATAR</div>
+            </div>
+          `;
+          setNodeHTML(active, ph);
+          setNodeHTML(mini, ph);
+          setNodeHTML(successAv, ph);
+          $('#avatarSource').textContent = '—';
+        }
+
+        // update badge canvas on success screen if available
+        const b = $('#badgeCanvas');
+        const ctx = b.getContext('2d');
+        ctx.clearRect(0,0,b.width,b.height);
+        if(a.badgeDataUrl){
+          const img = new Image();
+          img.onload = () => {
+            ctx.drawImage(img,0,0,b.width,b.height);
+            drawBadgeFrame(ctx, b.width, b.height);
+          };
+          img.src = a.badgeDataUrl;
+        } else if(a.type === 'svg' && a.svg){
+          // render svg to image
+          const svg64 = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(a.svg);
+          const img = new Image();
+          img.onload = () => {
+            ctx.drawImage(img,0,0,b.width,b.height);
+            drawBadgeFrame(ctx, b.width, b.height);
+          };
+          img.src = svg64;
+        } else {
+          drawBadgeFrame(ctx, b.width, b.height);
+        }
+      }
+
+      function drawBadgeFrame(ctx, w, h){
+        // HUD-ish frame
+        ctx.save();
+        ctx.strokeStyle = 'rgba(120,255,230,0.55)';
+        ctx.lineWidth = 2;
+        roundRect(ctx, 8, 8, w-16, h-16, 18);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(130,160,255,0.35)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(16, h-28);
+        ctx.lineTo(w-16, h-28);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(0,0,0,0.38)';
+        ctx.fillRect(16, h-26, w-32, 16);
+
+        ctx.fillStyle = 'rgba(230,245,255,0.75)';
+        ctx.font = '11px ui-monospace, Menlo, Monaco, Consolas';
+        const id = (state.fields.callsign || 'PILOT').toString().slice(0,12);
+        ctx.fillText('ID:' + id, 20, h-14);
+        ctx.restore();
+      }
+
+      function roundRect(ctx, x, y, w, h, r){
+        const rr = Math.min(r, w/2, h/2);
+        ctx.beginPath();
+        ctx.moveTo(x+rr, y);
+        ctx.arcTo(x+w, y, x+w, y+h, rr);
+        ctx.arcTo(x+w, y+h, x, y+h, rr);
+        ctx.arcTo(x, y+h, x, y, rr);
+        ctx.arcTo(x, y, x+w, y, rr);
+        ctx.closePath();
+      }
+
+      function loadFavorites(){
+        try{
+          const raw = localStorage.getItem('np_favs');
+          state.favorites = raw ? JSON.parse(raw) : [];
+        }catch(e){
+          state.favorites = [];
+        }
+      }
+      function saveFavorites(){
+        try{ localStorage.setItem('np_favs', JSON.stringify(state.favorites)); }catch(e){}
+      }
+      function toggleFavorite(cfg){
+        const i = state.favorites.findIndex(x => x.id === cfg.id);
+        if(i >= 0) state.favorites.splice(i,1);
+        else state.favorites.unshift(cfg);
+        state.favorites = state.favorites.slice(0,12);
+        saveFavorites();
+      }
+      function renderFavorites(){
+        const drawer = $('#favsDrawer');
+        const grid = $('#favGrid');
+        grid.innerHTML = '';
+        if(state.favorites.length === 0){
+          grid.innerHTML = `<div class="text-xs text-white/60 font-mono">لا توجد عناصر بعد.</div>`;
+          return;
+        }
+        state.favorites.forEach(cfg => grid.appendChild(renderAvatarCard(cfg, true)));
+      }
+
+      // Suggested generation
+      function generate5(){
+        const grid = $('#avatarGrid');
+        grid.innerHTML = '';
+        const items = Array.from({length:5}, () => avatarConfig());
+        items.forEach(cfg => grid.appendChild(renderAvatarCard(cfg, state.favorites.some(x=>x.id===cfg.id))));
+        log('GENERATED 5 PILOT AVATARS');
+      }
+
+      $('#gen5').addEventListener('click', (e) => { irisPulse(e.clientX, e.clientY); generate5(); });
+      $('#openFavs').addEventListener('click', (e) => {
+        irisPulse(e.clientX, e.clientY);
+        $('#favsDrawer').classList.remove('hidden');
+        renderFavorites();
+        log('FAVORITES DRAWER OPEN');
+      });
+      $('#closeFavs').addEventListener('click', () => $('#favsDrawer').classList.add('hidden'));
+
+      // Tabs
+      const tabSuggested = $('#tabSuggested');
+      const tabUpload = $('#tabUpload');
+      const suggestedPane = $('#suggestedPane');
+      const uploadPane = $('#uploadPane');
+
+      function setTab(which){
+        const sug = which === 'suggested';
+        tabSuggested.className = `text-xs font-mono px-3 py-2 rounded-xl hairline ${sug ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`;
+        tabUpload.className    = `text-xs font-mono px-3 py-2 rounded-xl hairline ${!sug ? 'bg-white/10' : 'bg-white/5 hover:bg-white/10'}`;
+        suggestedPane.classList.toggle('hidden', !sug);
+        uploadPane.classList.toggle('hidden', sug);
+        log(`AVATAR TAB -> ${which.toUpperCase()}`);
+      }
+      tabSuggested.addEventListener('click', (e) => { irisPulse(e.clientX, e.clientY); setTab('suggested'); });
+      tabUpload.addEventListener('click', (e) => { irisPulse(e.clientX, e.clientY); setTab('upload'); });
+
+      // Clear / randomize active
+      $('#clearAvatar').addEventListener('click', (e) => {
+        irisPulse(e.clientX, e.clientY);
+        state.avatar = { type:null, svg:null, uploadDataUrl:null, badgeDataUrl:null, config:null };
+        updateActiveAvatarPanels();
+        updateStatusUI();
+        log('AVATAR CLEARED');
+      });
+      $('#randomizeOne').addEventListener('click', (e) => {
+        irisPulse(e.clientX, e.clientY);
+        const cfg = avatarConfig();
+        setActiveAvatarSVG(cfg);
+        updateStatusUI();
+        log(`AVATAR RANDOMIZED -> ${cfg.id}`);
+      });
+
+      // --- Upload crop system ---
+      const uploadInput = $('#upload');
+      const cropCanvas = $('#cropCanvas');
+      const cropCtx = cropCanvas.getContext('2d');
+      const zoom = $('#zoom');
+      const uploadPreview = $('#uploadPreview');
+      const uploadBadge = $('#uploadBadge');
+      const badgeCtx = uploadBadge.getContext('2d');
+
+      let img = null;
+      let imgReady = false;
+      let scale = 1.0;
+      let offsetX = 0;
+      let offsetY = 0;
+      let dragging = false;
+      let lastX = 0;
+      let lastY = 0;
+
+      function resetTransform(){
+        scale = parseFloat(zoom.value);
+        offsetX = 0; offsetY = 0;
+      }
+
+      function drawCrop(){
+        cropCtx.clearRect(0,0,cropCanvas.width,cropCanvas.height);
+
+        // background
+        cropCtx.fillStyle = 'rgba(0,0,0,0.25)';
+        cropCtx.fillRect(0,0,cropCanvas.width,cropCanvas.height);
+
+        // pattern
+        cropCtx.save();
+        cropCtx.globalAlpha = 0.10;
+        cropCtx.strokeStyle = 'rgba(120,255,230,0.7)';
+        for(let x=0; x<cropCanvas.width; x+=32){
+          cropCtx.beginPath();
+          cropCtx.moveTo(x,0); cropCtx.lineTo(x,cropCanvas.height);
+          cropCtx.stroke();
+        }
+        for(let y=0; y<cropCanvas.height; y+=32){
+          cropCtx.beginPath();
+          cropCtx.moveTo(0,y); cropCtx.lineTo(cropCanvas.width,y);
+          cropCtx.stroke();
+        }
+        cropCtx.restore();
+
+        if(!imgReady) {
+          cropCtx.fillStyle = 'rgba(230,245,255,0.45)';
+          cropCtx.font = '18px ui-monospace, Menlo, Monaco, Consolas';
+          cropCtx.fillText('UPLOAD IMAGE', 160, 248);
+          return;
+        }
+
+        const cw = cropCanvas.width, ch = cropCanvas.height;
+        const iw = img.width, ih = img.height;
+
+        const base = Math.min(cw/iw, ch/ih);
+        const s = base * scale;
+
+        const dw = iw * s;
+        const dh = ih * s;
+
+        const cx = cw/2 + offsetX;
+        const cy = ch/2 + offsetY;
+
+        const x = cx - dw/2;
+        const y = cy - dh/2;
+
+        cropCtx.drawImage(img, x, y, dw, dh);
+
+        // HUD lines
+        cropCtx.save();
+        cropCtx.strokeStyle = 'rgba(120,255,230,0.28)';
+        cropCtx.lineWidth = 1.5;
+        cropCtx.beginPath();
+        cropCtx.moveTo(40, 64); cropCtx.lineTo(160, 64);
+        cropCtx.lineTo(170, 54);
+        cropCtx.stroke();
+
+        cropCtx.strokeStyle = 'rgba(130,160,255,0.22)';
+        cropCtx.beginPath();
+        cropCtx.moveTo(96, 420); cropCtx.lineTo(468, 420);
+        cropCtx.stroke();
+
+        cropCtx.fillStyle = 'rgba(0,0,0,0.38)';
+        cropCtx.fillRect(36, 440, 220, 34);
+        cropCtx.fillStyle = 'rgba(230,245,255,0.75)';
+        cropCtx.font = '14px ui-monospace, Menlo, Monaco, Consolas';
+        const tag = (state.fields.callsign || 'PILOT').toString().slice(0,14);
+        cropCtx.fillText('ID:' + tag, 48, 463);
+
+        cropCtx.restore();
+
+        // Update preview
+        const url = cropCanvas.toDataURL('image/png');
+        uploadPreview.innerHTML = `<img alt="Upload preview" src="${url}" class="w-full h-full object-cover" />`;
+      }
+
+      function drawBadgeFromCrop(){
+        badgeCtx.clearRect(0,0,uploadBadge.width, uploadBadge.height);
+        // scale down crop canvas into badge
+        badgeCtx.drawImage(cropCanvas, 0,0, uploadBadge.width, uploadBadge.height);
+        drawBadgeFrame(badgeCtx, uploadBadge.width, uploadBadge.height);
+      }
+
+      zoom.addEventListener('input', () => {
+        scale = parseFloat(zoom.value);
+        drawCrop();
+        drawBadgeFromCrop();
+      });
+
+      uploadInput.addEventListener('change', () => {
+        const file = uploadInput.files && uploadInput.files[0];
+        if(!file) return;
+        if(!file.type.startsWith('image/')){
+          showToast('Upload', 'الملف ليس صورة.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          img = new Image();
+          img.onload = () => {
+            imgReady = true;
+            resetTransform();
+            drawCrop();
+            drawBadgeFromCrop();
+            setTab('upload');
+            log('UPLOAD IMAGE LOADED');
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      function pointerToCanvas(e){
+        const r = cropCanvas.getBoundingClientRect();
+        const x = (e.clientX - r.left) * (cropCanvas.width / r.width);
+        const y = (e.clientY - r.top) * (cropCanvas.height / r.height);
+        return {x,y};
+      }
+
+      cropCanvas.addEventListener('pointerdown', (e) => {
+        if(!imgReady) return;
+        dragging = true;
+        cropCanvas.setPointerCapture(e.pointerId);
+        lastX = e.clientX; lastY = e.clientY;
+      });
+      cropCanvas.addEventListener('pointermove', (e) => {
+        if(!dragging) return;
+        const dx = (e.clientX - lastX) * (cropCanvas.width / cropCanvas.getBoundingClientRect().width);
+        const dy = (e.clientY - lastY) * (cropCanvas.height / cropCanvas.getBoundingClientRect().height);
+        // In RTL, dragging still feels natural; keep same sign
+        offsetX += dx;
+        offsetY += dy;
+        lastX = e.clientX; lastY = e.clientY;
+        drawCrop();
+        drawBadgeFromCrop();
+      });
+      cropCanvas.addEventListener('pointerup', () => { dragging = false; });
+      cropCanvas.addEventListener('pointercancel', () => { dragging = false; });
+
+      $('#applyUpload').addEventListener('click', (e) => {
+        irisPulse(e.clientX, e.clientY);
+        if(!imgReady){
+          showToast('Avatar Upload', 'ارفع صورة أولًا.');
+          return;
+        }
+        const dataUrl = cropCanvas.toDataURL('image/png');
+        const dual = $('#dualAvatar').checked;
+        let badgeUrl = null;
+        if(dual){
+          badgeUrl = uploadBadge.toDataURL('image/png');
+        }
+        state.avatar.type = 'upload';
+        state.avatar.uploadDataUrl = dataUrl;
+        state.avatar.badgeDataUrl = badgeUrl;
+        state.avatar.svg = null;
+        state.avatar.config = null;
+
+        $('#avatarSource').textContent = dual ? 'UPLOAD+DUAL' : 'UPLOAD';
+        updateActiveAvatarPanels();
+        updateStatusUI();
+        showToast('Avatar', dual ? 'تم تفعيل Avatar مع شارة.' : 'تم تفعيل Avatar.');
+        log('UPLOAD AVATAR APPLIED');
+      });
+
+      // --- Save/Load draft ---
+      const DRAFT_KEY = 'np_draft_v1';
+      function serializeState(){
+        return {
+          fields: state.fields,
+          privacy: state.privacy,
+          platformSelected: Array.from(state.platformSelected),
+          handles: state.handles,
+          interests: Array.from(state.interests),
+          avatar: state.avatar,
+          motionReduced: state.motionReduced,
+          swipeEnabled: state.swipeEnabled,
+          ts: Date.now()
+        };
+      }
+      function hydrateDraft(d){
+        state.fields = Object.assign(state.fields, d.fields || {});
+        state.privacy = d.privacy || 'public';
+        state.platformSelected = new Set(d.platformSelected || []);
+        state.handles = d.handles || {};
+        state.interests = new Set(d.interests || []);
+        state.avatar = d.avatar || state.avatar;
+        if(typeof d.motionReduced === 'boolean') state.motionReduced = d.motionReduced;
+        if(typeof d.swipeEnabled === 'boolean') state.swipeEnabled = d.swipeEnabled;
+
+        // apply to UI inputs
+        $('#email').value = state.fields.email || '';
+        $('#password').value = state.fields.password || '';
+        $('#confirm').value = state.fields.confirm || '';
+        $('#terms').checked = !!state.fields.terms;
+
+        $('#callsign').value = state.fields.callsign || '';
+        $('#displayName').value = state.fields.displayName || '';
+        $('#region').value = state.fields.region || '';
+        $('#timezone').value = state.fields.timezone || '';
+        $('#pronouns').value = state.fields.pronouns || '';
+        $('#favoriteSeries').value = state.fields.favoriteSeries || '';
+
+        // privacy
+        $$('[data-privacy]').forEach(btn => btn.setAttribute('aria-pressed', btn.dataset.privacy === state.privacy ? 'true' : 'false'));
+
+        // interests
+        $$('#interestChips .chip').forEach(btn => {
+          const tag = btn.textContent;
+          btn.setAttribute('aria-pressed', state.interests.has(tag) ? 'true' : 'false');
+        });
+        $('#interestCount').textContent = String(state.interests.size);
+
+        // social
+        $$('#platformChips .chip').forEach(btn => {
+          const pid = platforms.find(p => p.label === btn.textContent)?.id;
+          if(!pid) return;
+          btn.setAttribute('aria-pressed', state.platformSelected.has(pid) ? 'true' : 'false');
+        });
+        renderSocial();
+
+        applyMotion();
+        swipeBtn.setAttribute('aria-pressed', String(state.swipeEnabled));
+        swipeBtn.innerHTML = state.swipeEnabled
+          ? `<span class="inline-flex w-2 h-2 rounded-full" style="background: rgba(120,255,230,0.9)"></span> Swipe: ON`
+          : `<span class="inline-flex w-2 h-2 rounded-full" style="background: rgba(255,120,160,0.9)"></span> Swipe: OFF`;
+
+        updateActiveAvatarPanels();
+        updateStatusUI();
+      }
+
+      $('#saveDraft').addEventListener('click', (e) => {
+        irisPulse(e.clientX, e.clientY);
+        try{
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(serializeState()));
+          showToast('Draft', 'تم حفظ التقدّم محليًا.');
+          log('DRAFT SAVED');
+        }catch(err){
+          showToast('Draft', 'فشل الحفظ (storage).');
+        }
+      });
+
+      $('#loadDraft').addEventListener('click', (e) => {
+        irisPulse(e.clientX, e.clientY);
+        try{
+          const raw = localStorage.getItem(DRAFT_KEY);
+          if(!raw){ showToast('Draft', 'لا يوجد حفظ سابق.'); return; }
+          hydrateDraft(JSON.parse(raw));
+          showToast('Draft', 'تم استرجاع التقدّم.');
+          log('DRAFT LOADED');
+        }catch(err){
+          showToast('Draft', 'فشل الاسترجاع.');
+        }
+      });
+
+      // --- Finish / Success ---
+      const success = $('#success');
+      function openSuccess(){
+        const v = validate();
+        if(!v.all){
+          showToast('Boot', 'ما زال هناك Modules بحالة Pending.');
+          log('FINISH BLOCKED: PENDING MODULES', 'WARN');
+          // jump to first pending
+          const firstPending = modules.find(m => !v[m.key])?.key;
+          if(firstPending) gotoModule(firstPending);
+          return;
+        }
+
+        // Fill success data
+        const callsign = state.fields.callsign.trim() || 'PILOT';
+        const name = state.fields.displayName.trim() || callsign;
+        const email = state.fields.email.trim();
+        $('#successCallsign').textContent = callsign;
+        $('#successName').textContent = name;
+        $('#successEmail').textContent = email;
+        $('#successStampId').textContent = `ID: ${hashFromText(callsign + '|' + email).slice(0,6)}`;
+        $('#successFandom').textContent = state.fields.favoriteSeries.trim() || '—';
+        $('#successSocial').textContent = state.platformSelected.size ? Array.from(state.platformSelected).join(', ') : '—';
+
+        updateActiveAvatarPanels();
+
+        success.classList.add('show');
+        log('ACCESS GRANTED: SUCCESS OVERLAY OPEN');
+      }
+
+      function closeSuccess(){
+        success.classList.remove('show');
+        log('SUCCESS OVERLAY CLOSE');
+      }
+
+      function hashFromText(s){
+        // tiny deterministic hash
+        let h = 2166136261;
+        for(let i=0;i<s.length;i++){
+          h ^= s.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        return (h >>> 0).toString(16).toUpperCase().padStart(8,'0');
+      }
+
+      $('#finish').addEventListener('click', openSuccess);
+      $('#mFinish').addEventListener('click', openSuccess);
+      $('#successClose').addEventListener('click', closeSuccess);
+
+      $('#resetAll').addEventListener('click', (e) => {
+        irisPulse(e.clientX, e.clientY);
+        try{ localStorage.removeItem(DRAFT_KEY); }catch(_){}
+        try{ localStorage.removeItem('np_favs'); }catch(_){}
+        location.reload();
+      });
+
+      $('#downloadBadge').addEventListener('click', () => {
+        const c = $('#badgeCanvas');
+        const url = c.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `neo-pilot-badge_${(state.fields.callsign||'pilot').toString().toLowerCase()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        log('BADGE DOWNLOADED');
+      });
+
+      // --- Mobile next jump ---
+      function nextModule(){
+        const idx = modules.findIndex(m => m.key === state.activeModule);
+        const next = modules[(idx + 1) % modules.length].key;
+        gotoModule(next);
+      }
+      $('#mJump').addEventListener('click', (e) => { irisPulse(e.clientX, e.clientY); nextModule(); });
+
+      // --- Swipe navigation (optional) ---
+      (function bindSwipe(){
+        const area = $('#formArea');
+        let sx=0, sy=0, dragging=false;
+        area.addEventListener('pointerdown', (e) => {
+          if(!state.swipeEnabled) return;
+          // avoid interfering with inputs
+          const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+          if(['input','textarea','select','button','canvas'].includes(tag)) return;
+          dragging = true;
+          sx = e.clientX; sy = e.clientY;
+        });
+        area.addEventListener('pointerup', (e) => {
+          if(!dragging) return;
+          dragging = false;
+          const dx = e.clientX - sx;
+          const dy = e.clientY - sy;
+          if(Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy)) return;
+
+          // RTL: swipe right-to-left means next feels natural
+          const isNext = dx < 0; // move left
+          const idx = modules.findIndex(m => m.key === state.activeModule);
+          const target = isNext
+            ? modules[(idx + 1) % modules.length].key
+            : modules[(idx - 1 + modules.length) % modules.length].key;
+          irisPulse(e.clientX, e.clientY);
+          gotoModule(target);
+          log(`SWIPE -> ${target.toUpperCase()}`);
+        });
+        area.addEventListener('pointercancel', () => dragging=false);
+      })();
+
+      // --- Particles canvas ---
+      function initParticles(){
+        const canvas = $('#particles');
+        const ctx = canvas.getContext('2d');
+        let w=0,h=0, dpr=1;
+        let pts = [];
+        let raf = 0;
+
+        function resize(){
+          dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+          w = canvas.width = Math.floor(window.innerWidth * dpr);
+          h = canvas.height = Math.floor(window.innerHeight * dpr);
+          canvas.style.width = window.innerWidth+'px';
+          canvas.style.height = window.innerHeight+'px';
+
+          const count = Math.floor((window.innerWidth * window.innerHeight) / 42000);
+          pts = Array.from({length: clamp(count, 16, 60)}, () => ({
+            x: Math.random()*w,
+            y: Math.random()*h,
+            vx: (Math.random()-0.5)*0.25*dpr,
+            vy: (Math.random()-0.5)*0.25*dpr,
+            r: (Math.random()*1.4 + 0.6)*dpr,
+            a: Math.random()*0.35 + 0.10
+          }));
+        }
+
+        function tick(){
+          if(state.motionReduced){
+            // draw static once
+            ctx.clearRect(0,0,w,h);
+            ctx.fillStyle = 'rgba(120,255,230,0.06)';
+            pts.forEach(p => ctx.beginPath(), pts.forEach(p => (ctx.beginPath(), ctx.arc(p.x,p.y,p.r,0,Math.PI*2), ctx.fill())));
+            return;
+          }
+          ctx.clearRect(0,0,w,h);
+
+          // dots
+          for(const p of pts){
+            p.x += p.vx; p.y += p.vy;
+            if(p.x < -10) p.x = w+10;
+            if(p.x > w+10) p.x = -10;
+            if(p.y < -10) p.y = h+10;
+            if(p.y > h+10) p.y = -10;
+
+            ctx.fillStyle = `rgba(120,255,230,${p.a})`;
+            ctx.beginPath();
+            ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+            ctx.fill();
+          }
+
+          // light connections
+          ctx.lineWidth = 1*dpr;
+          for(let i=0;i<pts.length;i++){
+            for(let j=i+1;j<pts.length;j++){
+              const a = pts[i], b = pts[j];
+              const dx = a.x-b.x, dy=a.y-b.y;
+              const dist = Math.sqrt(dx*dx+dy*dy);
+              if(dist < 140*dpr){
+                const alpha = (1 - dist/(140*dpr)) * 0.08;
+                ctx.strokeStyle = `rgba(130,160,255,${alpha})`;
+                ctx.beginPath();
+                ctx.moveTo(a.x,a.y);
+                ctx.lineTo(b.x,b.y);
+                ctx.stroke();
+              }
+            }
+          }
+
+          raf = requestAnimationFrame(tick);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        tick();
+      }
+
+      // --- Diagnostics tickers ---
+      function initDiagnostics(){
+        let t=0;
+        setInterval(() => {
+          t++;
+          const lat = 6 + Math.floor(Math.random()*8);
+          $('#latencyText').textContent = lat + 'ms';
+          $('#signalText').textContent = (lat < 10) ? 'NEARBY' : 'MID';
+          // temp jitter
+          const temp = 36.5 + (Math.random()*0.8);
+          $('#diagTemp').textContent = temp.toFixed(1) + '°C';
+
+          // occasional glitch log
+          if(!state.motionReduced && Math.random() < 0.10){
+            const hints = ['SCANLINE SYNC', 'MEMORY CHECK', 'PORT HANDSHAKE', 'HUD REFRESH', 'RNG SEED LOCK'];
+            log(hints[Math.floor(Math.random()*hints.length)]);
+          }
+        }, 1200);
+      }
+
+      // --- Mobile/desktop module toggles & initial open ---
+      function init(){
+        applyMotion();
+        renderModuleNav();
+        attachAccordionHandlers();
+        bindFields();
+        renderAliasSuggestions();
+        renderInterests();
+        renderSocial();
+        loadFavorites();
+        generate5();
+
+        // set timezone default
+        if(!$('#timezone').value){
+          $('#timezone').value = 'Asia/Jerusalem';
+          state.fields.timezone = 'Asia/Jerusalem';
+        }
+
+        // initial active module open
+        openModuleInForm(state.activeModule);
+        highlightNav(state.activeModule);
+
+        // initial logs
+        log('SYSTEM BOOT INIT');
+        log('HUD GRID ONLINE');
+        log('MODULES LOADED');
+        log('READY FOR INPUT');
+
+        updateActiveAvatarPanels();
+        updateStatusUI();
+
+        // particles
+        initParticles();
+        initDiagnostics();
+
+        // suggested default callsign if empty
+        if(!state.fields.callsign){
+          const sug = rnd(aliasPool);
+          $('#callsign').value = sug;
+          state.fields.callsign = sug;
+          updateStatusUI();
+        }
+      }
+
+      // --- Suggested/Upload pane buttons (public-ish) ---
+      $('#tabSuggested').addEventListener('click', () => log('SUGGESTED PANE ACTIVE'));
+      $('#tabUpload').addEventListener('click', () => log('UPLOAD PANE ACTIVE'));
+
+      // --- Favorites drawer ---
+      $('#openFavs').addEventListener('click', () => renderFavorites());
+
+      // --- Mini avatar initially from random if none (cosmetic only) ---
+      function setCosmeticMini(){
+        if(state.avatar.type) return;
+        const cfg = avatarConfig();
+        $('#miniAvatar').innerHTML = renderAvatarSVG(cfg, 64);
+      }
+      setCosmeticMini();
+
+      // --- Keyboard close success ---
+      window.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape' && success.classList.contains('show')) closeSuccess();
+      });
+
+      init();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,2434 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>ملف التجنيد — إنشاء حساب</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root{
+      --bg0:#070a08;
+      --bg1:#0b0f0c;
+      --paper:#e7dfcf;
+      --paper2:#d8cfbd;
+      --ink:#10110f;
+      --ink2:#1b1d18;
+      --olive:#5d6b45;
+      --olive2:#3e4a2f;
+      --rust:#7a4b2b;
+      --steel:#7a7f7d;
+      --danger:#c2410c;
+      --ok:#166534;
+      --warn:#b45309;
+      --focus:#d6c58a;
+      --shadow: 0 20px 60px rgba(0,0,0,.45);
+      --ring: 0 0 0 4px rgba(214,197,138,.22);
+    }
+
+    /* Base */
+    html,body{height:100%;}
+    body{
+      background:
+        radial-gradient(1200px 700px at 85% 20%, rgba(93,107,69,.20), transparent 60%),
+        radial-gradient(900px 600px at 15% 10%, rgba(122,75,43,.18), transparent 65%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: #f2f2ee;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Tahoma, Arial, "Noto Sans Arabic", "Noto Naskh Arabic", sans-serif;
+      letter-spacing: .1px;
+    }
+
+    /* Paper texture */
+    .paper{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.22), rgba(0,0,0,.05)),
+        repeating-linear-gradient(90deg, rgba(16,17,15,.06) 0 1px, transparent 1px 9px),
+        radial-gradient(900px 500px at 30% 20%, rgba(255,255,255,.16), transparent 60%),
+        linear-gradient(180deg, var(--paper), var(--paper2));
+      color: var(--ink);
+      box-shadow: var(--shadow);
+    }
+
+    .paper .muted{ color: rgba(16,17,15,.70); }
+    .paper .soft{ background: rgba(16,17,15,.06); }
+    .paper .line{ border-color: rgba(16,17,15,.18); }
+
+    /* Industrial frame */
+    .frame{
+      position: relative;
+      border: 1px solid rgba(16,17,15,.28);
+      background: rgba(16,17,15,.04);
+    }
+    .frame:before, .frame:after{
+      content:"";
+      position:absolute;
+      inset:10px;
+      border: 1px dashed rgba(16,17,15,.28);
+      pointer-events:none;
+    }
+    .bolt{
+      width: 8px; height: 8px; border-radius: 2px;
+      background: rgba(16,17,15,.55);
+      box-shadow: 0 0 0 2px rgba(255,255,255,.08) inset;
+    }
+
+    /* Background layers (no external images) */
+    .bg-layer{
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events:none;
+      overflow:hidden;
+    }
+    .fog{
+      position: absolute;
+      inset:-20%;
+      background:
+        radial-gradient(900px 600px at 25% 35%, rgba(255,255,255,.10), transparent 55%),
+        radial-gradient(1100px 700px at 70% 50%, rgba(255,255,255,.08), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.10));
+      filter: blur(2px);
+      opacity: .9;
+      mix-blend-mode: screen;
+    }
+    .grain{
+      position:absolute; inset:0;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(90deg, rgba(0,0,0,.03) 0 1px, transparent 1px 4px);
+      opacity:.35;
+      mix-blend-mode: overlay;
+    }
+
+    /* Cables SVG */
+    .cables{
+      position:absolute;
+      inset:0;
+      opacity:.35;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,.35));
+    }
+
+    /* Wall silhouette */
+    .wall{
+      position:absolute;
+      left:-5%;
+      right:-5%;
+      bottom:-10%;
+      height: 40%;
+      opacity: .55;
+      filter: drop-shadow(0 -10px 30px rgba(0,0,0,.6));
+    }
+
+    /* Tabs */
+    .stage{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+    }
+    .stage[aria-current="step"]{
+      border-color: rgba(214,197,138,.55);
+      box-shadow: 0 0 0 1px rgba(214,197,138,.18) inset;
+      background: rgba(214,197,138,.08);
+    }
+    .stage .dot{
+      width:10px;height:10px;border-radius:999px;
+      background: rgba(255,255,255,.22);
+    }
+    .stage[aria-current="step"] .dot{
+      background: rgba(214,197,138,.85);
+    }
+    .stage[data-done="true"] .dot{
+      background: rgba(22,101,52,.95);
+    }
+
+    /* Inputs */
+    .field{
+      border: 1px solid rgba(16,17,15,.25);
+      background: rgba(255,255,255,.45);
+      color: var(--ink);
+    }
+    .field::placeholder{ color: rgba(16,17,15,.55); }
+    .field:focus{
+      outline: none;
+      border-color: rgba(214,197,138,.95);
+      box-shadow: var(--ring);
+      background: rgba(255,255,255,.62);
+    }
+
+    .hint{ color: rgba(16,17,15,.74); }
+    .err{ color: #7a1d00; }
+    .ok{ color: var(--ok); }
+    .warn{ color: var(--warn); }
+
+    .invalid .field{
+      border-color: rgba(194,65,12,.85);
+      box-shadow: 0 0 0 3px rgba(194,65,12,.16);
+    }
+    .valid .field{
+      border-color: rgba(22,101,52,.70);
+      box-shadow: 0 0 0 3px rgba(22,101,52,.12);
+    }
+
+    /* Step transitions: paper slide */
+    .step{
+      display:none;
+      transform: translateY(6px);
+      opacity:0;
+    }
+    .step.active{
+      display:block;
+      animation: paperIn .35s ease-out forwards;
+    }
+    @keyframes paperIn{
+      from{ transform: translateY(8px); opacity:0; }
+      to{ transform: translateY(0); opacity:1; }
+    }
+
+    /* Stamp */
+    .stamp{
+      position: relative;
+      display:inline-flex;
+      align-items:center;
+      gap:.5rem;
+      padding:.55rem 1rem;
+      border: 2px solid rgba(122,75,43,.95);
+      color: rgba(122,75,43,.95);
+      text-transform: uppercase;
+      letter-spacing:.12em;
+      font-weight: 800;
+      transform: rotate(-10deg);
+      background: rgba(231,223,207,.10);
+      box-shadow: 0 10px 25px rgba(0,0,0,.15);
+      user-select:none;
+    }
+    .stamp:before{
+      content:"";
+      position:absolute;
+      inset:-6px;
+      border: 2px dashed rgba(122,75,43,.55);
+      transform: rotate(2deg);
+      pointer-events:none;
+    }
+    .stamp.boom{
+      animation: stampIn .42s cubic-bezier(.2,.8,.2,1) both;
+      transform-origin: 60% 60%;
+    }
+    @keyframes stampIn{
+      0%{ transform: translateY(-10px) rotate(-14deg) scale(1.2); opacity:0; filter: blur(1px); }
+      55%{ transform: translateY(2px) rotate(-10deg) scale(.98); opacity:1; filter: blur(0); }
+      100%{ transform: translateY(0) rotate(-10deg) scale(1); opacity:1; }
+    }
+
+    /* Avatar canvas */
+    .canvas-wrap{
+      background:
+        linear-gradient(180deg, rgba(16,17,15,.08), rgba(16,17,15,.03)),
+        repeating-linear-gradient(90deg, rgba(16,17,15,.06) 0 1px, transparent 1px 10px);
+      border: 1px solid rgba(16,17,15,.25);
+    }
+    canvas{ touch-action: none; }
+
+    /* Collapsible dossier strip */
+    .strip{
+      backdrop-filter: blur(10px);
+      background: rgba(11,15,12,.72);
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      *{ scroll-behavior:auto !important; }
+      .step.active{ animation: none; opacity:1; transform:none; }
+      .stamp.boom{ animation:none; }
+    }
+
+    /* Print */
+    @media print{
+      body{
+        background: #ffffff !important;
+        color: #000 !important;
+      }
+      .bg-layer, .sticky-actions, .no-print{ display:none !important; }
+      .paper{ box-shadow:none !important; }
+      .print-only{ display:block !important; }
+      .screen-only{ display:none !important; }
+      a{ color:#000 !important; text-decoration:none !important; }
+      .field{ background:#fff !important; }
+      .stage{ border-color:#000 !important; background:#fff !important; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <!-- Background (SVG/CSS) -->
+  <div class="bg-layer" aria-hidden="true">
+    <div class="fog"></div>
+    <div class="grain"></div>
+
+    <!-- Cables -->
+    <svg class="cables" viewBox="0 0 1200 800" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="cableG" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="rgba(214,197,138,.55)"/>
+          <stop offset="1" stop-color="rgba(122,127,125,.35)"/>
+        </linearGradient>
+      </defs>
+      <path d="M-40,150 C220,60 400,90 640,170 C880,250 1040,240 1240,150"
+            fill="none" stroke="url(#cableG)" stroke-width="2.2" opacity=".65"/>
+      <path d="M-30,260 C180,190 460,210 670,280 C880,350 980,350 1240,250"
+            fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.6" opacity=".55"/>
+      <path d="M-30,420 C240,330 470,370 690,460 C910,550 1040,560 1240,430"
+            fill="none" stroke="rgba(214,197,138,.22)" stroke-width="2.0" opacity=".6"/>
+      <g opacity=".65">
+        <circle cx="220" cy="92" r="3.5" fill="rgba(255,255,255,.35)"/>
+        <circle cx="680" cy="174" r="3.5" fill="rgba(255,255,255,.28)"/>
+        <circle cx="980" cy="352" r="3.5" fill="rgba(255,255,255,.25)"/>
+      </g>
+    </svg>
+
+    <!-- Wall silhouette -->
+    <svg class="wall" viewBox="0 0 1200 400" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="wallG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="rgba(93,107,69,.55)"/>
+          <stop offset="1" stop-color="rgba(0,0,0,.85)"/>
+        </linearGradient>
+      </defs>
+      <path d="M0,240
+               L40,240 L40,210 L70,210 L70,240
+               L120,240 L120,205 L160,205 L160,240
+               L210,240 L210,215 L240,215 L240,240
+               L310,240 L310,200 L350,200 L350,240
+               L420,240 L420,210 L450,210 L450,240
+               L520,240 L520,195 L560,195 L560,240
+               L640,240 L640,215 L670,215 L670,240
+               L740,240 L740,205 L780,205 L780,240
+               L850,240 L850,210 L880,210 L880,240
+               L950,240 L950,195 L990,195 L990,240
+               L1060,240 L1060,215 L1090,215 L1090,240
+               L1200,240
+               L1200,400 L0,400 Z"
+            fill="url(#wallG)"/>
+      <path d="M0,260 L1200,260" stroke="rgba(0,0,0,.35)" stroke-width="6" opacity=".55"/>
+      <path d="M0,275 L1200,275" stroke="rgba(255,255,255,.06)" stroke-width="2" opacity=".5"/>
+    </svg>
+  </div>
+
+  <!-- Mobile top strip (collapsible dossier) -->
+  <div class="strip lg:hidden sticky top-0 z-30">
+    <div class="mx-auto max-w-6xl px-4 py-3">
+      <button id="toggleStrip" class="w-full flex items-center justify-between gap-3 text-right">
+        <div class="min-w-0">
+          <div class="text-xs tracking-wide text-white/70">ملف التجنيد</div>
+          <div class="flex items-center gap-2">
+            <div class="text-sm font-semibold text-white" id="stripTitle">مرحلة: Enrollment</div>
+            <span class="text-[11px] rounded-full border border-white/15 px-2 py-0.5 text-white/75" id="stripFileNo">—</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] rounded-full bg-white/10 px-2 py-0.5 text-white/80" id="stripStatus">قيد الفحص</span>
+          <svg id="stripChevron" class="w-4 h-4 text-white/70 transition-transform" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.25a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+      </button>
+
+      <div id="stripBody" class="mt-3 hidden">
+        <div class="rounded-xl border border-white/10 bg-white/5 p-3">
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <div class="text-white/60 text-[11px]">التقدم</div>
+              <div class="text-white" id="stripProgress">0%</div>
+            </div>
+            <div>
+              <div class="text-white/60 text-[11px]">التحقق</div>
+              <div class="text-white" id="stripVerify">—</div>
+            </div>
+          </div>
+          <div class="mt-3 h-2 rounded-full bg-white/10 overflow-hidden" aria-hidden="true">
+            <div id="stripBar" class="h-full w-0 bg-white/40"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main class="mx-auto max-w-6xl px-4 py-6 lg:py-10">
+    <!-- Header -->
+    <header class="no-print flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between mb-6 lg:mb-8">
+      <div>
+        <div class="inline-flex items-center gap-2 text-xs tracking-[.25em] uppercase text-white/60">
+          <span class="w-2 h-2 rounded-full bg-white/25"></span>
+          سجل الدخول — ملف جديد
+        </div>
+        <h1 class="mt-2 text-2xl lg:text-3xl font-extrabold tracking-tight text-white">
+          إنشاء ملف تجنيد
+        </h1>
+        <p class="mt-1 text-white/70 text-sm max-w-2xl">
+          ثلاث مراحل فقط. مهام صغيرة سريعة. بدون إزعاج. (لا نستخدم أي شعارات/مواد محمية—هذه واجهة أصلية بإلهام صناعي/ملفات).
+        </p>
+      </div>
+
+      <!-- Stage pills -->
+      <nav class="mt-3 lg:mt-0 flex gap-2" aria-label="مراحل التسجيل">
+        <button class="stage rounded-xl px-3 py-2 text-right min-w-[10rem]" id="tab0" type="button" aria-current="step">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm font-semibold text-white">Enrollment</span>
+            <span class="dot" aria-hidden="true"></span>
+          </div>
+          <div class="text-xs text-white/65 mt-1">بيانات الدخول</div>
+        </button>
+        <button class="stage rounded-xl px-3 py-2 text-right min-w-[10rem]" id="tab1" type="button">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm font-semibold text-white">Identity</span>
+            <span class="dot" aria-hidden="true"></span>
+          </div>
+          <div class="text-xs text-white/65 mt-1">الهوية + الصورة</div>
+        </button>
+        <button class="stage rounded-xl px-3 py-2 text-right min-w-[10rem]" id="tab2" type="button">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm font-semibold text-white">Community</span>
+            <span class="dot" aria-hidden="true"></span>
+          </div>
+          <div class="text-xs text-white/65 mt-1">اختياري سريع</div>
+        </button>
+      </nav>
+    </header>
+
+    <!-- Layout -->
+    <div class="lg:grid lg:grid-cols-12 lg:gap-6">
+      <!-- Left dossier panel -->
+      <aside class="hidden lg:block lg:col-span-5">
+        <div class="paper rounded-2xl overflow-hidden">
+          <div class="px-6 py-5 border-b line">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="text-xs tracking-[.25em] uppercase muted">Dossier</div>
+                <div class="mt-1 text-xl font-extrabold" id="dossierTitle">ملف التجنيد</div>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/35" id="dossierFileNo">—</span>
+                  <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/35" id="dossierStatus">قيد الفحص</span>
+                  <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/35" id="dossierClearance">تصريح: مبدئي</span>
+                </div>
+              </div>
+
+              <div class="text-right">
+                <div class="text-[11px] muted">المرحلة الحالية</div>
+                <div class="mt-1 text-sm font-semibold" id="dossierStage">Enrollment</div>
+                <div class="mt-2 text-[11px] muted">اكتمال الملف</div>
+                <div class="mt-1 h-2 w-36 rounded-full soft overflow-hidden" aria-hidden="true">
+                  <div id="dossierBar" class="h-full w-0" style="background: linear-gradient(90deg, rgba(93,107,69,.85), rgba(122,75,43,.85));"></div>
+                </div>
+                <div class="mt-1 text-[11px] muted" id="dossierPercent">0%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-6 py-5">
+            <div class="grid grid-cols-2 gap-4 text-sm">
+              <div class="frame rounded-xl p-4">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <div class="text-[11px] muted">حالة التحقق</div>
+                    <div class="mt-1 font-semibold" id="dossierVerify">—</div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-1 mt-1" aria-hidden="true">
+                    <div class="bolt"></div><div class="bolt"></div>
+                    <div class="bolt"></div><div class="bolt"></div>
+                  </div>
+                </div>
+                <div class="mt-3 text-[12px] muted leading-relaxed">
+                  • قواعد قصيرة، خطوات قليلة<br/>
+                  • نتحقق من اسم المستخدم فورًا<br/>
+                  • صورة ملفك تُجهز كـ “هوية صناعية”
+                </div>
+              </div>
+
+              <div class="frame rounded-xl p-4">
+                <div class="text-[11px] muted">ملاحظات المسؤول</div>
+                <div class="mt-2 text-sm leading-relaxed" id="dossierNotes">
+                  املأ المطلوب فقط. سيتم تقليل الخيارات الثانوية تلقائيًا إن لم تكن ضرورية.
+                </div>
+                <div class="mt-3 text-[11px] muted" id="dossierHint">
+                  تلميح: كلمات مرور قوية تختصر لك خطوات لاحقة.
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-5 frame rounded-xl p-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-[11px] muted">ملخص سريع</div>
+                  <div class="mt-1 text-sm font-semibold">المعلومات</div>
+                </div>
+                <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/35" id="dossierTime">—</span>
+              </div>
+
+              <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <dt class="text-[11px] muted">البريد</dt>
+                  <dd class="font-semibold truncate" id="sumEmail">—</dd>
+                </div>
+                <div>
+                  <dt class="text-[11px] muted">الاسم</dt>
+                  <dd class="font-semibold truncate" id="sumDisplay">—</dd>
+                </div>
+                <div>
+                  <dt class="text-[11px] muted">اسم المستخدم</dt>
+                  <dd class="font-semibold truncate" id="sumUsername">—</dd>
+                </div>
+                <div>
+                  <dt class="text-[11px] muted">الصورة</dt>
+                  <dd class="font-semibold" id="sumAvatar">غير معتمدة</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="mt-5 flex items-center justify-between">
+              <div class="text-xs muted">* قابل للطباعة — تباين عالي</div>
+              <button id="printBtn" class="no-print inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold border line bg-white/35 hover:bg-white/45 transition"
+                      type="button" aria-label="طباعة">
+                <span>طباعة</span>
+                <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M5 4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2h-2V4H7v2H5V4z"/>
+                  <path fill-rule="evenodd" d="M5 8h10a3 3 0 0 1 3 3v3a2 2 0 0 1-2 2h-1v2H5v-2H4a2 2 0 0 1-2-2v-3a3 3 0 0 1 3-3zm2 8h6v-4H7v4z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right form card -->
+      <section class="lg:col-span-7">
+        <div class="paper rounded-2xl overflow-hidden">
+          <div class="px-6 py-5 border-b line">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <div class="text-xs tracking-[.25em] uppercase muted">Form</div>
+                <div class="mt-1 text-lg font-extrabold" id="formTitle">Enrollment</div>
+                <div class="mt-1 text-sm muted" id="formSubtitle">بيانات الدخول المطلوبة.</div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/35" id="quickMeta">سريع</span>
+                <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/35" id="metaStep">1/3</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Steps -->
+          <form id="regForm" class="px-6 py-6" novalidate>
+            <!-- STEP 0: Enrollment -->
+            <section class="step active" id="step0" aria-labelledby="h0">
+              <h2 id="h0" class="sr-only">Enrollment</h2>
+
+              <div class="grid gap-4">
+                <div class="invalid/valid-wrap" id="wrapEmail">
+                  <label for="email" class="block text-sm font-semibold">البريد الإلكتروني <span class="text-[#7a1d00]">*</span></label>
+                  <input id="email" name="email" type="email" autocomplete="email"
+                         class="field w-full mt-2 rounded-xl px-3 py-2.5 text-sm"
+                         placeholder="name@example.com" required />
+                  <p class="mt-1 text-[12px] hint">سنستخدمه للتأكيد فقط. لا رسائل دعائية.</p>
+                  <p class="mt-1 text-[12px] err hidden" id="errEmail">أدخل بريدًا صحيحًا.</p>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4">
+                  <div id="wrapPass" class="invalid/valid-wrap">
+                    <label for="password" class="block text-sm font-semibold">كلمة المرور <span class="text-[#7a1d00]">*</span></label>
+                    <div class="mt-2 relative">
+                      <input id="password" name="password" type="password" autocomplete="new-password"
+                             class="field w-full rounded-xl px-3 py-2.5 text-sm pl-10"
+                             placeholder="••••••••••" required />
+                      <button type="button" class="no-print absolute left-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-semibold border line bg-white/35 hover:bg-white/45"
+                              id="togglePass" aria-label="إظهار/إخفاء كلمة المرور">إظهار</button>
+                    </div>
+
+                    <div class="mt-3">
+                      <div class="flex items-center justify-between text-[11px] muted">
+                        <span>قوة كلمة المرور</span>
+                        <span id="passLabel">—</span>
+                      </div>
+                      <div class="mt-2 h-2 rounded-full soft overflow-hidden" aria-hidden="true">
+                        <div id="passBar" class="h-full w-0" style="background: linear-gradient(90deg, rgba(194,65,12,.85), rgba(214,197,138,.85), rgba(22,101,52,.85));"></div>
+                      </div>
+                      <ul class="mt-3 text-[12px] muted grid gap-1" id="passRules">
+                        <li data-rule="len">• 10 أحرف أو أكثر</li>
+                        <li data-rule="mix">• أحرف كبيرة + صغيرة</li>
+                        <li data-rule="num">• رقم واحد على الأقل</li>
+                        <li data-rule="sym">• رمز واحد على الأقل</li>
+                      </ul>
+                      <p class="mt-2 text-[12px] err hidden" id="errPass">اختر كلمة مرور أقوى.</p>
+                    </div>
+                  </div>
+
+                  <div id="wrapConfirm" class="invalid/valid-wrap">
+                    <label for="confirm" class="block text-sm font-semibold">تأكيد كلمة المرور <span class="text-[#7a1d00]">*</span></label>
+                    <input id="confirm" name="confirm" type="password" autocomplete="new-password"
+                           class="field w-full mt-2 rounded-xl px-3 py-2.5 text-sm"
+                           placeholder="أعد الكتابة" required />
+                    <p class="mt-1 text-[12px] err hidden" id="errConfirm">التأكيد لا يطابق كلمة المرور.</p>
+
+                    <div class="mt-4 frame rounded-xl p-4">
+                      <div class="text-[11px] muted">ختم أمان سريع</div>
+                      <div class="mt-2 text-sm font-semibold" id="securityStamp">—</div>
+                      <p class="mt-2 text-[12px] muted">عند الوصول إلى “قوي”، نقلل أسئلة لاحقة تلقائيًا.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 frame rounded-xl p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">لماذا هذا سريع؟</div>
+                    <p class="mt-1 text-[12px] muted leading-relaxed">
+                      نثبت “الدخول” أولًا. بعدها الهوية. ثم خيارات المجتمع (اختياري). لا فواصل كثيرة.
+                    </p>
+                  </div>
+                  <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/35">مطلوب</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- STEP 1: Identity -->
+            <section class="step" id="step1" aria-labelledby="h1">
+              <h2 id="h1" class="sr-only">Identity</h2>
+
+              <div class="grid gap-5">
+                <div class="grid sm:grid-cols-2 gap-4">
+                  <div id="wrapDisplay" class="invalid/valid-wrap">
+                    <label for="displayName" class="block text-sm font-semibold">اسم العرض <span class="text-[#7a1d00]">*</span></label>
+                    <input id="displayName" name="displayName" type="text" autocomplete="nickname"
+                           class="field w-full mt-2 rounded-xl px-3 py-2.5 text-sm"
+                           placeholder="مثال: كاتب الظلال" required />
+                    <p class="mt-1 text-[12px] hint">يظهر للأعضاء. يمكن تغييره لاحقًا.</p>
+                    <p class="mt-1 text-[12px] err hidden" id="errDisplay">أدخل اسمًا مناسبًا (حرفان على الأقل).</p>
+                  </div>
+
+                  <div id="wrapUsername" class="invalid/valid-wrap">
+                    <label for="username" class="block text-sm font-semibold">اسم المستخدم <span class="text-[#7a1d00]">*</span></label>
+                    <div class="mt-2 relative">
+                      <input id="username" name="username" type="text" autocapitalize="none" autocomplete="username" spellcheck="false"
+                             class="field w-full rounded-xl px-3 py-2.5 text-sm pl-10"
+                             placeholder="letters_numbers_only" required />
+                      <div class="absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true">
+                        <div id="userSpin" class="hidden w-4 h-4 rounded-full border-2 border-black/20 border-t-black/60 animate-spin"></div>
+                        <svg id="userOk" class="hidden w-4 h-4 text-green-800" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.2 7.26a1 1 0 0 1-1.414.002L3.29 9.17a1 1 0 1 1 1.42-1.404l3.096 3.132 6.49-6.54a1 1 0 0 1 1.408-.068z" clip-rule="evenodd"/>
+                        </svg>
+                        <svg id="userNo" class="hidden w-4 h-4 text-orange-800" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm1-11a1 1 0 1 0-2 0v4a1 1 0 1 0 2 0V7zm-1 8a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5z" clip-rule="evenodd"/>
+                        </svg>
+                      </div>
+                    </div>
+
+                    <div class="mt-2 text-[12px] muted flex items-center justify-between gap-2">
+                      <span id="userMsg" aria-live="polite">حروف/أرقام/شرطة سفلية فقط (3–15).</span>
+                      <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/35" id="userState">—</span>
+                    </div>
+                    <p class="mt-1 text-[12px] err hidden" id="errUsername">اختر اسم مستخدم صالحًا ومتاحًا.</p>
+                  </div>
+                </div>
+
+                <!-- Avatar Workshop -->
+                <div class="frame rounded-2xl p-4 sm:p-5">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="text-sm font-extrabold">Avatar Workshop</div>
+                      <div class="mt-1 text-[12px] muted">
+                        اختر “Cadet Portraits” (أشكال SVG مجردة) أو ارفع صورة وقصّها/زوّمها/اسحبها داخل إطار هوية صناعي.
+                      </div>
+                    </div>
+                    <label class="inline-flex items-center gap-2 text-[12px] font-semibold cursor-pointer select-none">
+                      <input id="monoToggle" type="checkbox" class="accent-black" />
+                      <span>Monochrome dossier</span>
+                    </label>
+                  </div>
+
+                  <div class="mt-4 grid lg:grid-cols-2 gap-4">
+                    <!-- Suggested -->
+                    <div class="rounded-xl border line bg-white/35 p-3">
+                      <div class="flex items-center justify-between">
+                        <div class="text-sm font-semibold">Cadet Portraits</div>
+                        <span class="text-[11px] muted">مقترحات جاهزة</span>
+                      </div>
+
+                      <div class="mt-3 grid grid-cols-3 gap-2" id="suggestedGrid" aria-label="صور مقترحة"></div>
+
+                      <div class="mt-3 flex flex-wrap gap-2">
+                        <button type="button" id="useSuggested"
+                                class="no-print rounded-xl px-3 py-2 text-sm font-semibold border line bg-white/45 hover:bg-white/60 transition">
+                          اعتماد المقترح
+                        </button>
+                        <button type="button" id="randomSuggested"
+                                class="no-print rounded-xl px-3 py-2 text-sm font-semibold border line bg-white/35 hover:bg-white/50 transition">
+                          تغيير سريع
+                        </button>
+                        <span class="text-[12px] muted flex-1 text-left" id="suggestedHint">اختر أي بطاقة ثم اعتمدها.</span>
+                      </div>
+                    </div>
+
+                    <!-- Upload + Crop -->
+                    <div class="rounded-xl border line bg-white/35 p-3">
+                      <div class="flex items-center justify-between">
+                        <div class="text-sm font-semibold">Custom Upload</div>
+                        <span class="text-[11px] muted">قص + زووم + سحب</span>
+                      </div>
+
+                      <div class="mt-3 flex flex-col gap-3">
+                        <div class="flex items-center justify-between gap-2">
+                          <input id="upload" type="file" accept="image/*"
+                                 class="no-print block w-full text-sm file:rounded-lg file:border-0 file:px-3 file:py-2 file:font-semibold file:bg-black/80 file:text-white hover:file:bg-black/90"
+                                 aria-label="رفع صورة"/>
+                          <button type="button" id="clearUpload"
+                                  class="no-print shrink-0 rounded-xl px-3 py-2 text-sm font-semibold border line bg-white/35 hover:bg-white/50 transition">
+                            إزالة
+                          </button>
+                        </div>
+
+                        <div class="canvas-wrap rounded-xl p-2">
+                          <div class="flex items-center justify-between text-[11px] muted px-1">
+                            <span>اسحب داخل الإطار</span>
+                            <span id="fileNoMini">—</span>
+                          </div>
+                          <canvas id="avatarCanvas" width="520" height="320" class="w-full rounded-lg"></canvas>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                          <label class="text-[12px] font-semibold">
+                            زووم
+                            <input id="zoom" type="range" min="0.6" max="3" step="0.01" value="1"
+                                   class="no-print mt-2 w-full" />
+                          </label>
+                          <label class="text-[12px] font-semibold">
+                            رقم الملف
+                            <input id="fileNoInput" type="text"
+                                   class="field w-full mt-2 rounded-xl px-3 py-2 text-sm"
+                                   placeholder="SC-..." />
+                          </label>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 items-center">
+                          <button type="button" id="commitAvatar"
+                                  class="no-print rounded-xl px-3 py-2 text-sm font-semibold border line bg-white/45 hover:bg-white/60 transition">
+                            اعتماد الصورة
+                          </button>
+                          <span class="text-[12px] muted" id="avatarState">غير معتمدة</span>
+                        </div>
+
+                        <p class="text-[12px] muted leading-relaxed">
+                          * لا نرسل الصورة لأي طرف ثالث. كل المعالجة هنا داخل الصفحة.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="frame rounded-xl p-4">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="text-sm font-semibold">تسريع تلقائي</div>
+                      <p class="mt-1 text-[12px] muted leading-relaxed">
+                        إذا اعتمدت صورة (مقترح أو رفع) سنعتبر قسم الهوية مكتملًا وننتقل فورًا للمرحلة التالية.
+                      </p>
+                    </div>
+                    <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/35">مطلوب</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- STEP 2: Community -->
+            <section class="step" id="step2" aria-labelledby="h2">
+              <h2 id="h2" class="sr-only">Community</h2>
+
+              <div class="grid gap-5">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-extrabold">Community (اختياري)</div>
+                    <p class="mt-1 text-[12px] muted leading-relaxed">
+                      مهمة سريعة: اتبع مرشدين + حدّد اهتماماتك (حد أقصى 5 أنواع/تصنيفات). يمكنك التخطي فورًا.
+                    </p>
+                  </div>
+                  <label class="inline-flex items-center gap-2 text-[12px] font-semibold cursor-pointer select-none">
+                    <input id="skipCommunity" type="checkbox" class="accent-black" />
+                    <span>تخطي الآن</span>
+                  </label>
+                </div>
+
+                <!-- Mentors -->
+                <div class="frame rounded-2xl p-4 sm:p-5">
+                  <div class="flex items-center justify-between">
+                    <div class="text-sm font-semibold">اتبع 2 مرشدين</div>
+                    <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/35" id="mentorCount">0/2</span>
+                  </div>
+                  <div class="mt-3 grid sm:grid-cols-2 gap-3" id="mentorGrid"></div>
+                  <p class="mt-3 text-[12px] muted" id="mentorHint">
+                    اختياري. اختيار 2 يرفع اكتمال الملف.
+                  </p>
+                </div>
+
+                <!-- Interests -->
+                <div class="grid lg:grid-cols-2 gap-4">
+                  <div class="frame rounded-2xl p-4 sm:p-5">
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm font-semibold">نوع المحتوى</div>
+                      <span class="text-[11px] muted">اختيار حر</span>
+                    </div>
+                    <div class="mt-3 grid gap-2" id="typeGrid"></div>
+                  </div>
+
+                  <div class="frame rounded-2xl p-4 sm:p-5">
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm font-semibold">تصنيفات (حتى 5)</div>
+                      <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/35" id="genreCount">0/5</span>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2" id="genreChips" aria-label="تصنيفات"></div>
+                    <p class="mt-3 text-[12px] muted">إذا وصلت للحد الأقصى، لن تُضاف خيارات أخرى إلا بإزالة واحدة.</p>
+                  </div>
+                </div>
+
+                <!-- Completeness -->
+                <div class="frame rounded-2xl p-4 sm:p-5">
+                  <div class="flex items-center justify-between">
+                    <div class="text-sm font-semibold">Profile completeness</div>
+                    <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/35" id="compLabel">0%</span>
+                  </div>
+                  <div class="mt-3 h-2 rounded-full soft overflow-hidden" aria-hidden="true">
+                    <div id="compBar" class="h-full w-0" style="background: linear-gradient(90deg, rgba(93,107,69,.85), rgba(122,75,43,.85));"></div>
+                  </div>
+                  <p class="mt-3 text-[12px] muted" id="compHint">
+                    اكتمال أعلى = اقتراحات مجتمع أدق (بدون إطالة التسجيل).
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <!-- SUCCESS -->
+            <section class="step" id="success" aria-labelledby="hs">
+              <h2 id="hs" class="sr-only">Success</h2>
+
+              <div class="text-center">
+                <div class="inline-flex items-center gap-3 justify-center">
+                  <span class="stamp boom" id="approvedStamp">
+                    <span aria-hidden="true">✓</span>
+                    <span>Enrollment Approved</span>
+                  </span>
+                </div>
+
+                <p class="mt-4 text-sm muted">
+                  تم إنشاء ملفك. يمكنك تعديل التفاصيل لاحقًا داخل الإعدادات.
+                </p>
+              </div>
+
+              <div class="mt-6 frame rounded-2xl p-4 sm:p-5">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <div class="text-xs tracking-[.25em] uppercase muted">Dossier Card</div>
+                    <div class="mt-1 text-lg font-extrabold">بطاقة ملفك</div>
+                    <div class="mt-2 text-[12px] muted">قابلة للطباعة — تصميم عالي التباين</div>
+                  </div>
+                  <div class="text-left">
+                    <div class="text-[11px] muted">رقم الملف</div>
+                    <div class="mt-1 text-sm font-semibold" id="cardFileNo">—</div>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid lg:grid-cols-3 gap-4 items-start">
+                  <div class="lg:col-span-1">
+                    <div class="canvas-wrap rounded-2xl p-3">
+                      <canvas id="finalAvatar" width="420" height="420" class="w-full rounded-xl"></canvas>
+                      <div class="mt-2 flex items-center justify-between text-[11px] muted">
+                        <span>هوية صناعية</span>
+                        <span id="monoLabel">—</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="lg:col-span-2">
+                    <div class="grid sm:grid-cols-2 gap-3">
+                      <div class="rounded-xl border line bg-white/35 p-3">
+                        <div class="text-[11px] muted">اسم العرض</div>
+                        <div class="mt-1 text-sm font-extrabold" id="cardDisplay">—</div>
+                      </div>
+                      <div class="rounded-xl border line bg-white/35 p-3">
+                        <div class="text-[11px] muted">اسم المستخدم</div>
+                        <div class="mt-1 text-sm font-extrabold" id="cardUsername">—</div>
+                      </div>
+                      <div class="rounded-xl border line bg-white/35 p-3">
+                        <div class="text-[11px] muted">البريد</div>
+                        <div class="mt-1 text-sm font-extrabold truncate" id="cardEmail">—</div>
+                      </div>
+                      <div class="rounded-xl border line bg-white/35 p-3">
+                        <div class="text-[11px] muted">المجتمع</div>
+                        <div class="mt-1 text-sm font-extrabold" id="cardCommunity">—</div>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 rounded-2xl border line bg-white/35 p-4">
+                      <div class="flex items-center justify-between">
+                        <div class="text-sm font-semibold">حالة الملف</div>
+                        <span class="text-[11px] rounded-full border line px-2 py-0.5 bg-white/45">مُعتمد</span>
+                      </div>
+                      <p class="mt-2 text-[12px] muted leading-relaxed">
+                        يمكن طباعة هذه البطاقة كمرجع. لا تحتوي على أي مواد محمية. أسلوب “ملف/صناعي” أصلي.
+                      </p>
+
+                      <div class="mt-3 flex flex-wrap gap-2 no-print">
+                        <button type="button" id="printCard" class="rounded-xl px-3 py-2 text-sm font-semibold border line bg-white/45 hover:bg-white/60 transition">
+                          طباعة البطاقة
+                        </button>
+                        <button type="button" id="restart" class="rounded-xl px-3 py-2 text-sm font-semibold border line bg-white/35 hover:bg-white/50 transition">
+                          إنشاء ملف جديد
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="print-only hidden mt-6">
+                <p style="font-size:12px;color:#000;">تمت الطباعة من واجهة ملف تجنيد (RTL) — بدون صور خارجية.</p>
+              </div>
+            </section>
+
+            <!-- Desktop actions -->
+            <div class="no-print mt-6 hidden lg:flex items-center justify-between gap-3 border-t line pt-5">
+              <button type="button" id="backDesktop"
+                      class="rounded-xl px-4 py-2.5 text-sm font-extrabold border line bg-white/35 hover:bg-white/50 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                رجوع
+              </button>
+
+              <div class="flex items-center gap-2">
+                <span class="text-[12px] muted" id="formFootHint">—</span>
+                <button type="button" id="nextDesktop"
+                        class="rounded-xl px-4 py-2.5 text-sm font-extrabold border line bg-black/85 text-white hover:bg-black/95 transition">
+                  متابعة
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Mobile sticky actions -->
+  <div class="sticky-actions no-print lg:hidden fixed bottom-0 inset-x-0 z-40">
+    <div class="mx-auto max-w-6xl px-4 pb-4">
+      <div class="rounded-2xl border border-white/10 bg-black/60 backdrop-blur-xl p-3 flex items-center justify-between gap-3">
+        <button type="button" id="backMobile"
+                class="rounded-xl px-4 py-2.5 text-sm font-extrabold border border-white/15 bg-white/10 text-white hover:bg-white/15 transition disabled:opacity-40 disabled:cursor-not-allowed">
+          رجوع
+        </button>
+        <div class="min-w-0 flex-1 text-center">
+          <div class="text-[11px] text-white/70">ملاحظة</div>
+          <div class="text-sm font-semibold text-white truncate" id="mobileHint">—</div>
+        </div>
+        <button type="button" id="nextMobile"
+                class="rounded-xl px-4 py-2.5 text-sm font-extrabold bg-white text-black hover:bg-white/90 transition">
+          متابعة
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      // ----- Helpers -----
+      const $ = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+      const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+      // ----- State -----
+      const state = {
+        step: 0, // 0..2, success=3
+        fileNo: "",
+        email: "",
+        password: "",
+        displayName: "",
+        username: "",
+        usernameStatus: "idle", // idle|checking|available|taken|invalid
+        mono: false,
+        avatar: {
+          mode: "none", // none|suggested|upload
+          suggestedId: null,
+          uploadImg: null,
+          zoom: 1,
+          ox: 0, oy: 0,
+          committedDataURL: null
+        },
+        community: {
+          skip: false,
+          mentors: new Set(),
+          types: new Set(),
+          genres: new Set()
+        }
+      };
+
+      // ----- File No -----
+      const genFileNo = () => {
+        const a = String.fromCharCode(65 + Math.floor(Math.random()*26));
+        const b = String.fromCharCode(65 + Math.floor(Math.random()*26));
+        const n = Math.floor(1000 + Math.random()*9000);
+        const s1 = Math.floor(10 + Math.random()*90);
+        const s2 = Math.floor(1 + Math.random()*9);
+        return `SC-${s1}-${s2}${a}-${b}${n}`;
+      };
+      state.fileNo = genFileNo();
+
+      // ----- Time -----
+      const fmtTime = () => {
+        try {
+          const d = new Date();
+          return d.toLocaleString("ar", { dateStyle:"medium", timeStyle:"short" });
+        } catch {
+          return "—";
+        }
+      };
+
+      // ----- UI refs -----
+      const tabs = [$("#tab0"), $("#tab1"), $("#tab2")];
+      const steps = [$("#step0"), $("#step1"), $("#step2")];
+      const success = $("#success");
+
+      // Dossier
+      const dossier = {
+        fileNo: $("#dossierFileNo"),
+        status: $("#dossierStatus"),
+        clearance: $("#dossierClearance"),
+        stage: $("#dossierStage"),
+        verify: $("#dossierVerify"),
+        notes: $("#dossierNotes"),
+        hint: $("#dossierHint"),
+        bar: $("#dossierBar"),
+        percent: $("#dossierPercent"),
+        time: $("#dossierTime"),
+        sumEmail: $("#sumEmail"),
+        sumDisplay: $("#sumDisplay"),
+        sumUsername: $("#sumUsername"),
+        sumAvatar: $("#sumAvatar"),
+      };
+
+      // Mobile strip
+      const strip = {
+        btn: $("#toggleStrip"),
+        body: $("#stripBody"),
+        chevron: $("#stripChevron"),
+        title: $("#stripTitle"),
+        fileNo: $("#stripFileNo"),
+        status: $("#stripStatus"),
+        progress: $("#stripProgress"),
+        verify: $("#stripVerify"),
+        bar: $("#stripBar")
+      };
+
+      // Form header
+      const formTitle = $("#formTitle");
+      const formSubtitle = $("#formSubtitle");
+      const metaStep = $("#metaStep");
+      const formFootHint = $("#formFootHint");
+      const mobileHint = $("#mobileHint");
+
+      // Actions
+      const backDesktop = $("#backDesktop");
+      const nextDesktop = $("#nextDesktop");
+      const backMobile = $("#backMobile");
+      const nextMobile = $("#nextMobile");
+
+      // Enrollment inputs
+      const email = $("#email");
+      const password = $("#password");
+      const confirm = $("#confirm");
+      const togglePass = $("#togglePass");
+      const passBar = $("#passBar");
+      const passLabel = $("#passLabel");
+      const passRules = $("#passRules");
+      const securityStamp = $("#securityStamp");
+
+      // Identity inputs
+      const displayName = $("#displayName");
+      const username = $("#username");
+      const userSpin = $("#userSpin");
+      const userOk = $("#userOk");
+      const userNo = $("#userNo");
+      const userMsg = $("#userMsg");
+      const userState = $("#userState");
+
+      // Avatar
+      const monoToggle = $("#monoToggle");
+      const suggestedGrid = $("#suggestedGrid");
+      const useSuggested = $("#useSuggested");
+      const randomSuggested = $("#randomSuggested");
+      const upload = $("#upload");
+      const clearUpload = $("#clearUpload");
+      const avatarCanvas = $("#avatarCanvas");
+      const ctx = avatarCanvas.getContext("2d");
+      const zoom = $("#zoom");
+      const fileNoMini = $("#fileNoMini");
+      const fileNoInput = $("#fileNoInput");
+      const commitAvatar = $("#commitAvatar");
+      const avatarState = $("#avatarState");
+
+      // Community
+      const skipCommunity = $("#skipCommunity");
+      const mentorGrid = $("#mentorGrid");
+      const mentorCount = $("#mentorCount");
+      const mentorHint = $("#mentorHint");
+      const typeGrid = $("#typeGrid");
+      const genreChips = $("#genreChips");
+      const genreCount = $("#genreCount");
+      const compLabel = $("#compLabel");
+      const compBar = $("#compBar");
+
+      // Success
+      const cardFileNo = $("#cardFileNo");
+      const cardDisplay = $("#cardDisplay");
+      const cardUsername = $("#cardUsername");
+      const cardEmail = $("#cardEmail");
+      const cardCommunity = $("#cardCommunity");
+      const finalAvatar = $("#finalAvatar");
+      const fctx = finalAvatar.getContext("2d");
+      const monoLabel = $("#monoLabel");
+      const printCard = $("#printCard");
+      const restart = $("#restart");
+
+      // Print
+      const printBtn = $("#printBtn");
+
+      // ----- Suggested SVG portraits -----
+      const portraitSvg = (id, tone = 0) => {
+        const palettes = [
+          {a:"#5d6b45", b:"#2f3a25", c:"#7a4b2b", d:"#10110f"},
+          {a:"#6b6f4a", b:"#313a2b", c:"#8a5a34", d:"#151613"},
+          {a:"#4e5b3d", b:"#262f22", c:"#6e4528", d:"#0f100e"},
+          {a:"#70765a", b:"#3a3f30", c:"#7a4b2b", d:"#11120f"},
+          {a:"#596548", b:"#2e3627", c:"#835231", d:"#12130f"},
+          {a:"#667055", b:"#333a2d", c:"#6f4a2d", d:"#10110f"}
+        ];
+        const p = palettes[(id + tone) % palettes.length];
+        const hair = [
+          "M80 70 C90 35 140 25 170 45 C200 65 210 95 205 118 C196 98 175 85 150 86 C120 87 92 98 80 120 Z",
+          "M78 74 C95 40 145 20 182 42 C215 63 226 96 214 132 C200 114 182 100 154 100 C126 100 97 110 82 130 Z",
+          "M85 80 C92 48 140 30 170 40 C205 55 220 90 205 128 C195 112 170 96 145 98 C120 100 98 114 88 132 Z",
+          "M76 78 C92 34 150 20 186 48 C220 75 224 106 208 136 C198 118 178 102 152 102 C126 102 98 114 82 136 Z",
+          "M82 78 C98 42 142 30 170 44 C205 64 220 94 206 128 C190 110 172 98 150 98 C122 98 100 112 88 132 Z",
+          "M80 76 C96 44 140 28 176 44 C212 60 224 96 210 132 C198 112 178 100 152 100 C124 100 100 114 86 136 Z"
+        ][id % 6];
+
+        const scar = (id % 2 === 0)
+          ? `<path d="M156 148 C150 156 146 164 148 172" stroke="rgba(16,17,15,.45)" stroke-width="3" stroke-linecap="round" fill="none"/>`
+          : `<path d="M122 146 C130 156 136 164 134 172" stroke="rgba(16,17,15,.45)" stroke-width="3" stroke-linecap="round" fill="none"/>`;
+
+        return `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 320" role="img" aria-label="Portrait ${id}">
+            <defs>
+              <linearGradient id="bg${id}" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="${p.a}" stop-opacity=".85"/>
+                <stop offset="1" stop-color="${p.c}" stop-opacity=".55"/>
+              </linearGradient>
+              <radialGradient id="light${id}" cx="35%" cy="25%" r="70%">
+                <stop offset="0" stop-color="rgba(255,255,255,.32)"/>
+                <stop offset="1" stop-color="rgba(255,255,255,0)"/>
+              </radialGradient>
+              <filter id="rough${id}">
+                <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch" />
+                <feColorMatrix type="matrix" values="
+                  1 0 0 0 0
+                  0 1 0 0 0
+                  0 0 1 0 0
+                  0 0 0 .10 0" />
+                <feComposite operator="in" in2="SourceGraphic"/>
+              </filter>
+            </defs>
+
+            <rect width="260" height="320" fill="url(#bg${id})"/>
+            <rect width="260" height="320" fill="url(#light${id})" opacity=".8"/>
+
+            <!-- cables-ish lines -->
+            <path d="M-10 85 C70 40 120 50 170 80 C210 98 230 100 270 80"
+                  stroke="rgba(255,255,255,.18)" stroke-width="2" fill="none" opacity=".55"/>
+            <path d="M-10 120 C60 95 120 95 170 120 C210 140 232 145 270 130"
+                  stroke="rgba(0,0,0,.18)" stroke-width="2" fill="none" opacity=".55"/>
+
+            <!-- body -->
+            <path d="M70 320 C75 250 95 225 130 225 C165 225 186 250 190 320 Z"
+                  fill="rgba(16,17,15,.28)"/>
+            <path d="M85 320 C90 270 110 248 130 248 C150 248 170 270 175 320 Z"
+                  fill="rgba(255,255,255,.12)"/>
+
+            <!-- head -->
+            <path d="M130 70 C165 70 190 98 190 136 C190 180 165 210 130 210 C95 210 70 180 70 136 C70 98 95 70 130 70 Z"
+                  fill="rgba(231,223,207,.85)"/>
+
+            <!-- dramatic shadow -->
+            <path d="M130 70 C165 70 190 98 190 136 C190 180 165 210 130 210 Z"
+                  fill="rgba(16,17,15,.12)"/>
+
+            <!-- hair -->
+            <path d="${hair}" fill="${p.d}" opacity=".9"/>
+            <path d="M70 138 C85 112 110 104 130 104 C158 104 178 118 190 140 C190 105 170 80 130 80 C95 80 74 104 70 138 Z"
+                  fill="rgba(0,0,0,.22)"/>
+
+            <!-- face detail -->
+            <path d="M98 150 C108 142 118 142 128 150" stroke="rgba(16,17,15,.50)" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M132 150 C142 142 152 142 162 150" stroke="rgba(16,17,15,.50)" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M120 178 C128 186 132 186 140 178" stroke="rgba(16,17,15,.45)" stroke-width="3" stroke-linecap="round" fill="none"/>
+            ${scar}
+
+            <!-- grain -->
+            <rect width="260" height="320" filter="url(#rough${id})" opacity=".55"/>
+          </svg>
+        `.trim();
+      };
+
+      const buildSuggested = () => {
+        suggestedGrid.innerHTML = "";
+        const ids = [0,1,2,3,4,5].sort(() => Math.random() - 0.5);
+        ids.forEach((id) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "group rounded-xl border line bg-white/40 hover:bg-white/55 transition overflow-hidden relative focus:outline-none";
+          btn.setAttribute("aria-label", `اختيار صورة مقترحة ${id+1}`);
+          btn.dataset.sid = String(id);
+
+          const wrap = document.createElement("div");
+          wrap.className = "aspect-[4/5] p-2";
+          wrap.innerHTML = portraitSvg(id, Math.floor(Math.random()*6));
+
+          const tag = document.createElement("div");
+          tag.className = "absolute inset-x-2 bottom-2 text-[11px] font-extrabold tracking-wide px-2 py-1 rounded-lg bg-black/70 text-white opacity-0 group-hover:opacity-100 transition";
+          tag.textContent = "اختيار";
+
+          btn.appendChild(wrap);
+          btn.appendChild(tag);
+
+          btn.addEventListener("click", () => {
+            state.avatar.mode = "suggested";
+            state.avatar.suggestedId = id;
+            state.avatar.committedDataURL = null; // require commit or auto-commit
+            state.avatar.uploadImg = null;
+            upload.value = "";
+            avatarState.textContent = "تم اختيار مقترح — غير معتمد";
+            avatarState.className = "text-[12px] muted";
+            // mark selection visually
+            $$("#suggestedGrid button").forEach(b => b.classList.remove("ring-4","ring-black/30"));
+            btn.classList.add("ring-4","ring-black/30");
+            renderAvatarCanvas(); // show suggested preview
+            updateSummary();
+          });
+
+          suggestedGrid.appendChild(btn);
+        });
+      };
+
+      // ----- Username async check (mock) -----
+      const taken = new Set(["admin","root","support","owner","moderator","cadet","scout","wall","shadow","luffy","devluffy","test"]);
+      let userTimer = null;
+
+      const setUserStatus = (status, msg) => {
+        state.usernameStatus = status;
+        userSpin.classList.toggle("hidden", status !== "checking");
+        userOk.classList.toggle("hidden", status !== "available");
+        userNo.classList.toggle("hidden", !["taken","invalid"].includes(status));
+
+        const map = {
+          idle: "—",
+          checking: "فحص…",
+          available: "متاح",
+          taken: "محجوز",
+          invalid: "غير صالح"
+        };
+        userState.textContent = map[status] ?? "—";
+        if (msg) userMsg.textContent = msg;
+
+        // validity styling
+        const wrap = $("#wrapUsername");
+        wrap.classList.remove("invalid","valid");
+        if (status === "available") wrap.classList.add("valid");
+        if (status === "taken" || status === "invalid") wrap.classList.add("invalid");
+      };
+
+      const checkUsername = (value) => {
+        const v = (value || "").trim();
+        if (!v) { setUserStatus("idle", "حروف/أرقام/شرطة سفلية فقط (3–15)."); return; }
+        const ok = /^[A-Za-z0-9_]{3,15}$/.test(v);
+        if (!ok) { setUserStatus("invalid", "صيغة غير صالحة. استخدم a-z / 0-9 / _ (3–15)."); return; }
+
+        setUserStatus("checking", "نبحث عن التوفر…");
+        clearTimeout(userTimer);
+        userTimer = setTimeout(() => {
+          const lower = v.toLowerCase();
+          const isTaken = taken.has(lower) || lower.endsWith("_0") || lower.includes("sys");
+          setUserStatus(isTaken ? "taken" : "available",
+                        isTaken ? "هذا الاسم مستخدم. جرّب إضافة رقم بسيط." : "متاح. يمكنك المتابعة.");
+        }, 650);
+      };
+
+      // ----- Password strength -----
+      const passScore = (pw) => {
+        const s = String(pw || "");
+        const len = s.length >= 10;
+        const hasLower = /[a-z]/.test(s);
+        const hasUpper = /[A-Z]/.test(s);
+        const mix = hasLower && hasUpper;
+        const num = /\d/.test(s);
+        const sym = /[^A-Za-z0-9]/.test(s);
+        const score = [len, mix, num, sym].reduce((a,b)=>a+(b?1:0),0);
+        return {score, len, mix, num, sym};
+      };
+
+      const updatePassUI = () => {
+        const {score, len, mix, num, sym} = passScore(password.value);
+        const pct = (score/4)*100;
+        passBar.style.width = `${pct}%`;
+
+        const label = score <= 1 ? "ضعيف" : score === 2 ? "متوسط" : score === 3 ? "جيد" : "قوي";
+        passLabel.textContent = label;
+
+        // rules check style
+        const map = {len, mix, num, sym};
+        $$("li", passRules).forEach(li => {
+          const key = li.getAttribute("data-rule");
+          const ok = !!map[key];
+          li.style.color = ok ? "rgba(22,101,52,.95)" : "rgba(16,17,15,.74)";
+          li.style.fontWeight = ok ? "800" : "600";
+        });
+
+        // security stamp
+        securityStamp.textContent = score >= 3 ? "مؤهل للتسريع ✅" : (score === 2 ? "قريب…" : "غير كافٍ بعد");
+        securityStamp.style.color = score >= 3 ? "rgba(22,101,52,.95)" : (score === 2 ? "rgba(180,83,9,.95)" : "rgba(122,29,0,.95)");
+
+        updateSummary();
+      };
+
+      // ----- Completeness -----
+      const computeCompleteness = () => {
+        // weights: required 90, optional community 10
+        let total = 0;
+
+        // Enrollment (40)
+        const hasEmail = !!email.value.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim());
+        const p = passScore(password.value);
+        const strongEnough = p.score >= 3; // threshold
+        const confirmOk = confirm.value && confirm.value === password.value;
+
+        if (hasEmail) total += 10;
+        if (strongEnough) total += 20;
+        if (confirmOk) total += 10;
+
+        // Identity (50)
+        const dn = displayName.value.trim().length >= 2;
+        const unOk = state.usernameStatus === "available";
+        const avatarOk = !!state.avatar.committedDataURL;
+
+        if (dn) total += 15;
+        if (unOk) total += 20;
+        if (avatarOk) total += 15;
+
+        // Community (10)
+        if (!state.community.skip) {
+          if (state.community.mentors.size >= 2) total += 5;
+          if (state.community.types.size > 0 || state.community.genres.size > 0) total += 5;
+        }
+
+        return clamp(Math.round(total), 0, 100);
+      };
+
+      const updateCompletenessUI = () => {
+        const pct = computeCompleteness();
+        // dossier
+        if (dossier.bar) dossier.bar.style.width = pct + "%";
+        if (dossier.percent) dossier.percent.textContent = pct + "%";
+        // mobile strip
+        strip.progress.textContent = pct + "%";
+        strip.bar.style.width = pct + "%";
+        // community bar
+        compLabel.textContent = pct + "%";
+        compBar.style.width = pct + "%";
+      };
+
+      // ----- Step UI -----
+      const stageMeta = [
+        {
+          title: "Enrollment",
+          subtitle: "بيانات الدخول المطلوبة.",
+          hint: "أكمل البريد + كلمة المرور لتتجاوز بسرعة.",
+          dossierHint: "تلميح: كلمة مرور قوية تختصر خطوات لاحقة."
+        },
+        {
+          title: "Identity",
+          subtitle: "اسم + اسم مستخدم + صورة هوية.",
+          hint: "تحقق اسم المستخدم يحدث فورًا.",
+          dossierHint: "اعتمد صورة واحدة فقط ثم تابع."
+        },
+        {
+          title: "Community",
+          subtitle: "اختياري: مرشدين + اهتمامات (سريع).",
+          hint: "يمكن التخطي دون أي فقد أساسي.",
+          dossierHint: "اختر 2 مرشدين لرفع اكتمال ملفك."
+        }
+      ];
+
+      const setStageDone = (idx, done) => {
+        tabs[idx].dataset.done = done ? "true" : "false";
+      };
+
+      const setCurrentStep = (idx) => {
+        state.step = idx;
+
+        // hide all
+        steps.forEach(s => s.classList.remove("active"));
+        success.classList.remove("active");
+
+        if (idx <= 2){
+          steps[idx].classList.add("active");
+        } else {
+          success.classList.add("active");
+        }
+
+        // tabs aria
+        tabs.forEach((t,i) => {
+          t.setAttribute("aria-current", i === idx ? "step" : "false");
+        });
+
+        // header text
+        if (idx <= 2) {
+          formTitle.textContent = stageMeta[idx].title;
+          formSubtitle.textContent = stageMeta[idx].subtitle;
+          metaStep.textContent = `${idx+1}/3`;
+          formFootHint.textContent = stageMeta[idx].hint;
+          mobileHint.textContent = stageMeta[idx].hint;
+
+          // dossier
+          if (dossier.stage) dossier.stage.textContent = stageMeta[idx].title;
+          strip.title.textContent = `مرحلة: ${stageMeta[idx].title}`;
+          $("#stripChevron").style.transform = strip.body.classList.contains("hidden") ? "rotate(0deg)" : "rotate(180deg)";
+        }
+
+        // action buttons state
+        const isFirst = idx === 0;
+        const isLast = idx === 2;
+        const inSuccess = idx === 3;
+
+        backDesktop.disabled = isFirst || inSuccess;
+        backMobile.disabled = isFirst || inSuccess;
+
+        nextDesktop.textContent = isLast ? "إنهاء" : (inSuccess ? "—" : "متابعة");
+        nextMobile.textContent = isLast ? "إنهاء" : (inSuccess ? "—" : "متابعة");
+
+        updateDossierStatus();
+        updateCompletenessUI();
+        updateSummary();
+        scrollTopCard();
+      };
+
+      const scrollTopCard = () => {
+        // gentle scroll only if not reduced motion
+        const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce) return;
+        try {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch {}
+      };
+
+      // ----- Validation -----
+      const setWrapState = (wrapId, ok, errId) => {
+        const wrap = $(wrapId);
+        wrap.classList.remove("invalid","valid");
+        if (ok) {
+          wrap.classList.add("valid");
+          if (errId) $(errId).classList.add("hidden");
+        } else {
+          wrap.classList.add("invalid");
+          if (errId) $(errId).classList.remove("hidden");
+        }
+      };
+
+      const validateEnrollment = () => {
+        const vEmail = email.value.trim();
+        const okEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(vEmail);
+        setWrapState("#wrapEmail", okEmail, "#errEmail");
+
+        const p = passScore(password.value);
+        const okPass = p.score >= 3;
+        setWrapState("#wrapPass", okPass, "#errPass");
+
+        const okConfirm = !!confirm.value && confirm.value === password.value;
+        setWrapState("#wrapConfirm", okConfirm, "#errConfirm");
+
+        return okEmail && okPass && okConfirm;
+      };
+
+      const validateIdentity = () => {
+        const dn = displayName.value.trim().length >= 2;
+        setWrapState("#wrapDisplay", dn, "#errDisplay");
+
+        const unOk = state.usernameStatus === "available";
+        setWrapState("#wrapUsername", unOk, "#errUsername");
+
+        const avOk = !!state.avatar.committedDataURL;
+        if (!avOk) {
+          avatarState.textContent = "رجاءً اعتمد صورة (مقترح أو رفع).";
+          avatarState.className = "text-[12px] err";
+        }
+
+        return dn && unOk && avOk;
+      };
+
+      const validateCommunity = () => {
+        // optional always valid
+        return true;
+      };
+
+      const validateStep = (idx) => {
+        if (idx === 0) return validateEnrollment();
+        if (idx === 1) return validateIdentity();
+        if (idx === 2) return validateCommunity();
+        return true;
+      };
+
+      // ----- Dossier status updates -----
+      const updateDossierStatus = () => {
+        const pct = computeCompleteness();
+        const idx = state.step;
+
+        const verifyText = (idx === 0)
+          ? (validateEnrollment() ? "جاهز للهوية" : "ينتظر بيانات الدخول")
+          : (idx === 1)
+            ? (validateIdentity() ? "هوية مكتملة" : "ينتظر التحقق من الهوية")
+            : (idx === 2)
+              ? (state.community.skip ? "تخطي المجتمع" : "اختياري")
+              : "مُعتمد";
+
+        const statusText = (idx === 0)
+          ? "قيد الفحص"
+          : (idx === 1)
+            ? "تحقق الهوية"
+            : (idx === 2)
+              ? "تهيئة المجتمع"
+              : "مُعتمد";
+
+        const clearance = pct >= 85 ? "تصريح: مرتفع" : (pct >= 60 ? "تصريح: قياسي" : "تصريح: مبدئي");
+
+        if (dossier.status) dossier.status.textContent = statusText;
+        if (dossier.clearance) dossier.clearance.textContent = clearance;
+        if (dossier.verify) dossier.verify.textContent = verifyText;
+        if (strip.status) strip.status.textContent = statusText;
+        if (strip.verify) strip.verify.textContent = verifyText;
+
+        // notes + hints
+        if (dossier.notes) {
+          dossier.notes.textContent =
+            idx === 0 ? "املأ المطلوب فقط. نُسرّع ما أمكن دون تعقيد."
+            : idx === 1 ? "تحقق الاسم فوري. اعتمد صورة واحدة لإكمال الهوية."
+            : idx === 2 ? "هذه المرحلة اختيارية. اختر سريعًا أو تخطَّ."
+            : "الملف مُعتمد وجاهز.";
+        }
+        if (dossier.hint) dossier.hint.textContent = stageMeta[Math.min(idx,2)]?.dossierHint || "—";
+      };
+
+      const updateSummary = () => {
+        state.email = email.value.trim();
+        state.password = password.value;
+        state.displayName = displayName.value.trim();
+        state.username = username.value.trim();
+
+        // dossier quick values
+        if (dossier.sumEmail) dossier.sumEmail.textContent = state.email || "—";
+        if (dossier.sumDisplay) dossier.sumDisplay.textContent = state.displayName || "—";
+        if (dossier.sumUsername) dossier.sumUsername.textContent = state.username || "—";
+        if (dossier.sumAvatar) dossier.sumAvatar.textContent = state.avatar.committedDataURL ? "معتمدة" : "غير معتمدة";
+
+        // time
+        if (dossier.time) dossier.time.textContent = fmtTime();
+
+        // file nos
+        if (dossier.fileNo) dossier.fileNo.textContent = state.fileNo;
+        strip.fileNo.textContent = state.fileNo;
+        fileNoMini.textContent = state.fileNo;
+
+        updateCompletenessUI();
+        updateDossierStatus();
+      };
+
+      // ----- Avatar rendering -----
+      const drawFrame = (c, w, h) => {
+        // industrial ID frame + file number
+        const pad = 18;
+        const inner = {x: pad, y: pad, w: w - pad*2, h: h - pad*2};
+        c.save();
+
+        // background plate
+        c.fillStyle = "rgba(231,223,207,.85)";
+        c.fillRect(0,0,w,h);
+
+        // subtle grid
+        c.globalAlpha = 0.18;
+        for (let x=0; x<w; x+=16) {
+          c.fillStyle = "rgba(16,17,15,.22)";
+          c.fillRect(x,0,1,h);
+        }
+        c.globalAlpha = 1;
+
+        // border + dashed inset
+        c.strokeStyle = "rgba(16,17,15,.55)";
+        c.lineWidth = 2;
+        c.strokeRect(6,6,w-12,h-12);
+
+        c.setLineDash([6,6]);
+        c.strokeStyle = "rgba(16,17,15,.35)";
+        c.lineWidth = 2;
+        c.strokeRect(inner.x, inner.y, inner.w, inner.h);
+        c.setLineDash([]);
+
+        // bolts
+        const bolt = (x,y) => {
+          c.fillStyle = "rgba(16,17,15,.55)";
+          c.fillRect(x-4,y-4,8,8);
+          c.fillStyle = "rgba(255,255,255,.18)";
+          c.fillRect(x-3,y-3,6,6);
+        };
+        bolt(18,18); bolt(w-18,18); bolt(18,h-18); bolt(w-18,h-18);
+
+        // file no plate
+        const plateW = Math.min(220, w-40);
+        const plateH = 26;
+        c.fillStyle = "rgba(16,17,15,.10)";
+        c.fillRect(w-plateW-14, h-plateH-14, plateW, plateH);
+        c.strokeStyle = "rgba(16,17,15,.30)";
+        c.strokeRect(w-plateW-14, h-plateH-14, plateW, plateH);
+
+        c.fillStyle = "rgba(16,17,15,.80)";
+        c.font = "700 12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Tahoma, Arial";
+        c.textAlign = "left";
+        c.textBaseline = "middle";
+        c.fillText(state.fileNo, w-plateW-6, h-plateH/2-14);
+
+        // label
+        c.fillStyle = "rgba(16,17,15,.60)";
+        c.font = "800 10px ui-sans-serif, system-ui, -apple-system, Segoe UI, Tahoma, Arial";
+        c.fillText("ID / DOSSIER", 16, h-plateH/2-14);
+
+        c.restore();
+      };
+
+      const applyMono = (c, w, h) => {
+        if (!state.mono) return;
+        const img = c.getImageData(0,0,w,h);
+        const d = img.data;
+        for (let i=0;i<d.length;i+=4){
+          const r=d[i], g=d[i+1], b=d[i+2];
+          const y = 0.2126*r + 0.7152*g + 0.0722*b;
+          d[i]=d[i+1]=d[i+2]=y;
+          // slight contrast
+          const k = 1.08;
+          d[i] = clamp((d[i]-128)*k + 128, 0, 255);
+          d[i+1] = clamp((d[i+1]-128)*k + 128, 0, 255);
+          d[i+2] = clamp((d[i+2]-128)*k + 128, 0, 255);
+        }
+        c.putImageData(img,0,0);
+      };
+
+      const drawSuggestedToCanvas = (c, w, h, sid) => {
+        // Render SVG to image then draw
+        const svg = portraitSvg(sid, 0);
+        const blob = new Blob([svg], {type:"image/svg+xml;charset=utf-8"});
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+        img.onload = () => {
+          c.clearRect(0,0,w,h);
+          drawFrame(c,w,h);
+
+          // content area
+          const pad = 22;
+          const cx = pad, cy = pad, cw = w - pad*2, ch = h - pad*2;
+
+          // cover
+          c.save();
+          c.beginPath();
+          c.roundRect(cx, cy, cw, ch, 18);
+          c.clip();
+
+          // dramatic vignette bg
+          c.fillStyle = "rgba(16,17,15,.05)";
+          c.fillRect(cx,cy,cw,ch);
+
+          const s = Math.max(cw/img.width, ch/img.height) * 1.05;
+          const dw = img.width * s;
+          const dh = img.height * s;
+          const dx = cx + (cw - dw)/2;
+          const dy = cy + (ch - dh)/2;
+
+          c.drawImage(img, dx, dy, dw, dh);
+
+          // light sweep
+          const grad = c.createLinearGradient(cx,cy,cx+cw,cy+ch);
+          grad.addColorStop(0, "rgba(255,255,255,.20)");
+          grad.addColorStop(0.55, "rgba(255,255,255,0)");
+          grad.addColorStop(1, "rgba(0,0,0,.08)");
+          c.fillStyle = grad;
+          c.fillRect(cx,cy,cw,ch);
+
+          c.restore();
+
+          applyMono(c,w,h);
+
+          URL.revokeObjectURL(url);
+        };
+        img.src = url;
+      };
+
+      const renderUploadToCanvas = (c, w, h) => {
+        c.clearRect(0,0,w,h);
+        drawFrame(c,w,h);
+
+        const pad = 22;
+        const cx = pad, cy = pad, cw = w - pad*2, ch = h - pad*2;
+
+        // crop region as rounded rect
+        c.save();
+        c.beginPath();
+        c.roundRect(cx, cy, cw, ch, 18);
+        c.clip();
+
+        // background
+        c.fillStyle = "rgba(16,17,15,.04)";
+        c.fillRect(cx,cy,cw,ch);
+
+        const img = state.avatar.uploadImg;
+        if (img) {
+          const s = state.avatar.zoom;
+          const iw = img.naturalWidth;
+          const ih = img.naturalHeight;
+
+          // base scale to cover area, then multiply by zoom
+          const cover = Math.max(cw/iw, ch/ih);
+          const scale = cover * s;
+
+          const dw = iw * scale;
+          const dh = ih * scale;
+
+          // offsets are relative to center
+          const baseX = cx + (cw - dw)/2;
+          const baseY = cy + (ch - dh)/2;
+
+          const dx = baseX + state.avatar.ox;
+          const dy = baseY + state.avatar.oy;
+
+          c.drawImage(img, dx, dy, dw, dh);
+
+          // vignette
+          const grad = c.createRadialGradient(cx+cw*0.3, cy+ch*0.25, 20, cx+cw*0.5, cy+ch*0.5, Math.max(cw,ch));
+          grad.addColorStop(0, "rgba(255,255,255,.16)");
+          grad.addColorStop(1, "rgba(0,0,0,.10)");
+          c.fillStyle = grad;
+          c.fillRect(cx,cy,cw,ch);
+        } else {
+          // placeholder
+          c.fillStyle = "rgba(16,17,15,.55)";
+          c.font = "800 14px ui-sans-serif, system-ui, -apple-system, Segoe UI, Tahoma, Arial";
+          c.textAlign = "center";
+          c.textBaseline = "middle";
+          c.fillText("ارفع صورة لقصّها داخل الإطار", w/2, h/2);
+        }
+
+        c.restore();
+        applyMono(c,w,h);
+      };
+
+      const renderAvatarCanvas = () => {
+        const w = avatarCanvas.width;
+        const h = avatarCanvas.height;
+
+        // sync file number
+        fileNoMini.textContent = state.fileNo;
+        if (fileNoInput.value.trim()) state.fileNo = fileNoInput.value.trim();
+
+        if (state.avatar.mode === "suggested" && state.avatar.suggestedId != null) {
+          drawSuggestedToCanvas(ctx, w, h, state.avatar.suggestedId);
+          return;
+        }
+        if (state.avatar.mode === "upload") {
+          renderUploadToCanvas(ctx, w, h);
+          return;
+        }
+
+        // default blank
+        ctx.clearRect(0,0,w,h);
+        drawFrame(ctx,w,h);
+        ctx.fillStyle = "rgba(16,17,15,.65)";
+        ctx.font = "800 14px ui-sans-serif, system-ui, -apple-system, Segoe UI, Tahoma, Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("اختر مقترحًا أو ارفع صورة", w/2, h/2);
+        applyMono(ctx,w,h);
+      };
+
+      const commitCurrentAvatar = async () => {
+        // ensure fileNo from input if present
+        const v = fileNoInput.value.trim();
+        if (v) state.fileNo = v;
+        fileNoMini.textContent = state.fileNo;
+
+        // render at higher res for final
+        const W = 840, H = 840;
+        const temp = document.createElement("canvas");
+        temp.width = W; temp.height = H;
+        const c = temp.getContext("2d");
+
+        drawFrame(c, W, H);
+
+        const pad = 36;
+        const cx = pad, cy = pad, cw = W - pad*2, ch = H - pad*2;
+
+        c.save();
+        c.beginPath();
+        c.roundRect(cx, cy, cw, ch, 28);
+        c.clip();
+
+        // background
+        c.fillStyle = "rgba(16,17,15,.04)";
+        c.fillRect(cx,cy,cw,ch);
+
+        if (state.avatar.mode === "suggested" && state.avatar.suggestedId != null) {
+          // render svg to image
+          const svg = portraitSvg(state.avatar.suggestedId, 0);
+          const blob = new Blob([svg], {type:"image/svg+xml;charset=utf-8"});
+          const url = URL.createObjectURL(blob);
+          const img = new Image();
+          await new Promise((res, rej) => {
+            img.onload = res;
+            img.onerror = rej;
+            img.src = url;
+          });
+
+          const s = Math.max(cw/img.width, ch/img.height) * 1.05;
+          const dw = img.width * s;
+          const dh = img.height * s;
+          const dx = cx + (cw - dw)/2;
+          const dy = cy + (ch - dh)/2;
+
+          c.drawImage(img, dx, dy, dw, dh);
+
+          const grad = c.createLinearGradient(cx,cy,cx+cw,cy+ch);
+          grad.addColorStop(0, "rgba(255,255,255,.20)");
+          grad.addColorStop(0.55, "rgba(255,255,255,0)");
+          grad.addColorStop(1, "rgba(0,0,0,.08)");
+          c.fillStyle = grad;
+          c.fillRect(cx,cy,cw,ch);
+
+          URL.revokeObjectURL(url);
+        } else if (state.avatar.mode === "upload" && state.avatar.uploadImg) {
+          const img = state.avatar.uploadImg;
+          const iw = img.naturalWidth, ih = img.naturalHeight;
+
+          const cover = Math.max(cw/iw, ch/ih);
+          const scale = cover * state.avatar.zoom;
+
+          const dw = iw * scale;
+          const dh = ih * scale;
+
+          // match offsets proportionally from editor (520x320)
+          // We'll map offsets from editor content area to final content area
+          // Use ratios based on editor crop area sizes
+          const ew = avatarCanvas.width;
+          const eh = avatarCanvas.height;
+          const epad = 22;
+          const ecw = ew - epad*2;
+          const ech = eh - epad*2;
+
+          const baseX = cx + (cw - dw)/2;
+          const baseY = cy + (ch - dh)/2;
+
+          // scale offsets
+          const ox = state.avatar.ox * (cw / ecw);
+          const oy = state.avatar.oy * (ch / ech);
+
+          c.drawImage(img, baseX + ox, baseY + oy, dw, dh);
+
+          const grad = c.createRadialGradient(cx+cw*0.3, cy+ch*0.25, 20, cx+cw*0.5, cy+ch*0.5, Math.max(cw,ch));
+          grad.addColorStop(0, "rgba(255,255,255,.16)");
+          grad.addColorStop(1, "rgba(0,0,0,.10)");
+          c.fillStyle = grad;
+          c.fillRect(cx,cy,cw,ch);
+        } else {
+          // nothing
+          c.fillStyle = "rgba(16,17,15,.55)";
+          c.font = "800 20px ui-sans-serif, system-ui";
+          c.textAlign = "center";
+          c.textBaseline = "middle";
+          c.fillText("NO AVATAR", W/2, H/2);
+        }
+
+        c.restore();
+        applyMono(c, W, H);
+
+        state.avatar.committedDataURL = temp.toDataURL("image/png");
+        avatarState.textContent = "تم اعتماد الصورة ✅";
+        avatarState.className = "text-[12px] ok";
+        updateSummary();
+        updateCompletenessUI();
+      };
+
+      // ----- Upload drag/zoom -----
+      let dragging = false;
+      let last = {x:0,y:0};
+
+      const pointerPos = (ev, el) => {
+        const r = el.getBoundingClientRect();
+        return {
+          x: (ev.clientX - r.left) * (el.width / r.width),
+          y: (ev.clientY - r.top) * (el.height / r.height)
+        };
+      };
+
+      avatarCanvas.addEventListener("pointerdown", (e) => {
+        if (state.avatar.mode !== "upload") return;
+        dragging = true;
+        avatarCanvas.setPointerCapture(e.pointerId);
+        const p = pointerPos(e, avatarCanvas);
+        last = p;
+      });
+
+      avatarCanvas.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        const p = pointerPos(e, avatarCanvas);
+        const dx = p.x - last.x;
+        const dy = p.y - last.y;
+        last = p;
+
+        state.avatar.ox += dx;
+        state.avatar.oy += dy;
+
+        // clamp offsets (approx)
+        state.avatar.ox = clamp(state.avatar.ox, -260, 260);
+        state.avatar.oy = clamp(state.avatar.oy, -220, 220);
+
+        renderAvatarCanvas();
+      });
+
+      const stopDrag = (e) => {
+        dragging = false;
+        try { avatarCanvas.releasePointerCapture(e.pointerId); } catch {}
+      };
+      avatarCanvas.addEventListener("pointerup", stopDrag);
+      avatarCanvas.addEventListener("pointercancel", stopDrag);
+      avatarCanvas.addEventListener("pointerleave", () => dragging = false);
+
+      zoom.addEventListener("input", () => {
+        state.avatar.zoom = parseFloat(zoom.value);
+        if (state.avatar.mode === "upload") renderAvatarCanvas();
+      });
+
+      fileNoInput.addEventListener("input", () => {
+        // allow manual override
+        const v = fileNoInput.value.trim();
+        if (v) state.fileNo = v;
+        updateSummary();
+        renderAvatarCanvas();
+      });
+
+      // ----- Community UI -----
+      const mentorList = [
+        {id:"m1", name:"مرشد السجل 17", role:"انضباط/تدريب", note:"يركّز على العادات الصغيرة."},
+        {id:"m2", name:"مرشدة الورق البني", role:"تصميم/تنظيم", note:"تبسيط بدون ضياع الجودة."},
+        {id:"m3", name:"مرشد الكابلات", role:"تقنية/بناء", note:"ربط الأنظمة قبل التفاصيل."},
+        {id:"m4", name:"مرشدة الضباب", role:"مجتمع/نقاش", note:"مساحات آمنة ونقاشات صحية."}
+      ];
+
+      const typeList = [
+        {id:"t_anime", label:"أنمي"},
+        {id:"t_manga", label:"مانغا"},
+        {id:"t_comics", label:"كوميكس"},
+        {id:"t_webtoon", label:"ويب تون"},
+        {id:"t_lightnovel", label:"لايت نوفل"},
+        {id:"t_fanart", label:"Fan Art"}
+      ];
+
+      const genreList = [
+        "أكشن","مغامرة","غموض","رعب","خيال علمي","فانتازيا","دراما","كوميديا","تشويق","تاريخي","سايبربانك","سياسي"
+      ];
+
+      const renderMentors = () => {
+        mentorGrid.innerHTML = "";
+        mentorList.forEach(m => {
+          const card = document.createElement("label");
+          card.className = "cursor-pointer rounded-xl border line bg-white/35 hover:bg-white/50 transition p-3 flex items-start gap-3 select-none";
+          const box = document.createElement("input");
+          box.type = "checkbox";
+          box.className = "mt-1 accent-black";
+          box.checked = state.community.mentors.has(m.id);
+          box.addEventListener("change", () => {
+            if (box.checked) {
+              if (state.community.mentors.size >= 2) {
+                box.checked = false;
+                mentorHint.textContent = "الحد الأقصى 2. أزل واحدًا ثم اختر.";
+                mentorHint.className = "mt-3 text-[12px] err";
+                return;
+              }
+              state.community.mentors.add(m.id);
+            } else {
+              state.community.mentors.delete(m.id);
+            }
+            mentorHint.textContent = "اختياري. اختيار 2 يرفع اكتمال الملف.";
+            mentorHint.className = "mt-3 text-[12px] muted";
+            updateMentorCount();
+            updateCompletenessUI();
+            updateSummary();
+          });
+
+          const body = document.createElement("div");
+          body.className = "min-w-0";
+          body.innerHTML = `
+            <div class="text-sm font-extrabold">${m.name}</div>
+            <div class="text-[12px] muted mt-0.5">${m.role}</div>
+            <div class="text-[12px] muted mt-2 leading-relaxed">${m.note}</div>
+          `;
+          card.appendChild(box);
+          card.appendChild(body);
+          mentorGrid.appendChild(card);
+        });
+      };
+
+      const updateMentorCount = () => {
+        mentorCount.textContent = `${state.community.mentors.size}/2`;
+      };
+
+      const renderTypes = () => {
+        typeGrid.innerHTML = "";
+        typeList.forEach(t => {
+          const label = document.createElement("label");
+          label.className = "rounded-xl border line bg-white/35 hover:bg-white/50 transition px-3 py-2 flex items-center justify-between gap-3 cursor-pointer select-none";
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.className = "accent-black";
+          cb.checked = state.community.types.has(t.id);
+          cb.addEventListener("change", () => {
+            if (cb.checked) state.community.types.add(t.id);
+            else state.community.types.delete(t.id);
+            updateCompletenessUI();
+            updateSummary();
+          });
+          const span = document.createElement("span");
+          span.className = "text-sm font-semibold";
+          span.textContent = t.label;
+          label.appendChild(span);
+          label.appendChild(cb);
+          typeGrid.appendChild(label);
+        });
+      };
+
+      const renderGenres = () => {
+        genreChips.innerHTML = "";
+        genreList.forEach(g => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "rounded-full px-3 py-1.5 text-sm font-semibold border line bg-white/35 hover:bg-white/50 transition";
+          const active = state.community.genres.has(g);
+          if (active) {
+            btn.classList.add("bg-black/85","text-white");
+            btn.classList.remove("bg-white/35");
+          }
+          btn.textContent = g;
+
+          btn.addEventListener("click", () => {
+            if (state.community.genres.has(g)) {
+              state.community.genres.delete(g);
+            } else {
+              if (state.community.genres.size >= 5) return;
+              state.community.genres.add(g);
+            }
+            updateGenreCount();
+            renderGenres();
+            updateCompletenessUI();
+            updateSummary();
+          });
+
+          genreChips.appendChild(btn);
+        });
+        updateGenreCount();
+      };
+
+      const updateGenreCount = () => {
+        genreCount.textContent = `${state.community.genres.size}/5`;
+      };
+
+      // ----- Auto-skip / quick logic -----
+      const maybeAutoAdvanceIdentity = () => {
+        // if identity required parts are ready, move on
+        if (validateIdentity()) {
+          setStageDone(1, true);
+          setCurrentStep(2);
+        }
+      };
+
+      // ----- Success render -----
+      const renderSuccess = () => {
+        // set card info
+        cardFileNo.textContent = state.fileNo;
+        cardDisplay.textContent = state.displayName || "—";
+        cardUsername.textContent = state.username || "—";
+        cardEmail.textContent = state.email || "—";
+
+        const comm =
+          state.community.skip ? "تم التخطي"
+          : (state.community.mentors.size || state.community.types.size || state.community.genres.size)
+            ? "مهيأ"
+            : "غير محدد";
+
+        cardCommunity.textContent = comm;
+
+        monoLabel.textContent = state.mono ? "أبيض وأسود" : "ملون";
+        $("#approvedStamp").classList.add("boom");
+
+        // draw final avatar
+        const W = finalAvatar.width, H = finalAvatar.height;
+        fctx.clearRect(0,0,W,H);
+        drawFrame(fctx,W,H);
+
+        const pad = 36;
+        const cx = pad, cy = pad, cw = W - pad*2, ch = H - pad*2;
+
+        fctx.save();
+        fctx.beginPath();
+        fctx.roundRect(cx,cy,cw,ch,28);
+        fctx.clip();
+
+        fctx.fillStyle = "rgba(16,17,15,.04)";
+        fctx.fillRect(cx,cy,cw,ch);
+
+        if (state.avatar.committedDataURL) {
+          const img = new Image();
+          img.onload = () => {
+            // The committed image already includes frame; but we'll render it as photo layer
+            // We'll instead extract just as cover layer: draw inside clipped area as a portrait texture
+            // Use it as background-like
+            const s = Math.max(cw/img.width, ch/img.height);
+            const dw = img.width * s;
+            const dh = img.height * s;
+            const dx = cx + (cw - dw)/2;
+            const dy = cy + (ch - dh)/2;
+            fctx.drawImage(img, dx, dy, dw, dh);
+
+            const grad = fctx.createLinearGradient(cx,cy,cx+cw,cy+ch);
+            grad.addColorStop(0, "rgba(255,255,255,.18)");
+            grad.addColorStop(0.65, "rgba(255,255,255,0)");
+            grad.addColorStop(1, "rgba(0,0,0,.08)");
+            fctx.fillStyle = grad;
+            fctx.fillRect(cx,cy,cw,ch);
+
+            fctx.restore();
+            applyMono(fctx,W,H);
+          };
+          img.src = state.avatar.committedDataURL;
+        } else {
+          fctx.fillStyle = "rgba(16,17,15,.55)";
+          fctx.font = "800 20px ui-sans-serif, system-ui";
+          fctx.textAlign = "center";
+          fctx.textBaseline = "middle";
+          fctx.fillText("NO AVATAR", W/2, H/2);
+          fctx.restore();
+          applyMono(fctx,W,H);
+        }
+      };
+
+      // ----- Navigation -----
+      const goNext = async () => {
+        if (state.step === 3) return;
+
+        // Auto-skip community if checked
+        if (state.step === 2 && state.community.skip) {
+          // allow finish
+        }
+
+        // validate current
+        const ok = validateStep(state.step);
+        updateCompletenessUI();
+        updateDossierStatus();
+
+        if (!ok) {
+          formFootHint.textContent = "راجع الحقول المظللة لإكمال المرحلة.";
+          mobileHint.textContent = "راجع الحقول المظللة لإكمال المرحلة.";
+          return;
+        }
+
+        // mark done
+        setStageDone(state.step, true);
+
+        // If on identity and avatar is selected but not committed, auto-commit if suggested selected
+        if (state.step === 1 && !state.avatar.committedDataURL) {
+          if (state.avatar.mode === "suggested" && state.avatar.suggestedId != null) {
+            await commitCurrentAvatar();
+          }
+        }
+
+        if (state.step < 2) {
+          setCurrentStep(state.step + 1);
+          return;
+        }
+
+        // Finish -> success
+        setCurrentStep(3);
+        renderSuccess();
+      };
+
+      const goBack = () => {
+        if (state.step <= 0) return;
+        if (state.step === 3) return;
+        setCurrentStep(state.step - 1);
+      };
+
+      // ----- Mobile strip toggle -----
+      strip.btn.addEventListener("click", () => {
+        const open = strip.body.classList.toggle("hidden") === false;
+        strip.chevron.style.transform = open ? "rotate(180deg)" : "rotate(0deg)";
+      });
+
+      // ----- Events: Enrollment -----
+      email.addEventListener("input", () => {
+        const v = email.value.trim();
+        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        setWrapState("#wrapEmail", ok || !v ? true : false, "#errEmail");
+        updateSummary();
+      });
+
+      password.addEventListener("input", () => {
+        updatePassUI();
+        // also validate confirm
+        const okConfirm = !!confirm.value && confirm.value === password.value;
+        if (confirm.value) setWrapState("#wrapConfirm", okConfirm, "#errConfirm");
+      });
+
+      confirm.addEventListener("input", () => {
+        const okConfirm = !!confirm.value && confirm.value === password.value;
+        setWrapState("#wrapConfirm", okConfirm, "#errConfirm");
+        updateSummary();
+      });
+
+      togglePass.addEventListener("click", () => {
+        const isPw = password.type === "password";
+        password.type = isPw ? "text" : "password";
+        confirm.type = isPw ? "text" : "password";
+        togglePass.textContent = isPw ? "إخفاء" : "إظهار";
+      });
+
+      // ----- Events: Identity -----
+      displayName.addEventListener("input", () => {
+        const ok = displayName.value.trim().length >= 2;
+        if (displayName.value.trim()) setWrapState("#wrapDisplay", ok, "#errDisplay");
+        updateSummary();
+      });
+
+      username.addEventListener("input", () => {
+        state.username = username.value.trim();
+        checkUsername(state.username);
+        updateSummary();
+      });
+
+      // ----- Mono toggle -----
+      monoToggle.addEventListener("change", () => {
+        state.mono = !!monoToggle.checked;
+        $("#monoLabel").textContent = state.mono ? "أبيض وأسود" : "ملون";
+        renderAvatarCanvas();
+        if (state.avatar.committedDataURL) {
+          // re-commit to reflect mono change
+          commitCurrentAvatar().catch(() => {});
+        }
+        updateSummary();
+      });
+
+      // ----- Suggested actions -----
+      useSuggested.addEventListener("click", async () => {
+        if (state.avatar.mode !== "suggested" || state.avatar.suggestedId == null) {
+          avatarState.textContent = "اختر مقترحًا أولًا.";
+          avatarState.className = "text-[12px] err";
+          return;
+        }
+        await commitCurrentAvatar();
+        // auto-advance if identity ready
+        maybeAutoAdvanceIdentity();
+      });
+
+      randomSuggested.addEventListener("click", () => {
+        buildSuggested();
+      });
+
+      // ----- Upload actions -----
+      upload.addEventListener("change", () => {
+        const f = upload.files && upload.files[0];
+        if (!f) return;
+
+        const img = new Image();
+        img.onload = () => {
+          state.avatar.mode = "upload";
+          state.avatar.uploadImg = img;
+          state.avatar.ox = 0; state.avatar.oy = 0;
+          state.avatar.zoom = 1;
+          zoom.value = "1";
+          state.avatar.committedDataURL = null;
+          avatarState.textContent = "تم رفع صورة — اضبط القص ثم اعتمد.";
+          avatarState.className = "text-[12px] muted";
+
+          // unselect suggested rings
+          $$("#suggestedGrid button").forEach(b => b.classList.remove("ring-4","ring-black/30"));
+          renderAvatarCanvas();
+          updateSummary();
+        };
+        img.onerror = () => {
+          avatarState.textContent = "تعذر قراءة الصورة.";
+          avatarState.className = "text-[12px] err";
+        };
+
+        const reader = new FileReader();
+        reader.onload = () => { img.src = reader.result; };
+        reader.readAsDataURL(f);
+      });
+
+      clearUpload.addEventListener("click", () => {
+        upload.value = "";
+        state.avatar.uploadImg = null;
+        if (state.avatar.mode === "upload") state.avatar.mode = "none";
+        state.avatar.ox = 0; state.avatar.oy = 0;
+        state.avatar.zoom = 1;
+        zoom.value = "1";
+        state.avatar.committedDataURL = null;
+        avatarState.textContent = "غير معتمدة";
+        avatarState.className = "text-[12px] muted";
+        renderAvatarCanvas();
+        updateSummary();
+      });
+
+      commitAvatar.addEventListener("click", async () => {
+        if (state.avatar.mode === "none") {
+          avatarState.textContent = "اختر مقترحًا أو ارفع صورة أولًا.";
+          avatarState.className = "text-[12px] err";
+          return;
+        }
+        if (state.avatar.mode === "upload" && !state.avatar.uploadImg) {
+          avatarState.textContent = "ارفع صورة أولًا.";
+          avatarState.className = "text-[12px] err";
+          return;
+        }
+        await commitCurrentAvatar();
+        maybeAutoAdvanceIdentity();
+      });
+
+      // ----- Community skip -----
+      skipCommunity.addEventListener("change", () => {
+        state.community.skip = !!skipCommunity.checked;
+
+        // disable/enable community controls
+        const dis = state.community.skip;
+        $$("#mentorGrid input, #typeGrid input, #genreChips button").forEach(el => el.disabled = dis);
+        mentorHint.textContent = dis ? "تم التخطي — يمكنك الإنهاء الآن." : "اختياري. اختيار 2 يرفع اكتمال الملف.";
+        mentorHint.className = "mt-3 text-[12px] " + (dis ? "ok" : "muted");
+
+        updateCompletenessUI();
+        updateSummary();
+      });
+
+      // ----- Tabs allow nav to completed/previous only -----
+      tabs.forEach((t,i) => {
+        t.addEventListener("click", async () => {
+          // You can always go back; going forward requires validation up to that step
+          if (i <= state.step) {
+            setCurrentStep(i);
+            return;
+          }
+          // to move forward, validate current step first
+          const ok = validateStep(state.step);
+          if (!ok) return;
+          // if leaving identity and suggested selected not committed -> auto-commit
+          if (state.step === 1 && !state.avatar.committedDataURL && state.avatar.mode === "suggested" && state.avatar.suggestedId != null) {
+            await commitCurrentAvatar();
+          }
+          setCurrentStep(i);
+        });
+      });
+
+      // ----- Actions wiring -----
+      backDesktop.addEventListener("click", goBack);
+      backMobile.addEventListener("click", goBack);
+      nextDesktop.addEventListener("click", goNext);
+      nextMobile.addEventListener("click", goNext);
+
+      // Prevent default submit
+      $("#regForm").addEventListener("submit", (e) => e.preventDefault());
+
+      // ----- Print -----
+      printBtn?.addEventListener("click", () => window.print());
+      printCard?.addEventListener("click", () => window.print());
+
+      // Restart
+      restart?.addEventListener("click", () => {
+        // soft reset
+        location.reload();
+      });
+
+      // ----- Initialize -----
+      const init = () => {
+        // Polyfill for roundRect if missing
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+          CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+            const rr = typeof r === "number" ? {tl:r,tr:r,br:r,bl:r} : r;
+            this.beginPath();
+            this.moveTo(x + rr.tl, y);
+            this.lineTo(x + w - rr.tr, y);
+            this.quadraticCurveTo(x + w, y, x + w, y + rr.tr);
+            this.lineTo(x + w, y + h - rr.br);
+            this.quadraticCurveTo(x + w, y + h, x + w - rr.br, y + h);
+            this.lineTo(x + rr.bl, y + h);
+            this.quadraticCurveTo(x, y + h, x, y + h - rr.bl);
+            this.lineTo(x, y + rr.tl);
+            this.quadraticCurveTo(x, y, x + rr.tl, y);
+            this.closePath();
+            return this;
+          };
+        }
+
+        // fileNo
+        dossier.fileNo?.textContent = state.fileNo;
+        strip.fileNo.textContent = state.fileNo;
+        fileNoMini.textContent = state.fileNo;
+        fileNoInput.value = state.fileNo;
+
+        // suggested
+        buildSuggested();
+
+        // community
+        renderMentors();
+        renderTypes();
+        renderGenres();
+        updateMentorCount();
+
+        // initial canvas
+        renderAvatarCanvas();
+
+        // password UI
+        updatePassUI();
+
+        // initial summary
+        updateSummary();
+
+        // defaults
+        setUserStatus("idle", "حروف/أرقام/شرطة سفلية فقط (3–15).");
+        setStageDone(0, false); setStageDone(1, false); setStageDone(2, false);
+
+        // step start
+        setCurrentStep(0);
+      };
+
+      init();
+
+      // Keep dossier time updated (lightweight)
+      setInterval(() => {
+        if (dossier.time) dossier.time.textContent = fmtTime();
+      }, 15000);
+    })();
+  </script>
+</body>
+</html>

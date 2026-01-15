@@ -1,0 +1,1669 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>7 gpt</title>
+
+  <!-- Tailwind config (must come before CDN script) -->
+  <script>
+    tailwind = {
+      config: {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              neon: {
+                cyan: "#22d3ee",
+                magenta: "#ff3fd1",
+                lime: "#a3ff12",
+                ink: "#070A12",
+                panel: "#0B1020",
+              }
+            },
+            boxShadow: {
+              neon: "0 0 0 1px rgba(34,211,238,.45), 0 0 35px rgba(34,211,238,.15), 0 0 70px rgba(255,63,209,.10)",
+              neonStrong: "0 0 0 1px rgba(255,63,209,.55), 0 0 45px rgba(255,63,209,.18), 0 0 95px rgba(163,255,18,.10)",
+              lift: "0 12px 38px rgba(0,0,0,.55)"
+            },
+            keyframes: {
+              glowPulse: {
+                "0%, 100%": { filter: "drop-shadow(0 0 10px rgba(34,211,238,.35)) drop-shadow(0 0 18px rgba(255,63,209,.20))" },
+                "50%":      { filter: "drop-shadow(0 0 18px rgba(34,211,238,.55)) drop-shadow(0 0 28px rgba(255,63,209,.30))" }
+              },
+              speedLines: {
+                "0%": { transform: "translateX(-18%) skewX(-12deg)", opacity: ".0" },
+                "20%": { opacity: ".85" },
+                "100%": { transform: "translateX(18%) skewX(-12deg)", opacity: "0" }
+              },
+              scanlines: {
+                "0%": { backgroundPosition: "0 0" },
+                "100%": { backgroundPosition: "0 120px" }
+              },
+              glitch: {
+                "0%, 100%": { transform: "translate(0,0)" },
+                "10%": { transform: "translate(-1px, 0)" },
+                "20%": { transform: "translate(2px, 0)" },
+                "30%": { transform: "translate(-2px, 1px)" },
+                "40%": { transform: "translate(1px, -1px)" },
+                "50%": { transform: "translate(0, 1px)" },
+                "60%": { transform: "translate(2px, -1px)" },
+                "70%": { transform: "translate(-1px, 0)" },
+                "80%": { transform: "translate(1px, 1px)" },
+                "90%": { transform: "translate(-2px, 0)" }
+              },
+              confettiFall: {
+                "0%": { transform: "translateY(-20px) rotate(0deg)", opacity: "0" },
+                "10%": { opacity: "1" },
+                "100%": { transform: "translateY(520px) rotate(540deg)", opacity: "0" }
+              }
+            },
+            animation: {
+              glowPulse: "glowPulse 1.15s ease-in-out infinite",
+              speedLines: "speedLines .45s ease-out 1",
+              scanlines: "scanlines 1.6s linear infinite",
+              glitch: "glitch .7s steps(2, end) infinite",
+              confettiFall: "confettiFall 1.8s ease-out infinite"
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root{
+      --c: 34 211 238;     /* cyan */
+      --m: 255 63 209;     /* magenta */
+      --l: 163 255 18;     /* lime */
+      --ink: 7 10 18;
+      --panel: 11 16 32;
+    }
+
+    /* Subtle animated background: grid + particles (CSS only) */
+    body{
+      background:
+        radial-gradient(900px 500px at 20% 10%, rgba(var(--m),.16), transparent 60%),
+        radial-gradient(850px 500px at 85% 35%, rgba(var(--c),.16), transparent 60%),
+        radial-gradient(700px 500px at 50% 85%, rgba(var(--l),.10), transparent 60%),
+        linear-gradient(180deg, rgb(var(--ink)), rgb(2 6 23));
+      overflow-x: hidden;
+    }
+    .bg-grid::before{
+      content:"";
+      position:fixed;
+      inset:-2px;
+      pointer-events:none;
+      opacity:.22;
+      background:
+        linear-gradient(to right, rgba(34,211,238,.10) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,63,209,.09) 1px, transparent 1px);
+      background-size: 44px 44px;
+      filter: drop-shadow(0 0 10px rgba(34,211,238,.12));
+      mask-image: radial-gradient(circle at 50% 35%, black 20%, transparent 72%);
+      z-index:-2;
+    }
+    .bg-particles::after{
+      content:"";
+      position:fixed;
+      inset:-10px;
+      pointer-events:none;
+      z-index:-1;
+      opacity:.25;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(34,211,238,.9) 1px, transparent 2px),
+        radial-gradient(circle at 30% 80%, rgba(255,63,209,.9) 1px, transparent 2px),
+        radial-gradient(circle at 70% 25%, rgba(163,255,18,.9) 1px, transparent 2px),
+        radial-gradient(circle at 85% 70%, rgba(34,211,238,.9) 1px, transparent 2px),
+        radial-gradient(circle at 45% 50%, rgba(255,63,209,.7) 1px, transparent 2px);
+      background-size: 240px 240px, 280px 280px, 320px 320px, 360px 360px, 420px 420px;
+      animation: drift 9s ease-in-out infinite alternate;
+      filter: blur(.2px);
+    }
+    @keyframes drift{
+      0%   { transform: translate3d(0,0,0) }
+      100% { transform: translate3d(18px,-14px,0) }
+    }
+
+    /* Neon border helpers */
+    .neon-border{
+      position:relative;
+      border: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(11,16,32,.92), rgba(11,16,32,.72));
+      backdrop-filter: blur(10px);
+    }
+    .neon-border::before{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      border-radius: 18px;
+      padding:1px;
+      background: linear-gradient(90deg,
+        rgba(var(--c),.9),
+        rgba(var(--m),.9),
+        rgba(var(--l),.75)
+      );
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      opacity:.55;
+      pointer-events:none;
+    }
+
+    /* Speed lines overlay */
+    .speed-lines{
+      position:absolute;
+      inset: -12px;
+      pointer-events:none;
+      z-index: 30;
+      opacity:0;
+    }
+    .speed-lines.on{
+      opacity:1;
+      animation: speedLines .45s ease-out 1;
+    }
+    .speed-lines::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(90deg,
+          transparent 0%,
+          rgba(255,255,255,.0) 35%,
+          rgba(34,211,238,.30) 38%,
+          rgba(255,63,209,.25) 42%,
+          rgba(255,255,255,.0) 50%,
+          rgba(163,255,18,.22) 56%,
+          transparent 70%
+        );
+      transform: skewX(-12deg);
+      filter: blur(.2px);
+    }
+
+    /* Micro interactions */
+    .lift{
+      transition: transform .22s ease-out, box-shadow .22s ease-out, filter .22s ease-out;
+    }
+    .lift:hover{
+      transform: translateY(-3px);
+      box-shadow: 0 12px 38px rgba(0,0,0,.55), 0 0 0 1px rgba(34,211,238,.20);
+    }
+
+    .tap{
+      transition: transform .08s ease-out, filter .18s ease-out;
+    }
+    .tap:active{
+      transform: scale(.98);
+      filter: brightness(1.12);
+    }
+
+    /* Confetti */
+    .confetti{
+      position:absolute;
+      inset: 0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index: 10;
+    }
+    .confetti span{
+      position:absolute;
+      top:-20px;
+      width: 10px;
+      height: 14px;
+      border-radius: 2px;
+      opacity: 0;
+      filter: drop-shadow(0 0 10px rgba(255,255,255,.15));
+      animation: confettiFall 1.8s ease-out infinite;
+    }
+    .confetti span:nth-child(3n){ width: 8px; height: 10px; border-radius: 999px; }
+    .confetti span:nth-child(4n){ width: 6px; height: 16px; border-radius: 2px; }
+
+    /* Success scanlines overlay */
+    .scanlines{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,.06) 0px,
+          rgba(255,255,255,.06) 1px,
+          transparent 2px,
+          transparent 6px
+        );
+      opacity:.18;
+      mix-blend-mode: overlay;
+      animation: scanlines 1.6s linear infinite;
+    }
+
+    /* Reduce motion support */
+    .reduce-motion *,
+    .reduce-motion *::before,
+    .reduce-motion *::after{
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+    @media (prefers-reduced-motion: reduce){
+      *{ animation: none !important; transition: none !important; }
+    }
+
+    /* Stagger helpers */
+    .stagger > *{
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    .stagger.in > *{
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity .25s ease-out, transform .25s ease-out;
+    }
+
+    /* Custom scrollbars (subtle) */
+    ::-webkit-scrollbar{ height: 10px; width: 10px; }
+    ::-webkit-scrollbar-thumb{ background: rgba(34,211,238,.20); border-radius: 999px; }
+    ::-webkit-scrollbar-track{ background: rgba(255,255,255,.04); }
+
+    /* Input glow focus */
+    .glow-focus:focus{
+      outline: none;
+      box-shadow:
+        0 0 0 1px rgba(34,211,238,.55),
+        0 0 0 4px rgba(34,211,238,.12),
+        0 0 22px rgba(255,63,209,.12);
+      border-color: rgba(34,211,238,.55) !important;
+    }
+  </style>
+</head>
+
+<body class="dark bg-grid bg-particles text-slate-100">
+  <div class="bg-grid bg-particles"></div>
+
+  <main class="min-h-screen flex items-stretch sm:items-center justify-center px-3 py-4 sm:py-10">
+    <section class="w-full max-w-[980px] relative">
+      <!-- Header -->
+      <header class="flex items-center justify-between gap-3 mb-3 sm:mb-5">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl neon-border shadow-neon flex items-center justify-center">
+            <span class="text-lg font-black tracking-tight bg-clip-text text-transparent"
+                  style="background-image: linear-gradient(90deg, rgba(var(--c),1), rgba(var(--m),1), rgba(var(--l),1));">
+              ⚡
+            </span>
+          </div>
+          <div>
+            <div class="text-sm text-slate-300">منصة أنمي/كوميكس</div>
+            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">
+              إنشاء حساب <span class="text-neon-cyan">Neon</span> —
+              <span class="text-neon-magenta">Shonen</span> Energy
+            </h1>
+          </div>
+        </div>
+
+        <!-- Reduce Motion Toggle -->
+        <button id="reduceMotionBtn"
+                class="tap lift px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs sm:text-sm text-slate-200"
+                aria-pressed="false" type="button">
+          Reduce Motion: <span id="rmState" class="font-semibold text-neon-lime">Off</span>
+        </button>
+      </header>
+
+      <!-- Card -->
+      <div class="neon-border rounded-2xl shadow-neon overflow-hidden relative">
+        <div class="speed-lines" id="speedLines"></div>
+
+        <!-- Top bar: stepper -->
+        <div class="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 border-b border-white/10 bg-gradient-to-b from-white/5 to-transparent">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <div class="text-xs sm:text-sm text-slate-300">
+                الخطوة <span id="stepNum" class="text-slate-100 font-bold">1</span> / <span id="stepTotal">5</span>
+              </div>
+              <span class="text-slate-500">•</span>
+              <div id="stepTitle" class="text-sm sm:text-base font-bold tracking-tight text-slate-100">
+                الأساسيات
+              </div>
+            </div>
+
+            <!-- Dots -->
+            <div class="flex items-center gap-2" aria-label="مؤشر الخطوات">
+              <div id="dots" class="flex items-center gap-1.5"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="relative">
+          <div class="px-4 sm:px-6 py-4 sm:py-6">
+            <form id="signupForm" class="space-y-5" autocomplete="on">
+              <!-- STEP 1 -->
+              <section data-step="0" class="step">
+                <div class="stagger space-y-4" data-stagger>
+                  <div class="lift rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <h2 class="text-lg sm:text-xl font-extrabold">1) Basic — الأساسيات</h2>
+                        <p class="text-sm text-slate-300 mt-1">بداية قوية… مثل أول حلقة 🔥</p>
+                      </div>
+                      <span class="text-xs px-2 py-1 rounded-lg border border-white/10 bg-black/20 text-slate-300">
+                        Dark + Neon
+                      </span>
+                    </div>
+
+                    <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                      <div>
+                        <label class="text-sm text-slate-200" for="email">الإيميل</label>
+                        <input id="email" name="email" type="email" class="glow-focus mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-slate-100 placeholder:text-slate-500"
+                               placeholder="name@example.com" required />
+                        <p class="mt-1 text-xs text-slate-400">سنستخدمه لتأكيد حسابك.</p>
+                      </div>
+                      <div>
+                        <label class="text-sm text-slate-200" for="password">كلمة المرور</label>
+                        <input id="password" name="password" type="password" class="glow-focus mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-slate-100 placeholder:text-slate-500"
+                               placeholder="••••••••" required minlength="8" />
+                        <p class="mt-1 text-xs text-slate-400">يفضل 8+ أحرف مع رموز/أرقام.</p>
+                      </div>
+                    </div>
+
+                    <!-- Strength -->
+                    <div class="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="text-sm font-semibold text-slate-200">قوة كلمة المرور</div>
+                        <div id="strengthLabel" class="text-xs font-bold text-slate-400">ابدأ بالكتابة…</div>
+                      </div>
+                      <div class="mt-3 h-3 rounded-full bg-white/5 overflow-hidden border border-white/10">
+                        <div id="strengthBar" class="h-full w-0 transition-all duration-300 ease-out"
+                             style="background: linear-gradient(90deg, rgba(var(--m),1), rgba(var(--c),1), rgba(var(--l),1));"></div>
+                      </div>
+                      <div class="mt-3 grid sm:grid-cols-3 gap-2 text-xs text-slate-400">
+                        <div class="rounded-xl border border-white/10 bg-white/5 px-3 py-2" id="ruleLen">• طول مناسب</div>
+                        <div class="rounded-xl border border-white/10 bg-white/5 px-3 py-2" id="ruleVar">• تنويع الأحرف</div>
+                        <div class="rounded-xl border border-white/10 bg-white/5 px-3 py-2" id="ruleSym">• رموز/أرقام</div>
+                      </div>
+                      <div class="mt-3 text-xs text-slate-400">
+                        تلميح: <span class="text-slate-200">مزج عربي/إنجليزي + أرقام</span> يعطي قوة أعلى 😄
+                      </div>
+                    </div>
+
+                    <div id="basicError" class="mt-3 hidden text-sm text-red-300"></div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 2 -->
+              <section data-step="1" class="step hidden">
+                <div class="stagger space-y-4" data-stagger>
+                  <div class="lift rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <h2 class="text-lg sm:text-xl font-extrabold">2) General — معلومات عامة</h2>
+                        <p class="text-sm text-slate-300 mt-1">اسمك هو الـ Aura… خلّيه فخم ✨</p>
+                      </div>
+                      <span class="text-xs px-2 py-1 rounded-lg border border-white/10 bg-black/20 text-slate-300">
+                        Unique check
+                      </span>
+                    </div>
+
+                    <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                      <div>
+                        <label class="text-sm text-slate-200" for="username">اسم المستخدم</label>
+                        <div class="mt-1 relative">
+                          <input id="username" name="username" type="text"
+                                 class="glow-focus w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-slate-100 placeholder:text-slate-500 pr-10"
+                                 placeholder="مثال: dev.luffy" required />
+                          <div class="absolute top-1/2 -translate-y-1/2 left-3 text-xs" aria-live="polite" id="userStatusBadge">
+                            <span class="px-2 py-1 rounded-lg border border-white/10 bg-white/5 text-slate-400">—</span>
+                          </div>
+                        </div>
+                        <p class="mt-1 text-xs text-slate-400">تحقق محاكي — سريع مثل الهجوم الخاطف ⚡</p>
+                      </div>
+
+                      <div>
+                        <label class="text-sm text-slate-200" for="location">الموقع</label>
+                        <input id="location" name="location" type="text"
+                               class="glow-focus mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-slate-100 placeholder:text-slate-500"
+                               placeholder="مثال: القدس / دبي / القاهرة" />
+                        <p class="mt-1 text-xs text-slate-400">اختياري — يساعد في اقتراح مجتمع قريب.</p>
+                      </div>
+                    </div>
+
+                    <div class="mt-4">
+                      <label class="text-sm text-slate-200" for="bio">Bio — نبذة</label>
+                      <textarea id="bio" name="bio" rows="4"
+                                class="glow-focus mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-slate-100 placeholder:text-slate-500"
+                                placeholder="قول لنا عن ذوقك: شونن؟ سيينن؟ مانجا؟ أنمي؟"></textarea>
+                      <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
+                        <span>خفيفة… بس مؤثرة.</span>
+                        <span id="bioCount">0/160</span>
+                      </div>
+                    </div>
+
+                    <div id="generalError" class="mt-3 hidden text-sm text-red-300"></div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 3 -->
+              <section data-step="2" class="step hidden">
+                <div class="stagger space-y-4" data-stagger>
+                  <div class="lift rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <h2 class="text-lg sm:text-xl font-extrabold">3) Avatar — الأفاتار</h2>
+                        <p class="text-sm text-slate-300 mt-1">اختر هويتك… النيون يليق بك 🌌</p>
+                      </div>
+                      <span class="text-xs px-2 py-1 rounded-lg border border-white/10 bg-black/20 text-slate-300">
+                        Upload + Grid
+                      </span>
+                    </div>
+
+                    <div class="mt-4 grid lg:grid-cols-3 gap-4">
+                      <!-- Preview -->
+                      <div class="rounded-2xl border border-white/10 bg-black/25 p-4">
+                        <div class="text-sm font-semibold text-slate-200">المعاينة</div>
+                        <div class="mt-3 flex items-center gap-3">
+                          <div class="relative">
+                            <div class="w-16 h-16 rounded-2xl border border-white/10 bg-black/30 overflow-hidden shadow-neon">
+                              <img id="avatarPreview" alt="Avatar preview" class="w-full h-full object-cover" />
+                            </div>
+                            <div class="absolute -bottom-2 -right-2 text-[10px] px-2 py-1 rounded-lg border border-white/10 bg-white/5 text-slate-300">
+                              Neon
+                            </div>
+                          </div>
+                          <div class="text-xs text-slate-400 leading-relaxed">
+                            اختر من الشبكة أو ارفع صورة.<br/>
+                            <span class="text-slate-200">تأثير ring + micro zoom</span> عند الاختيار.
+                          </div>
+                        </div>
+
+                        <div class="mt-4">
+                          <label class="text-sm text-slate-200" for="avatarUpload">رفع صورة</label>
+                          <input id="avatarUpload" type="file" accept="image/*"
+                                 class="mt-2 block w-full text-xs text-slate-300
+                                        file:mr-3 file:rounded-xl file:border-0
+                                        file:bg-white/10 file:px-4 file:py-2 file:text-slate-100
+                                        hover:file:bg-white/15" />
+                          <p class="mt-2 text-xs text-slate-400">اختياري — يمكنك تغييره لاحقًا.</p>
+                        </div>
+                      </div>
+
+                      <!-- Grid -->
+                      <div class="lg:col-span-2 rounded-2xl border border-white/10 bg-black/25 p-4">
+                        <div class="flex items-center justify-between gap-3">
+                          <div class="text-sm font-semibold text-slate-200">Neon Anime Avatars</div>
+                          <div class="text-xs text-slate-400">اختيار سريع</div>
+                        </div>
+
+                        <div id="avatarGrid" class="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-3"></div>
+
+                        <div id="avatarError" class="mt-3 hidden text-sm text-red-300"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 4 -->
+              <section data-step="3" class="step hidden">
+                <div class="stagger space-y-4" data-stagger>
+                  <div class="lift rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <h2 class="text-lg sm:text-xl font-extrabold">4) Follow — تابع مشاهير</h2>
+                        <p class="text-sm text-slate-300 mt-1">ابدأ بتشكيل دائرة طاقتك… متابعة = باور 🔥</p>
+                      </div>
+                      <div class="text-xs px-2 py-1 rounded-lg border border-white/10 bg-black/20 text-slate-300">
+                        Following: <span id="followCount" class="font-bold text-neon-lime">0</span>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 grid sm:grid-cols-3 gap-3 items-center">
+                      <div class="sm:col-span-2">
+                        <label class="text-sm text-slate-200" for="celebsSearch">بحث</label>
+                        <input id="celebsSearch" type="text"
+                               class="glow-focus mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-slate-100 placeholder:text-slate-500"
+                               placeholder="اكتب اسم… (مثال: Gojo)" />
+                      </div>
+
+                      <div>
+                        <div class="text-sm text-slate-200">تصنيف</div>
+                        <div class="mt-2 flex gap-2">
+                          <button type="button" class="tabBtn tap lift flex-1 px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-xs text-slate-200"
+                                  data-tab="all">الكل</button>
+                          <button type="button" class="tabBtn tap lift flex-1 px-3 py-2 rounded-xl border border-white/10 bg-black/30 text-xs text-slate-200"
+                                  data-tab="anime">أنمي</button>
+                          <button type="button" class="tabBtn tap lift flex-1 px-3 py-2 rounded-xl border border-white/10 bg-black/30 text-xs text-slate-200"
+                                  data-tab="manga">مانجا</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 rounded-2xl border border-white/10 bg-black/25 p-3 sm:p-4">
+                      <div class="text-xs text-slate-400 mb-2">تلميح: زر المتابعة يتحول إلى “Following” مع Glow.</div>
+                      <div id="celebsList" class="grid sm:grid-cols-2 gap-3"></div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 5 -->
+              <section data-step="4" class="step hidden">
+                <div class="stagger space-y-4" data-stagger>
+                  <div class="lift rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <h2 class="text-lg sm:text-xl font-extrabold">5) Interests — اهتمامات</h2>
+                        <p class="text-sm text-slate-300 mt-1">اختر اهتماماتك… وعيّن مستوى الهوس 😈</p>
+                      </div>
+                      <span class="text-xs px-2 py-1 rounded-lg border border-white/10 bg-black/20 text-slate-300">
+                        Chips + Slider
+                      </span>
+                    </div>
+
+                    <div class="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <div class="flex items-center justify-between">
+                        <div class="text-sm font-semibold text-slate-200">اختياراتك</div>
+                        <div class="text-xs text-slate-400"><span id="interestCount">0</span> مختارة</div>
+                      </div>
+                      <div id="interestsChips" class="mt-3 flex flex-wrap gap-2"></div>
+                    </div>
+
+                    <div class="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="text-sm font-semibold text-slate-200">مستوى الهوس</div>
+                        <div id="maniaLabel" class="text-xs font-bold text-neon-cyan">Casual</div>
+                      </div>
+                      <input id="mania" type="range" min="0" max="100" value="35"
+                             class="mt-3 w-full accent-cyan-300" />
+                      <div class="mt-2 flex justify-between text-xs text-slate-400">
+                        <span>Casual</span><span>Hardcore</span>
+                      </div>
+                    </div>
+
+                    <!-- Inline Review -->
+                    <div class="mt-4 rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-black/25 p-4">
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="text-sm font-semibold text-slate-200">Review — ملخص قبل الإرسال</div>
+                        <span class="text-[11px] px-2 py-1 rounded-lg border border-white/10 bg-black/20 text-slate-300">
+                          Inline
+                        </span>
+                      </div>
+                      <div class="mt-3 grid sm:grid-cols-2 gap-3 text-sm">
+                        <div class="rounded-xl border border-white/10 bg-black/25 p-3">
+                          <div class="text-xs text-slate-400">الحساب</div>
+                          <div class="mt-1 font-semibold text-slate-100" id="revEmail">—</div>
+                          <div class="mt-1 text-xs text-slate-400" id="revUsername">—</div>
+                        </div>
+                        <div class="rounded-xl border border-white/10 bg-black/25 p-3">
+                          <div class="text-xs text-slate-400">الشخصية</div>
+                          <div class="mt-1 font-semibold text-slate-100" id="revBio">—</div>
+                          <div class="mt-1 text-xs text-slate-400" id="revLocation">—</div>
+                        </div>
+                        <div class="rounded-xl border border-white/10 bg-black/25 p-3">
+                          <div class="text-xs text-slate-400">المتابعات</div>
+                          <div class="mt-1 font-semibold text-slate-100" id="revFollows">—</div>
+                          <div class="mt-1 text-xs text-slate-400">يمكن تغييرها لاحقًا.</div>
+                        </div>
+                        <div class="rounded-xl border border-white/10 bg-black/25 p-3">
+                          <div class="text-xs text-slate-400">الاهتمامات</div>
+                          <div class="mt-1 font-semibold text-slate-100" id="revInterests">—</div>
+                          <div class="mt-1 text-xs text-slate-400" id="revMania">—</div>
+                        </div>
+                      </div>
+                      <div id="finalError" class="mt-3 hidden text-sm text-red-300"></div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- SUCCESS -->
+              <section data-step="5" class="step hidden">
+                <div class="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-black/30 p-5 sm:p-6">
+                  <div class="scanlines"></div>
+                  <div class="confetti" id="confetti"></div>
+
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <h2 class="text-xl sm:text-2xl font-extrabold">
+                        <span class="inline-block animate-glitch">تم إنشاء الحساب</span> ✅
+                      </h2>
+                      <p class="text-sm text-slate-300 mt-1">طاقتك وصلت… واستعد لرحلة النيون!</p>
+                    </div>
+                    <div class="px-3 py-2 rounded-xl border border-white/10 bg-black/30 shadow-neon">
+                      <div class="text-xs text-slate-400">User</div>
+                      <div id="successUser" class="text-sm font-bold text-slate-100">—</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-5 grid sm:grid-cols-2 gap-3">
+                    <div class="rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <div class="text-xs text-slate-400">Status</div>
+                      <div class="mt-1 font-semibold text-slate-100">Active • Neon Ready</div>
+                      <div class="mt-2 text-xs text-slate-400">Glitch خفيف + scanline لطيف (CSS).</div>
+                    </div>
+                    <div class="rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <div class="text-xs text-slate-400">Next</div>
+                      <div class="mt-1 font-semibold text-slate-100">ابدأ باستكشاف الأنمي والمانجا!</div>
+                      <div class="mt-2 text-xs text-slate-400">CTA واضح… بدون تعقيد.</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-6">
+                    <button id="ctaBtn" type="button"
+                            class="tap lift w-full rounded-2xl px-4 py-4 text-sm sm:text-base font-extrabold shadow-neonStrong border border-white/10"
+                            style="background: linear-gradient(90deg, rgba(var(--c),.18), rgba(var(--m),.18), rgba(var(--l),.16));">
+                      ابدأ رحلتك!
+                      <span class="opacity-80">→</span>
+                    </button>
+                    <p class="mt-3 text-xs text-slate-400">
+                      ملاحظة: هذا نموذج واجهة فقط — البيانات Mock.
+                    </p>
+                  </div>
+                </div>
+              </section>
+            </form>
+          </div>
+
+          <!-- Sticky bottom actions (mobile-first) -->
+          <div class="sticky bottom-0 z-40 border-t border-white/10 bg-black/45 backdrop-blur-xl">
+            <div class="px-4 sm:px-6 py-3 flex items-center gap-2">
+              <button id="backBtn" type="button"
+                      class="tap lift flex-1 rounded-2xl px-4 py-3 text-sm font-bold border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
+                      disabled>
+                رجوع
+              </button>
+
+              <button id="nextBtn" type="button"
+                      class="tap lift flex-[1.3] rounded-2xl px-4 py-3 text-sm font-extrabold border border-white/10 shadow-neon"
+                      style="background: linear-gradient(90deg, rgba(var(--m),.18), rgba(var(--c),.18), rgba(var(--l),.16));">
+                التالي
+              </button>
+            </div>
+
+            <div class="px-4 sm:px-6 pb-3 -mt-1 flex items-center justify-between text-xs text-slate-400">
+              <span>Swipe: اسحب يمين/يسار للتنقل (موبايل)</span>
+              <span id="hint" class="text-slate-300">⚡ انتقالات سريعة لكن ناعمة</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer tiny -->
+      <div class="mt-3 text-center text-xs text-slate-500">
+        Neon Cyber • Shonen Energy • RTL Ready
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // -------------------------
+    // Mock Data
+    // -------------------------
+    const takenUsernames = new Set([
+      "luffy", "devluffy", "gojo", "naruto", "itachi", "mikasa", "eren", "guts", "rukia", "kenshin", "dev.luffy"
+    ]);
+
+    const avatarSvgs = Array.from({ length: 12 }).map((_, i) => ({
+      id: `a${i+1}`,
+      name: `Avatar ${i+1}`,
+      svg: makeNeonAvatarSVG(i)
+    }));
+
+    const celebs = [
+      { id:"c1", name:"Satoru Gojo", category:"anime", followers: 8421931 },
+      { id:"c2", name:"Levi Ackerman", category:"anime", followers: 6214490 },
+      { id:"c3", name:"Itachi Uchiha", category:"anime", followers: 7372101 },
+      { id:"c4", name:"Guts (Berserk)", category:"manga", followers: 4592210 },
+      { id:"c5", name:"Makima", category:"manga", followers: 5123000 },
+      { id:"c6", name:"Miyamoto Musashi", category:"manga", followers: 2985000 },
+      { id:"c7", name:"Neon Artist: RIN", category:"anime", followers: 1200400 },
+      { id:"c8", name:"Manga Editor: KAI", category:"manga", followers: 940500 },
+    ];
+
+    const interestPool = [
+      "شونن","سيينن","إيسيكاي","قتالات","دراما","رعب","خيال علمي","كوميديا","رياضة","موسيقى",
+      "مانهوا","ويب تون","جوجوتسو","ون بيس","ناروتو","بليتش","برسيرك","تشينسو مان","هايكيو","فيفي"
+    ];
+
+    // -------------------------
+    // DOM
+    // -------------------------
+    const body = document.body;
+    const steps = [...document.querySelectorAll(".step")];
+    const stepNumEl = document.getElementById("stepNum");
+    const stepTotalEl = document.getElementById("stepTotal");
+    const stepTitleEl = document.getElementById("stepTitle");
+    const dotsEl = document.getElementById("dots");
+
+    const speedLines = document.getElementById("speedLines");
+    const backBtn = document.getElementById("backBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const hintEl = document.getElementById("hint");
+
+    // Step 1
+    const emailEl = document.getElementById("email");
+    const passwordEl = document.getElementById("password");
+    const strengthBar = document.getElementById("strengthBar");
+    const strengthLabel = document.getElementById("strengthLabel");
+    const ruleLen = document.getElementById("ruleLen");
+    const ruleVar = document.getElementById("ruleVar");
+    const ruleSym = document.getElementById("ruleSym");
+    const basicError = document.getElementById("basicError");
+
+    // Step 2
+    const usernameEl = document.getElementById("username");
+    const userStatusBadge = document.getElementById("userStatusBadge");
+    const bioEl = document.getElementById("bio");
+    const locationEl = document.getElementById("location");
+    const bioCount = document.getElementById("bioCount");
+    const generalError = document.getElementById("generalError");
+
+    // Step 3
+    const avatarGrid = document.getElementById("avatarGrid");
+    const avatarUpload = document.getElementById("avatarUpload");
+    const avatarPreview = document.getElementById("avatarPreview");
+    const avatarError = document.getElementById("avatarError");
+
+    // Step 4
+    const celebsList = document.getElementById("celebsList");
+    const celebsSearch = document.getElementById("celebsSearch");
+    const tabBtns = [...document.querySelectorAll(".tabBtn")];
+    const followCountEl = document.getElementById("followCount");
+
+    // Step 5
+    const interestsChips = document.getElementById("interestsChips");
+    const interestCountEl = document.getElementById("interestCount");
+    const maniaEl = document.getElementById("mania");
+    const maniaLabel = document.getElementById("maniaLabel");
+    const finalError = document.getElementById("finalError");
+
+    // Review
+    const revEmail = document.getElementById("revEmail");
+    const revUsername = document.getElementById("revUsername");
+    const revBio = document.getElementById("revBio");
+    const revLocation = document.getElementById("revLocation");
+    const revFollows = document.getElementById("revFollows");
+    const revInterests = document.getElementById("revInterests");
+    const revMania = document.getElementById("revMania");
+
+    // Success
+    const confettiEl = document.getElementById("confetti");
+    const successUser = document.getElementById("successUser");
+    const ctaBtn = document.getElementById("ctaBtn");
+
+    // Reduce Motion
+    const reduceMotionBtn = document.getElementById("reduceMotionBtn");
+    const rmState = document.getElementById("rmState");
+
+    // -------------------------
+    // State
+    // -------------------------
+    const titles = ["الأساسيات", "معلومات عامة", "الأفاتار", "متابعة", "اهتمامات", "تم!"];
+    let current = 0;
+    let reduceMotion = false;
+
+    let usernameStatus = "idle"; // idle | checking | available | taken
+    let usernameTimer = null;
+
+    let selectedAvatar = avatarSvgs[0]?.id || null;
+    let uploadedAvatarDataUrl = "";
+
+    const follows = new Set(); // celeb ids
+    let activeTab = "all";
+
+    const selectedInterests = new Set();
+    let mania = Number(maniaEl.value || 35);
+
+    // -------------------------
+    // Init UI
+    // -------------------------
+    stepTotalEl.textContent = "5";
+    buildDots();
+    renderAvatarGrid();
+    initDefaultAvatarPreview();
+    renderCelebs();
+    renderInterests();
+    updateManiaLabel();
+    updateReview();
+
+    // Stagger in first step
+    setTimeout(() => runStagger(current), 30);
+
+    // -------------------------
+    // Navigation
+    // -------------------------
+    backBtn.addEventListener("click", () => {
+      if (current <= 0) return;
+      goTo(current - 1);
+    });
+
+    nextBtn.addEventListener("click", async () => {
+      pulseNext();
+      const ok = await validateStep(current);
+      if (!ok) return;
+
+      if (current === 4) {
+        // finish -> success
+        goTo(5);
+        fireConfetti();
+        return;
+      }
+      goTo(current + 1);
+    });
+
+    function goTo(idx){
+      // Speed lines
+      if (!reduceMotion) {
+        speedLines.classList.remove("on");
+        void speedLines.offsetWidth;
+        speedLines.classList.add("on");
+      }
+
+      // hide old
+      steps[current].classList.add("hidden");
+      steps[idx].classList.remove("hidden");
+
+      current = idx;
+      updateStepper();
+      updateButtons();
+
+      // stagger animate
+      runStagger(current);
+
+      // update hints
+      hintEl.textContent =
+        current === 0 ? "⚡ اجعلها قوية من البداية" :
+        current === 1 ? "✨ اسم مستخدم… له هيبة" :
+        current === 2 ? "🌌 اختر أفاتار يليق بك" :
+        current === 3 ? "🔥 تابع لتقوى توصياتك" :
+        current === 4 ? "😈 الهوس… هو الأساس" :
+        "✅ جاهز للانطلاق";
+    }
+
+    function updateStepper(){
+      stepNumEl.textContent = Math.min(current + 1, 5);
+      stepTitleEl.textContent = titles[current] || "—";
+      [...dotsEl.children].forEach((dot, i) => {
+        dot.classList.toggle("opacity-100", i <= current && i < 5);
+        dot.classList.toggle("opacity-40", !(i <= current && i < 5));
+        dot.classList.toggle("ring-2", i === current && i < 5);
+      });
+    }
+
+    function updateButtons(){
+      backBtn.disabled = current === 0 || current === 5;
+      if (current === 4) {
+        nextBtn.textContent = "إنهاء وإرسال";
+      } else if (current === 5) {
+        nextBtn.textContent = "تم";
+        nextBtn.disabled = true;
+        backBtn.disabled = true;
+      } else {
+        nextBtn.textContent = "التالي";
+        nextBtn.disabled = false;
+      }
+    }
+
+    function buildDots(){
+      dotsEl.innerHTML = "";
+      for (let i=0; i<5; i++){
+        const d = document.createElement("button");
+        d.type = "button";
+        d.className = "tap w-2.5 h-2.5 rounded-full bg-white/20 ring-offset-2 ring-offset-transparent opacity-40";
+        d.style.background = "linear-gradient(90deg, rgba(34,211,238,.8), rgba(255,63,209,.7), rgba(163,255,18,.6))";
+        d.addEventListener("click", async () => {
+          if (i === current) return;
+          // allow jumping backwards freely; forward requires validate chain
+          if (i < current) return goTo(i);
+
+          // validate progressively
+          for (let s=current; s<i; s++){
+            const ok = await validateStep(s);
+            if (!ok) return;
+          }
+          goTo(i);
+        });
+        dotsEl.appendChild(d);
+      }
+      updateStepper();
+    }
+
+    // -------------------------
+    // Motion helpers
+    // -------------------------
+    function pulseNext(){
+      if (reduceMotion) return;
+      nextBtn.classList.add("animate-glowPulse");
+      setTimeout(() => nextBtn.classList.remove("animate-glowPulse"), 500);
+    }
+
+    function runStagger(stepIdx){
+      const container = steps[stepIdx].querySelector("[data-stagger]");
+      if (!container) return;
+      container.classList.remove("in");
+
+      const kids = [...container.children];
+      kids.forEach((el, i) => {
+        el.style.transitionDelay = reduceMotion ? "0ms" : `${Math.min(i * 70, 260)}ms`;
+      });
+
+      // allow reflow then animate
+      requestAnimationFrame(() => container.classList.add("in"));
+    }
+
+    // -------------------------
+    // Step 1: Password Strength
+    // -------------------------
+    passwordEl.addEventListener("input", () => {
+      const p = passwordEl.value || "";
+      const score = passwordScore(p); // 0..100
+
+      strengthBar.style.width = `${score}%`;
+
+      const label =
+        score === 0 ? "ابدأ بالكتابة…" :
+        score < 35 ? "ضعيفة" :
+        score < 70 ? "جيدة" :
+        score < 90 ? "قوية" : "أسطورية";
+
+      strengthLabel.textContent = label;
+
+      markRule(ruleLen, p.length >= 8);
+      markRule(ruleVar, hasVariety(p));
+      markRule(ruleSym, /[\d\W_]/.test(p));
+
+      // dynamic glow
+      strengthBar.style.filter = reduceMotion ? "none" : `drop-shadow(0 0 10px rgba(34,211,238,.20))`;
+    });
+
+    function passwordScore(p){
+      if (!p) return 0;
+      let s = 0;
+      const len = p.length;
+      s += Math.min(len * 6, 42);
+
+      if (/[a-z]/.test(p)) s += 10;
+      if (/[A-Z]/.test(p)) s += 12;
+      if (/[0-9]/.test(p)) s += 12;
+      if (/[\W_]/.test(p)) s += 14;
+
+      // bonus for mix of scripts
+      if (/[ء-ي]/.test(p) && /[a-zA-Z]/.test(p)) s += 10;
+
+      // penalty for too common patterns
+      if (/^(\w)\1+$/.test(p)) s -= 18;
+      if (/password|123456|qwerty|111111/i.test(p)) s -= 30;
+
+      s = Math.max(0, Math.min(100, s));
+      return s;
+    }
+
+    function hasVariety(p){
+      let types = 0;
+      if (/[a-z]/.test(p)) types++;
+      if (/[A-Z]/.test(p)) types++;
+      if (/[ء-ي]/.test(p)) types++;
+      if (/[0-9]/.test(p)) types++;
+      if (/[\W_]/.test(p)) types++;
+      return types >= 3;
+    }
+
+    function markRule(el, ok){
+      el.classList.toggle("text-slate-200", ok);
+      el.classList.toggle("text-slate-400", !ok);
+      el.style.boxShadow = ok && !reduceMotion
+        ? "0 0 0 1px rgba(34,211,238,.25), 0 0 20px rgba(255,63,209,.10)"
+        : "none";
+      el.style.borderColor = ok ? "rgba(34,211,238,.35)" : "rgba(255,255,255,.10)";
+    }
+
+    // -------------------------
+    // Step 2: Username check (simulated)
+    // -------------------------
+    usernameEl.addEventListener("input", () => {
+      const value = (usernameEl.value || "").trim();
+      setUserStatus("checking");
+      if (usernameTimer) clearTimeout(usernameTimer);
+
+      usernameTimer = setTimeout(() => {
+        // simple rules
+        if (!value || value.length < 3) {
+          setUserStatus("taken", "قصير جدًا");
+          return;
+        }
+        // simulate delay + availability
+        const normalized = value.toLowerCase();
+        const isTaken = takenUsernames.has(normalized) || /admin|owner|support/i.test(value) || (Math.random() < 0.12);
+        setUserStatus(isTaken ? "taken" : "available");
+      }, 550);
+    });
+
+    function setUserStatus(state, customText){
+      usernameStatus = state;
+      const base = document.createElement("span");
+      base.className = "px-2 py-1 rounded-lg border text-[11px] font-bold";
+      if (state === "checking") {
+        base.classList.add("border-white/10","bg-white/5","text-slate-300");
+        base.textContent = "Checking…";
+      } else if (state === "available") {
+        base.style.borderColor = "rgba(163,255,18,.35)";
+        base.style.background = "rgba(163,255,18,.08)";
+        base.style.color = "rgb(210 255 170)";
+        base.textContent = "Available";
+      } else if (state === "taken") {
+        base.style.borderColor = "rgba(255,63,209,.35)";
+        base.style.background = "rgba(255,63,209,.10)";
+        base.style.color = "rgb(255 180 235)";
+        base.textContent = customText ? `Taken • ${customText}` : "Taken";
+      } else {
+        base.classList.add("border-white/10","bg-white/5","text-slate-400");
+        base.textContent = "—";
+      }
+      userStatusBadge.innerHTML = "";
+      userStatusBadge.appendChild(base);
+    }
+
+    // Bio count
+    bioEl.addEventListener("input", () => {
+      const t = bioEl.value || "";
+      if (t.length > 160) bioEl.value = t.slice(0,160);
+      bioCount.textContent = `${(bioEl.value||"").length}/160`;
+      updateReview();
+    });
+
+    locationEl.addEventListener("input", updateReview);
+    emailEl.addEventListener("input", updateReview);
+    usernameEl.addEventListener("input", updateReview);
+
+    // -------------------------
+    // Step 3: Avatars
+    // -------------------------
+    function renderAvatarGrid(){
+      avatarGrid.innerHTML = "";
+      avatarSvgs.forEach((a) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "tap lift relative rounded-2xl border border-white/10 bg-black/30 p-3 overflow-hidden";
+        btn.setAttribute("data-avid", a.id);
+        btn.setAttribute("aria-label", a.name);
+
+        btn.innerHTML = `
+          <div class="absolute inset-0 opacity-0 pointer-events-none ringLayer"></div>
+          <div class="w-full aspect-square rounded-xl border border-white/10 bg-black/25 overflow-hidden">
+            ${a.svg}
+          </div>
+          <div class="mt-2 text-[11px] text-slate-300 truncate">${a.name}</div>
+        `;
+
+        btn.addEventListener("click", () => {
+          selectedAvatar = a.id;
+          uploadedAvatarDataUrl = ""; // selecting from grid overrides upload preview unless re-uploaded
+          syncAvatarSelection();
+          setAvatarPreviewFromSVG(a.svg);
+          updateReview();
+        });
+
+        avatarGrid.appendChild(btn);
+      });
+      syncAvatarSelection();
+    }
+
+    function initDefaultAvatarPreview(){
+      selectedAvatar = avatarSvgs[0]?.id || null;
+      setAvatarPreviewFromSVG(avatarSvgs[0]?.svg || "");
+      syncAvatarSelection();
+      updateReview();
+    }
+
+    function syncAvatarSelection(){
+      [...avatarGrid.querySelectorAll("button[data-avid]")].forEach(btn => {
+        const on = btn.getAttribute("data-avid") === selectedAvatar;
+        btn.style.transform = on && !reduceMotion ? "translateY(-2px) scale(1.02)" : "";
+        btn.style.boxShadow = on ? "0 0 0 1px rgba(34,211,238,.45), 0 0 30px rgba(255,63,209,.12)" : "";
+        btn.style.borderColor = on ? "rgba(34,211,238,.45)" : "rgba(255,255,255,.10)";
+        const ring = btn.querySelector(".ringLayer");
+        if (ring) {
+          ring.style.opacity = on ? "1" : "0";
+          ring.style.background = on
+            ? "radial-gradient(300px 160px at 50% 35%, rgba(34,211,238,.18), rgba(255,63,209,.08), transparent 55%)"
+            : "";
+        }
+      });
+    }
+
+    avatarUpload.addEventListener("change", async () => {
+      const file = avatarUpload.files?.[0];
+      if (!file) return;
+      const url = await readFileAsDataURL(file);
+      uploadedAvatarDataUrl = url;
+      avatarPreview.src = url;
+      // keep selectedAvatar as-is, but upload takes precedence in preview
+      syncAvatarSelection();
+      updateReview();
+    });
+
+    function setAvatarPreviewFromSVG(svgMarkup){
+      // convert inline svg to data URI
+      const svg = svgMarkup.trim();
+      const encoded = encodeURIComponent(svg)
+        .replace(/'/g, "%27")
+        .replace(/"/g, "%22");
+      const data = `data:image/svg+xml;charset=utf-8,${encoded}`;
+      avatarPreview.src = data;
+    }
+
+    function readFileAsDataURL(file){
+      return new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result || ""));
+        r.onerror = rej;
+        r.readAsDataURL(file);
+      });
+    }
+
+    // -------------------------
+    // Step 4: Celebs follow
+    // -------------------------
+    tabBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeTab = btn.dataset.tab || "all";
+        tabBtns.forEach(b => {
+          const active = (b.dataset.tab || "all") === activeTab;
+          b.style.background = active ? "rgba(255,255,255,.10)" : "rgba(0,0,0,.30)";
+          b.style.borderColor = active ? "rgba(34,211,238,.30)" : "rgba(255,255,255,.10)";
+          b.style.boxShadow = active ? "0 0 0 1px rgba(34,211,238,.20), 0 0 20px rgba(255,63,209,.10)" : "none";
+        });
+        renderCelebs();
+        updateReview();
+      });
+    });
+    // set default active
+    tabBtns[0].click();
+
+    celebsSearch.addEventListener("input", () => renderCelebs());
+
+    function renderCelebs(){
+      const q = (celebsSearch.value || "").trim().toLowerCase();
+      const filtered = celebs.filter(c => {
+        const inTab = activeTab === "all" ? true : c.category === activeTab;
+        const inSearch = !q ? true : c.name.toLowerCase().includes(q);
+        return inTab && inSearch;
+      });
+
+      celebsList.innerHTML = "";
+      if (!filtered.length){
+        celebsList.innerHTML = `
+          <div class="sm:col-span-2 rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-slate-300">
+            لا توجد نتائج… جرّب كلمة أخرى.
+          </div>
+        `;
+      } else {
+        filtered.forEach(c => {
+          const card = document.createElement("div");
+          card.className = "lift rounded-2xl border border-white/10 bg-black/30 p-4 flex items-center justify-between gap-3";
+          const following = follows.has(c.id);
+
+          card.innerHTML = `
+            <div class="min-w-0">
+              <div class="font-extrabold text-slate-100 truncate">${escapeHTML(c.name)}</div>
+              <div class="mt-1 text-xs text-slate-400">
+                ${c.category === "anime" ? "أنمي" : "مانجا"} • ${formatFollowers(c.followers)} متابع
+              </div>
+            </div>
+            <button type="button"
+              class="tap followBtn px-3 py-2 rounded-xl border text-xs font-extrabold whitespace-nowrap"
+              data-id="${c.id}">
+              ${following ? "Following" : "Follow"}
+            </button>
+          `;
+
+          const btn = card.querySelector(".followBtn");
+          applyFollowButtonStyle(btn, following);
+
+          btn.addEventListener("click", () => {
+            const id = btn.getAttribute("data-id");
+            const now = follows.has(id);
+            if (now) follows.delete(id); else follows.add(id);
+            const updated = follows.has(id);
+            btn.textContent = updated ? "Following" : "Follow";
+            applyFollowButtonStyle(btn, updated);
+            updateFollowCount();
+            updateReview();
+          });
+
+          celebsList.appendChild(card);
+        });
+      }
+
+      updateFollowCount();
+    }
+
+    function applyFollowButtonStyle(btn, on){
+      if (!btn) return;
+      if (on){
+        btn.style.borderColor = "rgba(163,255,18,.40)";
+        btn.style.background = "rgba(163,255,18,.10)";
+        btn.style.color = "rgb(220 255 190)";
+        btn.style.boxShadow = reduceMotion ? "none" : "0 0 0 1px rgba(163,255,18,.18), 0 0 22px rgba(34,211,238,.10)";
+      } else {
+        btn.style.borderColor = "rgba(255,255,255,.12)";
+        btn.style.background = "rgba(255,255,255,.06)";
+        btn.style.color = "rgb(226 232 240)";
+        btn.style.boxShadow = "none";
+      }
+    }
+
+    function updateFollowCount(){
+      followCountEl.textContent = String(follows.size);
+    }
+
+    function formatFollowers(n){
+      if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+      if (n >= 1_000) return (n/1_000).toFixed(1).replace(/\.0$/, "") + "K";
+      return String(n);
+    }
+
+    // -------------------------
+    // Step 5: Interests
+    // -------------------------
+    function renderInterests(){
+      interestsChips.innerHTML = "";
+      interestPool.forEach(tag => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "tap lift px-3 py-2 rounded-2xl border text-xs font-extrabold";
+        chip.textContent = tag;
+
+        const on = selectedInterests.has(tag);
+        styleChip(chip, on);
+
+        chip.addEventListener("click", () => {
+          if (selectedInterests.has(tag)) selectedInterests.delete(tag);
+          else selectedInterests.add(tag);
+          styleChip(chip, selectedInterests.has(tag));
+          interestCountEl.textContent = String(selectedInterests.size);
+          updateReview();
+        });
+
+        interestsChips.appendChild(chip);
+      });
+
+      interestCountEl.textContent = String(selectedInterests.size);
+    }
+
+    function styleChip(chip, on){
+      if (on){
+        chip.style.borderColor = "rgba(34,211,238,.40)";
+        chip.style.background = "linear-gradient(90deg, rgba(34,211,238,.12), rgba(255,63,209,.10), rgba(163,255,18,.08))";
+        chip.style.color = "rgb(241 245 249)";
+        chip.style.boxShadow = reduceMotion ? "none" : "0 0 0 1px rgba(34,211,238,.18), 0 0 22px rgba(255,63,209,.10)";
+        chip.style.transform = reduceMotion ? "" : "translateY(-1px)";
+      } else {
+        chip.style.borderColor = "rgba(255,255,255,.12)";
+        chip.style.background = "rgba(255,255,255,.06)";
+        chip.style.color = "rgb(226 232 240)";
+        chip.style.boxShadow = "none";
+        chip.style.transform = "";
+      }
+    }
+
+    maniaEl.addEventListener("input", () => {
+      mania = Number(maniaEl.value || 0);
+      updateManiaLabel();
+      updateReview();
+    });
+
+    function updateManiaLabel(){
+      const v = mania;
+      const label =
+        v < 25 ? "Casual" :
+        v < 55 ? "Focused" :
+        v < 80 ? "Addicted" : "Hardcore";
+
+      maniaLabel.textContent = label;
+      maniaLabel.style.color =
+        v < 25 ? "rgb(148 163 184)" :
+        v < 55 ? "rgb(34 211 238)" :
+        v < 80 ? "rgb(255 63 209)" : "rgb(163 255 18)";
+    }
+
+    // -------------------------
+    // Review
+    // -------------------------
+    function updateReview(){
+      revEmail.textContent = (emailEl.value || "—").trim() || "—";
+
+      const u = (usernameEl.value || "").trim();
+      const statusText =
+        !u ? "—" :
+        usernameStatus === "available" ? `@${u} • Available` :
+        usernameStatus === "taken" ? `@${u} • Taken` :
+        usernameStatus === "checking" ? `@${u} • Checking…` :
+        `@${u}`;
+
+      revUsername.textContent = statusText;
+
+      const bio = (bioEl.value || "").trim();
+      revBio.textContent = bio ? truncate(bio, 90) : "—";
+      const loc = (locationEl.value || "").trim();
+      revLocation.textContent = loc ? `الموقع: ${loc}` : "الموقع: —";
+
+      const followNames = celebs
+        .filter(c => follows.has(c.id))
+        .slice(0, 4)
+        .map(c => c.name);
+
+      revFollows.textContent = follows.size
+        ? `${follows.size} متابعة — ${followNames.join("، ")}${follows.size > 4 ? "…" : ""}`
+        : "—";
+
+      const interests = [...selectedInterests].slice(0, 8);
+      revInterests.textContent = interests.length ? interests.join(" • ") + (selectedInterests.size > 8 ? " …" : "") : "—";
+
+      revMania.textContent = `الـ Mania: ${maniaEl.value}/100 • ${maniaLabel.textContent}`;
+
+      // success card
+      successUser.textContent = u ? `@${u}` : (revEmail.textContent !== "—" ? revEmail.textContent : "NeonUser");
+    }
+
+    function truncate(s, n){
+      return s.length <= n ? s : s.slice(0, n-1) + "…";
+    }
+
+    // -------------------------
+    // Validation (per step)
+    // -------------------------
+    async function validateStep(stepIdx){
+      // clear errors
+      hideError(basicError);
+      hideError(generalError);
+      hideError(avatarError);
+      hideError(finalError);
+
+      if (stepIdx === 0){
+        const email = (emailEl.value || "").trim();
+        const pass = passwordEl.value || "";
+        if (!email || !/^\S+@\S+\.\S+$/.test(email)){
+          showError(basicError, "اكتب إيميل صحيح.");
+          return false;
+        }
+        if (pass.length < 8){
+          showError(basicError, "كلمة المرور يجب أن تكون 8 أحرف أو أكثر.");
+          return false;
+        }
+        const score = passwordScore(pass);
+        if (score < 35){
+          showError(basicError, "قوة كلمة المرور ضعيفة… زوّدها شوي (أرقام/رموز/تنويع).");
+          return false;
+        }
+        updateReview();
+        return true;
+      }
+
+      if (stepIdx === 1){
+        const u = (usernameEl.value || "").trim();
+        if (!u || u.length < 3){
+          showError(generalError, "اسم المستخدم لازم يكون 3 أحرف أو أكثر.");
+          return false;
+        }
+
+        // if still checking, wait briefly
+        if (usernameStatus === "checking"){
+          showError(generalError, "لحظة… نتحقق من توفر اسم المستخدم.");
+          await wait(450);
+        }
+
+        if (usernameStatus !== "available"){
+          showError(generalError, "اسم المستخدم غير متاح. جرّب تعديل بسيط (أرقام/نقطة).");
+          return false;
+        }
+
+        updateReview();
+        return true;
+      }
+
+      if (stepIdx === 2){
+        // Avatar is optional (grid default already)
+        if (!selectedAvatar && !uploadedAvatarDataUrl){
+          showError(avatarError, "اختر أفاتار واحد على الأقل.");
+          return false;
+        }
+        updateReview();
+        return true;
+      }
+
+      if (stepIdx === 3){
+        // Follow optional — always ok
+        updateReview();
+        return true;
+      }
+
+      if (stepIdx === 4){
+        if (selectedInterests.size < 2){
+          showError(finalError, "اختر على الأقل اهتمامين عشان توصياتك تكون نار 🔥");
+          return false;
+        }
+        updateReview();
+        return true;
+      }
+
+      return true;
+    }
+
+    function showError(el, msg){
+      el.textContent = msg;
+      el.classList.remove("hidden");
+      if (!reduceMotion){
+        el.style.filter = "drop-shadow(0 0 14px rgba(255,63,209,.18))";
+      }
+    }
+    function hideError(el){
+      el.classList.add("hidden");
+      el.textContent = "";
+    }
+    function wait(ms){
+      return new Promise(r => setTimeout(r, ms));
+    }
+
+    // -------------------------
+    // Success Confetti (CSS)
+    // -------------------------
+    function fireConfetti(){
+      if (reduceMotion) return;
+
+      confettiEl.innerHTML = "";
+      const colors = [
+        "rgba(34,211,238,.95)",
+        "rgba(255,63,209,.95)",
+        "rgba(163,255,18,.90)",
+        "rgba(255,255,255,.90)"
+      ];
+      const pieces = 36;
+
+      for (let i=0; i<pieces; i++){
+        const s = document.createElement("span");
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.9;
+        const dur = 1.2 + Math.random() * 1.0;
+        const color = colors[i % colors.length];
+        s.style.left = left + "%";
+        s.style.background = color;
+        s.style.animationDelay = delay + "s";
+        s.style.animationDuration = dur + "s";
+        s.style.opacity = "1";
+        confettiEl.appendChild(s);
+      }
+    }
+
+    // CTA
+    ctaBtn.addEventListener("click", () => {
+      // Demo: reset flow
+      resetAll();
+      goTo(0);
+      window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    });
+
+    function resetAll(){
+      // state reset (demo)
+      emailEl.value = "";
+      passwordEl.value = "";
+      strengthBar.style.width = "0%";
+      strengthLabel.textContent = "ابدأ بالكتابة…";
+      markRule(ruleLen, false);
+      markRule(ruleVar, false);
+      markRule(ruleSym, false);
+
+      usernameEl.value = "";
+      setUserStatus("idle");
+      bioEl.value = "";
+      bioCount.textContent = "0/160";
+      locationEl.value = "";
+
+      follows.clear();
+      celebsSearch.value = "";
+      activeTab = "all";
+      tabBtns[0].click();
+
+      selectedInterests.clear();
+      maniaEl.value = "35";
+      mania = 35;
+      updateManiaLabel();
+      renderInterests();
+
+      uploadedAvatarDataUrl = "";
+      selectedAvatar = avatarSvgs[0]?.id || null;
+      initDefaultAvatarPreview();
+      updateReview();
+
+      confettiEl.innerHTML = "";
+      nextBtn.disabled = false;
+      updateButtons();
+    }
+
+    // -------------------------
+    // Reduce Motion Toggle
+    // -------------------------
+    reduceMotionBtn.addEventListener("click", () => {
+      reduceMotion = !reduceMotion;
+      body.classList.toggle("reduce-motion", reduceMotion);
+      reduceMotionBtn.setAttribute("aria-pressed", String(reduceMotion));
+      rmState.textContent = reduceMotion ? "On" : "Off";
+      rmState.className = "font-semibold " + (reduceMotion ? "text-slate-200" : "text-neon-lime");
+
+      // remove active animated classes
+      speedLines.classList.remove("on");
+      nextBtn.classList.remove("animate-glowPulse");
+
+      // refresh styles that depend on motion
+      syncAvatarSelection();
+      renderCelebs();
+      [...interestsChips.children].forEach(chip => {
+        const on = selectedInterests.has(chip.textContent);
+        styleChip(chip, on);
+      });
+      updateReview();
+    });
+
+    // -------------------------
+    // Swipe navigation (mobile)
+    // -------------------------
+    let touchX = 0, touchY = 0;
+    const swipeZone = document.querySelector(".neon-border.rounded-2xl");
+
+    swipeZone.addEventListener("touchstart", (e) => {
+      if (!e.touches?.length) return;
+      touchX = e.touches[0].clientX;
+      touchY = e.touches[0].clientY;
+    }, { passive: true });
+
+    swipeZone.addEventListener("touchend", async (e) => {
+      if (current === 5) return;
+      if (!touchX && !touchY) return;
+
+      const endTouch = e.changedTouches?.[0];
+      if (!endTouch) return;
+
+      const dx = endTouch.clientX - touchX;
+      const dy = endTouch.clientY - touchY;
+
+      // horizontal swipe only (avoid conflict with scroll)
+      if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy)) return;
+
+      if (dx < 0) {
+        // swipe left -> next
+        const ok = await validateStep(current);
+        if (!ok) return;
+        if (current === 4) {
+          goTo(5);
+          fireConfetti();
+        } else {
+          goTo(current + 1);
+        }
+      } else {
+        // swipe right -> back
+        if (current > 0) goTo(current - 1);
+      }
+    }, { passive: true });
+
+    // -------------------------
+    // Helpers
+    // -------------------------
+    function escapeHTML(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function makeNeonAvatarSVG(i){
+      // simple neon anime-ish placeholder SVGs (no external assets)
+      const hue = (i * 31) % 360;
+      const hue2 = (hue + 140) % 360;
+      const eye = (i % 3) + 1;
+      return `
+        <svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g${i}" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="hsl(${hue}, 100%, 60%)" stop-opacity="0.95"/>
+              <stop offset="1" stop-color="hsl(${hue2}, 100%, 60%)" stop-opacity="0.85"/>
+            </linearGradient>
+            <radialGradient id="r${i}" cx="35%" cy="25%" r="80%">
+              <stop offset="0" stop-color="rgba(255,255,255,.18)"/>
+              <stop offset="1" stop-color="rgba(0,0,0,0)"/>
+            </radialGradient>
+            <filter id="f${i}" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="rgba(34,211,238,.30)"/>
+              <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="rgba(255,63,209,.20)"/>
+            </filter>
+          </defs>
+
+          <rect x="0" y="0" width="120" height="120" rx="18" fill="rgba(0,0,0,.15)"/>
+          <circle cx="60" cy="62" r="38" fill="url(#g${i})" filter="url(#f${i})"/>
+          <path d="M32 55 C45 34, 75 34, 88 55 C78 48, 42 48, 32 55Z" fill="rgba(0,0,0,.22)"/>
+          <circle cx="48" cy="68" r="${eye+3}" fill="rgba(0,0,0,.55)"/>
+          <circle cx="72" cy="68" r="${eye+3}" fill="rgba(0,0,0,.55)"/>
+          <circle cx="47" cy="67" r="${Math.max(1,eye-1)}" fill="rgba(255,255,255,.85)"/>
+          <circle cx="71" cy="67" r="${Math.max(1,eye-1)}" fill="rgba(255,255,255,.85)"/>
+          <path d="M50 84 C58 90, 62 90, 70 84" stroke="rgba(0,0,0,.45)" stroke-width="4" stroke-linecap="round" fill="none"/>
+          <path d="M26 44 C35 25, 55 18, 78 26 C92 31, 99 44, 96 58 C88 44, 77 40, 60 41 C44 42, 35 45, 26 44Z"
+                fill="rgba(0,0,0,.22)"/>
+          <rect x="0" y="0" width="120" height="120" rx="18" fill="url(#r${i})"/>
+          <path d="M14 102 L106 102" stroke="rgba(255,255,255,.10)" stroke-width="2"/>
+        </svg>
+      `;
+    }
+
+    // Ensure review updates as user types (step 1/2)
+    passwordEl.addEventListener("input", updateReview);
+
+    // -------------------------
+    // Initial Stepper state
+    // -------------------------
+    updateStepper();
+    updateButtons();
+    updateReview();
+  </script>
+</body>
+</html>

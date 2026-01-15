@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>5</title>
+  <style>
+    :root{
+      --bg:#05060a;
+      --ink:#eaeaf7;
+      --muted:#a9a9c6;
+      --card:#0b0d14cc;
+      --stroke:#ffffff1f;
+      --energy:#7dfffb;
+      --fire:#ffb14a;
+      --rage:#ff3d7a;
+      --shadow: 0 22px 80px #000000aa;
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--ink);
+      background:
+        radial-gradient(1000px 700px at 15% 15%, #112044, transparent 55%),
+        radial-gradient(900px 700px at 75% 25%, #2a0d2d, transparent 60%),
+        radial-gradient(800px 600px at 45% 95%, #08302e, transparent 60%),
+        linear-gradient(180deg, #05060a, #070a12);
+      overflow:hidden;
+    }
+
+    /* subtle smoke/noise vibe */
+    .noise{
+      position:fixed; inset:-40%;
+      background:
+        radial-gradient(circle, #ffffff08 1px, transparent 2px) 0 0/120px 120px,
+        radial-gradient(circle, #ffffff05 1px, transparent 2px) 40px 70px/140px 140px;
+      opacity:.35;
+      animation: floaty 9s ease-in-out infinite alternate;
+      pointer-events:none;
+      mix-blend-mode: overlay;
+    }
+    @keyframes floaty{
+      from{transform: translate3d(-10px,-10px,0)}
+      to{transform: translate3d(12px,14px,0)}
+    }
+
+    .overlay{
+      position:fixed; inset:0;
+      background:#00000088;
+      backdrop-filter: blur(10px);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .18s ease;
+    }
+    .overlay.open{opacity:1; pointer-events:auto}
+
+    .modal{
+      position:fixed; left:50%; top:50%;
+      transform: translate(-50%,-45%) scale(.92);
+      width:min(720px, calc(100% - 28px));
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #0b0d14dd, #070810dd);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      opacity:0;
+      pointer-events:none;
+      transition: transform .28s cubic-bezier(.2,.9,.25,1.2), opacity .18s ease;
+      overflow:hidden;
+      outline:none;
+    }
+    .modal.open{
+      opacity:1;
+      pointer-events:auto;
+      transform: translate(-50%,-50%) scale(1);
+    }
+    .modal.closing{
+      opacity:0;
+      transform: translate(-50%,-48%) scale(.95);
+      transition: transform .18s ease, opacity .18s ease;
+    }
+
+    /* “slash” reveal */
+    .slash{
+      position:absolute; inset:-40% -20%;
+      background: linear-gradient(90deg, transparent, #ffffff12, transparent);
+      transform: rotate(-18deg);
+      translate:-60% 0;
+      animation: slash 2.8s cubic-bezier(.2,.8,.2,1) infinite;
+      pointer-events:none;
+    }
+    @keyframes slash{
+      0%{translate:-70% 0; opacity:.0}
+      18%{opacity:.55}
+      40%{opacity:.0}
+      100%{translate:120% 0; opacity:0}
+    }
+
+    .top{
+      padding:18px 18px 10px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
+    }
+    .sigil{
+      width:38px; height:38px; border-radius:14px;
+      background:
+        radial-gradient(circle at 30% 30%, #fff, #fff0 40%),
+        linear-gradient(135deg, var(--energy), var(--rage));
+      box-shadow: 0 0 0 1px #ffffff20 inset, 0 18px 42px #7dfffb22;
+      flex:0 0 auto;
+    }
+    .head{
+      display:flex; gap:12px; align-items:center;
+    }
+    h1{margin:0; font-size:16px; letter-spacing:.45px}
+    .sub{margin:4px 0 0; font-size:12px; color:var(--muted); max-width: 44ch}
+
+    .close{
+      width:40px;height:40px;border-radius:14px;
+      border:1px solid #ffffff22;
+      background:#0b0d14;
+      color:var(--ink);
+      cursor:pointer;
+      transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+    }
+    .close:hover{transform: translateY(-1px); border-color:#ffffff44; box-shadow: 0 16px 40px #00000055}
+    .close:active{transform: translateY(0) scale(.99)}
+    .close:focus-visible{outline:2px solid var(--energy); outline-offset:2px}
+
+    .actions{
+      padding: 0 18px 14px;
+      display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+    }
+    .meter{
+      display:flex; align-items:center; gap:8px;
+      font-size:12px; color:var(--muted);
+    }
+    .bar{
+      width:120px; height:8px; border-radius:999px;
+      background:#ffffff10;
+      border:1px solid #ffffff14;
+      overflow:hidden;
+    }
+    .fill{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, var(--energy), var(--fire), var(--rage));
+      transition: width .22s ease;
+    }
+
+    .powerBtn{
+      border:none;
+      cursor:pointer;
+      padding: 12px 14px;
+      border-radius: 14px;
+      color:#05060a;
+      font-weight:1000;
+      letter-spacing:.3px;
+      background: linear-gradient(135deg, var(--energy), var(--fire));
+      box-shadow: 0 16px 44px #7dfffb1b;
+      transition: transform .14s ease, filter .14s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .powerBtn::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(90deg, transparent, #ffffff33, transparent);
+      translate:-130% 0;
+      transition: translate .5s ease;
+    }
+    .powerBtn:hover{transform: translateY(-1px); filter:brightness(1.03)}
+    .powerBtn:hover::after{translate:130% 0}
+    .powerBtn:active{transform: translateY(0) scale(.99)}
+    .powerBtn:disabled{opacity:.55; cursor:not-allowed; filter:saturate(.8)}
+    .powerBtn:focus-visible{outline:2px solid #fff; outline-offset:2px}
+
+    .body{padding: 0 18px 18px}
+    .list{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px}
+
+    .row{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+      padding: 12px 12px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #0b0d14cc, #070810cc);
+      border:1px solid #ffffff1c;
+      transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .row::before{
+      content:"";
+      position:absolute; inset:-1px;
+      background:
+        radial-gradient(500px 200px at 20% 0%, #7dfffb22, transparent 60%),
+        radial-gradient(500px 220px at 80% 130%, #ff3d7a18, transparent 60%);
+      opacity:0;
+      transition: opacity .2s ease;
+      pointer-events:none;
+    }
+    .row:hover{transform: translateY(-1px); border-color:#ffffff33; box-shadow: 0 18px 40px #00000066}
+    .row:hover::before{opacity:1}
+
+    .left{display:flex; align-items:center; gap:12px; min-width:0}
+    .ava{
+      width:44px;height:44px;border-radius: 14px;
+      display:grid; place-items:center;
+      font-weight:1000;
+      color:#05060a;
+      background: linear-gradient(135deg, #fff, var(--energy));
+      box-shadow: 0 0 0 1px #ffffff26 inset;
+      flex:0 0 auto;
+    }
+    .meta{min-width:0}
+    .name{font-weight:1000; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .handle{font-size:12px; color:var(--muted)}
+    .tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+    .tag{
+      font-size:11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border:1px solid #ffffff1f;
+      background:#0b0d14aa;
+      color:#d9daf5;
+    }
+
+    .btn{
+      min-width: 116px;
+      border:1px solid #ffffff24;
+      background:#0b0d14;
+      color:var(--ink);
+      padding: 10px 12px;
+      border-radius: 14px;
+      cursor:pointer;
+      font-weight:1000;
+      transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .btn:hover{transform: translateY(-1px); border-color:#ffffff44; box-shadow: 0 14px 34px #00000066}
+    .btn:active{transform: translateY(0) scale(.99)}
+    .btn:focus-visible{outline:2px solid var(--energy); outline-offset:2px}
+    .btn.followed{
+      border-color:#7dfffb44;
+      background: linear-gradient(135deg, #0b0d14, #07221f);
+    }
+    .btn .small{display:block; font-size:11px; color:var(--muted); margin-top:2px}
+
+    .toast{
+      position:fixed;
+      left:50%; bottom:22px;
+      transform: translateX(-50%) translateY(10px);
+      background:#0b0d14f2;
+      border:1px solid #ffffff22;
+      border-radius:999px;
+      padding: 10px 14px;
+      box-shadow: 0 18px 44px #00000088;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .2s ease, transform .2s ease;
+      font-size:12px;
+    }
+    .toast.show{opacity:1; transform: translateX(-50%) translateY(0)}
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+
+  <div class="overlay" id="overlay"></div>
+
+  <section class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="title" tabindex="-1">
+    <div class="slash"></div>
+
+    <div class="top">
+      <div class="head">
+        <div class="sigil" aria-hidden="true"></div>
+        <div>
+          <h1 id="title">Recruit your squad</h1>
+          <p class="sub">Follow strong creators to unlock a better feed (no filler arcs).</p>
+        </div>
+      </div>
+      <button class="close" id="closeBtn" aria-label="Close">✕</button>
+    </div>
+
+    <div class="actions">
+      <div class="meter">
+        <span id="count">0 / 0</span>
+        <div class="bar" aria-hidden="true"><div class="fill" id="fill"></div></div>
+        <span>Power</span>
+      </div>
+      <button class="powerBtn" id="followAll">Power Up: Follow All</button>
+    </div>
+
+    <div class="body">
+      <ul class="list" id="list"></ul>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const overlay = document.getElementById("overlay");
+  const modal = document.getElementById("modal");
+  const closeBtn = document.getElementById("closeBtn");
+  const followAll = document.getElementById("followAll");
+  const list = document.getElementById("list");
+  const count = document.getElementById("count");
+  const fill = document.getElementById("fill");
+  const toast = document.getElementById("toast");
+
+  const squad = [
+    { name:"Arc Breaker", handle:"@arc.breaker", tags:["Reviews","Hot Takes","Seasonal"] },
+    { name:"Panel Runner", handle:"@panel.runner", tags:["Manga Cuts","Spoiler-Free","Pacing"] },
+    { name:"Blade Animator", handle:"@blade.anim", tags:["Sakuga","Keyframes","Cuts"] },
+    { name:"Lore Blacksmith", handle:"@lore.smith", tags:["Worldbuilding","Myth","Deep Dives"] },
+    { name:"Boss Theme DJ", handle:"@boss.theme", tags:["OST","Playlists","Hype"] },
+  ].map((x,i)=>({ ...x, id:i, followed:false }));
+
+  let toastTimer = null;
+  let lastFocus = null;
+
+  const initials = (n) => n.split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>toast.classList.remove("show"), 1400);
+  }
+
+  function update(){
+    const followed = squad.filter(s=>s.followed).length;
+    count.textContent = `${followed} / ${squad.length}`;
+    fill.style.width = `${(followed / squad.length) * 100}%`;
+    followAll.disabled = followed === squad.length;
+    followAll.textContent = followed === squad.length ? "Max Power ✓" : "Power Up: Follow All";
+  }
+
+  function render(){
+    list.innerHTML = "";
+    squad.forEach(s=>{
+      const li = document.createElement("li");
+      li.className = "row";
+      li.innerHTML = `
+        <div class="left">
+          <div class="ava" aria-hidden="true">${initials(s.name)}</div>
+          <div class="meta">
+            <div class="name" title="${s.name}">${s.name}</div>
+            <div class="handle">${s.handle}</div>
+            <div class="tags">${s.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+          </div>
+        </div>
+        <button class="btn ${s.followed ? "followed":""}" data-id="${s.id}" aria-pressed="${s.followed}">
+          ${s.followed ? "Following" : "Follow"}
+          <span class="small">${s.followed ? "Squad member" : "Add to squad"}</span>
+        </button>
+      `;
+      list.appendChild(li);
+    });
+
+    list.querySelectorAll(".btn").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const id = Number(btn.dataset.id);
+        const item = squad.find(x=>x.id===id);
+        item.followed = !item.followed;
+
+        // “impact” animation
+        btn.animate(
+          [{ transform:"translateY(0) scale(1)" },
+           { transform:"translateY(-1px) scale(1.07)" },
+           { transform:"translateY(0) scale(1)" }],
+          { duration: 190, easing:"cubic-bezier(.2,.9,.2,1)" }
+        );
+
+        showToast(item.followed ? `Joined: ${item.name}` : `Removed: ${item.name}`);
+        render();
+        update();
+      });
+    });
+
+    update();
+  }
+
+  function focusables(){
+    return [...modal.querySelectorAll("button,[tabindex]:not([tabindex='-1'])")]
+      .filter(el => !el.disabled && el.offsetParent !== null);
+  }
+  function trapTab(e){
+    if (e.key !== "Tab") return;
+    const f = focusables();
+    if (!f.length) return;
+    const first = f[0], last = f[f.length-1];
+    if (e.shiftKey && document.activeElement === first){
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last){
+      e.preventDefault(); first.focus();
+    }
+  }
+  function onKey(e){
+    if (e.key === "Escape") close();
+    trapTab(e);
+  }
+
+  function open(){
+    lastFocus = document.activeElement;
+    overlay.classList.add("open");
+    modal.classList.add("open");
+    requestAnimationFrame(()=>modal.focus());
+    document.addEventListener("keydown", onKey);
+  }
+  function close(){
+    modal.classList.add("closing");
+    overlay.classList.remove("open");
+    const done = () => {
+      modal.classList.remove("open","closing");
+      modal.removeEventListener("transitionend", done);
+      document.removeEventListener("keydown", onKey);
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    };
+    modal.addEventListener("transitionend", done);
+  }
+
+  overlay.addEventListener("click", close);
+  closeBtn.addEventListener("click", close);
+
+  followAll.addEventListener("click", ()=>{
+    squad.forEach(s=>s.followed=true);
+    showToast("Power surged. Following all!");
+    // little “screen shake”
+    modal.animate(
+      [{ transform:"translate(-50%,-50%) scale(1)" },
+       { transform:"translate(-50%,-50%) scale(1) translateX(-2px)" },
+       { transform:"translate(-50%,-50%) scale(1) translateX(2px)" },
+       { transform:"translate(-50%,-50%) scale(1)" }],
+      { duration: 220, easing:"ease-in-out" }
+    );
+    render();
+    update();
+  });
+
+  render();
+  open();
+})();
+</script>
+</body>
+</html>

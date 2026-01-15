@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime Character Creator — إنشاء شخصية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{
+      --aura: #7c3aed;          /* default aura */
+      --ink: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+
+      /* tab studio themes */
+      --t-identity-1: rgba(124,58,237,.55);
+      --t-identity-2: rgba(59,130,246,.40);
+
+      --t-look-1: rgba(236,72,153,.55);
+      --t-look-2: rgba(34,197,94,.35);
+
+      --t-social-1: rgba(245,158,11,.55);
+      --t-social-2: rgba(56,189,248,.35);
+
+      --t-taste-1: rgba(99,102,241,.55);
+      --t-taste-2: rgba(20,184,166,.35);
+    }
+
+    /* Studio background */
+    body{
+      background: #070913;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans Arabic", "Cairo", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      overflow-x: hidden;
+    }
+
+    .studio{
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      filter: saturate(1.15);
+    }
+
+    /* Gradient "shader-like" layer */
+    .studio::before{
+      content:"";
+      position:absolute;
+      inset:-10%;
+      background:
+        radial-gradient(1200px 700px at 15% 20%, rgba(255,255,255,.10), transparent 55%),
+        radial-gradient(900px 500px at 85% 30%, rgba(255,255,255,.07), transparent 55%),
+        radial-gradient(900px 600px at 40% 85%, rgba(255,255,255,.06), transparent 60%),
+        linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.35));
+      transform: translateZ(0);
+      opacity: .9;
+      animation: studioFloat 10s ease-in-out infinite;
+    }
+
+    /* Theme color wash based on current tab */
+    .studio::after{
+      content:"";
+      position:absolute;
+      inset:-5%;
+      background:
+        radial-gradient(900px 600px at 25% 25%, var(--theme1), transparent 60%),
+        radial-gradient(900px 600px at 75% 35%, var(--theme2), transparent 60%),
+        radial-gradient(800px 500px at 50% 80%, rgba(255,255,255,.06), transparent 60%);
+      opacity: .95;
+      mix-blend-mode: screen;
+      transition: background 220ms ease, opacity 220ms ease, filter 220ms ease;
+      filter: blur(0px);
+    }
+
+    @keyframes studioFloat{
+      0%,100% { transform: translate3d(0,0,0) scale(1); }
+      50% { transform: translate3d(0,-10px,0) scale(1.02); }
+    }
+
+    /* Particle canvas */
+    #particles{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      opacity:.9;
+    }
+
+    /* Glass surfaces */
+    .glass{
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow:
+        0 20px 70px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* Shimmer border wrapper */
+    .shimmer{
+      position: relative;
+      isolation: isolate;
+      border-radius: 22px;
+    }
+    .shimmer::before{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      border-radius: inherit;
+      background: conic-gradient(from 180deg,
+        rgba(255,255,255,.0),
+        rgba(255,255,255,.18),
+        rgba(255,255,255,.0),
+        rgba(255,255,255,.16),
+        rgba(255,255,255,.0)
+      );
+      opacity:.9;
+      filter: blur(.4px);
+      animation: shimmer 2.8s linear infinite;
+      z-index: -1;
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      padding: 1px;
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+    @keyframes shimmer{
+      0%{ transform: rotate(0deg); }
+      100%{ transform: rotate(360deg); }
+    }
+
+    /* Preview card motion */
+    .tilt{
+      transform-style: preserve-3d;
+      transition: transform 140ms ease;
+    }
+
+    /* Aura ring */
+    .auraRing{
+      position: relative;
+      border-radius: 9999px;
+      padding: 4px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.22), rgba(255,255,255,.05) 45%, rgba(255,255,255,.02));
+    }
+    .auraRing::before{
+      content:"";
+      position:absolute;
+      inset:-10px;
+      border-radius: inherit;
+      background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--aura) 70%, white 15%), transparent 55%),
+                  radial-gradient(circle at 70% 65%, color-mix(in srgb, var(--aura) 75%, black 10%), transparent 58%);
+      filter: blur(12px);
+      opacity:.75;
+      z-index:-1;
+      animation: auraPulse 2.7s ease-in-out infinite;
+    }
+    @keyframes auraPulse{
+      0%,100%{ transform: scale(1); opacity: .72; }
+      50%{ transform: scale(1.04); opacity: .92; }
+    }
+
+    /* Badges pop */
+    @keyframes badgePop{
+      0%{ transform: scale(.85); opacity: .0; }
+      60%{ transform: scale(1.08); opacity: 1; }
+      100%{ transform: scale(1); }
+    }
+    .badge-pop{ animation: badgePop 260ms ease-out; }
+
+    /* Small shake (limit warning) */
+    @keyframes shake{
+      0%,100%{ transform: translateX(0); }
+      20%{ transform: translateX(4px); }
+      40%{ transform: translateX(-4px); }
+      60%{ transform: translateX(3px); }
+      80%{ transform: translateX(-3px); }
+    }
+    .shake{ animation: shake 240ms ease; }
+
+    /* Speech bubble tips */
+    .bubble{
+      position: relative;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+      padding: .55rem .75rem;
+      border-radius: 12px;
+      color: rgba(255,255,255,.86);
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    }
+    .bubble::after{
+      content:"";
+      position:absolute;
+      right: 18px;
+      bottom: -7px;
+      width: 12px;
+      height: 12px;
+      background: rgba(255,255,255,.10);
+      border-right: 1px solid rgba(255,255,255,.14);
+      border-bottom: 1px solid rgba(255,255,255,.14);
+      transform: rotate(45deg);
+    }
+
+    /* Tab panel transition */
+    .panel{
+      transition: opacity 120ms ease, transform 120ms ease;
+    }
+    .panel.hiddenish{
+      opacity: 0;
+      transform: translateY(6px);
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+    }
+
+    /* Chip */
+    .chip{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+    }
+    .chip[aria-pressed="true"]{
+      background: color-mix(in srgb, var(--aura) 22%, rgba(255,255,255,.06));
+      border-color: color-mix(in srgb, var(--aura) 40%, rgba(255,255,255,.14));
+      transform: translateY(-1px);
+    }
+
+    /* Mobile bottom nav shadow */
+    .bottomNav{
+      background: linear-gradient(180deg, rgba(10,12,26,.0), rgba(10,12,26,.62) 18%, rgba(10,12,26,.82));
+      border-top: 1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      *{ animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+
+<body data-tab="identity" style="--theme1: var(--t-identity-1); --theme2: var(--t-identity-2);">
+  <div class="studio">
+    <canvas id="particles"></canvas>
+  </div>
+
+  <main class="relative z-10 min-h-screen">
+    <!-- Top safe area padding -->
+    <div class="pt-4 md:pt-8 pb-28 md:pb-8 px-4 md:px-8 max-w-6xl mx-auto">
+      <div class="flex flex-col md:flex-row gap-4 md:gap-6">
+        <!-- Preview -->
+        <section class="md:w-[44%] lg:w-[42%]">
+          <div class="shimmer">
+            <div id="previewCard"
+              class="glass tilt rounded-[22px] p-4 md:p-5 overflow-hidden">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <div class="text-xs text-white/70">بطاقة الشخصية</div>
+                  <div class="mt-1 flex items-center gap-2">
+                    <div class="h-2 w-2 rounded-full" style="background: var(--aura); box-shadow: 0 0 20px color-mix(in srgb, var(--aura) 70%, transparent);"></div>
+                    <div class="text-lg md:text-xl font-semibold truncate" id="previewName">اسمك هنا</div>
+                  </div>
+                  <div class="mt-1 text-sm text-white/65 truncate" id="previewEmail">email@example.com</div>
+                </div>
+
+                <div class="flex flex-col items-end gap-2">
+                  <div class="text-[10px] text-white/65">اكتمال الملف</div>
+                  <div class="w-28 md:w-32 h-2 rounded-full bg-white/10 overflow-hidden">
+                    <div id="completionBar" class="h-full rounded-full" style="width: 8%; background: linear-gradient(90deg, color-mix(in srgb, var(--aura) 75%, white 8%), rgba(255,255,255,.28)); box-shadow: 0 0 18px color-mix(in srgb, var(--aura) 50%, transparent);"></div>
+                  </div>
+                  <div class="text-[11px] text-white/65" id="completionText">8%</div>
+                </div>
+              </div>
+
+              <div class="mt-4 grid grid-cols-[auto,1fr] gap-4 items-center">
+                <div class="auraRing" style="--aura: var(--aura);">
+                  <div class="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden bg-white/5 border border-white/10 grid place-items-center">
+                    <div id="avatarSlot" class="w-full h-full grid place-items-center">
+                      <!-- default SVG -->
+                      <svg viewBox="0 0 120 120" class="w-full h-full">
+                        <defs>
+                          <linearGradient id="g0" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="rgba(255,255,255,.18)"/>
+                            <stop offset="1" stop-color="rgba(255,255,255,.02)"/>
+                          </linearGradient>
+                        </defs>
+                        <rect width="120" height="120" rx="60" fill="url(#g0)"/>
+                        <path d="M18 74c18-32 38-48 66-40 16 4 20 18 18 28-2 10-10 18-20 22-22 10-46 4-64-10z"
+                              fill="rgba(255,255,255,.12)"/>
+                        <path d="M22 50c10 6 20 10 38 6 18-4 26-14 38-16"
+                              stroke="rgba(255,255,255,.22)" stroke-width="6" stroke-linecap="round" fill="none"/>
+                        <circle cx="78" cy="58" r="5" fill="rgba(255,255,255,.18)"/>
+                        <circle cx="56" cy="64" r="4" fill="rgba(255,255,255,.14)"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="min-w-0">
+                  <div class="text-sm text-white/80 font-medium">شاراتك</div>
+                  <div class="mt-2 flex flex-wrap gap-2" id="badgeRow">
+                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-white/10 border border-white/10">
+                      ✨ <span>مستكشف</span>
+                    </span>
+                    <span id="badgeAura" class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-white/10 border border-white/10">
+                      🎨 <span>هالة</span>
+                    </span>
+                  </div>
+
+                  <div class="mt-3">
+                    <div class="text-sm text-white/80 font-medium">الـ Follow (حتى 3)</div>
+                    <div class="mt-2 flex flex-wrap gap-2 min-h-[32px]" id="followBadges">
+                      <span class="text-xs text-white/50">اختياري — اختر 1-3 أصدقاء لبدء عالمك.</span>
+                    </div>
+                  </div>
+
+                  <div class="mt-3">
+                    <div class="text-sm text-white/80 font-medium">Top 3 Genres</div>
+                    <div class="mt-2 flex flex-wrap gap-2 min-h-[32px]" id="top3Badges">
+                      <span class="text-xs text-white/50">اختياري — رتّب ذوقك بثلاثة أنواع.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
+                <div class="flex items-center justify-between">
+                  <div class="text-sm font-medium">ملاحظة سريعة</div>
+                  <div class="text-xs text-white/60" id="tabHint">أكمِل الهوية لفتح زر الإنشاء.</div>
+                </div>
+                <div class="mt-2 text-sm text-white/70 leading-relaxed" id="tipLine">
+                  جرّب كلمة مرور قوية: طول + أرقام + رموز. كل شيء آخر اختياري 😌
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3 md:mt-4 flex items-center justify-between text-xs text-white/55">
+            <div class="flex items-center gap-2">
+              <span class="inline-block h-2 w-2 rounded-full bg-white/25"></span>
+              <span>تبديل سريع — بلا خطوات</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="inline-block h-2 w-2 rounded-full" style="background: var(--aura);"></span>
+              <span id="auraLabel">Aura: Violet</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Creator panels -->
+        <section class="md:flex-1 relative">
+          <div class="shimmer">
+            <div class="glass rounded-[22px] p-4 md:p-5">
+              <!-- Desktop tabs -->
+              <div class="hidden md:flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2" role="tablist" aria-label="التبويبات">
+                  <button class="tabBtn px-3 py-2 rounded-xl text-sm border border-white/10 bg-white/10 hover:bg-white/12 transition"
+                          data-tab-btn="identity" role="tab" aria-selected="true" aria-controls="panel-identity">
+                    الهوية
+                  </button>
+                  <button class="tabBtn px-3 py-2 rounded-xl text-sm border border-white/10 bg-white/5 hover:bg-white/10 transition"
+                          data-tab-btn="look" role="tab" aria-selected="false" aria-controls="panel-look">
+                    المظهر
+                  </button>
+                  <button class="tabBtn px-3 py-2 rounded-xl text-sm border border-white/10 bg-white/5 hover:bg-white/10 transition"
+                          data-tab-btn="social" role="tab" aria-selected="false" aria-controls="panel-social">
+                    الاجتماعي
+                  </button>
+                  <button class="tabBtn px-3 py-2 rounded-xl text-sm border border-white/10 bg-white/5 hover:bg-white/10 transition"
+                          data-tab-btn="taste" role="tab" aria-selected="false" aria-controls="panel-taste">
+                    الذوق
+                  </button>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <div class="text-xs text-white/65">اكتمال</div>
+                  <div class="w-32 h-2 rounded-full bg-white/10 overflow-hidden">
+                    <div id="completionBar2" class="h-full rounded-full" style="width: 8%; background: linear-gradient(90deg, color-mix(in srgb, var(--aura) 75%, white 8%), rgba(255,255,255,.28));"></div>
+                  </div>
+                  <div class="text-xs text-white/65 w-10 text-left" id="completionText2">8%</div>
+                </div>
+              </div>
+
+              <div class="mt-4 md:mt-5 relative min-h-[540px] md:min-h-[560px]">
+                <!-- Panels -->
+                <!-- Identity -->
+                <div id="panel-identity" class="panel" role="tabpanel" aria-label="الهوية">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="text-lg font-semibold">الهوية</div>
+                      <div class="text-sm text-white/65 mt-1">هنا المطلوب فقط. الباقي “إضافات شخصية”.</div>
+                    </div>
+                    <span class="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-white/8 border border-white/10">
+                      <span class="h-2 w-2 rounded-full bg-emerald-400/80"></span>
+                      مطلوب
+                    </span>
+                  </div>
+
+                  <div class="mt-4 grid gap-3">
+                    <label class="block">
+                      <div class="text-sm text-white/80 mb-1">الاسم</div>
+                      <input id="inpName" type="text" placeholder="مثال: لوفّي"
+                             class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-white/20 focus:bg-white/7 transition"
+                             autocomplete="name" />
+                    </label>
+
+                    <label class="block">
+                      <div class="text-sm text-white/80 mb-1">البريد الإلكتروني</div>
+                      <input id="inpEmail" type="email" placeholder="you@domain.com"
+                             class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-white/20 focus:bg-white/7 transition"
+                             autocomplete="email" />
+                    </label>
+
+                    <div class="grid gap-2">
+                      <div class="flex items-center justify-between">
+                        <div class="text-sm text-white/80">كلمة المرور</div>
+                        <button id="btnTogglePw" type="button"
+                                class="text-xs px-3 py-1 rounded-full bg-white/8 border border-white/10 hover:bg-white/12 transition">
+                          إظهار
+                        </button>
+                      </div>
+
+                      <div class="relative">
+                        <input id="inpPassword" type="password" placeholder="••••••••"
+                               class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-white/20 focus:bg-white/7 transition"
+                               autocomplete="new-password" />
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-white/55" id="pwScoreLabel">ضعيفة</div>
+                      </div>
+
+                      <div class="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                        <div id="pwMeter" class="h-full rounded-full" style="width: 10%; background: linear-gradient(90deg, rgba(239,68,68,.8), rgba(255,255,255,.25));"></div>
+                      </div>
+
+                      <div class="mt-1">
+                        <div id="identityBubble" class="bubble text-xs hidden">
+                          تلميح: جرّب 12+ حرف مع رقم ورمز ✦
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-2 rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div class="text-sm font-medium">لماذا هذا الشكل؟</div>
+                      <div class="text-sm text-white/70 mt-1 leading-relaxed">
+                        أنت لا “تسجّل” فقط — أنت تبني شخصية. أي تغيير سيظهر فوراً في البطاقة.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Look -->
+                <div id="panel-look" class="panel hiddenish" role="tabpanel" aria-label="المظهر">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="text-lg font-semibold">المظهر</div>
+                      <div class="text-sm text-white/65 mt-1">ارفع أفاتار أو اختر واحدًا جاهزًا + لون الهالة.</div>
+                    </div>
+                    <span class="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-white/8 border border-white/10">
+                      اختياري
+                    </span>
+                  </div>
+
+                  <div class="mt-4 grid gap-4">
+                    <div class="grid gap-2">
+                      <div class="text-sm text-white/80">رفع Avatar</div>
+                      <div class="flex items-center gap-3 flex-wrap">
+                        <label class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/8 border border-white/10 hover:bg-white/12 transition cursor-pointer">
+                          <span>📤</span>
+                          <span class="text-sm">اختيار ملف</span>
+                          <input id="inpAvatarFile" type="file" accept="image/*" class="hidden" />
+                        </label>
+                        <button id="btnClearAvatar" type="button"
+                                class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-sm">
+                          إزالة
+                        </button>
+                        <div class="text-xs text-white/55">مربع/دائري — أي صورة تنفع.</div>
+                      </div>
+                    </div>
+
+                    <div class="grid gap-2">
+                      <div class="flex items-center justify-between">
+                        <div class="text-sm text-white/80">Avatar Gallery (SVG)</div>
+                        <button id="btnRandomAvatar" type="button"
+                                class="text-xs px-3 py-1 rounded-full bg-white/8 border border-white/10 hover:bg-white/12 transition">
+                          عشوائي
+                        </button>
+                      </div>
+                      <div id="avatarGrid" class="grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
+                      <div class="text-xs text-white/55">كلها داخل الصفحة (بدون تحميل خارجي).</div>
+                    </div>
+
+                    <div class="grid gap-2">
+                      <div class="text-sm text-white/80">Aura Color</div>
+                      <div id="auraPalette" class="flex flex-wrap gap-2"></div>
+                    </div>
+
+                    <div class="bubble text-xs">
+                      جرّب هالة جريئة ✨ — سترى اللمعة حول البطاقة فوراً.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Social -->
+                <div id="panel-social" class="panel hiddenish" role="tabpanel" aria-label="الاجتماعي">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="text-lg font-semibold">الاجتماعي</div>
+                      <div class="text-sm text-white/65 mt-1">اتبع 3 فقط كبداية (يمكنك تعديلها لاحقًا).</div>
+                    </div>
+                    <span id="followCountPill" class="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-white/8 border border-white/10">
+                      0 / 3
+                    </span>
+                  </div>
+
+                  <div class="mt-4 grid gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <label class="block">
+                        <div class="text-sm text-white/80 mb-1">بحث</div>
+                        <input id="inpFollowSearch" type="text" placeholder="ابحث بالاسم..."
+                               class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-white/20 focus:bg-white/7 transition" />
+                      </label>
+
+                      <label class="block">
+                        <div class="text-sm text-white/80 mb-1">فلتر</div>
+                        <select id="selFollowFilter"
+                                class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-white/20 focus:bg-white/7 transition">
+                          <option value="all">الكل</option>
+                          <option value="anime">Anime</option>
+                          <option value="manga">Manga</option>
+                          <option value="art">Art</option>
+                          <option value="cosplay">Cosplay</option>
+                          <option value="gaming">Gaming</option>
+                        </select>
+                      </label>
+                    </div>
+
+                    <div id="followList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+
+                    <div id="socialBubble" class="bubble text-xs hidden">
+                      الحد الأقصى 3 ✋ — احذف واحدًا لإضافة آخر.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Taste -->
+                <div id="panel-taste" class="panel hiddenish" role="tabpanel" aria-label="الذوق">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="text-lg font-semibold">الذوق</div>
+                      <div class="text-sm text-white/65 mt-1">اهتمامات + Genres، ثم اختر Top 3 ورتّبها ↑↓.</div>
+                    </div>
+                    <span class="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-white/8 border border-white/10">
+                      اختياري
+                    </span>
+                  </div>
+
+                  <div class="mt-4 grid gap-4">
+                    <div class="grid gap-2">
+                      <div class="text-sm text-white/80">Interests</div>
+                      <div id="interestChips" class="flex flex-wrap gap-2"></div>
+                    </div>
+
+                    <div class="grid gap-2">
+                      <div class="flex items-center justify-between">
+                        <div class="text-sm text-white/80">Genres (اختر ما تشاء)</div>
+                        <div class="text-xs text-white/60">ثم “Top 3” فقط</div>
+                      </div>
+                      <div id="genreChips" class="flex flex-wrap gap-2"></div>
+                    </div>
+
+                    <div class="grid gap-2">
+                      <div class="flex items-center justify-between">
+                        <div class="text-sm text-white/80">Top 3</div>
+                        <div class="text-xs text-white/60" id="top3Count">0 / 3</div>
+                      </div>
+
+                      <div class="grid gap-2" id="top3List">
+                        <div class="text-sm text-white/55">اختر Genres ثم اضغط ⭐ لإضافتها هنا.</div>
+                      </div>
+
+                      <div id="tasteBubble" class="bubble text-xs hidden">
+                        Top 3 ممتلئ ✋ — احذف واحدًا أو غيّر ترتيبك.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Desktop CTA -->
+              <div class="hidden md:block mt-5">
+                <button id="btnCreateDesktop" type="button" disabled
+                        class="w-full py-3 rounded-xl font-semibold transition
+                               bg-white/10 border border-white/10 text-white/55
+                               disabled:cursor-not-allowed">
+                  أكمل الهوية لإنشاء الحساب
+                </button>
+                <div class="mt-2 text-xs text-white/55">
+                  بالضغط على “إنشاء الحساب” أنت تنشئ شخصيتك — ويمكنك تعديل كل شيء لاحقًا.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Mobile bottom tabs + CTA -->
+    <div class="fixed bottom-0 left-0 right-0 z-20 md:hidden">
+      <div class="bottomNav px-3 pt-2 pb-3">
+        <div class="flex items-center justify-around gap-2">
+          <button class="mTab flex flex-col items-center gap-1 px-2 py-1 rounded-xl"
+                  data-tab-btn="identity" aria-label="الهوية">
+            <span class="text-base">🪪</span>
+            <span class="text-[11px] text-white/80">الهوية</span>
+          </button>
+          <button class="mTab flex flex-col items-center gap-1 px-2 py-1 rounded-xl"
+                  data-tab-btn="look" aria-label="المظهر">
+            <span class="text-base">🎭</span>
+            <span class="text-[11px] text-white/70">المظهر</span>
+          </button>
+          <button class="mTab flex flex-col items-center gap-1 px-2 py-1 rounded-xl"
+                  data-tab-btn="social" aria-label="الاجتماعي">
+            <span class="text-base">🤝</span>
+            <span class="text-[11px] text-white/70">الاجتماعي</span>
+          </button>
+          <button class="mTab flex flex-col items-center gap-1 px-2 py-1 rounded-xl"
+                  data-tab-btn="taste" aria-label="الذوق">
+            <span class="text-base">⭐</span>
+            <span class="text-[11px] text-white/70">الذوق</span>
+          </button>
+        </div>
+
+        <button id="btnCreateMobile" type="button"
+                class="mt-3 w-full py-3 rounded-xl font-semibold transition hidden
+                       bg-white/10 border border-white/10 hover:bg-white/12">
+          Create Account
+        </button>
+      </div>
+    </div>
+
+    <!-- Success overlay -->
+    <div id="successOverlay" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/70"></div>
+      <div class="absolute inset-0 grid place-items-center p-4">
+        <div class="shimmer w-full max-w-xl">
+          <div class="glass rounded-[22px] p-5 overflow-hidden relative">
+            <div class="absolute -top-24 -left-24 w-64 h-64 rounded-full opacity-40"
+                 style="background: radial-gradient(circle at 30% 30%, var(--aura), transparent 65%); filter: blur(2px);"></div>
+
+            <div class="flex items-start justify-between gap-3 relative">
+              <div>
+                <div class="text-xs text-white/70">تم الإنشاء</div>
+                <div class="text-2xl font-extrabold mt-1">🔓 Character Unlocked</div>
+                <div class="text-sm text-white/70 mt-2">بطاقتك جاهزة — يمكنك تحميلها كصورة.</div>
+              </div>
+              <button id="btnCloseSuccess" class="px-3 py-2 rounded-xl bg-white/8 border border-white/10 hover:bg-white/12 transition">
+                ✕
+              </button>
+            </div>
+
+            <div class="mt-4 grid md:grid-cols-2 gap-4 relative">
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="text-sm font-semibold mb-2">بطاقة الشخصية</div>
+                <div id="successCardHolder" class="rounded-2xl overflow-hidden"></div>
+              </div>
+
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="text-sm font-semibold">خطواتك التالية</div>
+                <ul class="mt-2 text-sm text-white/75 leading-relaxed space-y-2">
+                  <li>• عدّل الهالة/الأفاتار وقتما تشاء.</li>
+                  <li>• تابع 3 كبداية (ووسع لاحقًا).</li>
+                  <li>• Top 3 تظهر على ملفك وتساعدنا في التوصيات.</li>
+                </ul>
+
+                <div class="mt-4 grid gap-2">
+                  <button id="btnDownloadCard"
+                          class="w-full py-3 rounded-xl font-semibold bg-white/10 border border-white/10 hover:bg-white/12 transition">
+                    تحميل البطاقة (PNG)
+                  </button>
+                  <a id="downloadLink" class="hidden" download="character-card.png"></a>
+
+                  <button id="btnBackToEdit"
+                          class="w-full py-3 rounded-xl font-semibold bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                    رجوع للتعديل
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <canvas id="exportCanvas" class="hidden"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ---------------------------
+    // Data
+    // ---------------------------
+    const THEMES = {
+      identity: { t1: 'var(--t-identity-1)', t2: 'var(--t-identity-2)', hint: 'أكمِل الهوية لفتح زر الإنشاء.', tip: 'جرّب كلمة مرور قوية: طول + أرقام + رموز. كل شيء آخر اختياري 😌' },
+      look:     { t1: 'var(--t-look-1)',     t2: 'var(--t-look-2)',     hint: 'غيّر المظهر… البطاقة تتنفس معك.', tip: 'اختيار أفاتار من المعرض أسرع — أو ارفع صورتك.' },
+      social:   { t1: 'var(--t-social-1)',   t2: 'var(--t-social-2)',   hint: 'اتبع 3 فقط — كبداية أنيقة.', tip: 'اختيار 1-3 يساعدنا نقترح لك مجتمع يناسبك.' },
+      taste:    { t1: 'var(--t-taste-1)',    t2: 'var(--t-taste-2)',    hint: 'Top 3 يحدد طابع شخصيتك.', tip: 'اضغط ⭐ على Genre لتثبيته في Top 3 ثم رتّب ↑↓.' }
+    };
+
+    const AURAS = [
+      { name: 'Violet', value: '#7c3aed' },
+      { name: 'Sky',    value: '#38bdf8' },
+      { name: 'Rose',   value: '#fb7185' },
+      { name: 'Mint',   value: '#34d399' },
+      { name: 'Amber',  value: '#f59e0b' },
+      { name: 'Indigo', value: '#6366f1' },
+      { name: 'Teal',   value: '#14b8a6' },
+      { name: 'Red',    value: '#ef4444' }
+    ];
+
+    const INTERESTS = ['رسم', 'مراجعات', 'كوسبلاي', 'نقاشات', 'ميمز', 'مانهوا', 'مانغا', 'AMV', 'Collectibles', 'Fan Art', 'Writing', 'Roleplay'];
+    const GENRES = ['Shōnen', 'Seinen', 'Shōjo', 'Isekai', 'Mecha', 'Slice of Life', 'Romance', 'Fantasy', 'Horror', 'Sports', 'Mystery', 'Comedy', 'Drama'];
+
+    const FOLLOW_SUGGESTIONS = [
+      { id:'u1', name:'Kira Panelist', tag:'anime', blurb:'يتكلم عن حلقات الأسبوع.' },
+      { id:'u2', name:'Manga Sensei', tag:'manga', blurb:'تحليلات مانغا بدون حرق.' },
+      { id:'u3', name:'Ink & Aura', tag:'art', blurb:'Fan art يومي.' },
+      { id:'u4', name:'Cosplay Nova', tag:'cosplay', blurb:'أزياء + بروفات.' },
+      { id:'u5', name:'FrameRate', tag:'gaming', blurb:'ألعاب أنمي + لقطات.' },
+      { id:'u6', name:'Shōnen Club', tag:'anime', blurb:'قائمة توصيات قوية.' },
+      { id:'u7', name:'PanelCraft', tag:'manga', blurb:'تصميم صفحات وإخراج.' },
+      { id:'u8', name:'CelShade Lab', tag:'art', blurb:'تلوين وشيدر.' }
+    ];
+
+    // 8 inline SVG avatars (abstract anime vibe)
+    const AVATARS = [
+      svgAvatar('a1', '#ffffff22', '#ffffff10', 1),
+      svgAvatar('a2', '#ffffff1f', '#ffffff0b', 2),
+      svgAvatar('a3', '#ffffff1c', '#ffffff0d', 3),
+      svgAvatar('a4', '#ffffff20', '#ffffff0a', 4),
+      svgAvatar('a5', '#ffffff1a', '#ffffff0c', 5),
+      svgAvatar('a6', '#ffffff24', '#ffffff10', 6),
+      svgAvatar('a7', '#ffffff1e', '#ffffff0b', 7),
+      svgAvatar('a8', '#ffffff22', '#ffffff0c', 8)
+    ];
+
+    function svgAvatar(id, fill1, fill2, seed){
+      // deterministic-ish shapes based on seed
+      const p1 = 18 + seed*2, p2 = 70 - seed*2, p3 = 42 + seed, p4 = 62 - seed;
+      return {
+        id,
+        svg: `
+        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g_${id}" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="${fill1}"/>
+              <stop offset="1" stop-color="${fill2}"/>
+            </linearGradient>
+          </defs>
+          <rect width="120" height="120" rx="60" fill="url(#g_${id})"/>
+          <path d="M${p1} ${p2}c${22+seed} -${28+seed} ${44+seed} -${52-seed} ${72-seed} -${38+seed}
+                   ${16} ${8+seed} ${20} ${22-seed} ${16} ${36-seed}
+                   -${4+seed} ${14+seed} -${14} ${22} -${24} ${26}
+                   -${22} ${10} -${46} ${4} -${64} -${10}z"
+                fill="rgba(255,255,255,.12)"/>
+          <path d="M${22+seed} ${44-seed}c${10+seed} ${8} ${18+seed} ${12} ${34+seed} ${8}
+                   ${16-seed} -${4+seed} ${24-seed} -${12+seed} ${38-seed} -${14}
+                  " stroke="rgba(255,255,255,.22)" stroke-width="6" stroke-linecap="round" fill="none"/>
+          <circle cx="${p3}" cy="${58+seed}" r="${4+seed%3}" fill="rgba(255,255,255,.18)"/>
+          <circle cx="${p4}" cy="${66-seed}" r="${3+seed%3}" fill="rgba(255,255,255,.14)"/>
+        </svg>`
+      };
+    }
+
+    // ---------------------------
+    // State
+    // ---------------------------
+    const state = {
+      tab: 'identity',
+      name: '',
+      email: '',
+      password: '',
+      pwScore: 0,
+      aura: AURAS[0],
+      avatar: { type: 'svg', value: AVATARS[0].svg },
+      follows: [],         // array of suggestion objects
+      interests: new Set(),
+      genres: new Set(),
+      top3: []             // array of genre strings
+    };
+
+    // ---------------------------
+    // Elements
+    // ---------------------------
+    const body = document.body;
+
+    const previewCard = document.getElementById('previewCard');
+    const previewName = document.getElementById('previewName');
+    const previewEmail = document.getElementById('previewEmail');
+    const avatarSlot = document.getElementById('avatarSlot');
+    const followBadges = document.getElementById('followBadges');
+    const top3Badges = document.getElementById('top3Badges');
+    const badgeAura = document.getElementById('badgeAura');
+
+    const tabHint = document.getElementById('tabHint');
+    const tipLine = document.getElementById('tipLine');
+
+    const completionBar = document.getElementById('completionBar');
+    const completionText = document.getElementById('completionText');
+    const completionBar2 = document.getElementById('completionBar2');
+    const completionText2 = document.getElementById('completionText2');
+
+    const inpName = document.getElementById('inpName');
+    const inpEmail = document.getElementById('inpEmail');
+    const inpPassword = document.getElementById('inpPassword');
+    const btnTogglePw = document.getElementById('btnTogglePw');
+    const pwMeter = document.getElementById('pwMeter');
+    const pwScoreLabel = document.getElementById('pwScoreLabel');
+    const identityBubble = document.getElementById('identityBubble');
+
+    const inpAvatarFile = document.getElementById('inpAvatarFile');
+    const btnClearAvatar = document.getElementById('btnClearAvatar');
+    const btnRandomAvatar = document.getElementById('btnRandomAvatar');
+    const avatarGrid = document.getElementById('avatarGrid');
+    const auraPalette = document.getElementById('auraPalette');
+    const auraLabel = document.getElementById('auraLabel');
+
+    const followCountPill = document.getElementById('followCountPill');
+    const inpFollowSearch = document.getElementById('inpFollowSearch');
+    const selFollowFilter = document.getElementById('selFollowFilter');
+    const followList = document.getElementById('followList');
+    const socialBubble = document.getElementById('socialBubble');
+
+    const interestChips = document.getElementById('interestChips');
+    const genreChips = document.getElementById('genreChips');
+    const top3List = document.getElementById('top3List');
+    const top3Count = document.getElementById('top3Count');
+    const tasteBubble = document.getElementById('tasteBubble');
+
+    const btnCreateMobile = document.getElementById('btnCreateMobile');
+    const btnCreateDesktop = document.getElementById('btnCreateDesktop');
+
+    const successOverlay = document.getElementById('successOverlay');
+    const btnCloseSuccess = document.getElementById('btnCloseSuccess');
+    const btnBackToEdit = document.getElementById('btnBackToEdit');
+    const btnDownloadCard = document.getElementById('btnDownloadCard');
+    const downloadLink = document.getElementById('downloadLink');
+    const successCardHolder = document.getElementById('successCardHolder');
+    const exportCanvas = document.getElementById('exportCanvas');
+
+    // Panels
+    const panels = {
+      identity: document.getElementById('panel-identity'),
+      look: document.getElementById('panel-look'),
+      social: document.getElementById('panel-social'),
+      taste: document.getElementById('panel-taste')
+    };
+
+    // Tab buttons (desktop + mobile)
+    const tabButtons = Array.from(document.querySelectorAll('[data-tab-btn]'));
+
+    // ---------------------------
+    // Helpers
+    // ---------------------------
+    function setTheme(tab){
+      const th = THEMES[tab] || THEMES.identity;
+      body.setAttribute('data-tab', tab);
+      body.style.setProperty('--theme1', th.t1);
+      body.style.setProperty('--theme2', th.t2);
+      tabHint.textContent = th.hint;
+      tipLine.textContent = th.tip;
+
+      // subtle badge message
+      if(tab === 'look'){
+        badgeAura.classList.add('badge-pop');
+        setTimeout(()=>badgeAura.classList.remove('badge-pop'), 350);
+      }
+    }
+
+    function setTab(tab){
+      state.tab = tab;
+      setTheme(tab);
+
+      // Panels swap (fast, non-step feeling)
+      Object.entries(panels).forEach(([k, el])=>{
+        if(k === tab){
+          el.classList.remove('hiddenish');
+        } else {
+          el.classList.add('hiddenish');
+        }
+      });
+
+      // Button styles + aria
+      tabButtons.forEach(btn=>{
+        const isActive = btn.dataset.tabBtn === tab;
+        if(btn.classList.contains('tabBtn')){
+          btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+          btn.classList.toggle('bg-white/10', isActive);
+          btn.classList.toggle('bg-white/5', !isActive);
+        }
+        if(btn.classList.contains('mTab')){
+          const label = btn.querySelector('span:last-child');
+          if(label){
+            label.classList.toggle('text-white/80', isActive);
+            label.classList.toggle('text-white/70', !isActive);
+          }
+          btn.classList.toggle('bg-white/8', isActive);
+          btn.classList.toggle('border', isActive);
+          btn.classList.toggle('border-white/10', isActive);
+        }
+      });
+
+      // update particles palette
+      particleTheme = tab;
+    }
+
+    function validEmail(v){
+      v = (v||'').trim();
+      return v.includes('@') && v.includes('.') && v.length >= 6;
+    }
+
+    function passwordScore(pw){
+      pw = pw || '';
+      let score = 0;
+      const len = pw.length;
+      const hasLower = /[a-z]/.test(pw);
+      const hasUpper = /[A-Z]/.test(pw);
+      const hasNum = /[0-9]/.test(pw);
+      const hasSym = /[^A-Za-z0-9]/.test(pw);
+
+      if(len >= 8) score += 25;
+      if(len >= 12) score += 15;
+      if(hasLower) score += 10;
+      if(hasUpper) score += 15;
+      if(hasNum) score += 15;
+      if(hasSym) score += 20;
+      score = Math.min(100, score);
+      return score;
+    }
+
+    function pwLabel(score){
+      if(score < 30) return 'ضعيفة';
+      if(score < 60) return 'متوسطة';
+      if(score < 85) return 'قوية';
+      return 'أسطورية';
+    }
+
+    function identityComplete(){
+      return (state.name.trim().length >= 2) && validEmail(state.email) && (state.password.length >= 8);
+    }
+
+    function computeCompletion(){
+      // Required chunk (60)
+      let pct = 0;
+      const nameOK = state.name.trim().length >= 2;
+      const emailOK = validEmail(state.email);
+      const pwOK = state.password.length >= 8;
+
+      pct += nameOK ? 20 : 0;
+      pct += emailOK ? 20 : 0;
+      pct += pwOK ? 20 : 0;
+
+      // Optional (40)
+      // avatar chosen/uploaded (10), aura changed from default (5), follows (10), interests (5), genres (5), top3 (5)
+      const avatarBonus = state.avatar && state.avatar.value ? 10 : 0;
+      const auraBonus = (state.aura.value !== AURAS[0].value) ? 5 : 0;
+      const followBonus = Math.min(10, state.follows.length * 4);
+      const interestBonus = state.interests.size ? 5 : 0;
+      const genreBonus = state.genres.size ? 5 : 0;
+      const top3Bonus = state.top3.length ? 5 : 0;
+
+      pct += Math.min(40, avatarBonus + auraBonus + followBonus + interestBonus + genreBonus + top3Bonus);
+      pct = Math.max(8, Math.min(100, Math.round(pct)));
+      return pct;
+    }
+
+    function setCompletion(){
+      const pct = computeCompletion();
+      completionBar.style.width = pct + '%';
+      completionText.textContent = pct + '%';
+      completionBar2.style.width = pct + '%';
+      completionText2.textContent = pct + '%';
+    }
+
+    function setAura(auraObj){
+      state.aura = auraObj;
+      document.documentElement.style.setProperty('--aura', auraObj.value);
+      auraLabel.textContent = 'Aura: ' + auraObj.name;
+      badgeAura.classList.add('badge-pop');
+      setTimeout(()=>badgeAura.classList.remove('badge-pop'), 350);
+      setCompletion();
+    }
+
+    function setAvatarSvg(svg){
+      state.avatar = { type:'svg', value: svg };
+      avatarSlot.innerHTML = svg;
+      setCompletion();
+    }
+
+    function setAvatarImage(dataUrl){
+      state.avatar = { type:'img', value: dataUrl };
+      avatarSlot.innerHTML = `<img alt="avatar" class="w-full h-full object-cover" src="${dataUrl}">`;
+      setCompletion();
+    }
+
+    function updatePreview(){
+      previewName.textContent = state.name.trim() ? state.name.trim() : 'اسمك هنا';
+      previewEmail.textContent = validEmail(state.email) ? state.email.trim() : 'email@example.com';
+
+      // follows badges
+      renderFollowBadges();
+      renderTop3Badges();
+      setCompletion();
+
+      // CTA gate
+      const ok = identityComplete();
+
+      // Mobile CTA appears only when tab1 complete
+      btnCreateMobile.classList.toggle('hidden', !ok);
+      btnCreateDesktop.disabled = !ok;
+
+      if(ok){
+        btnCreateDesktop.textContent = 'إنشاء الحساب';
+        btnCreateDesktop.className = 'w-full py-3 rounded-xl font-semibold transition bg-white/10 border border-white/10 hover:bg-white/12';
+      }else{
+        btnCreateDesktop.textContent = 'أكمل الهوية لإنشاء الحساب';
+        btnCreateDesktop.className = 'w-full py-3 rounded-xl font-semibold transition bg-white/10 border border-white/10 text-white/55 disabled:cursor-not-allowed';
+      }
+    }
+
+    function popEl(el){
+      el.classList.remove('badge-pop');
+      void el.offsetWidth;
+      el.classList.add('badge-pop');
+      setTimeout(()=>el.classList.remove('badge-pop'), 350);
+    }
+
+    // ---------------------------
+    // Renderers
+    // ---------------------------
+    function renderAvatarGrid(){
+      avatarGrid.innerHTML = '';
+      AVATARS.forEach((a, idx)=>{
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'rounded-xl overflow-hidden border border-white/10 bg-white/5 hover:bg-white/8 transition aspect-square grid place-items-center';
+        btn.title = 'Avatar ' + (idx+1);
+        btn.innerHTML = `<div class="w-full h-full p-2 opacity-90">${a.svg}</div>`;
+        btn.addEventListener('click', ()=>{
+          setAvatarSvg(a.svg);
+          popEl(btn);
+        });
+        avatarGrid.appendChild(btn);
+      });
+    }
+
+    function renderAuraPalette(){
+      auraPalette.innerHTML = '';
+      AURAS.forEach((a)=>{
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition';
+        b.innerHTML = `
+          <span class="inline-block h-4 w-4 rounded-full" style="background:${a.value}; box-shadow: 0 0 18px ${a.value}55;"></span>
+          <span class="text-sm">${a.name}</span>
+        `;
+        b.addEventListener('click', ()=> setAura(a));
+        auraPalette.appendChild(b);
+      });
+    }
+
+    function renderFollowList(){
+      const q = (inpFollowSearch.value || '').trim().toLowerCase();
+      const tag = selFollowFilter.value;
+
+      const items = FOLLOW_SUGGESTIONS
+        .filter(u => (tag === 'all' ? true : u.tag === tag))
+        .filter(u => u.name.toLowerCase().includes(q));
+
+      followList.innerHTML = '';
+      if(items.length === 0){
+        followList.innerHTML = `<div class="text-sm text-white/55">لا يوجد نتائج… جرّب كلمة أخرى.</div>`;
+        return;
+      }
+
+      items.forEach(u=>{
+        const picked = state.follows.some(x=>x.id === u.id);
+
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'text-right rounded-2xl border border-white/10 bg-white/5 hover:bg-white/8 transition p-4 flex items-start justify-between gap-3';
+
+        card.innerHTML = `
+          <div class="min-w-0">
+            <div class="font-semibold truncate">${u.name}</div>
+            <div class="text-xs text-white/60 mt-1">#${u.tag} • ${u.blurb}</div>
+          </div>
+          <div class="shrink-0 inline-flex items-center gap-2">
+            <span class="text-xs px-3 py-1 rounded-full border border-white/10 ${picked ? 'bg-white/12' : 'bg-white/8'}">
+              ${picked ? '✓ متابع' : '+ تابع'}
+            </span>
+          </div>
+        `;
+
+        card.addEventListener('click', ()=>{
+          toggleFollow(u, card);
+        });
+
+        followList.appendChild(card);
+      });
+    }
+
+    function renderFollowBadges(){
+      followCountPill.textContent = `${state.follows.length} / 3`;
+      if(state.follows.length === 0){
+        followBadges.innerHTML = `<span class="text-xs text-white/50">اختياري — اختر 1-3 أصدقاء لبدء عالمك.</span>`;
+        return;
+      }
+      followBadges.innerHTML = '';
+      state.follows.forEach(u=>{
+        const pill = document.createElement('span');
+        pill.className = 'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-white/10 border border-white/10 badge-pop';
+        pill.innerHTML = `👤 <span>${u.name}</span> <button class="ms-1 text-white/60 hover:text-white" aria-label="حذف">✕</button>`;
+        pill.querySelector('button').addEventListener('click', (e)=>{
+          e.stopPropagation();
+          state.follows = state.follows.filter(x=>x.id !== u.id);
+          socialBubble.classList.add('hidden');
+          renderFollowList();
+          updatePreview();
+        });
+        followBadges.appendChild(pill);
+      });
+    }
+
+    function renderInterestChips(){
+      interestChips.innerHTML = '';
+      INTERESTS.forEach(label=>{
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip px-3 py-2 rounded-xl text-sm';
+        btn.setAttribute('aria-pressed', state.interests.has(label) ? 'true' : 'false');
+        btn.textContent = label;
+        btn.addEventListener('click', ()=>{
+          if(state.interests.has(label)) state.interests.delete(label);
+          else state.interests.add(label);
+          btn.setAttribute('aria-pressed', state.interests.has(label) ? 'true' : 'false');
+          setCompletion();
+          updatePreview();
+        });
+        interestChips.appendChild(btn);
+      });
+    }
+
+    function renderGenreChips(){
+      genreChips.innerHTML = '';
+      GENRES.forEach(g=>{
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip px-3 py-2 rounded-xl text-sm';
+        btn.setAttribute('aria-pressed', state.genres.has(g) ? 'true' : 'false');
+        btn.textContent = g;
+
+        const star = document.createElement('button');
+        star.type = 'button';
+        star.className = 'px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-sm';
+        star.textContent = '⭐';
+        star.title = 'إضافة إلى Top 3';
+
+        btn.addEventListener('click', ()=>{
+          if(state.genres.has(g)) state.genres.delete(g);
+          else state.genres.add(g);
+
+          btn.setAttribute('aria-pressed', state.genres.has(g) ? 'true' : 'false');
+
+          // If removed from genres, also remove from top3
+          if(!state.genres.has(g)){
+            state.top3 = state.top3.filter(x=>x !== g);
+          }
+
+          renderTop3List();
+          renderTop3Badges();
+          setCompletion();
+          updatePreview();
+        });
+
+        star.addEventListener('click', ()=>{
+          if(!state.genres.has(g)){
+            // auto-select genre first
+            state.genres.add(g);
+            btn.setAttribute('aria-pressed', 'true');
+          }
+          addToTop3(g);
+        });
+
+        row.appendChild(btn);
+        row.appendChild(star);
+        genreChips.appendChild(row);
+      });
+    }
+
+    function renderTop3List(){
+      top3Count.textContent = `${state.top3.length} / 3`;
+      top3List.innerHTML = '';
+
+      if(state.top3.length === 0){
+        top3List.innerHTML = `<div class="text-sm text-white/55">اختر Genres ثم اضغط ⭐ لإضافتها هنا.</div>`;
+        return;
+      }
+
+      state.top3.forEach((g, idx)=>{
+        const item = document.createElement('div');
+        item.className = 'rounded-2xl border border-white/10 bg-white/5 p-3 flex items-center justify-between gap-3';
+
+        const left = document.createElement('div');
+        left.className = 'min-w-0';
+        left.innerHTML = `<div class="text-sm font-semibold truncate">${idx+1}. ${g}</div><div class="text-xs text-white/60 mt-1">أولوية التوصيات</div>`;
+
+        const controls = document.createElement('div');
+        controls.className = 'flex items-center gap-2';
+
+        const up = document.createElement('button');
+        up.type = 'button';
+        up.className = 'px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-sm';
+        up.textContent = '↑';
+        up.disabled = idx === 0;
+        up.style.opacity = idx === 0 ? '.45' : '1';
+        up.addEventListener('click', ()=>{
+          if(idx === 0) return;
+          const t = state.top3[idx-1];
+          state.top3[idx-1] = state.top3[idx];
+          state.top3[idx] = t;
+          renderTop3List();
+          renderTop3Badges();
+          setCompletion();
+          updatePreview();
+        });
+
+        const down = document.createElement('button');
+        down.type = 'button';
+        down.className = 'px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-sm';
+        down.textContent = '↓';
+        down.disabled = idx === state.top3.length - 1;
+        down.style.opacity = idx === state.top3.length - 1 ? '.45' : '1';
+        down.addEventListener('click', ()=>{
+          if(idx === state.top3.length - 1) return;
+          const t = state.top3[idx+1];
+          state.top3[idx+1] = state.top3[idx];
+          state.top3[idx] = t;
+          renderTop3List();
+          renderTop3Badges();
+          setCompletion();
+          updatePreview();
+        });
+
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'px-3 py-2 rounded-xl bg-white/8 border border-white/10 hover:bg-white/12 transition text-sm';
+        del.textContent = '✕';
+        del.addEventListener('click', ()=>{
+          state.top3 = state.top3.filter(x=>x !== g);
+          tasteBubble.classList.add('hidden');
+          renderTop3List();
+          renderTop3Badges();
+          setCompletion();
+          updatePreview();
+        });
+
+        controls.appendChild(up);
+        controls.appendChild(down);
+        controls.appendChild(del);
+
+        item.appendChild(left);
+        item.appendChild(controls);
+        top3List.appendChild(item);
+      });
+    }
+
+    function renderTop3Badges(){
+      if(state.top3.length === 0){
+        top3Badges.innerHTML = `<span class="text-xs text-white/50">اختياري — رتّب ذوقك بثلاثة أنواع.</span>`;
+        return;
+      }
+      top3Badges.innerHTML = '';
+      state.top3.forEach((g, idx)=>{
+        const pill = document.createElement('span');
+        pill.className = 'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-white/10 border border-white/10 badge-pop';
+        pill.textContent = `⭐ ${idx+1}: ${g}`;
+        top3Badges.appendChild(pill);
+      });
+    }
+
+    // ---------------------------
+    // Interactions
+    // ---------------------------
+    tabButtons.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        setTab(btn.dataset.tabBtn);
+      });
+    });
+
+    // Preview tilt on pointer (desktop-ish)
+    previewCard.addEventListener('pointermove', (e)=>{
+      const rect = previewCard.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      const rx = (0.5 - y) * 8;
+      const ry = (x - 0.5) * 10;
+      previewCard.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-2px)`;
+    });
+    previewCard.addEventListener('pointerleave', ()=>{
+      previewCard.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+    });
+
+    // Identity inputs
+    inpName.addEventListener('input', ()=>{
+      state.name = inpName.value;
+      updatePreview();
+    });
+    inpEmail.addEventListener('input', ()=>{
+      state.email = inpEmail.value;
+      updatePreview();
+    });
+    inpPassword.addEventListener('input', ()=>{
+      state.password = inpPassword.value;
+      const score = passwordScore(state.password);
+      state.pwScore = score;
+
+      const label = pwLabel(score);
+      pwScoreLabel.textContent = label;
+
+      // meter
+      pwMeter.style.width = Math.max(8, score) + '%';
+      if(score < 30){
+        pwMeter.style.background = 'linear-gradient(90deg, rgba(239,68,68,.85), rgba(255,255,255,.25))';
+      }else if(score < 60){
+        pwMeter.style.background = 'linear-gradient(90deg, rgba(245,158,11,.85), rgba(255,255,255,.25))';
+      }else if(score < 85){
+        pwMeter.style.background = 'linear-gradient(90deg, rgba(34,197,94,.85), rgba(255,255,255,.25))';
+      }else{
+        pwMeter.style.background = 'linear-gradient(90deg, color-mix(in srgb, var(--aura) 75%, rgba(34,197,94,.8)), rgba(255,255,255,.28))';
+      }
+
+      updatePreview();
+    });
+
+    // show/hide password
+    btnTogglePw.addEventListener('click', ()=>{
+      const isPw = inpPassword.type === 'password';
+      inpPassword.type = isPw ? 'text' : 'password';
+      btnTogglePw.textContent = isPw ? 'إخفاء' : 'إظهار';
+    });
+
+    // speech bubble on focus
+    [inpName, inpEmail, inpPassword].forEach(el=>{
+      el.addEventListener('focus', ()=>{
+        identityBubble.classList.remove('hidden');
+        popEl(identityBubble);
+      });
+      el.addEventListener('blur', ()=>{
+        identityBubble.classList.add('hidden');
+      });
+    });
+
+    // Avatar upload
+    inpAvatarFile.addEventListener('change', async ()=>{
+      const f = inpAvatarFile.files && inpAvatarFile.files[0];
+      if(!f) return;
+      const url = await fileToDataURL(f);
+      setAvatarImage(url);
+      popEl(avatarSlot);
+    });
+
+    btnClearAvatar.addEventListener('click', ()=>{
+      setAvatarSvg(AVATARS[0].svg);
+      inpAvatarFile.value = '';
+      popEl(avatarSlot);
+    });
+
+    btnRandomAvatar.addEventListener('click', ()=>{
+      const pick = AVATARS[Math.floor(Math.random() * AVATARS.length)];
+      setAvatarSvg(pick.svg);
+      popEl(avatarSlot);
+    });
+
+    // Social search/filter
+    inpFollowSearch.addEventListener('input', renderFollowList);
+    selFollowFilter.addEventListener('change', renderFollowList);
+
+    function toggleFollow(u, cardEl){
+      const exists = state.follows.some(x=>x.id === u.id);
+      if(exists){
+        state.follows = state.follows.filter(x=>x.id !== u.id);
+        socialBubble.classList.add('hidden');
+      }else{
+        if(state.follows.length >= 3){
+          socialBubble.classList.remove('hidden');
+          cardEl.classList.add('shake');
+          setTimeout(()=>cardEl.classList.remove('shake'), 260);
+          return;
+        }
+        state.follows.push(u);
+        socialBubble.classList.add('hidden');
+      }
+      renderFollowList();
+      updatePreview();
+    }
+
+    function addToTop3(genre){
+      if(state.top3.includes(genre)){
+        // move to top
+        state.top3 = [genre, ...state.top3.filter(x=>x !== genre)];
+        tasteBubble.classList.add('hidden');
+      }else{
+        if(state.top3.length >= 3){
+          tasteBubble.classList.remove('hidden');
+          top3List.classList.add('shake');
+          setTimeout(()=>top3List.classList.remove('shake'), 260);
+          return;
+        }
+        state.top3.push(genre);
+        tasteBubble.classList.add('hidden');
+      }
+      renderTop3List();
+      renderTop3Badges();
+      setCompletion();
+      updatePreview();
+    }
+
+    // Create actions
+    btnCreateMobile.addEventListener('click', createAccount);
+    btnCreateDesktop.addEventListener('click', ()=>{
+      if(btnCreateDesktop.disabled) return;
+      createAccount();
+    });
+
+    function createAccount(){
+      if(!identityComplete()){
+        // subtle hint + go to identity
+        setTab('identity');
+        previewCard.classList.add('shake');
+        setTimeout(()=>previewCard.classList.remove('shake'), 260);
+        return;
+      }
+
+      // show overlay
+      successOverlay.classList.remove('hidden');
+
+      // clone preview card (visual)
+      successCardHolder.innerHTML = '';
+      const clone = previewCard.cloneNode(true);
+      clone.id = 'previewCardClone';
+      clone.style.transform = 'none';
+      clone.classList.remove('tilt');
+      clone.classList.add('rounded-2xl');
+      successCardHolder.appendChild(clone);
+    }
+
+    btnCloseSuccess.addEventListener('click', ()=> successOverlay.classList.add('hidden'));
+    btnBackToEdit.addEventListener('click', ()=> successOverlay.classList.add('hidden'));
+    successOverlay.addEventListener('click', (e)=>{
+      if(e.target === successOverlay) successOverlay.classList.add('hidden');
+    });
+
+    // Download PNG (simple canvas export)
+    btnDownloadCard.addEventListener('click', async ()=>{
+      const dataUrl = await exportCardToPNG();
+      downloadLink.href = dataUrl;
+      downloadLink.click();
+    });
+
+    // ---------------------------
+    // Export to canvas
+    // ---------------------------
+    async function exportCardToPNG(){
+      const w = 900, h = 560;
+      exportCanvas.width = w;
+      exportCanvas.height = h;
+      const ctx = exportCanvas.getContext('2d');
+
+      // background
+      const g = ctx.createLinearGradient(0,0,w,h);
+      g.addColorStop(0, hexToRgba(state.aura.value, 0.22));
+      g.addColorStop(0.5, 'rgba(255,255,255,0.06)');
+      g.addColorStop(1, 'rgba(0,0,0,0.28)');
+      ctx.fillStyle = 'rgba(7,9,19,1)';
+      ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,w,h);
+
+      // soft blobs
+      blob(ctx, 170, 150, 220, hexToRgba(state.aura.value, 0.22));
+      blob(ctx, 720, 170, 260, 'rgba(255,255,255,0.07)');
+      blob(ctx, 620, 470, 240, hexToRgba(state.aura.value, 0.16));
+
+      // card panel
+      roundRect(ctx, 40, 40, w-80, h-80, 26);
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.stroke();
+
+      // aura ring + avatar circle
+      const cx = 160, cy = 200, r = 86;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r+20, 0, Math.PI*2);
+      ctx.closePath();
+      ctx.fillStyle = hexToRgba(state.aura.value, 0.22);
+      ctx.fill();
+      ctx.restore();
+
+      // draw avatar clipped circle
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI*2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.fillRect(cx-r, cy-r, r*2, r*2);
+
+      const avatarImg = await avatarToImage();
+      if(avatarImg){
+        // cover
+        const ar = avatarImg.width / avatarImg.height;
+        const box = r*2;
+        let dw = box, dh = box;
+        if(ar > 1){ dh = box; dw = box*ar; }
+        else { dw = box; dh = box/ar; }
+        ctx.drawImage(avatarImg, cx - dw/2, cy - dh/2, dw, dh);
+      }
+      ctx.restore();
+
+      // name/email (right aligned)
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.textAlign = 'right';
+      ctx.font = '700 44px ui-sans-serif, system-ui, "Noto Sans Arabic", "Cairo", Arial';
+      ctx.fillText(state.name.trim() ? state.name.trim() : 'اسمك هنا', w-80, 130);
+
+      ctx.fillStyle = 'rgba(255,255,255,0.70)';
+      ctx.font = '500 22px ui-sans-serif, system-ui, "Noto Sans Arabic", "Cairo", Arial';
+      const emailText = validEmail(state.email) ? state.email.trim() : 'email@example.com';
+      ctx.fillText(emailText, w-80, 168);
+
+      // badges
+      let bx = w-80, by = 215;
+      const badgeLines = [];
+
+      if(state.follows.length){
+        badgeLines.push('👤 ' + state.follows.map(x=>x.name).join(' • '));
+      }
+      if(state.top3.length){
+        badgeLines.push('⭐ ' + state.top3.map((g,i)=> `${i+1}:${g}`).join('  '));
+      }
+      const interestCount = state.interests.size;
+      const genreCount = state.genres.size;
+      badgeLines.push(`✨ اهتمامات: ${interestCount}  •  Genres: ${genreCount}`);
+
+      ctx.font = '600 18px ui-sans-serif, system-ui, "Noto Sans Arabic", "Cairo", Arial';
+      badgeLines.forEach((line, i)=>{
+        const padX = 14, padY = 10;
+        const metrics = ctx.measureText(line);
+        const bw = Math.min(w-160, metrics.width + padX*2);
+        const bh = 42;
+        const x = bx - bw, y = by + i*(bh+12);
+        roundRect(ctx, x, y, bw, bh, 999);
+        ctx.fillStyle = 'rgba(255,255,255,0.10)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.88)';
+        ctx.fillText(line, bx - padX, y + 27);
+      });
+
+      // footer
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.font = '500 16px ui-sans-serif, system-ui, "Noto Sans Arabic", "Cairo", Arial';
+      ctx.fillText('Character Unlocked • Aura: ' + state.aura.name, w-80, h-70);
+
+      ctx.restore();
+
+      return exportCanvas.toDataURL('image/png');
+    }
+
+    async function avatarToImage(){
+      if(!state.avatar || !state.avatar.value) return null;
+
+      if(state.avatar.type === 'img'){
+        return loadImage(state.avatar.value);
+      }
+
+      // svg => blob url
+      const svg = state.avatar.value.trim();
+      const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      try{
+        const img = await loadImage(url);
+        return img;
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    function loadImage(src){
+      return new Promise((resolve)=>{
+        const img = new Image();
+        img.onload = ()=> resolve(img);
+        img.onerror = ()=> resolve(null);
+        img.crossOrigin = 'anonymous';
+        img.src = src;
+      });
+    }
+
+    function fileToDataURL(file){
+      return new Promise((resolve, reject)=>{
+        const r = new FileReader();
+        r.onload = ()=> resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+    }
+
+    function hexToRgba(hex, a){
+      const h = hex.replace('#','').trim();
+      const bigint = parseInt(h.length === 3 ? h.split('').map(x=>x+x).join('') : h, 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return `rgba(${r},${g},${b},${a})`;
+    }
+
+    function roundRect(ctx, x, y, w, h, r){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+rr, y);
+      ctx.arcTo(x+w, y, x+w, y+h, rr);
+      ctx.arcTo(x+w, y+h, x, y+h, rr);
+      ctx.arcTo(x, y+h, x, y, rr);
+      ctx.arcTo(x, y, x+w, y, rr);
+      ctx.closePath();
+    }
+
+    function blob(ctx, x, y, radius, color){
+      const g = ctx.createRadialGradient(x, y, 0, x, y, radius);
+      g.addColorStop(0, color);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // ---------------------------
+    // Particles (studio particles)
+    // ---------------------------
+    const canvas = document.getElementById('particles');
+    const pctx = canvas.getContext('2d');
+    let particles = [];
+    let particleTheme = 'identity';
+
+    function resizeParticles(){
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      pctx.setTransform(dpr,0,0,dpr,0,0);
+      initParticles();
+    }
+
+    function initParticles(){
+      const count = Math.floor(Math.min(90, Math.max(40, window.innerWidth / 14)));
+      particles = new Array(count).fill(0).map(()=>({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+        r: 0.8 + Math.random() * 2.2,
+        a: 0.12 + Math.random() * 0.22
+      }));
+    }
+
+    function themeParticleColor(){
+      const t = THEMES[particleTheme] || THEMES.identity;
+      // mix aura with theme
+      return [
+        hexToRgba(state.aura.value, 0.32),
+        'rgba(255,255,255,0.18)',
+        'rgba(255,255,255,0.10)'
+      ];
+    }
+
+    function tickParticles(){
+      const w = window.innerWidth, h = window.innerHeight;
+      pctx.clearRect(0,0,w,h);
+
+      const colors = themeParticleColor();
+      particles.forEach((p, i)=>{
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if(p.x < -20) p.x = w + 20;
+        if(p.x > w + 20) p.x = -20;
+        if(p.y < -20) p.y = h + 20;
+        if(p.y > h + 20) p.y = -20;
+
+        const c = colors[i % colors.length];
+        pctx.beginPath();
+        pctx.fillStyle = c;
+        pctx.globalAlpha = p.a;
+        pctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        pctx.fill();
+      });
+
+      // connecting lines (subtle)
+      pctx.globalAlpha = 0.08;
+      pctx.strokeStyle = hexToRgba(state.aura.value, 0.35);
+      for(let i=0;i<particles.length;i++){
+        const a = particles[i];
+        for(let j=i+1;j<particles.length;j++){
+          const b = particles[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          if(d < 120){
+            pctx.lineWidth = 1;
+            pctx.beginPath();
+            pctx.moveTo(a.x, a.y);
+            pctx.lineTo(b.x, b.y);
+            pctx.stroke();
+          }
+        }
+        if(i > 22) break; // keep light
+      }
+
+      pctx.globalAlpha = 1;
+      requestAnimationFrame(tickParticles);
+    }
+
+    window.addEventListener('resize', resizeParticles);
+
+    // ---------------------------
+    // Init
+    // ---------------------------
+    function init(){
+      // initial aura
+      document.documentElement.style.setProperty('--aura', state.aura.value);
+      auraLabel.textContent = 'Aura: ' + state.aura.name;
+
+      renderAvatarGrid();
+      renderAuraPalette();
+      renderFollowList();
+      renderInterestChips();
+      renderGenreChips();
+      renderTop3List();
+      renderTop3Badges();
+
+      updatePreview();
+      setCompletion();
+      setTab('identity');
+
+      resizeParticles();
+      tickParticles();
+    }
+
+    init();
+  </script>
+</body>
+</html>

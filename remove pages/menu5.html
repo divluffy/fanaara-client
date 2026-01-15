@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OtakuVerse V3 - أوتاكو فيرس</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { p:"#7C5CFF", c:"#00D7FF", d:"#5B45CC" },
+            primary: "#6B7FED",
+            secondary: "#EC4899",
+            accent: "#10B981",
+            warning: "#F59E0B",
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+    
+    * {
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #7C5CFF 0%, #00D7FF 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .glass-effect {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .pulse-glow {
+      animation: pulse-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(124, 92, 255, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(124, 92, 255, 0.5); }
+    }
+
+    .slide-up {
+      animation: slide-up 0.5s ease-out;
+    }
+
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .shimmer {
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      to { background-position: 200% 0; }
+    }
+
+    .nav-active {
+      position: relative;
+    }
+
+    .nav-active::before {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 70%;
+      background: linear-gradient(180deg, #7C5CFF, #00D7FF);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card-hover:hover {
+      transform: translateY(-4px) scale(1.01);
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+
+<body class="antialiased">
+  <input id="theme" type="checkbox" class="peer sr-only" />
+
+  <div class="min-h-screen transition-colors duration-500
+              bg-[#0A0E1A] text-slate-100
+              peer-checked:bg-gradient-to-br peer-checked:from-slate-50 peer-checked:to-blue-50 peer-checked:text-slate-900">
+    
+    <!-- Animated Background -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden opacity-40 peer-checked:opacity-20">
+      <div class="absolute top-20 right-20 w-96 h-96 bg-brand-p/30 rounded-full blur-3xl animate-pulse"></div>
+      <div class="absolute bottom-20 left-20 w-96 h-96 bg-brand-c/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+      <div class="absolute top-1/2 left-1/2 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+    </div>
+
+    <div class="relative z-10 grid min-h-screen lg:grid-cols-[280px_1fr] gap-6 p-6">
+      <!-- SIDEBAR -->
+      <aside class="lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)]">
+        <div class="h-full rounded-3xl border transition-all duration-300 overflow-hidden glass-effect
+                    border-white/10 bg-gradient-to-b from-white/5 to-white/[0.02] shadow-2xl
+                    peer-checked:border-black/10 peer-checked:bg-white/60 peer-checked:shadow-xl">
+          
+          <!-- Brand -->
+          <div class="p-5 border-b border-white/10 peer-checked:border-black/10">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="relative">
+                <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-brand-p via-brand-c to-secondary shadow-lg pulse-glow"></div>
+                <div class="absolute -bottom-1 -right-1 h-4 w-4 bg-accent rounded-full border-2 border-[#0A0E1A] peer-checked:border-white"></div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-black text-lg gradient-text">أوتاكو فيرس</div>
+                <div class="text-[11px] text-white/50 peer-checked:text-black/50">مجتمع الأنمي العربي</div>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <div class="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 peer-checked:border-black/10 peer-checked:bg-black/5">
+                <div class="text-xs text-white/50 peer-checked:text-black/50">المتابعون</div>
+                <div class="text-lg font-bold">3.2K</div>
+              </div>
+              <div class="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 peer-checked:border-black/10 peer-checked:bg-black/5">
+                <div class="text-xs text-white/50 peer-checked:text-black/50">النقاط</div>
+                <div class="text-lg font-bold">890</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation -->
+          <div class="p-3 h-[calc(100%-220px)] overflow-auto scrollbar-hide">
+            <nav class="space-y-1">
+              <a href="#" class="nav-active group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200
+                                  bg-gradient-to-l from-brand-p/20 to-transparent hover:from-brand-p/30">
+                <div class="h-10 w-10 rounded-xl bg-brand-p/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg class="h-5 w-5 text-brand-p" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20v-9.5Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold text-sm">الرئيسية</div>
+                  <div class="text-xs text-white/50 peer-checked:text-black/50">التحديثات الجديدة</div>
+                </div>
+                <span class="h-6 w-6 rounded-lg bg-brand-p text-white text-xs flex items-center justify-center font-bold">5</span>
+              </a>
+
+              <a href="#" class="group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200
+                                 hover:bg-white/5 peer-checked:hover:bg-black/5">
+                <div class="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform peer-checked:bg-black/5">
+                  <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 4h7v7H4V4ZM13 4h7v7h-7V4ZM4 13h7v7H4v-7ZM13 13h7v7h-7v-7Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold text-sm">التقنيات</div>
+                  <div class="text-xs text-white/50 peer-checked:text-black/50">استكشف المحتوى</div>
+                </div>
+              </a>
+
+              <a href="#" class="group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200
+                                 hover:bg-white/5 peer-checked:hover:bg-black/5">
+                <div class="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform peer-checked:bg-black/5">
+                  <svg class="h-5 w-5 text-warning" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 6h14v12H7V6Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M3 8h4v12H3V8Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold text-sm">القصص المصورة</div>
+                  <div class="text-xs text-white/50 peer-checked:text-black/50">المانجا والكوميكس</div>
+                </div>
+              </a>
+
+              <a href="#" class="group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200
+                                 hover:bg-white/5 peer-checked:hover:bg-black/5">
+                <div class="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform peer-checked:bg-black/5">
+                  <svg class="h-5 w-5 text-secondary" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                    <path d="m10 8 6 4-6 4V8Z" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold text-sm">حلقات</div>
+                  <div class="text-xs text-white/50 peer-checked:text-black/50">شاهد الأنمي</div>
+                </div>
+                <span class="text-xs rounded-lg bg-secondary/20 text-secondary px-2 py-0.5 font-bold">24</span>
+              </a>
+
+              <a href="#" class="group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200
+                                 hover:bg-white/5 peer-checked:hover:bg-black/5">
+                <div class="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform peer-checked:bg-black/5">
+                  <svg class="h-5 w-5 text-accent" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 4h10v3a5 5 0 0 1-10 0V4Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 12v5M9 20h6" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold text-sm">التصنيف</div>
+                  <div class="text-xs text-white/50 peer-checked:text-black/50">الترتيب والجوائز</div>
+                </div>
+              </a>
+
+              <a href="#" class="group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200
+                                 hover:bg-white/5 peer-checked:hover:bg-black/5">
+                <div class="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform peer-checked:bg-black/5">
+                  <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v7A2.5 2.5 0 0 1 17.5 15H10l-4 4v-4H6.5A2.5 2.5 0 0 1 4 12.5v-7Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold text-sm">المحادثات</div>
+                  <div class="text-xs text-white/50 peer-checked:text-black/50">الرسائل والدردشة</div>
+                </div>
+                <span class="h-6 w-6 rounded-lg bg-secondary text-white text-xs flex items-center justify-center font-bold">3</span>
+              </a>
+
+              <div class="my-3 border-t border-white/10 peer-checked:border-black/10"></div>
+
+              <a href="#" class="group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200
+                                 hover:bg-white/5 peer-checked:hover:bg-black/5">
+                <div class="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform peer-checked:bg-black/5">
+                  <svg class="h-5 w-5 text-brand-c" viewBox="0 0 24 24" fill="none">
+                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+                    <path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <span class="font-bold text-sm">البحث</span>
+              </a>
+
+              <a href="#" class="group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200
+                                 hover:bg-white/5 peer-checked:hover:bg-black/5">
+                <div class="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform peer-checked:bg-black/5">
+                  <svg class="h-5 w-5 text-accent" viewBox="0 0 24 24" fill="none">
+                    <path d="M10 5a2 2 0 0 1 4 0v.5c0 3.2 1 5.5 2 7.5H8c1-2 2-4.3 2-7.5V5Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <span class="font-bold text-sm">الإشعارات</span>
+                <span class="h-2 w-2 rounded-full bg-accent animate-pulse"></span>
+              </a>
+            </nav>
+          </div>
+
+          <!-- User Footer -->
+          <div class="p-3 border-t border-white/10 peer-checked:border-black/10">
+            <div class="flex items-center gap-3 rounded-2xl p-3 bg-white/5 peer-checked:bg-black/5">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=ibrahim" class="h-11 w-11 rounded-xl border-2 border-brand-p"/>
+              <div class="flex-1 min-w-0">
+                <div class="font-bold text-sm truncate">إبراهيم دحمة</div>
+                <div class="text-xs text-white/50 peer-checked:text-black/50 truncate">@luffy.dev</div>
+              </div>
+              <button class="h-9 w-9 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition peer-checked:bg-black/5 peer-checked:hover:bg-black/10">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="min-h-screen pb-6">
+        <!-- Header -->
+        <header class="mb-6 slide-up">
+          <div class="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <h1 class="text-3xl font-black mb-1">مرحباً، إبراهيم 👋</h1>
+              <p class="text-sm text-white/60 peer-checked:text-black/60">اكتشف آخر التحديثات في عالم الأنمي</p>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <!-- Theme Toggle -->
+              <label for="theme" class="cursor-pointer h-12 w-12 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 
+                                        flex items-center justify-center transition-all duration-300
+                                        peer-checked:border-black/10 peer-checked:bg-white/60 peer-checked:hover:bg-white/70">
+                <svg class="h-5 w-5 hidden peer-checked:block" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <svg class="h-5 w-5 peer-checked:hidden" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+              </label>
+
+              <button class="h-12 px-5 rounded-2xl bg-gradient-to-l from-brand-p to-brand-c text-white font-bold 
+                           hover:shadow-lg hover:shadow-brand-p/50 transition-all duration-300 hover:scale-105">
+                + إنشاء منشور
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="card-hover rounded-2xl border border-white/10 bg-gradient-to-br from-brand-p/10 to-transparent p-4 
+                        peer-checked:border-black/10">
+              <div class="flex items-center justify-between mb-2">
+                <div class="h-12 w-12 rounded-xl bg-brand-p/20 flex items-center justify-center">
+                  <svg class="h-6 w-6 text-brand-p" viewBox="0 0 24 24" fill="none">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <span class="text-xs text-brand-p font-bold">+12%</span>
+              </div>
+              <div class="text-2xl font-black mb-1">12.5K</div>
+              <div class="text-sm text-white/60 peer-checked:text-black/60">المشاهدات</div>
+            </div>
+
+            <div class="card-hover rounded-2xl border border-white/10 bg-gradient-to-br from-accent/10 to-transparent p-4 
+                        peer-checked:border-black/10">
+              <div class="flex items-center justify-between mb-2">
+                <div class="h-12 w-12 rounded-xl bg-accent/20 flex items-center justify-center">
+                  <svg class="h-6 w-6 text-accent" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 20c0-3.3 3.6-5 9-5s9 1.7 9 5" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <span class="text-xs text-accent font-bold">+8%</span>
+              </div>
+              <div class="text-2xl font-black mb-1">3.2K</div>
+              <div class="text-sm text-white/60 peer-checked:text-black/60">المتابعون</div>
+            </div>
+
+            <div class="card-hover rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/10 to-transparent p-4 
+                        peer-checked:border-black/10">
+              <div class="flex items-center justify-between mb-2">
+                <div class="h-12 w-12 rounded-xl bg-secondary/20 flex items-center justify-center">
+                  <svg class="h-6 w-6 text-secondary" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                </div>
+                <span class="text-xs text-secondary font-bold">+15%</span>
+              </div>
+              <div class="text-2xl font-black mb-1">8.7K</div>
+              <div class="text-sm text-white/60 peer-checked:text-black/60">الإعجابات</div>
+            </div>
+
+            <div class="card-hover rounded-2xl border border-white/10 bg-gradient-to-br from-warning/10 to-transparent p-4 
+                        peer-checked:border-black/10">
+              <div class="flex items-center justify-between mb-2">
+                <div class="h-12 w-12 rounded-xl bg-warning/20 flex items-center justify-center">
+                  <svg class="h-6 w-6 text-warning" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 6h14v12H7V6Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M3 8h4v12H3V8Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <span class="text-xs text-warning font-bold">+5%</span>
+              </div>
+              <div class="text-2xl font-black mb-1">156</div>
+              <div class="text-sm text-white/60 peer-checked:text-black/60">المحتوى</div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Content Grid -->
+        <div class="grid lg:grid-cols-[1fr_380px] gap-6">
+          <!-- Feed -->
+          <div class="space-y-4">
+            <!-- Story/Status Bar -->
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 glass-effect peer-checked:border-black/10 peer-checked:bg-white/60">
+              <div class="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+                <button class="shrink-0 text-center">
+                  <div class="relative mb-2">
+                    <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-brand-p to-brand-c p-0.5">
+                      <div class="h-full w-full rounded-2xl bg-[#0A0E1A] peer-checked:bg-white flex items-center justify-center">
+                        <svg class="h-8 w-8 text-white peer-checked:text-black" viewBox="0 0 24 24" fill="none">
+                          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-xs font-bold">قصتك</div>
+                </button>
+
+                <button class="shrink-0 text-center">
+                  <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-secondary to-warning p-0.5 mb-2">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=story1" class="h-full w-full rounded-2xl"/>
+                  </div>
+                  <div class="text-xs font-bold">أحمد</div>
+                </button>
+
+                <button class="shrink-0 text-center">
+                  <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-accent to-brand-c p-0.5 mb-2">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=story2" class="h-full w-full rounded-2xl"/>
+                  </div>
+                  <div class="text-xs font-bold">سارة</div>
+                </button>
+
+                <button class="shrink-0 text-center">
+                  <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-brand-p to-secondary p-0.5 mb-2">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=story3" class="h-full w-full rounded-2xl"/>
+                  </div>
+                  <div class="text-xs font-bold">محمد</div>
+                </button>
+
+                <button class="shrink-0 text-center">
+                  <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-warning to-accent p-0.5 mb-2">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=story4" class="h-full w-full rounded-2xl"/>
+                  </div>
+                  <div class="text-xs font-bold">فاطمة</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Post Cards -->
+            <article class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5 glass-effect peer-checked:border-black/10 peer-checked:bg-white/60">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=post1" class="h-12 w-12 rounded-xl"/>
+                  <div>
+                    <div class="font-bold">أحمد الأنمي</div>
+                    <div class="text-xs text-white/50 peer-checked:text-black/50">منذ ساعتين • Attack on Titan</div>
+                  </div>
+                </div>
+                <button class="h-9 w-9 rounded-xl hover:bg-white/10 flex items-center justify-center transition peer-checked:hover:bg-black/10">
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="mb-4">
+                <p class="text-sm leading-relaxed mb-3">
+                  الحلقة الأخيرة من Attack on Titan كانت مذهلة! التحول الدراماتيكي في الأحداث والرسوم المتحركة الرائعة جعلت كل شيء يبدو مثالياً. لا أصدق أن القصة وصلت لهذا المستوى من العمق 🔥⚔️
+                </p>
+                <div class="rounded-xl overflow-hidden border border-white/10 peer-checked:border-black/10">
+                  <div class="aspect-video bg-gradient-to-br from-brand-p/20 via-secondary/20 to-brand-c/20 flex items-center justify-center">
+                    <div class="text-center">
+                      <svg class="h-20 w-20 mx-auto mb-2 text-white/30" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="m10 8 6 4-6 4V8Z" fill="#0A0E1A"/>
+                      </svg>
+                      <div class="text-sm text-white/50">مقطع فيديو</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-4 border-t border-white/10 peer-checked:border-black/10">
+                <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 transition peer-checked:hover:bg-black/10">
+                  <svg class="h-5 w-5 text-secondary" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                  <span class="font-bold text-sm">1.2K</span>
+                </button>
+
+                <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 transition peer-checked:hover:bg-black/10">
+                  <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <span class="font-bold text-sm">256</span>
+                </button>
+
+                <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 transition peer-checked:hover:bg-black/10">
+                  <svg class="h-5 w-5 text-accent" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <span class="font-bold text-sm">مشاركة</span>
+                </button>
+              </div>
+            </article>
+
+            <article class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5 glass-effect peer-checked:border-black/10 peer-checked:bg-white/60">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=post2" class="h-12 w-12 rounded-xl"/>
+                  <div>
+                    <div class="font-bold">سارة المانجا</div>
+                    <div class="text-xs text-white/50 peer-checked:text-black/50">منذ 4 ساعات • One Piece</div>
+                  </div>
+                </div>
+                <button class="h-9 w-9 rounded-xl hover:bg-white/10 flex items-center justify-center transition peer-checked:hover:bg-black/10">
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="mb-4">
+                <p class="text-sm leading-relaxed mb-3">
+                  فصل 1099 من One Piece نزل أخيراً! 🏴‍☠️ القصة الخلفية لكوما كانت مؤثرة جداً والأحداث بدأت تتسارع. أودا دائماً يفاجئنا بطريقة رواية القصة المذهلة!
+                </p>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="rounded-xl overflow-hidden border border-white/10 peer-checked:border-black/10">
+                    <div class="aspect-square bg-gradient-to-br from-warning/20 to-secondary/20"></div>
+                  </div>
+                  <div class="rounded-xl overflow-hidden border border-white/10 peer-checked:border-black/10">
+                    <div class="aspect-square bg-gradient-to-br from-accent/20 to-primary/20"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-4 border-t border-white/10 peer-checked:border-black/10">
+                <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 transition peer-checked:hover:bg-black/10">
+                  <svg class="h-5 w-5 text-secondary" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                  <span class="font-bold text-sm">892</span>
+                </button>
+
+                <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 transition peer-checked:hover:bg-black/10">
+                  <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <span class="font-bold text-sm">187</span>
+                </button>
+
+                <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 transition peer-checked:hover:bg-black/10">
+                  <svg class="h-5 w-5 text-accent" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <span class="font-bold text-sm">مشاركة</span>
+                </button>
+              </div>
+            </article>
+
+            <article class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5 glass-effect peer-checked:border-black/10 peer-checked:bg-white/60">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=post3" class="h-12 w-12 rounded-xl"/>
+                  <div>
+                    <div class="font-bold">محمد الفنان</div>
+                    <div class="text-xs text-white/50 peer-checked:text-black/50">منذ يوم • Fan Art</div>
+                  </div>
+                </div>
+                <button class="h-9 w-9 rounded-xl hover:bg-white/10 flex items-center justify-center transition peer-checked:hover:bg-black/10">
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="mb-4">
+                <p class="text-sm leading-relaxed mb-3">
+                  قضيت 12 ساعة في رسم جوجو كاتسو بأسلوب السايبربانك! 🎨✨ ما رأيكم بالنتيجة؟
+                </p>
+
+                <div class="rounded-xl overflow-hidden border border-white/10 peer-checked:border-black/10">
+                  <div class="aspect-video bg-gradient-to-br from-brand-p/20 via-secondary/20 to-accent/20 flex items-center justify-center">
+                    <svg class="h-24 w-24 text-white/20" viewBox="0 0 24 24" fill="none">
+                      <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                      <path d="m3 16 5-5 4 4 5-5 4 4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-4 border-t border-white/10 peer-checked:border-black/10">
+                <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 transition peer-checked:hover:bg-black/10">
+                  <svg class="h-5 w-5 text-secondary" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                  <span class="font-bold text-sm">1.5K</span>
+                </button>
+
+                <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 transition peer-checked:hover:bg-black/10">
+                  <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <span class="font-bold text-sm">89</span>
+                </button>
+
+                <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 transition peer-checked:hover:bg-black/10">
+                  <svg class="h-5 w-5 text-accent" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <span class="font-bold text-sm">مشاركة</span>
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <!-- Sidebar -->
+          <aside class="space-y-4">
+            <!-- Trending -->
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5 glass-effect peer-checked:border-black/10 peer-checked:bg-white/60">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-black text-lg">الترند 🔥</h3>
+                <button class="text-xs text-brand-p font-bold">عرض الكل</button>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition cursor-pointer peer-checked:hover:bg-black/5">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-p to-secondary flex items-center justify-center text-white font-black">1</div>
+                    <div>
+                      <div class="font-bold text-sm">#AttackOnTitan</div>
+                      <div class="text-xs text-white/50 peer-checked:text-black/50">15.2K منشور</div>
+                    </div>
+                  </div>
+                  <span class="text-xl">⚔️</span>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition cursor-pointer peer-checked:hover:bg-black/5">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-warning to-accent flex items-center justify-center text-white font-black">2</div>
+                    <div>
+                      <div class="font-bold text-sm">#OnePiece</div>
+                      <div class="text-xs text-white/50 peer-checked:text-black/50">12.8K منشور</div>
+                    </div>
+                  </div>
+                  <span class="text-xl">🏴‍☠️</span>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition cursor-pointer peer-checked:hover:bg-black/5">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center text-white font-black">3</div>
+                    <div>
+                      <div class="font-bold text-sm">#JujutsuKaisen</div>
+                      <div class="text-xs text-white/50 peer-checked:text-black/50">9.4K منشور</div>
+                    </div>
+                  </div>
+                  <span class="text-xl">⚡</span>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition cursor-pointer peer-checked:hover:bg-black/5">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-secondary to-brand-c flex items-center justify-center text-white font-black">4</div>
+                    <div>
+                      <div class="font-bold text-sm">#DemonSlayer</div>
+                      <div class="text-xs text-white/50 peer-checked:text-black/50">7.1K منشور</div>
+                    </div>
+                  </div>
+                  <span class="text-xl">🗡️</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Suggestions -->
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5 glass-effect peer-checked:border-black/10 peer-checked:bg-white/60">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-black text-lg">اقتراحات المتابعة</h3>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=sug1" class="h-12 w-12 rounded-xl"/>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-bold text-sm">عمر الناقد</div>
+                    <div class="text-xs text-white/50 peer-checked:text-black/50">2.5K متابع</div>
+                  </div>
+                  <button class="h-9 px-4 rounded-xl bg-gradient-to-l from-brand-p to-brand-c text-white text-sm font-bold hover:shadow-lg transition">
+                    متابعة
+                  </button>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=sug2" class="h-12 w-12 rounded-xl"/>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-bold text-sm">ليلى الرسامة</div>
+                    <div class="text-xs text-white/50 peer-checked:text-black/50">1.8K متابع</div>
+                  </div>
+                  <button class="h-9 px-4 rounded-xl bg-gradient-to-l from-brand-p to-brand-c text-white text-sm font-bold hover:shadow-lg transition">
+                    متابعة
+                  </button>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=sug3" class="h-12 w-12 rounded-xl"/>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-bold text-sm">كريم الأوتاكو</div>
+                    <div class="text-xs text-white/50 peer-checked:text-black/50">3.2K متابع</div>
+                  </div>
+                  <button class="h-9 px-4 rounded-xl bg-gradient-to-l from-brand-p to-brand-c text-white text-sm font-bold hover:shadow-lg transition">
+                    متابعة
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5 glass-effect peer-checked:border-black/10 peer-checked:bg-white/60">
+              <h3 class="font-black text-lg mb-4">روابط سريعة</h3>
+              <div class="space-y-2 text-sm">
+                <a href="#" class="block text-white/70 hover:text-white peer-checked:text-black/70 peer-checked:hover:text-black transition">عن أوتاكو فيرس</a>
+                <a href="#" class="block text-white/70 hover:text-white peer-checked:text-black/70 peer-checked:hover:text-black transition">الشروط والأحكام</a>
+                <a href="#" class="block text-white/70 hover:text-white peer-checked:text-black/70 peer-checked:hover:text-black transition">سياسة الخصوصية</a>
+                <a href="#" class="block text-white/70 hover:text-white peer-checked:text-black/70 peer-checked:hover:text-black transition">المساعدة والدعم</a>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-white/10 peer-checked:border-black/10 text-xs text-white/50 peer-checked:text-black/50">
+                © 2024 OtakuVerse. جميع الحقوق محفوظة
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

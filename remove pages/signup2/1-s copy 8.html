@@ -1,0 +1,1560 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mecha HUD • نموذج تسجيل متعدد الخطوات</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          boxShadow: {
+            hud: "0 0 0 1px rgba(34,211,238,.35), 0 0 25px rgba(34,211,238,.10)",
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    :root{
+      --hud: 34 211 238;     /* cyan-400 */
+      --hud2: 16 185 129;    /* emerald-500 */
+      --warn: 251 113 133;   /* rose-400 */
+      --ink: 2 6 23;         /* slate-950-ish */
+    }
+
+    /* Background: grid + scanlines */
+    .bg-grid {
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(34,211,238,.10) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(34,211,238,.06), transparent 55%),
+        repeating-linear-gradient(90deg, rgba(34,211,238,.05) 0 1px, transparent 1px 24px),
+        repeating-linear-gradient(0deg, rgba(34,211,238,.04) 0 1px, transparent 1px 24px);
+      background-size: 24px 24px, 100% 100%, 24px 24px, 24px 24px;
+      background-position: 0 0, 0 0, 0 0, 0 0;
+    }
+
+    .scanlines::before{
+      content:"";
+      position:absolute; inset:0;
+      pointer-events:none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,.04) 0px,
+          rgba(255,255,255,.02) 1px,
+          rgba(0,0,0,0) 3px,
+          rgba(0,0,0,0) 6px
+        );
+      mix-blend-mode: overlay;
+      opacity:.35;
+    }
+
+    /* Mecha HUD panel cut corners */
+    .hud-panel{
+      position: relative;
+      background: rgba(2,6,23,.78);
+      border: 1px solid rgba(34,211,238,.28);
+      box-shadow: 0 0 0 1px rgba(34,211,238,.10), 0 0 45px rgba(34,211,238,.08);
+      clip-path: polygon(0 14px, 14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px));
+    }
+
+    .hud-header{
+      position: relative;
+      background: linear-gradient(90deg, rgba(34,211,238,.18), rgba(16,185,129,.08));
+      border-bottom: 1px solid rgba(34,211,238,.22);
+    }
+
+    /* Energy bar stripes */
+    .energy {
+      background:
+        linear-gradient(90deg, rgba(16,185,129,.95), rgba(34,211,238,.95)),
+        repeating-linear-gradient(135deg, rgba(0,0,0,.18) 0 10px, rgba(255,255,255,.06) 10px 20px);
+      background-blend-mode: overlay;
+      animation: drift 2.8s linear infinite;
+    }
+    @keyframes drift{
+      from { background-position: 0 0, 0 0; }
+      to   { background-position: 0 0, 120px 0; }
+    }
+
+    /* Tiny glow dot */
+    .dot{
+      width:10px; height:10px; border-radius:999px;
+      background: rgba(var(--hud),.95);
+      box-shadow: 0 0 14px rgba(var(--hud),.55);
+    }
+    .dot.off{
+      background: rgba(148,163,184,.35);
+      box-shadow: none;
+    }
+    .dot.warn{
+      background: rgba(var(--warn),.95);
+      box-shadow: 0 0 14px rgba(var(--warn),.55);
+    }
+
+    /* Custom focus */
+    :focus-visible{
+      outline: 2px solid rgba(34,211,238,.65);
+      outline-offset: 2px;
+    }
+
+    /* Buttons */
+    .btn-hud{
+      position: relative;
+      border: 1px solid rgba(34,211,238,.35);
+      background: linear-gradient(180deg, rgba(34,211,238,.14), rgba(2,6,23,.6));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 0 18px rgba(34,211,238,.10);
+      clip-path: polygon(0 12px, 12px 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+    }
+    .btn-hud:hover{
+      border-color: rgba(16,185,129,.55);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 0 26px rgba(16,185,129,.14);
+    }
+    .btn-danger{
+      border-color: rgba(var(--warn),.55);
+      background: linear-gradient(180deg, rgba(var(--warn),.16), rgba(2,6,23,.6));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 0 18px rgba(var(--warn),.10);
+    }
+
+    /* Switch */
+    .switch{
+      width: 44px; height: 24px; border-radius: 999px;
+      border: 1px solid rgba(34,211,238,.35);
+      background: rgba(2,6,23,.75);
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    .switch::after{
+      content:"";
+      position:absolute; top:3px; right:3px;
+      width: 18px; height: 18px; border-radius: 999px;
+      background: rgba(148,163,184,.75);
+      transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+    .switch.on{
+      border-color: rgba(16,185,129,.55);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 0 18px rgba(16,185,129,.10);
+    }
+    .switch.on::after{
+      transform: translateX(-20px);
+      background: rgba(16,185,129,.95);
+      box-shadow: 0 0 16px rgba(16,185,129,.35);
+    }
+
+    /* Avatar glow */
+    .glow{
+      filter: drop-shadow(0 0 10px rgba(34,211,238,.45));
+    }
+
+    /* Disable number spinners on range in some browsers? keep default */
+  </style>
+</head>
+
+<body class="min-h-screen bg-slate-950 text-slate-100 bg-grid">
+  <div class="relative min-h-screen scanlines">
+    <!-- Top HUD strip -->
+    <header class="sticky top-0 z-20 border-b border-cyan-400/15 bg-slate-950/70 backdrop-blur">
+      <div class="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="dot" aria-hidden="true"></div>
+          <div class="text-sm tracking-widest text-cyan-200/90">
+            MECHA HUD • REGISTRATION CONSOLE
+          </div>
+        </div>
+        <div class="text-xs text-slate-300/80">
+          اختصارات الكيبورد: <span class="text-cyan-200">Ctrl</span>+<span class="text-cyan-200">→</span> التالي • <span class="text-cyan-200">Ctrl</span>+<span class="text-cyan-200">←</span> السابق • <span class="text-cyan-200">Ctrl</span>+<span class="text-cyan-200">Enter</span> التالي
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-4 py-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- LEFT: steps + form -->
+        <section class="lg:col-span-7 hud-panel overflow-hidden">
+          <div class="hud-header px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="text-sm tracking-widest text-cyan-200">وحدة الإدخال • MULTI-STEP</div>
+              <div id="stepStatus" class="text-xs text-slate-300/80">—</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-300/80">ENERGY</span>
+              <div class="w-44 h-3 rounded-full border border-cyan-400/25 bg-slate-950/70 overflow-hidden" aria-label="شريط التقدم">
+                <div id="energyBar" class="h-full energy" style="width: 0%"></div>
+              </div>
+              <span id="energyPct" class="text-xs text-cyan-200 tabular-nums w-10 text-left">0%</span>
+            </div>
+          </div>
+
+          <!-- Step list -->
+          <div class="px-4 pt-4">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" role="tablist" aria-label="خطوات التسجيل">
+              <!-- buttons injected by JS -->
+              <div id="stepTabs" class="contents"></div>
+            </div>
+          </div>
+
+          <!-- System Warning Panel -->
+          <div class="px-4 pt-3">
+            <div id="warningPanel" class="hidden hud-panel !clip-path-none border-rose-400/35 bg-rose-950/20 shadow-[0_0_0_1px_rgba(251,113,133,.12),0_0_25px_rgba(251,113,133,.10)]">
+              <div class="hud-header px-3 py-2 flex items-center justify-between !bg-gradient-to-r !from-rose-400/15 !to-transparent !border-rose-400/20">
+                <div class="flex items-center gap-2">
+                  <span class="dot warn" aria-hidden="true"></span>
+                  <div class="text-xs tracking-widest text-rose-200">SYSTEM WARNING</div>
+                </div>
+                <button id="clearWarningsBtn" class="text-xs text-rose-200/90 hover:text-rose-200 underline underline-offset-4">مسح</button>
+              </div>
+              <ul id="warningList" class="px-3 py-2 text-xs text-rose-100/90 space-y-1"></ul>
+            </div>
+          </div>
+
+          <!-- Form body -->
+          <div class="px-4 py-4">
+            <form id="wizardForm" class="space-y-5" novalidate>
+              <!-- STEP 0: Identity -->
+              <section class="step" data-step="0">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 class="text-lg text-cyan-200 tracking-wider">الخطوة 1 • إنشاء الهوية</h2>
+                    <p class="text-sm text-slate-300/85 mt-1">عرّف نفسك كطيّار/مستخدم داخل مجتمع الأنمي والكوميكس. اسم + Callsign.</p>
+                  </div>
+                  <div class="text-xs text-slate-300/70">
+                    <div class="flex items-center gap-2 justify-end">
+                      <span class="dot" id="dot_identity"></span>
+                      <span>LINK</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                  <div>
+                    <label class="text-xs tracking-widest text-slate-200/90">USERNAME</label>
+                    <input id="username" type="text" autocomplete="username"
+                      class="mt-1 w-full rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
+                      placeholder="مثال: dev_luffy" />
+                    <div id="usernameHint" class="mt-1 text-xs text-slate-300/70">3–16 أحرف/أرقام/underscore فقط.</div>
+                  </div>
+
+                  <div>
+                    <label class="text-xs tracking-widest text-slate-200/90">CALLSIGN</label>
+                    <select id="callsign"
+                      class="mt-1 w-full rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 text-sm text-slate-100">
+                      <option value="">اختر Callsign…</option>
+                      <option>OMEGA</option>
+                      <option>NEON</option>
+                      <option>KITSUNE</option>
+                      <option>RONIN</option>
+                      <option>HOLLOW</option>
+                      <option>PIXEL</option>
+                      <option>DRIFT</option>
+                      <option>VORTEX</option>
+                    </select>
+                    <div class="mt-1 text-xs text-slate-300/70">سيظهر في بطاقة ملفك كنداء تكتيكي.</div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 1: Auth -->
+              <section class="step hidden" data-step="1">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 class="text-lg text-cyan-200 tracking-wider">الخطوة 2 • Email / Password</h2>
+                    <p class="text-sm text-slate-300/85 mt-1">فحص فوري + شروط كلمة المرور داخل HUD.</p>
+                  </div>
+                  <div class="text-xs text-slate-300/70">
+                    <div class="flex items-center gap-2 justify-end">
+                      <span class="dot off" id="dot_auth"></span>
+                      <span>SECURE</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                  <div>
+                    <label class="text-xs tracking-widest text-slate-200/90">EMAIL</label>
+                    <input id="email" type="email" autocomplete="email"
+                      class="mt-1 w-full rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
+                      placeholder="you@domain.com" />
+                    <div id="emailHint" class="mt-1 text-xs text-slate-300/70">سيتم التحقق منه فورًا.</div>
+                  </div>
+
+                  <div>
+                    <label class="text-xs tracking-widest text-slate-200/90">PASSWORD</label>
+                    <input id="password" type="password" autocomplete="new-password"
+                      class="mt-1 w-full rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
+                      placeholder="••••••••••" />
+                    <div class="mt-1 text-xs text-slate-300/70">اكتب كلمة قوية… HUD سيضيء الشروط.</div>
+                  </div>
+
+                  <div class="md:col-span-2">
+                    <label class="text-xs tracking-widest text-slate-200/90">CONFIRM</label>
+                    <input id="confirm" type="password" autocomplete="new-password"
+                      class="mt-1 w-full rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
+                      placeholder="إعادة كتابة كلمة المرور" />
+                  </div>
+                </div>
+
+                <div class="mt-4 hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40">
+                  <div class="hud-header px-3 py-2 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <span class="dot" aria-hidden="true"></span>
+                      <div class="text-xs tracking-widest text-cyan-200">PASSWORD HUD CHECK</div>
+                    </div>
+                    <div id="passScore" class="text-xs text-slate-300/85 tabular-nums">SCORE: 0/5</div>
+                  </div>
+                  <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <div class="flex items-center gap-2"><span id="req_len" class="dot off"></span><span>≥ 10 أحرف</span></div>
+                    <div class="flex items-center gap-2"><span id="req_lower" class="dot off"></span><span>حرف صغير (a-z)</span></div>
+                    <div class="flex items-center gap-2"><span id="req_upper" class="dot off"></span><span>حرف كبير (A-Z)</span></div>
+                    <div class="flex items-center gap-2"><span id="req_num" class="dot off"></span><span>رقم (0-9)</span></div>
+                    <div class="flex items-center gap-2"><span id="req_sym" class="dot off"></span><span>رمز (!@#$…)</span></div>
+                    <div class="flex items-center gap-2"><span id="req_match" class="dot off"></span><span>تطابق التأكيد</span></div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 2: Additional -->
+              <section class="step hidden" data-step="2">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 class="text-lg text-cyan-200 tracking-wider">الخطوة 3 • بيانات إضافية</h2>
+                    <p class="text-sm text-slate-300/85 mt-1">المستوى + Bio + Role داخل المجتمع.</p>
+                  </div>
+                  <div class="text-xs text-slate-300/70">
+                    <div class="flex items-center gap-2 justify-end">
+                      <span class="dot off" id="dot_extra"></span>
+                      <span>DATA</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                  <div>
+                    <label class="text-xs tracking-widest text-slate-200/90">مستوى الخبرة</label>
+                    <select id="experience"
+                      class="mt-1 w-full rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 text-sm text-slate-100">
+                      <option value="">اختر…</option>
+                      <option value="Rookie">Rookie (جديد)</option>
+                      <option value="Regular">Regular (منتظم)</option>
+                      <option value="Veteran">Veteran (مخضرم)</option>
+                      <option value="Creator">Creator (صانع محتوى)</option>
+                      <option value="Moderator">Moderator (مشرف)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="text-xs tracking-widest text-slate-200/90">Role في المجتمع</label>
+                    <div class="mt-1 grid grid-cols-2 gap-2 text-sm">
+                      <label class="flex items-center gap-2 rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 cursor-pointer">
+                        <input type="radio" name="role" value="Reader" class="accent-cyan-300" />
+                        <span>قارئ</span>
+                      </label>
+                      <label class="flex items-center gap-2 rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 cursor-pointer">
+                        <input type="radio" name="role" value="Watcher" class="accent-cyan-300" />
+                        <span>مشاهد</span>
+                      </label>
+                      <label class="flex items-center gap-2 rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 cursor-pointer">
+                        <input type="radio" name="role" value="Collector" class="accent-cyan-300" />
+                        <span>جامع</span>
+                      </label>
+                      <label class="flex items-center gap-2 rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 cursor-pointer">
+                        <input type="radio" name="role" value="Theorycrafter" class="accent-cyan-300" />
+                        <span>محلّل</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="md:col-span-2">
+                    <label class="text-xs tracking-widest text-slate-200/90">BIO</label>
+                    <textarea id="bio" rows="4"
+                      class="mt-1 w-full rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
+                      placeholder="عرّف عن نفسك (أقصر/أفضل)…"></textarea>
+                    <div class="mt-1 text-xs text-slate-300/70"><span id="bioCount" class="tabular-nums">0</span>/220</div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 3: Avatar -->
+              <section class="step hidden" data-step="3">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 class="text-lg text-cyan-200 tracking-wider">الخطوة 4 • الأفاتار (Helmet/Mask)</h2>
+                    <p class="text-sm text-slate-300/85 mt-1">اختيار SVG + لون + إضاءة Glow.</p>
+                  </div>
+                  <div class="text-xs text-slate-300/70">
+                    <div class="flex items-center gap-2 justify-end">
+                      <span class="dot off" id="dot_avatar"></span>
+                      <span>VISUAL</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                  <div class="hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40">
+                    <div class="hud-header px-3 py-2 flex items-center justify-between">
+                      <div class="text-xs tracking-widest text-cyan-200">SELECT MODEL</div>
+                      <div class="text-xs text-slate-300/80">SVG</div>
+                    </div>
+                    <div class="p-3 grid grid-cols-2 gap-2">
+                      <button type="button" class="avatarBtn btn-hud px-3 py-2 text-sm text-slate-100" data-avatar="helmet">
+                        Helmet
+                      </button>
+                      <button type="button" class="avatarBtn btn-hud px-3 py-2 text-sm text-slate-100" data-avatar="mask">
+                        Mask
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40">
+                    <div class="hud-header px-3 py-2 flex items-center justify-between">
+                      <div class="text-xs tracking-widest text-cyan-200">TUNING</div>
+                      <div class="text-xs text-slate-300/80">COLOR / GLOW</div>
+                    </div>
+                    <div class="p-3 space-y-3">
+                      <div class="flex items-center justify-between gap-2">
+                        <label class="text-xs tracking-widest text-slate-200/90">لون</label>
+                        <input id="avatarColor" type="color" value="#22d3ee" class="h-9 w-16 bg-transparent border border-cyan-400/20 rounded-md" />
+                      </div>
+
+                      <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                          <label class="text-xs tracking-widest text-slate-200/90">Glow</label>
+                          <span id="glowVal" class="text-xs text-cyan-200 tabular-nums">60</span>
+                        </div>
+                        <input id="avatarGlow" type="range" min="0" max="100" value="60" class="w-full" />
+                      </div>
+
+                      <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                          <label class="text-xs tracking-widest text-slate-200/90">Intensity</label>
+                          <span id="shineVal" class="text-xs text-cyan-200 tabular-nums">40</span>
+                        </div>
+                        <input id="avatarShine" type="range" min="0" max="100" value="40" class="w-full" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 4: Interests -->
+              <section class="step hidden" data-step="4">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 class="text-lg text-cyan-200 tracking-wider">الخطوة 5 • الاهتمامات + Loadout</h2>
+                    <p class="text-sm text-slate-300/85 mt-1">بحث Tags + اختيار 3 اهتمامات رئيسية كـ Loadout.</p>
+                  </div>
+                  <div class="text-xs text-slate-300/70">
+                    <div class="flex items-center gap-2 justify-end">
+                      <span class="dot off" id="dot_tags"></span>
+                      <span>LOADOUT</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                  <div>
+                    <label class="text-xs tracking-widest text-slate-200/90">بحث Tags</label>
+                    <input id="tagSearch" type="text"
+                      class="mt-1 w-full rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
+                      placeholder="اكتب: shounen / manga / mecha ..." />
+                    <div class="mt-2 flex flex-wrap gap-2" id="tagPool"></div>
+                  </div>
+
+                  <div class="hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40">
+                    <div class="hud-header px-3 py-2 flex items-center justify-between">
+                      <div class="text-xs tracking-widest text-cyan-200">PRIMARY LOADOUT (3)</div>
+                      <div class="text-xs text-slate-300/80"><span id="loadoutCount">0</span>/3</div>
+                    </div>
+                    <div class="p-3">
+                      <div id="loadoutChips" class="flex flex-wrap gap-2"></div>
+                      <p class="mt-3 text-xs text-slate-300/80">
+                        اضغط على ⭐ داخل أي Tag لتثبيته في Loadout. إذا اكتمل (3) لازم تشيل واحد.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 5: Squad Recommendations -->
+              <section class="step hidden" data-step="5">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 class="text-lg text-cyan-200 tracking-wider">الخطوة 6 • Squad Recommendations</h2>
+                    <p class="text-sm text-slate-300/85 mt-1">اقتراح فرق حسب الاهتمامات + فلتر.</p>
+                  </div>
+                  <div class="text-xs text-slate-300/70">
+                    <div class="flex items-center gap-2 justify-end">
+                      <span class="dot off" id="dot_squads"></span>
+                      <span>SQUAD</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                  <div class="hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40">
+                    <div class="hud-header px-3 py-2 flex items-center justify-between">
+                      <div class="text-xs tracking-widest text-cyan-200">FILTER</div>
+                      <div class="text-xs text-slate-300/80">MATCH THRESHOLD</div>
+                    </div>
+                    <div class="p-3 space-y-3">
+                      <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                          <label class="text-xs tracking-widest text-slate-200/90">الحد الأدنى للمطابقة</label>
+                          <span id="matchVal" class="text-xs text-cyan-200 tabular-nums">40%</span>
+                        </div>
+                        <input id="matchRange" type="range" min="0" max="100" value="40" class="w-full" />
+                      </div>
+
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <div class="text-xs tracking-widest text-slate-200/90">اعتماد Loadout فقط</div>
+                          <div class="text-xs text-slate-300/75">يستخدم 3 اهتمامات رئيسية للترشيح.</div>
+                        </div>
+                        <button id="useLoadoutOnly" type="button" class="switch" aria-pressed="false" aria-label="اعتماد Loadout فقط"></button>
+                      </div>
+
+                      <div class="text-xs text-slate-300/80">
+                        سيتم حساب المطابقة مع Tags المختارة وإظهار الفرق الأنسب.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div id="squadList" class="space-y-2"></div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 6: Safety -->
+              <section class="step hidden" data-step="6">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 class="text-lg text-cyan-200 tracking-wider">الخطوة 7 • إعدادات السلامة</h2>
+                    <p class="text-sm text-slate-300/85 mt-1">حماية الرسائل + فلتر محتوى + تفضيلات السبويلر.</p>
+                  </div>
+                  <div class="text-xs text-slate-300/70">
+                    <div class="flex items-center gap-2 justify-end">
+                      <span class="dot off" id="dot_safety"></span>
+                      <span>SAFE</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div class="hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40">
+                    <div class="hud-header px-3 py-2 flex items-center justify-between">
+                      <div class="text-xs tracking-widest text-cyan-200">MESSAGE SHIELD</div>
+                      <div class="text-xs text-slate-300/80">ON/OFF</div>
+                    </div>
+                    <div class="p-3 flex items-center justify-between gap-3">
+                      <div>
+                        <div class="text-sm text-slate-100">حماية الرسائل</div>
+                        <div class="text-xs text-slate-300/75">يقلّل الإزعاج ويمنع الرسائل غير المرغوبة.</div>
+                      </div>
+                      <button id="msgShield" type="button" class="switch" aria-pressed="false"></button>
+                    </div>
+                  </div>
+
+                  <div class="hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40">
+                    <div class="hud-header px-3 py-2 flex items-center justify-between">
+                      <div class="text-xs tracking-widest text-cyan-200">CONTENT FILTER</div>
+                      <div class="text-xs text-slate-300/80">LEVEL</div>
+                    </div>
+                    <div class="p-3 space-y-3">
+                      <div>
+                        <label class="text-xs tracking-widest text-slate-200/90">فلتر المحتوى</label>
+                        <select id="contentFilter"
+                          class="mt-1 w-full rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 text-sm text-slate-100">
+                          <option value="Standard">Standard</option>
+                          <option value="Strict">Strict</option>
+                          <option value="Mild">Mild</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label class="text-xs tracking-widest text-slate-200/90">تفضيلات السبويلر</label>
+                        <select id="spoilerPref"
+                          class="mt-1 w-full rounded-lg border border-cyan-400/20 bg-slate-950/60 px-3 py-2 text-sm text-slate-100">
+                          <option value="HideAll">إخفاء الكل</option>
+                          <option value="Smart">ذكي (حسب العمل)</option>
+                          <option value="ShowAll">عرض الكل</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- STEP 7: Review -->
+              <section class="step hidden" data-step="7">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 class="text-lg text-cyan-200 tracking-wider">الخطوة 8 • Review + Deploy</h2>
+                    <p class="text-sm text-slate-300/85 mt-1">راجع كل شيء ثم انشر ملفك.</p>
+                  </div>
+                  <div class="text-xs text-slate-300/70">
+                    <div class="flex items-center gap-2 justify-end">
+                      <span class="dot off" id="dot_review"></span>
+                      <span>READY</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div class="hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40">
+                    <div class="hud-header px-3 py-2 flex items-center justify-between">
+                      <div class="text-xs tracking-widest text-cyan-200">SUMMARY</div>
+                      <div class="text-xs text-slate-300/80">READ-ONLY</div>
+                    </div>
+                    <div class="p-3 text-sm space-y-2" id="reviewSummary"></div>
+                  </div>
+
+                  <div class="hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40">
+                    <div class="hud-header px-3 py-2 flex items-center justify-between">
+                      <div class="text-xs tracking-widest text-cyan-200">DEPLOY</div>
+                      <div class="text-xs text-slate-300/80">FINAL ACTION</div>
+                    </div>
+                    <div class="p-3 space-y-3">
+                      <p class="text-sm text-slate-200/90">
+                        عند النشر سيتم إنشاء Profile داخل النظام (محاكاة).
+                      </p>
+
+                      <button id="deployBtn" type="button"
+                        class="btn-hud w-full px-4 py-3 text-sm tracking-widest text-slate-100">
+                        DEPLOY PROFILE
+                      </button>
+
+                      <div id="deployResult" class="hidden rounded-lg border border-emerald-400/25 bg-emerald-950/20 px-3 py-2 text-sm text-emerald-200/90"></div>
+
+                      <button id="resetBtn" type="button"
+                        class="btn-hud btn-danger w-full px-4 py-2 text-xs tracking-widest text-rose-100">
+                        RESET CONSOLE
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Navigation controls -->
+              <div class="pt-2 flex items-center justify-between gap-3">
+                <button id="prevBtn" type="button" class="btn-hud px-4 py-2 text-sm text-slate-100">
+                  ◀ السابق
+                </button>
+
+                <div class="flex items-center gap-2 text-xs text-slate-300/80">
+                  <span class="dot" aria-hidden="true"></span>
+                  <span id="navHint">—</span>
+                </div>
+
+                <button id="nextBtn" type="button" class="btn-hud px-4 py-2 text-sm text-slate-100">
+                  التالي ▶
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- RIGHT: live preview -->
+        <aside class="lg:col-span-5 hud-panel overflow-hidden">
+          <div class="hud-header px-4 py-3 flex items-center justify-between">
+            <div class="text-sm tracking-widest text-cyan-200">PROFILE PREVIEW • LIVE</div>
+            <div class="text-xs text-slate-300/80 tabular-nums" id="telemetry">SYNC: 0ms</div>
+          </div>
+
+          <div class="p-4 space-y-3">
+            <!-- Preview card -->
+            <div class="hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40 overflow-hidden">
+              <div class="px-3 py-2 border-b border-cyan-400/15 flex items-center justify-between">
+                <div class="text-xs tracking-widest text-slate-200/90">MECHA ID CARD</div>
+                <div id="previewBadge" class="text-xs text-slate-300/80">STATUS: DRAFT</div>
+              </div>
+              <div class="p-3 flex items-start gap-3">
+                <div class="shrink-0 w-20 h-20 rounded-xl border border-cyan-400/20 bg-slate-950/70 flex items-center justify-center overflow-hidden">
+                  <div id="avatarPreview" class="w-16 h-16 glow"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-cyan-200 text-sm tracking-wider truncate" id="previewName">—</div>
+                  <div class="text-xs text-slate-300/80 mt-1">
+                    <span class="text-slate-400/80">ROLE:</span>
+                    <span id="previewRole" class="text-slate-200/90">—</span>
+                    <span class="mx-2 text-slate-500">•</span>
+                    <span class="text-slate-400/80">XP:</span>
+                    <span id="previewXP" class="text-slate-200/90">—</span>
+                  </div>
+                  <div class="mt-2 text-xs text-slate-300/85 line-clamp-3" id="previewBio">Bio: —</div>
+                </div>
+              </div>
+
+              <div class="px-3 pb-3">
+                <div class="text-xs tracking-widest text-slate-200/90 mb-2">LOADOUT</div>
+                <div id="previewLoadout" class="flex flex-wrap gap-2"></div>
+              </div>
+            </div>
+
+            <!-- Safety readout -->
+            <div class="hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40">
+              <div class="px-3 py-2 border-b border-cyan-400/15 flex items-center justify-between">
+                <div class="text-xs tracking-widest text-slate-200/90">SAFETY READOUT</div>
+                <div class="text-xs text-slate-300/80">v1.0</div>
+              </div>
+              <div class="p-3 grid grid-cols-2 gap-2 text-xs">
+                <div class="flex items-center justify-between rounded-lg border border-cyan-400/10 bg-slate-950/50 px-3 py-2">
+                  <span>Message Shield</span>
+                  <span id="previewShield" class="text-slate-300/80">OFF</span>
+                </div>
+                <div class="flex items-center justify-between rounded-lg border border-cyan-400/10 bg-slate-950/50 px-3 py-2">
+                  <span>Content Filter</span>
+                  <span id="previewFilter" class="text-slate-300/80">Standard</span>
+                </div>
+                <div class="col-span-2 flex items-center justify-between rounded-lg border border-cyan-400/10 bg-slate-950/50 px-3 py-2">
+                  <span>Spoiler Pref</span>
+                  <span id="previewSpoilers" class="text-slate-300/80">HideAll</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Squad readout -->
+            <div class="hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40">
+              <div class="px-3 py-2 border-b border-cyan-400/15 flex items-center justify-between">
+                <div class="text-xs tracking-widest text-slate-200/90">SQUAD CHANNEL</div>
+                <div class="text-xs text-slate-300/80" id="previewSquadCount">0 candidates</div>
+              </div>
+              <div class="p-3 text-xs text-slate-300/85" id="previewSquadHint">
+                اختر اهتمامات لتفعيل الترشيحات.
+              </div>
+            </div>
+
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ---------- Data ----------
+    const STEPS = [
+      { title: "هوية", dot: "dot_identity" },
+      { title: "تأمين", dot: "dot_auth" },
+      { title: "إضافي", dot: "dot_extra" },
+      { title: "أفاتار", dot: "dot_avatar" },
+      { title: "اهتمامات", dot: "dot_tags" },
+      { title: "Squads", dot: "dot_squads" },
+      { title: "سلامة", dot: "dot_safety" },
+      { title: "مراجعة", dot: "dot_review" },
+    ];
+
+    const ALL_TAGS = [
+      "Shounen","Seinen","Shoujo","Isekai","Mecha","Cyberpunk","Slice of Life","Romance",
+      "Horror","Mystery","Sports","Fantasy","Sci-Fi","Manga","Manhwa","Comics",
+      "One Piece","Naruto","Bleach","JJK","AOT","HxH","Berserk","Vagabond",
+      "Evangelion","Gundam","Code Geass","Chainsaw Man","OPM","JoJo","Vinland Saga",
+      "Cosplay","Fanart","AMV","Light Novel","Webtoon","Indie Comics","Studio Ghibli"
+    ];
+
+    const SQUADS = [
+      { name:"MECHA HANGAR • Gundam/Eva", tags:["Mecha","Sci-Fi","Gundam","Evangelion","Cyberpunk"], vibe:"تحليل ميكا + نقاشات تصميم" },
+      { name:"SHOUNEN ARENA", tags:["Shounen","One Piece","Naruto","Bleach","JJK","HxH"], vibe:"نظريات + لحظات القتال" },
+      { name:"DARK PANEL • Horror/Mystery", tags:["Horror","Mystery","Seinen","Comics"], vibe:"ألغاز + رعب نفسي" },
+      { name:"ROM-COM RADIO", tags:["Romance","Slice of Life","Shoujo"], vibe:"خفيف ولطيف + توصيات" },
+      { name:"CYBER CITY", tags:["Cyberpunk","Sci-Fi","Mecha"], vibe:"عالم مستقبلي + تقنيات" },
+      { name:"INK COLLECTORS", tags:["Comics","Indie Comics","Collector"], vibe:"طبعات + مقتنيات" },
+      { name:"CREATORS BAY", tags:["Fanart","AMV","Cosplay","Creator"], vibe:"نشر أعمال + نقد بنّاء" },
+    ];
+
+    const state = {
+      step: 0,
+      maxVisited: 0,
+      username: "",
+      callsign: "",
+      email: "",
+      password: "",
+      confirm: "",
+      experience: "",
+      role: "",
+      bio: "",
+      avatarModel: "helmet",
+      avatarColor: "#22d3ee",
+      avatarGlow: 60,
+      avatarShine: 40,
+      tags: new Set(),
+      loadout: [],
+      squads: [],
+      useLoadoutOnly: false,
+      matchThreshold: 40,
+      safety: {
+        msgShield: false,
+        contentFilter: "Standard",
+        spoilerPref: "HideAll",
+      },
+      warnings: [],
+      t0: performance.now(),
+    };
+
+    // ---------- DOM helpers ----------
+    const $ = (id) => document.getElementById(id);
+    const q = (sel, root=document) => root.querySelector(sel);
+    const qa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    function nowMs(){ return Math.round(performance.now() - state.t0); }
+
+    function setTelemetry(){
+      $("telemetry").textContent = `SYNC: ${nowMs()}ms`;
+    }
+
+    function showWarnings() {
+      const panel = $("warningPanel");
+      const list = $("warningList");
+      list.innerHTML = "";
+
+      if (state.warnings.length === 0) {
+        panel.classList.add("hidden");
+        return;
+      }
+      panel.classList.remove("hidden");
+
+      for (const w of state.warnings.slice(0, 8)) {
+        const li = document.createElement("li");
+        li.className = "flex items-start gap-2";
+        li.innerHTML = `
+          <span class="mt-0.5 inline-block w-2 h-2 rounded-full bg-rose-300 shadow-[0_0_14px_rgba(251,113,133,.45)]"></span>
+          <span class="text-rose-100/90"><span class="text-rose-200/90 font-mono">[${w.code}]</span> ${escapeHtml(w.msg)}</span>
+        `;
+        list.appendChild(li);
+      }
+    }
+
+    function warn(code, msg){
+      state.warnings.push({ code, msg });
+      showWarnings();
+    }
+
+    function clearWarnings(){
+      state.warnings = [];
+      showWarnings();
+    }
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[c]));
+    }
+
+    // ---------- Step tabs ----------
+    function renderTabs(){
+      const host = $("stepTabs");
+      host.innerHTML = "";
+
+      STEPS.forEach((st, i) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = [
+          "btn-hud px-3 py-2 text-xs tracking-widest",
+          i === state.step ? "text-cyan-200 border-cyan-400/50" : "text-slate-200/90"
+        ].join(" ");
+        btn.setAttribute("role","tab");
+        btn.setAttribute("aria-selected", i === state.step ? "true" : "false");
+        btn.disabled = i > state.maxVisited;
+        btn.style.opacity = btn.disabled ? "0.55" : "1";
+
+        btn.innerHTML = `<span class="font-mono tabular-nums">${i+1}</span> • ${st.title}`;
+        btn.addEventListener("click", () => goToStep(i, { fromTab:true }));
+        host.appendChild(btn);
+      });
+    }
+
+    // ---------- HUD Avatars (inline SVG) ----------
+    function svgHelmet(color, shine=40){
+      const a = Math.max(0, Math.min(1, shine/100));
+      return `
+      <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-label="Helmet SVG" role="img">
+        <defs>
+          <linearGradient id="h1" x1="0" x2="1">
+            <stop offset="0" stop-color="${color}" stop-opacity="${0.25 + a*0.35}"/>
+            <stop offset="1" stop-color="${color}" stop-opacity="${0.08 + a*0.15}"/>
+          </linearGradient>
+        </defs>
+        <path d="M64 14c-22 0-40 16-44 38l-4 22v20c0 10 8 18 18 18h60c10 0 18-8 18-18V74l-4-22c-4-22-22-38-44-38z"
+              fill="rgba(2,6,23,.9)" stroke="${color}" stroke-opacity=".55" stroke-width="2"/>
+        <path d="M24 58h80l3 16H21l3-16z" fill="url(#h1)"/>
+        <path d="M34 68h60c2 0 4 2 4 4v10c0 2-2 4-4 4H34c-2 0-4-2-4-4V72c0-2 2-4 4-4z"
+              fill="rgba(15,23,42,.9)" stroke="${color}" stroke-opacity=".35" stroke-width="1.5"/>
+        <path d="M36 76h56" stroke="${color}" stroke-opacity=".35" stroke-width="2"/>
+        <path d="M40 92h48" stroke="${color}" stroke-opacity=".28" stroke-width="2"/>
+        <path d="M28 54c6-18 20-30 36-30s30 12 36 30" fill="none"
+              stroke="${color}" stroke-opacity=".25" stroke-width="3"/>
+      </svg>`;
+    }
+
+    function svgMask(color, shine=40){
+      const a = Math.max(0, Math.min(1, shine/100));
+      return `
+      <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-label="Mask SVG" role="img">
+        <defs>
+          <radialGradient id="m1" cx="40%" cy="30%" r="70%">
+            <stop offset="0" stop-color="${color}" stop-opacity="${0.28 + a*0.35}"/>
+            <stop offset="1" stop-color="${color}" stop-opacity="${0.06 + a*0.10}"/>
+          </radialGradient>
+        </defs>
+        <path d="M64 16c-18 0-34 10-40 26l-6 18v20c0 16 14 32 46 32s46-16 46-32V60l-6-18C98 26 82 16 64 16z"
+              fill="rgba(2,6,23,.9)" stroke="${color}" stroke-opacity=".55" stroke-width="2"/>
+        <path d="M26 60h76v22c0 10-12 18-38 18S26 92 26 82V60z" fill="url(#m1)"/>
+        <path d="M38 64h18l-6 14H38l0-14z" fill="rgba(15,23,42,.95)" stroke="${color}" stroke-opacity=".35" stroke-width="1.5"/>
+        <path d="M72 64h18v14H78l-6-14z" fill="rgba(15,23,42,.95)" stroke="${color}" stroke-opacity=".35" stroke-width="1.5"/>
+        <path d="M52 88h24" stroke="${color}" stroke-opacity=".30" stroke-width="3"/>
+        <path d="M44 48c6-8 12-12 20-12s14 4 20 12" fill="none" stroke="${color}" stroke-opacity=".25" stroke-width="3"/>
+      </svg>`;
+    }
+
+    function updateAvatarPreview(){
+      const color = state.avatarColor;
+      const glow = state.avatarGlow;
+      const shine = state.avatarShine;
+
+      const html = state.avatarModel === "mask"
+        ? svgMask(color, shine)
+        : svgHelmet(color, shine);
+
+      const el = $("avatarPreview");
+      el.innerHTML = html;
+
+      const blur = 6 + Math.round(glow/8); // 6..18 approx
+      const alpha = 0.18 + (glow/100)*0.55;
+      el.style.filter = `drop-shadow(0 0 ${blur}px rgba(${hexToRgb(color)}, ${alpha}))`;
+    }
+
+    function hexToRgb(hex){
+      const h = hex.replace("#","").trim();
+      const v = h.length === 3
+        ? h.split("").map(c => c+c).join("")
+        : h.padEnd(6,"0").slice(0,6);
+      const r = parseInt(v.slice(0,2),16);
+      const g = parseInt(v.slice(2,4),16);
+      const b = parseInt(v.slice(4,6),16);
+      return `${r},${g},${b}`;
+    }
+
+    // ---------- Tags ----------
+    function renderTagPool(){
+      const pool = $("tagPool");
+      const term = $("tagSearch").value.trim().toLowerCase();
+      const tags = ALL_TAGS.filter(t => t.toLowerCase().includes(term)).slice(0, 26);
+
+      pool.innerHTML = "";
+      for (const tag of tags){
+        const active = state.tags.has(tag);
+        const isPrimary = state.loadout.includes(tag);
+
+        const chip = document.createElement("div");
+        chip.className = [
+          "group inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs cursor-pointer select-none",
+          active ? "border-emerald-400/35 bg-emerald-950/25 text-emerald-100" : "border-cyan-400/15 bg-slate-950/40 text-slate-200/90"
+        ].join(" ");
+        chip.innerHTML = `
+          <span class="truncate max-w-[160px]">${escapeHtml(tag)}</span>
+          <button type="button" class="starBtn -ml-1 rounded-full px-1.5 py-0.5 border ${isPrimary ? "border-amber-300/50 text-amber-200" : "border-slate-400/20 text-slate-300/70"}"
+            title="تثبيت في Loadout" aria-label="تثبيت في Loadout">
+            ${isPrimary ? "⭐" : "☆"}
+          </button>
+        `;
+
+        chip.addEventListener("click", (e) => {
+          // if clicked star, handled below
+          if (e.target && e.target.classList.contains("starBtn")) return;
+          toggleTag(tag);
+        });
+
+        chip.querySelector(".starBtn").addEventListener("click", (e) => {
+          e.stopPropagation();
+          togglePrimary(tag);
+        });
+
+        pool.appendChild(chip);
+      }
+    }
+
+    function toggleTag(tag){
+      if (state.tags.has(tag)){
+        state.tags.delete(tag);
+        // if removed and was primary, remove from loadout too
+        if (state.loadout.includes(tag)) {
+          state.loadout = state.loadout.filter(t => t !== tag);
+        }
+      } else {
+        state.tags.add(tag);
+      }
+      renderTagPool();
+      renderLoadout();
+      updatePreview();
+      updateSquads();
+    }
+
+    function togglePrimary(tag){
+      if (!state.tags.has(tag)) {
+        state.tags.add(tag); // auto-add
+      }
+      if (state.loadout.includes(tag)){
+        state.loadout = state.loadout.filter(t => t !== tag);
+      } else {
+        if (state.loadout.length >= 3){
+          warn("LOADOUT_FULL", "الـ Loadout ممتلئ (3). احذف واحد قبل إضافة جديد.");
+        } else {
+          state.loadout.push(tag);
+        }
+      }
+      renderTagPool();
+      renderLoadout();
+      updatePreview();
+      updateSquads();
+    }
+
+    function renderLoadout(){
+      $("loadoutCount").textContent = String(state.loadout.length);
+      const host = $("loadoutChips");
+      host.innerHTML = "";
+
+      if (state.loadout.length === 0){
+        host.innerHTML = `<div class="text-xs text-slate-300/80">لا يوجد عناصر بعد…</div>`;
+        return;
+      }
+
+      for (const tag of state.loadout){
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "inline-flex items-center gap-2 rounded-full border border-amber-300/35 bg-amber-950/15 px-3 py-1 text-xs text-amber-100";
+        chip.innerHTML = `<span>⭐ ${escapeHtml(tag)}</span><span class="text-amber-200/70">✕</span>`;
+        chip.addEventListener("click", () => {
+          state.loadout = state.loadout.filter(t => t !== tag);
+          renderTagPool();
+          renderLoadout();
+          updatePreview();
+          updateSquads();
+        });
+        host.appendChild(chip);
+      }
+    }
+
+    // ---------- Squads ----------
+    function calcSquads(){
+      const useLoadout = state.useLoadoutOnly;
+      const base = useLoadout ? state.loadout : Array.from(state.tags);
+      const baseSet = new Set(base);
+
+      if (baseSet.size === 0) return [];
+
+      const scored = SQUADS.map(s => {
+        const hits = s.tags.filter(t => baseSet.has(t)).length;
+        const denom = Math.max(1, baseSet.size);
+        const pct = Math.round((hits / denom) * 100);
+        return { ...s, pct, hits };
+      });
+
+      return scored
+        .filter(s => s.pct >= state.matchThreshold)
+        .sort((a,b) => b.pct - a.pct)
+        .slice(0, 6);
+    }
+
+    function updateSquads(){
+      state.squads = calcSquads();
+      const host = $("squadList");
+      host.innerHTML = "";
+
+      if (state.squads.length === 0){
+        host.innerHTML = `
+          <div class="rounded-lg border border-cyan-400/15 bg-slate-950/40 px-3 py-3 text-sm text-slate-300/85">
+            لا توجد ترشيحات وفق الفلتر الحالي. جرّب تقليل الـ threshold أو أضف Tags.
+          </div>
+        `;
+      } else {
+        for (const s of state.squads){
+          const card = document.createElement("div");
+          card.className = "hud-panel !clip-path-none border-cyan-400/20 bg-slate-950/40";
+          card.innerHTML = `
+            <div class="px-3 py-2 border-b border-cyan-400/15 flex items-center justify-between">
+              <div class="text-xs tracking-widest text-slate-200/90">${escapeHtml(s.name)}</div>
+              <div class="text-xs text-emerald-200 tabular-nums">MATCH: ${s.pct}%</div>
+            </div>
+            <div class="p-3">
+              <div class="text-xs text-slate-300/85">${escapeHtml(s.vibe)}</div>
+              <div class="mt-2 flex flex-wrap gap-2">
+                ${s.tags.slice(0,6).map(t => `
+                  <span class="rounded-full border border-cyan-400/15 bg-slate-950/40 px-2 py-0.5 text-[11px] text-slate-200/90">${escapeHtml(t)}</span>
+                `).join("")}
+              </div>
+              <div class="mt-3 flex items-center justify-between">
+                <div class="w-full h-2 rounded-full border border-cyan-400/20 bg-slate-950/60 overflow-hidden">
+                  <div class="h-full energy" style="width:${s.pct}%"></div>
+                </div>
+                <button type="button" class="joinBtn btn-hud px-3 py-1 text-xs text-slate-100 mr-3" data-squad="${escapeHtml(s.name)}">JOIN</button>
+              </div>
+            </div>
+          `;
+          card.querySelector(".joinBtn").addEventListener("click", () => {
+            warn("SQUAD_REQUEST", `تم إرسال طلب انضمام (محاكاة) إلى: ${s.name}`);
+            updatePreview();
+          });
+          host.appendChild(card);
+        }
+      }
+
+      $("previewSquadCount").textContent = `${state.squads.length} candidates`;
+      $("previewSquadHint").textContent = state.squads.length
+        ? `أفضل ترشيح: ${state.squads[0].name} (${state.squads[0].pct}%)`
+        : "اختر اهتمامات لتفعيل الترشيحات.";
+      updatePreview();
+    }
+
+    // ---------- Validation ----------
+    function validateStep(stepIndex){
+      clearWarnings();
+
+      const ok = (cond, code, msg) => {
+        if (!cond) warn(code, msg);
+        return cond;
+      };
+
+      let valid = true;
+
+      if (stepIndex === 0){
+        const u = state.username.trim();
+        const cs = state.callsign.trim();
+        const uOk = /^[a-zA-Z0-9_]{3,16}$/.test(u);
+
+        valid &= ok(uOk, "USERNAME_INVALID", "Username لازم يكون 3–16 (أحرف/أرقام/underscore) بدون مسافات.");
+        valid &= ok(!!cs, "CALLSIGN_REQUIRED", "اختر Callsign.");
+      }
+
+      if (stepIndex === 1){
+        const em = state.email.trim();
+        const pw = state.password;
+        const cf = state.confirm;
+
+        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em);
+        valid &= ok(emailOk, "EMAIL_INVALID", "Email غير صالح.");
+
+        const reqs = passwordReqs(pw, cf);
+        const passed = Object.values(reqs).filter(Boolean).length;
+        valid &= ok(passed >= 5 && reqs.match, "PASSWORD_WEAK", "كلمة المرور لا تحقق الشروط المطلوبة أو التأكيد غير مطابق.");
+      }
+
+      if (stepIndex === 2){
+        valid &= ok(!!state.experience, "XP_REQUIRED", "اختر مستوى الخبرة.");
+        valid &= ok(!!state.role, "ROLE_REQUIRED", "اختر Role في المجتمع.");
+        valid &= ok(state.bio.trim().length >= 10, "BIO_SHORT", "Bio قصيرة جدًا (اقل شيء 10 أحرف).");
+      }
+
+      if (stepIndex === 3){
+        valid &= ok(!!state.avatarModel, "AVATAR_REQUIRED", "اختر Helmet أو Mask.");
+      }
+
+      if (stepIndex === 4){
+        valid &= ok(state.tags.size >= 1, "TAGS_REQUIRED", "اختر على الأقل Tag واحد.");
+        valid &= ok(state.loadout.length === 3, "LOADOUT_NEED3", "حدد 3 اهتمامات رئيسية في Loadout.");
+      }
+
+      if (stepIndex === 5){
+        // optional, but warn if none
+        if (state.squads.length === 0){
+          warn("NO_SQUADS", "لا توجد Squad مناسبة حاليًا. عدّل الفلتر أو الاهتمامات (مسموح تكمل).");
+        }
+        valid = true; // allow continue
+      }
+
+      // step 6 always ok (defaults)
+      // step 7 review needs everything
+      if (stepIndex === 7){
+        // validate all main requirements quickly
+        const needed = [0,1,2,3,4];
+        for (const s of needed){
+          if (!validateStepSilent(s)) {
+            warn("REVIEW_BLOCK", "في عناصر ناقصة قبل النشر. ارجع للخطوات وأكملها.");
+            valid = false;
+            break;
+          }
+        }
+      }
+
+      // update dot for this step (and others)
+      updateDots();
+      showWarnings();
+
+      return !!valid;
+    }
+
+    function validateStepSilent(stepIndex){
+      // like validateStep but no warnings, used for review gating.
+      if (stepIndex === 0){
+        return /^[a-zA-Z0-9_]{3,16}$/.test(state.username.trim()) && !!state.callsign.trim();
+      }
+      if (stepIndex === 1){
+        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email.trim());
+        const reqs = passwordReqs(state.password, state.confirm);
+        const passed = Object.values(reqs).filter(Boolean).length;
+        return emailOk && passed >= 5 && reqs.match;
+      }
+      if (stepIndex === 2){
+        return !!state.experience && !!state.role && state.bio.trim().length >= 10;
+      }
+      if (stepIndex === 3){
+        return !!state.avatarModel;
+      }
+      if (stepIndex === 4){
+        return state.tags.size >= 1 && state.loadout.length === 3;
+      }
+      return true;
+    }
+
+    function updateDots(){
+      // mark each step dot as ok/off/warn based on silent validation if visited
+      STEPS.forEach((st, i) => {
+        const el = $(st.dot);
+        if (!el) return;
+        const visited = i <= state.maxVisited;
+        if (!visited) {
+          el.className = "dot off";
+          return;
+        }
+        const ok = validateStepSilent(i);
+        el.className = ok ? "dot" : "dot warn";
+      });
+    }
+
+    function passwordReqs(pw, confirm){
+      const req = {
+        len: pw.length >= 10,
+        lower: /[a-z]/.test(pw),
+        upper: /[A-Z]/.test(pw),
+        num: /[0-9]/.test(pw),
+        sym: /[^A-Za-z0-9]/.test(pw),
+        match: pw.length > 0 && pw === confirm,
+      };
+      return req;
+    }
+
+    function updatePasswordHud(){
+      const req = passwordReqs(state.password, state.confirm);
+      const setDot = (id, on) => $(id).className = on ? "dot" : "dot off";
+
+      setDot("req_len", req.len);
+      setDot("req_lower", req.lower);
+      setDot("req_upper", req.upper);
+      setDot("req_num", req.num);
+      setDot("req_sym", req.sym);
+      setDot("req_match", req.match);
+
+      const score = [req.len, req.lower, req.upper, req.num, req.sym].filter(Boolean).length;
+      $("passScore").textContent = `SCORE: ${score}/5`;
+
+      // Email hint live
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email.trim());
+      $("emailHint").textContent = state.email.trim().length
+        ? (emailOk ? "Email صالح ✅" : "Email غير صالح ❌")
+        : "سيتم التحقق منه فورًا.";
+
+      // Username hint live
+      const uOk = /^[a-zA-Z0-9_]{3,16}$/.test(state.username.trim());
+      $("usernameHint").textContent = state.username.trim().length
+        ? (uOk ? "Username صالح ✅" : "صيغة Username غير صحيحة ❌")
+        : "3–16 أحرف/أرقام/underscore فقط.";
+    }
+
+    // ---------- Preview ----------
+    function updatePreview(){
+      setTelemetry();
+
+      const handle = [
+        state.callsign ? `[${state.callsign}]` : "[—]",
+        state.username ? state.username : "unknown"
+      ].join(" ");
+
+      $("previewName").textContent = handle;
+      $("previewRole").textContent = state.role || "—";
+      $("previewXP").textContent = state.experience || "—";
+      $("previewBio").textContent = state.bio.trim().length ? `Bio: ${state.bio.trim()}` : "Bio: —";
+
+      // Loadout chips
+      const host = $("previewLoadout");
+      host.innerHTML = "";
+      if (state.loadout.length === 0){
+        host.innerHTML = `<span class="text-xs text-slate-300/80">—</span>`;
+      } else {
+        for (const t of state.loadout){
+          const s = document.createElement("span");
+          s.className = "rounded-full border border-amber-300/35 bg-amber-950/15 px-2 py-0.5 text-[11px] text-amber-100";
+          s.textContent = `⭐ ${t}`;
+          host.appendChild(s);
+        }
+      }
+
+      // Safety
+      $("previewShield").textContent = state.safety.msgShield ? "ON" : "OFF";
+      $("previewShield").className = state.safety.msgShield ? "text-emerald-200" : "text-slate-300/80";
+      $("previewFilter").textContent = state.safety.contentFilter;
+      $("previewSpoilers").textContent = state.safety.spoilerPref;
+
+      // Badge
+      const done = [0,1,2,3,4].every(validateStepSilent);
+      $("previewBadge").textContent = done ? "STATUS: READY" : "STATUS: DRAFT";
+      $("previewBadge").className = done ? "text-xs text-emerald-200/90" : "text-xs text-slate-300/80";
+
+      updateAvatarPreview();
+
+      if (state.step === 7) renderReview();
+    }
+
+    function renderReview(){
+      const sum = $("reviewSummary");
+      const tags = Array.from(state.tags);
+      const squads = state.squads.slice(0, 3).map(s => `${s.name} (${s.pct}%)`);
+
+      sum.innerHTML = `
+        <div class="rounded-lg border border-cyan-400/10 bg-slate-950/50 p-2">
+          <div class="text-xs text-slate-300/80">Identity</div>
+          <div class="mt-1 text-slate-100">${escapeHtml(state.callsign || "—")} • ${escapeHtml(state.username || "—")}</div>
+          <div class="mt-1 text-xs text-slate-300/80">${escapeHtml(state.email || "—")}</div>
+        </div>
+        <div class="rounded-lg border border-cyan-400/10 bg-slate-950/50 p-2">
+          <div class="text-xs text-slate-300/80">Community</div>
+          <div class="mt-1">Role: <span class="text-slate-100">${escapeHtml(state.role || "—")}</span></div>
+          <div class="mt-1">XP: <span class="text-slate-100">${escapeHtml(state.experience || "—")}</span></div>
+        </div>
+        <div class="rounded-lg border border-cyan-400/10 bg-slate-950/50 p-2">
+          <div class="text-xs text-slate-300/80">Loadout</div>
+          <div class="mt-1 text-slate-100">${state.loadout.length ? state.loadout.map(escapeHtml).join(" • ") : "—"}</div>
+          <div class="mt-1 text-xs text-slate-300/80">Tags: ${tags.length ? tags.slice(0,10).map(escapeHtml).join(", ") : "—"}</div>
+        </div>
+        <div class="rounded-lg border border-cyan-400/10 bg-slate-950/50 p-2">
+          <div class="text-xs text-slate-300/80">Safety</div>
+          <div class="mt-1">Shield: <span class="${state.safety.msgShield ? "text-emerald-200" : "text-slate-300/80"}">${state.safety.msgShield ? "ON" : "OFF"}</span></div>
+          <div class="mt-1">Filter: <span class="text-slate-100">${escapeHtml(state.safety.contentFilter)}</span></div>
+          <div class="mt-1">Spoilers: <span class="text-slate-100">${escapeHtml(state.safety.spoilerPref)}</span></div>
+        </div>
+        <div class="rounded-lg border border-cyan-400/10 bg-slate-950/50 p-2">
+          <div class="text-xs text-slate-300/80">Squads</div>
+          <div class="mt-1 text-slate-100">${squads.length ? squads.map(escapeHtml).join("<br>") : "—"}</div>
+        </div>
+      `;
+    }
+
+    // ---------- Step control ----------
+    function setEnergy(){
+      const pct = Math.round(((state.step) / (STEPS.length - 1)) * 100);
+      $("energyBar").style.width = `${pct}%`;
+      $("energyPct").textContent = `${pct}%`;
+      $("stepStatus").textContent = `STEP ${state.step+1}/${STEPS.length}`;
+      $("navHint").textContent = `الخطوة الحالية: ${STEPS[state.step].title}`;
+    }
+
+    function showStep(i){
+      qa(".step").forEach(s => s.classList.add("hidden"));
+      q(`.step[data-step="${i}"]`).classList.remove("hidden");
+
+      $("prevBtn").disabled = i === 0;
+      $("prevBtn").style.opacity = i === 0 ? "0.55" : "1";
+
+      $("nextBtn").textContent = (i === STEPS.length - 1) ? "إنهاء ▶" : "التالي ▶";
+
+      renderTabs();
+      setEnergy();
+      updatePreview();
+
+      // focus first input in visible step
+      setTimeout(() => {
+        const stepEl = q(`.step[data-step="${i}"]`);
+        const focusable = stepEl.querySelector("input,select,textarea,button");
+        if (focusable) focusable.focus();
+      }, 0);
+    }
+
+    function goToStep(i, opts={}) {
+      // allow jump only to visited unless coming from nav? (still keep constraint)
+      if (i > state.maxVisited) return;
+
+      state.step = i;
+      clearWarnings();
+      showStep(i);
+      updateDots();
+    }
+
+    function nextStep(){
+      // validate current step before moving
+      const ok = validateStep(state.step);
+      if (!ok) return;
+
+      state.maxVisited = Math.max(state.maxVisited, state.step + 1);
+      state.step = Math.min(STEPS.length - 1, state.step + 1);
+      showStep(state.step);
+      updateDots();
+    }
+
+    function prevStep(){
+      state.step = Math.max(0, state.step - 1);
+      clearWarnings();
+      showStep(state.step);
+      updateDots();
+    }
+
+    // ---------- Switch ----------
+    function setSwitch(btn, on){
+      btn.classList.toggle("on", !!on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    }
+
+    // ---------- Wire inputs ----------
+    function bind(){
+      $("clearWarningsBtn").addEventListener("click", clearWarnings);
+
+      $("prevBtn").addEventListener("click", prevStep);
+      $("nextBtn").addEventListener("click", () => {
+        if (state.step === STEPS.length - 1){
+          // on review, try deploy gating
+          if (!validateStep(7)) return;
+          warn("INFO", "اضغط DEPLOY PROFILE لإتمام النشر.");
+          return;
+        }
+        nextStep();
+      });
+
+      // identity
+      $("username").addEventListener("input", (e) => { state.username = e.target.value; updatePasswordHud(); updatePreview(); });
+      $("callsign").addEventListener("change", (e) => { state.callsign = e.target.value; updatePreview(); });
+
+      // auth
+      $("email").addEventListener("input", (e) => { state.email = e.target.value; updatePasswordHud(); updatePreview(); });
+      $("password").addEventListener("input", (e) => { state.password = e.target.value; updatePasswordHud(); updatePreview(); });
+      $("confirm").addEventListener("input", (e) => { state.confirm = e.target.value; updatePasswordHud(); updatePreview(); });
+
+      // extra
+      $("experience").addEventListener("change", (e) => { state.experience = e.target.value; updatePreview(); });
+      qa('input[name="role"]').forEach(r => r.addEventListener("change", (e) => { state.role = e.target.value; updatePreview(); }));
+      $("bio").addEventListener("input", (e) => {
+        state.bio = e.target.value.slice(0,220);
+        e.target.value = state.bio;
+        $("bioCount").textContent = String(state.bio.length);
+        updatePreview();
+      });
+
+      // avatar
+      qa(".avatarBtn").forEach(b => b.addEventListener("click", () => {
+        state.avatarModel = b.dataset.avatar;
+        qa(".avatarBtn").forEach(x => x.classList.remove("border-emerald-400/50","text-emerald-100"));
+        b.classList.add("border-emerald-400/50","text-emerald-100");
+        updatePreview();
+      }));
+      $("avatarColor").addEventListener("input", (e) => { state.avatarColor = e.target.value; updatePreview(); });
+      $("avatarGlow").addEventListener("input", (e) => { state.avatarGlow = Number(e.target.value); $("glowVal").textContent = e.target.value; updatePreview(); });
+      $("avatarShine").addEventListener("input", (e) => { state.avatarShine = Number(e.target.value); $("shineVal").textContent = e.target.value; updatePreview(); });
+
+      // tags
+      $("tagSearch").addEventListener("input", renderTagPool);
+
+      // squads filter
+      $("matchRange").addEventListener("input", (e) => {
+        state.matchThreshold = Number(e.target.value);
+        $("matchVal").textContent = `${state.matchThreshold}%`;
+        updateSquads();
+      });
+      $("useLoadoutOnly").addEventListener("click", () => {
+        state.useLoadoutOnly = !state.useLoadoutOnly;
+        setSwitch($("useLoadoutOnly"), state.useLoadoutOnly);
+        updateSquads();
+      });
+
+      // safety
+      $("msgShield").addEventListener("click", () => {
+        state.safety.msgShield = !state.safety.msgShield;
+        setSwitch($("msgShield"), state.safety.msgShield);
+        updatePreview();
+      });
+      $("contentFilter").addEventListener("change", (e) => { state.safety.contentFilter = e.target.value; updatePreview(); });
+      $("spoilerPref").addEventListener("change", (e) => { state.safety.spoilerPref = e.target.value; updatePreview(); });
+
+      // deploy/reset
+      $("deployBtn").addEventListener("click", () => {
+        clearWarnings();
+        if (!validateStep(7)) return;
+
+        const box = $("deployResult");
+        box.classList.remove("hidden");
+        box.innerHTML = `
+          <div class="flex items-start gap-2">
+            <span class="dot" aria-hidden="true"></span>
+            <div>
+              <div class="tracking-widest">DEPLOYED ✅</div>
+              <div class="text-xs text-emerald-200/80 mt-1">تم نشر الملف (محاكاة). مرحبًا بك في الـ Squad-Net.</div>
+            </div>
+          </div>
+        `;
+        warn("DEPLOY_OK", "تم النشر بنجاح (محاكاة).");
+        updatePreview();
+      });
+
+      $("resetBtn").addEventListener("click", () => {
+        location.reload();
+      });
+
+      // Keyboard nav (non-intrusive): Ctrl+Arrows / Ctrl+Enter
+      document.addEventListener("keydown", (e) => {
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+        const inField = ["input","textarea","select"].includes(tag);
+
+        if (e.ctrlKey && e.key === "ArrowRight"){
+          e.preventDefault();
+          if (!inField) nextStep();
+          else nextStep(); // allow even inside fields with ctrl
+        }
+        if (e.ctrlKey && e.key === "ArrowLeft"){
+          e.preventDefault();
+          prevStep();
+        }
+        if (e.ctrlKey && e.key === "Enter"){
+          e.preventDefault();
+          nextStep();
+        }
+        if (e.key === "Escape"){
+          // hide warning panel quickly
+          $("warningPanel").classList.add("hidden");
+        }
+      });
+    }
+
+    // ---------- Init ----------
+    function init(){
+      // build initial tabs
+      renderTabs();
+
+      // seed initial avatar button active
+      const firstAvatarBtn = qa(".avatarBtn").find(b => b.dataset.avatar === state.avatarModel);
+      if (firstAvatarBtn) firstAvatarBtn.classList.add("border-emerald-400/50","text-emerald-100");
+
+      // set switches
+      setSwitch($("useLoadoutOnly"), state.useLoadoutOnly);
+      setSwitch($("msgShield"), state.safety.msgShield);
+
+      // initial labels
+      $("glowVal").textContent = String(state.avatarGlow);
+      $("shineVal").textContent = String(state.avatarShine);
+      $("matchVal").textContent = `${state.matchThreshold}%`;
+      $("bioCount").textContent = "0";
+
+      // initial render tags
+      renderTagPool();
+      renderLoadout();
+
+      // initial preview
+      updatePasswordHud();
+      updateSquads();
+      showStep(0);
+      updateDots();
+
+      // attach listeners
+      bind();
+    }
+
+    init();
+  </script>
+</body>
+</html>

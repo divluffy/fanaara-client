@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OtakuVerse UI — Clean Sidebar</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Optional Arabic font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Cairo", "ui-sans-serif", "system-ui"] },
+          colors: {
+            primary: {
+              50:  "#eef2ff",
+              100: "#e0e7ff",
+              200: "#c7d2fe",
+              500: "#4f46e5",
+              600: "#4338ca",
+              700: "#3730a3",
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Theme via CSS vars (NO JS): unchecked = Light, checked = Dark -->
+  <style>
+    .app{
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --surface2: rgba(255,255,255,.75);
+      --border: rgba(15, 23, 42, .10);
+      --text: #0f172a;
+      --muted: rgba(15, 23, 42, .58);
+
+      --shadow: 0 16px 40px rgba(2, 6, 23, .10);
+      --shadowSoft: 0 10px 26px rgba(2, 6, 23, .08);
+
+      --ring: 0 0 0 3px rgba(79,70,229,.18);
+
+      --navHover: rgba(15,23,42,.04);
+      --navActive: rgba(79,70,229,.10);
+      --navActiveBorder: rgba(79,70,229,.25);
+    }
+
+    #theme:checked ~ .app{
+      --bg: #070a14;
+      --surface: rgba(255,255,255,.06);
+      --surface2: rgba(255,255,255,.08);
+      --border: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.58);
+
+      --shadow: 0 18px 55px rgba(0,0,0,.38);
+      --shadowSoft: 0 12px 30px rgba(0,0,0,.22);
+
+      --ring: 0 0 0 3px rgba(79,70,229,.22);
+
+      --navHover: rgba(255,255,255,.06);
+      --navActive: rgba(79,70,229,.20);
+      --navActiveBorder: rgba(79,70,229,.35);
+    }
+  </style>
+</head>
+
+<body class="font-sans antialiased">
+  <!-- Theme controller -->
+  <input id="theme" type="checkbox" class="sr-only" />
+
+  <!-- Mobile nav controller -->
+  <input id="nav" type="checkbox" class="peer/nav sr-only" />
+
+  <div class="app min-h-screen text-[color:var(--text)] bg-[color:var(--bg)] transition-colors duration-300
+              [background:radial-gradient(900px_520px_at_80%_12%,rgba(79,70,229,.14),transparent_60%),radial-gradient(900px_520px_at_15%_88%,rgba(56,189,248,.10),transparent_55%),linear-gradient(180deg,rgba(238,242,255,.9),rgba(246,247,251,1)_55%)]
+              peer-checked/nav:[filter:none]">
+
+    <div class="min-h-screen grid lg:grid-cols-[320px_1fr] gap-4 p-4">
+
+      <!-- ============ ASIDE ============ -->
+      <aside class="lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)]">
+        <!-- overlay on mobile -->
+        <label for="nav"
+               class="fixed inset-0 z-40 hidden peer-checked/nav:block lg:hidden bg-black/30 backdrop-blur-[2px]"></label>
+
+        <div
+          class="fixed z-50 top-4 bottom-4 right-4 left-4 lg:static
+                 -translate-x-[120%] peer-checked/nav:translate-x-0 lg:translate-x-0
+                 transition-transform duration-300
+                 rounded-[28px] border border-[color:var(--border)]
+                 bg-[color:var(--surface2)] backdrop-blur-xl shadow-[var(--shadow)]
+                 overflow-hidden"
+        >
+          <div class="h-full flex flex-col bg-[color:var(--surface)]">
+
+            <!-- Header -->
+            <div class="p-4 border-b border-[color:var(--border)]">
+              <div class="flex items-center gap-3">
+                <div class="h-11 w-11 rounded-2xl bg-gradient-to-br from-primary-600 to-sky-400 shadow-[0_16px_40px_rgba(79,70,229,.18)]"></div>
+
+                <div class="min-w-0">
+                  <div class="font-black tracking-tight truncate">منصة الأوتاكو</div>
+                  <div class="text-xs text-[color:var(--muted)] truncate">Anime • Manga • Comics</div>
+                </div>
+
+                <!-- close (mobile) -->
+                <label for="nav"
+                       class="lg:hidden ms-auto grid h-10 w-10 place-items-center rounded-2xl
+                              border border-[color:var(--border)] bg-[color:var(--navHover)]
+                              cursor-pointer hover:translate-y-[-1px] transition"
+                       aria-label="Close sidebar">
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                    <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </label>
+              </div>
+
+              <!-- Theme toggle (small + clean) -->
+              <div class="mt-4 flex items-center justify-between">
+                <span class="text-[11px] font-extrabold tracking-[.18em] uppercase text-[color:var(--muted)]">القائمة</span>
+
+                <label for="theme"
+                       class="cursor-pointer select-none inline-flex items-center gap-2 rounded-2xl
+                              border border-[color:var(--border)] bg-[color:var(--navHover)]
+                              px-3 py-2 text-xs font-extrabold hover:translate-y-[-1px] transition">
+                  <span>Dark</span>
+                  <span class="relative h-6 w-11 rounded-full border border-[color:var(--border)] bg-[color:var(--surface)]">
+                    <span class="knob absolute top-1 right-1 h-4 w-4 rounded-full bg-gradient-to-br from-primary-600 to-sky-400 transition-all"></span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Nav -->
+            <nav class="flex-1 overflow-auto p-3">
+              <!-- section -->
+              <div class="px-3 pt-3 pb-2 text-[11px] font-extrabold tracking-[.16em] uppercase text-[color:var(--muted)]">
+                صفحاتك
+              </div>
+
+              <div class="space-y-1.5 px-2">
+
+                <!-- item component (data-active="true" => active) -->
+                <a href="#"
+                   data-active="true"
+                   class="nav-item group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                          border border-transparent hover:border-[color:var(--border)]
+                          hover:bg-[color:var(--navHover)] hover:translate-y-[-1px] transition
+                          focus:outline-none focus-visible:[box-shadow:var(--ring)]"
+                >
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="icon-chip grid h-10 w-10 place-items-center rounded-xl bg-primary-500/10 text-primary-700">
+                      <!-- home -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20v-9.5Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M9.5 21.5v-7h5v7" stroke="currentColor" stroke-width="2" opacity=".9"/>
+                      </svg>
+                    </span>
+                    <span class="font-extrabold truncate">الرئيسية</span>
+                  </span>
+
+                  <span class="emoji-chip text-xs font-extrabold rounded-full px-2.5 py-1 bg-[color:var(--navHover)] border border-[color:var(--border)]">
+                    🏠
+                  </span>
+                </a>
+
+                <a href="#"
+                   class="nav-item group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                          border border-transparent hover:border-[color:var(--border)]
+                          hover:bg-[color:var(--navHover)] hover:translate-y-[-1px] transition
+                          focus:outline-none focus-visible:[box-shadow:var(--ring)]"
+                >
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="icon-chip grid h-10 w-10 place-items-center rounded-xl bg-violet-500/12 text-violet-600">
+                      <!-- face -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M9 10.2c.5-1 1.5-1.7 3-1.7s2.5.7 3 1.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M9.3 14.2c.9.8 1.9 1.2 2.7 1.2s1.8-.4 2.7-1.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".9"/>
+                      </svg>
+                    </span>
+                    <span class="font-extrabold truncate">الانميات</span>
+                  </span>
+                  <span class="emoji-chip text-xs font-extrabold rounded-full px-2.5 py-1 bg-[color:var(--navHover)] border border-[color:var(--border)]">🎬</span>
+                </a>
+
+                <a href="#"
+                   class="nav-item group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                          border border-transparent hover:border-[color:var(--border)]
+                          hover:bg-[color:var(--navHover)] hover:translate-y-[-1px] transition
+                          focus:outline-none focus-visible:[box-shadow:var(--ring)]"
+                >
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="icon-chip grid h-10 w-10 place-items-center rounded-xl bg-amber-500/14 text-amber-600">
+                      <!-- grid -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M4.5 4.5h7v7h-7v-7Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12.5 4.5h7v7h-7v-7Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M4.5 12.5h7v7h-7v-7Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12.5 12.5h7v7h-7v-7Z" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </span>
+                    <span class="font-extrabold truncate">القصص المصورة</span>
+                  </span>
+                  <span class="emoji-chip text-xs font-extrabold rounded-full px-2.5 py-1 bg-[color:var(--navHover)] border border-[color:var(--border)]">📚</span>
+                </a>
+
+                <a href="#"
+                   class="nav-item group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                          border border-transparent hover:border-[color:var(--border)]
+                          hover:bg-[color:var(--navHover)] hover:translate-y-[-1px] transition
+                          focus:outline-none focus-visible:[box-shadow:var(--ring)]"
+                >
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="icon-chip grid h-10 w-10 place-items-center rounded-xl bg-fuchsia-500/12 text-fuchsia-600">
+                      <!-- bolt -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M14 3 5 14h6l-1 7 9-11h-6l1-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                      </svg>
+                    </span>
+                    <span class="font-extrabold truncate">سوايب</span>
+                  </span>
+                  <span class="emoji-chip text-xs font-extrabold rounded-full px-2.5 py-1 bg-[color:var(--navHover)] border border-[color:var(--border)]">⚡</span>
+                </a>
+
+                <a href="#"
+                   class="nav-item group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                          border border-transparent hover:border-[color:var(--border)]
+                          hover:bg-[color:var(--navHover)] hover:translate-y-[-1px] transition
+                          focus:outline-none focus-visible:[box-shadow:var(--ring)]"
+                >
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="icon-chip grid h-10 w-10 place-items-center rounded-xl bg-cyan-500/12 text-cyan-600">
+                      <!-- image -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M4.5 6.5A2 2 0 0 1 6.5 4.5h11A2 2 0 0 1 19.5 6.5v11a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-11Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M8.3 14.5 10.2 12.6 13.2 15.6 15 13.8 19.5 18.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+                        <path d="M9 9a1.3 1.3 0 1 0 0 2.6A1.3 1.3 0 0 0 9 9Z" fill="currentColor" opacity=".85"/>
+                      </svg>
+                    </span>
+                    <span class="font-extrabold truncate">خلفيات</span>
+                  </span>
+                  <span class="emoji-chip text-xs font-extrabold rounded-full px-2.5 py-1 bg-[color:var(--navHover)] border border-[color:var(--border)]">🖼️</span>
+                </a>
+
+                <a href="#"
+                   class="nav-item group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                          border border-transparent hover:border-[color:var(--border)]
+                          hover:bg-[color:var(--navHover)] hover:translate-y-[-1px] transition
+                          focus:outline-none focus-visible:[box-shadow:var(--ring)]"
+                >
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="icon-chip grid h-10 w-10 place-items-center rounded-xl bg-indigo-500/12 text-indigo-600">
+                      <!-- star -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 3.5l2.6 5.5 6 .8-4.4 4.1 1.1 5.9-5.3-2.9-5.3 2.9 1.1-5.9L3.4 10l6-.8L12 3.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                      </svg>
+                    </span>
+                    <span class="font-extrabold truncate">التصنيف</span>
+                  </span>
+                  <span class="emoji-chip text-xs font-extrabold rounded-full px-2.5 py-1 bg-[color:var(--navHover)] border border-[color:var(--border)]">⭐</span>
+                </a>
+
+                <a href="#"
+                   class="nav-item group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                          border border-transparent hover:border-[color:var(--border)]
+                          hover:bg-[color:var(--navHover)] hover:translate-y-[-1px] transition
+                          focus:outline-none focus-visible:[box-shadow:var(--ring)]"
+                >
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="icon-chip grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/12 text-emerald-600">
+                      <!-- store -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 10h16l-1.2-5H5.2L4 10Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M5 10v9h14v-9" stroke="currentColor" stroke-width="2" opacity=".9"/>
+                        <path d="M9 19v-6h6v6" stroke="currentColor" stroke-width="2" opacity=".9"/>
+                      </svg>
+                    </span>
+                    <span class="font-extrabold truncate">المتجر</span>
+                  </span>
+                  <span class="emoji-chip text-xs font-extrabold rounded-full px-2.5 py-1 bg-[color:var(--navHover)] border border-[color:var(--border)]">🛒</span>
+                </a>
+
+                <a href="#"
+                   class="nav-item group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                          border border-transparent hover:border-[color:var(--border)]
+                          hover:bg-[color:var(--navHover)] hover:translate-y-[-1px] transition
+                          focus:outline-none focus-visible:[box-shadow:var(--ring)]"
+                >
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="relative icon-chip grid h-10 w-10 place-items-center rounded-xl bg-green-500/12 text-green-600">
+                      <!-- chat -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v6A2.5 2.5 0 0 1 16.5 15H10l-4 4v-4H7.5A2.5 2.5 0 0 1 5 12.5v-6Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M8 8.5h8M8 11h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".9"/>
+                      </svg>
+                      <span class="absolute -top-1 -left-1 h-2.5 w-2.5 rounded-full bg-green-500 shadow-[0_0_0_5px_rgba(34,197,94,.16)]"></span>
+                    </span>
+                    <span class="font-extrabold truncate">المحادثات</span>
+                  </span>
+                  <span class="text-xs font-extrabold rounded-full px-2.5 py-1 bg-green-500/10 text-green-700 border border-green-500/20">💬 3</span>
+                </a>
+
+                <a href="#"
+                   class="nav-item group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                          border border-transparent hover:border-[color:var(--border)]
+                          hover:bg-[color:var(--navHover)] hover:translate-y-[-1px] transition
+                          focus:outline-none focus-visible:[box-shadow:var(--ring)]"
+                >
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="icon-chip grid h-10 w-10 place-items-center rounded-xl bg-rose-500/12 text-rose-600">
+                      <!-- bell -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 16v-5a6 6 0 1 0-12 0v5l-2 2h16l-2-2Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M10 20a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="2" opacity=".9"/>
+                      </svg>
+                    </span>
+                    <span class="font-extrabold truncate">الإشعارات</span>
+                  </span>
+                  <span class="text-xs font-extrabold rounded-full px-2.5 py-1 bg-rose-500/10 text-rose-700 border border-rose-500/20">🔔 12</span>
+                </a>
+
+                <a href="#"
+                   class="nav-item group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                          border border-transparent hover:border-[color:var(--border)]
+                          hover:bg-[color:var(--navHover)] hover:translate-y-[-1px] transition
+                          focus:outline-none focus-visible:[box-shadow:var(--ring)]"
+                >
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="icon-chip grid h-10 w-10 place-items-center rounded-xl bg-slate-500/10 text-slate-600">
+                      <!-- search -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                    <span class="font-extrabold truncate">البحث</span>
+                  </span>
+                  <span class="emoji-chip text-xs font-extrabold rounded-full px-2.5 py-1 bg-[color:var(--navHover)] border border-[color:var(--border)]">🔎</span>
+                </a>
+
+                <a href="#"
+                   class="nav-item group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                          border border-transparent hover:border-[color:var(--border)]
+                          hover:bg-[color:var(--navHover)] hover:translate-y-[-1px] transition
+                          focus:outline-none focus-visible:[box-shadow:var(--ring)]"
+                >
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="icon-chip grid h-10 w-10 place-items-center rounded-xl bg-sky-500/12 text-sky-600">
+                      <!-- sparkles -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 3l1.2 3.8L17 8l-3.8 1.2L12 13l-1.2-3.8L7 8l3.8-1.2L12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M19 13l.8 2.5L22 16l-2.2.7L19 19l-.8-2.3L16 16l2.2-.5L19 13Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" opacity=".9"/>
+                      </svg>
+                    </span>
+                    <span class="font-extrabold truncate">خدمات AI</span>
+                  </span>
+                  <span class="text-xs font-extrabold rounded-full px-2.5 py-1 bg-sky-500/10 text-sky-700 border border-sky-500/20">✨ Pro</span>
+                </a>
+
+              </div>
+
+              <!-- section -->
+              <div class="mt-6 px-3 pt-3 pb-2 text-[11px] font-extrabold tracking-[.16em] uppercase text-[color:var(--muted)]">
+                حسابك
+              </div>
+
+              <div class="px-2">
+                <a href="#"
+                   class="nav-item group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                          border border-transparent hover:border-[color:var(--border)]
+                          hover:bg-[color:var(--navHover)] hover:translate-y-[-1px] transition
+                          focus:outline-none focus-visible:[box-shadow:var(--ring)]"
+                >
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="icon-chip grid h-10 w-10 place-items-center rounded-xl bg-primary-500/10 text-primary-700">
+                      <!-- settings -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M19.4 15a7.9 7.9 0 0 0 .1-1l2-1.4-2-3.4-2.4.6a8 8 0 0 0-1.7-1l-.4-2.4h-4l-.4 2.4a8 8 0 0 0-1.7 1l-2.4-.6-2 3.4 2 1.4a8.3 8.3 0 0 0 0 2l-2 1.4 2 3.4 2.4-.6c.5.4 1.1.7 1.7 1l.4 2.4h4l.4-2.4c.6-.3 1.2-.6 1.7-1l2.4.6 2-3.4-2-1.4Z" stroke="currentColor" stroke-width="1.2" opacity=".9"/>
+                      </svg>
+                    </span>
+                    <span class="font-extrabold truncate">إعدادات الحساب</span>
+                  </span>
+                  <span class="emoji-chip text-xs font-extrabold rounded-full px-2.5 py-1 bg-[color:var(--navHover)] border border-[color:var(--border)]">⚙️</span>
+                </a>
+              </div>
+            </nav>
+
+            <!-- Bottom profile -->
+            <div class="p-4 border-t border-[color:var(--border)]">
+              <div class="rounded-3xl border border-[color:var(--border)] bg-[color:var(--surface2)]
+                          shadow-[var(--shadowSoft)] px-3 py-3">
+                <div class="flex items-center gap-3">
+                  <div class="h-12 w-12 rounded-2xl overflow-hidden border border-[color:var(--border)] bg-[color:var(--navHover)]">
+                    <!-- replace with real avatar -->
+                    <img
+                      src="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=128&h=128&fit=crop"
+                      class="h-full w-full object-cover"
+                      alt="avatar"
+                    />
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <div class="font-black truncate">إبراهيم بصمة</div>
+                    <div class="text-xs text-primary-600 truncate">@luffy.dev</div>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="grid h-12 w-12 place-items-center rounded-2xl border border-[color:var(--border)]
+                           bg-[color:var(--navHover)] hover:translate-y-[-1px] transition"
+                    aria-label="menu"
+                  >
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </aside>
+
+      <!-- ============ MAIN ============ -->
+      <main class="min-h-[calc(100vh-2rem)]">
+        <!-- Top bar -->
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <!-- open nav (mobile) -->
+          <label for="nav"
+                 class="lg:hidden grid h-12 w-12 place-items-center rounded-2xl
+                        border border-[color:var(--border)] bg-[color:var(--surface2)]
+                        shadow-[var(--shadowSoft)] cursor-pointer hover:translate-y-[-1px] transition"
+                 aria-label="Open sidebar">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+              <path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </label>
+
+          <div class="min-w-0">
+            <h1 class="text-xl font-black tracking-tight truncate">لوحة التحكم ✨</h1>
+            <p class="text-sm text-[color:var(--muted)] truncate">تنظيم واضح + ألوان مريحة + مساحة محتوى كاملة</p>
+          </div>
+
+          <button
+            class="hidden sm:inline-flex items-center gap-2 rounded-2xl px-4 py-3 font-extrabold
+                   border border-[color:var(--border)] bg-[color:var(--surface2)]
+                   shadow-[var(--shadowSoft)] hover:translate-y-[-1px] transition"
+          >
+            ➕ إنشاء منشور
+          </button>
+        </div>
+
+        <!-- Main content shell -->
+        <section class="rounded-[28px] border border-[color:var(--border)] bg-[color:var(--surface2)]
+                        shadow-[var(--shadow)] overflow-hidden">
+          <div class="p-6 bg-[color:var(--surface)]">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div class="min-w-0">
+                <div class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold
+                            bg-primary-500/10 text-primary-700 border border-primary-500/20">
+                  🔥 ترند اليوم
+                </div>
+                <h2 class="mt-3 text-2xl font-black tracking-tight">محتوى مرتّب وواجهة مريحة للعين</h2>
+                <p class="mt-2 text-sm text-[color:var(--muted)] leading-7 max-w-2xl">
+                  نفس التصميم يناسب منصة مجتمع: صفحات واضحة، حالة Active نظيفة، وألوان هادئة بدون صخب.
+                </p>
+              </div>
+
+              <div class="flex gap-2">
+                <button class="rounded-2xl px-4 py-3 font-extrabold text-white bg-primary-600 hover:bg-primary-700 transition shadow-[0_14px_30px_rgba(79,70,229,.18)]">
+                  🚀 استكشف
+                </button>
+                <button class="rounded-2xl px-4 py-3 font-extrabold border border-[color:var(--border)] bg-[color:var(--navHover)] hover:translate-y-[-1px] transition">
+                  ⭐ التصنيف
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cards grid -->
+          <div class="p-4 grid lg:grid-cols-[1.35fr_.65fr] gap-4 bg-[color:var(--surface)] border-t border-[color:var(--border)]">
+            <div class="rounded-3xl border border-[color:var(--border)] bg-[color:var(--surface2)] p-5 shadow-[var(--shadowSoft)]">
+              <div class="flex items-center justify-between">
+                <h3 class="font-black text-lg">Feed 🧠</h3>
+                <span class="text-xs font-extrabold rounded-full px-3 py-1 bg-[color:var(--navHover)] border border-[color:var(--border)]">Today</span>
+              </div>
+
+              <div class="mt-4 space-y-3">
+                <div class="rounded-3xl border border-[color:var(--border)] bg-[color:var(--surface)] p-4">
+                  <div class="font-extrabold">🎬 نقاش الحلقة الجديدة</div>
+                  <div class="text-sm text-[color:var(--muted)] mt-1">شارك رأيك بدون سبويلر 👇</div>
+                </div>
+                <div class="rounded-3xl border border-[color:var(--border)] bg-[color:var(--surface)] p-4">
+                  <div class="font-extrabold">📚 فصل جديد</div>
+                  <div class="text-sm text-[color:var(--muted)] mt-1">مراجعات وقراءات سريعة.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-3xl border border-[color:var(--border)] bg-[color:var(--surface2)] p-5 shadow-[var(--shadowSoft)]">
+              <h3 class="font-black text-lg">Quick ⚡</h3>
+
+              <div class="mt-4 space-y-3">
+                <div class="rounded-3xl border border-[color:var(--border)] bg-[color:var(--surface)] p-4">
+                  <div class="font-extrabold">💬 رسائل</div>
+                  <div class="text-sm text-[color:var(--muted)] mt-1">3 غير مقروءة</div>
+                </div>
+                <div class="rounded-3xl border border-[color:var(--border)] bg-[color:var(--surface)] p-4">
+                  <div class="font-extrabold">✨ AI</div>
+                  <div class="text-sm text-[color:var(--muted)] mt-1">تلخيص + اقتراحات</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Active style + knob move (CSS only) -->
+  <style>
+    /* active nav */
+    .nav-item[data-active="true"]{
+      background: var(--navActive);
+      border-color: var(--navActiveBorder);
+      box-shadow: var(--shadowSoft);
+    }
+    .nav-item[data-active="true"] .emoji-chip{
+      background: rgba(79,70,229,.14);
+      border-color: rgba(79,70,229,.25);
+      color: rgba(79,70,229,.95);
+    }
+    /* toggle knob */
+    #theme:checked ~ .app .knob{ transform: translateX(-20px); }
+  </style>
+</body>
+</html>

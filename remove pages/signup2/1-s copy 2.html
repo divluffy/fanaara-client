@@ -1,0 +1,1523 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Manga Ink B/W — Multi-step Register</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      /* ===== Manga Ink / Screentone / Halftone ===== */
+      :root{
+        --ink:#0a0a0a;
+        --paper:#fcfcfc;
+        --dot: rgba(0,0,0,.14);
+        --dot2: rgba(0,0,0,.08);
+        --scratch: rgba(0,0,0,.10);
+        --focus: rgba(0,0,0,.35);
+        --tailDir: -1; /* RTL default (tail to the left). LTR will set +1 in JS */
+      }
+
+      body{
+        background:
+          radial-gradient(circle at 20% 10%, var(--dot) 1px, transparent 1.2px) 0 0/10px 10px,
+          radial-gradient(circle at 60% 50%, var(--dot2) 1px, transparent 1.2px) 0 0/16px 16px,
+          linear-gradient(var(--paper), var(--paper));
+        color: var(--ink);
+      }
+
+      /* subtle ink scratches */
+      .ink-scratches{
+        position: relative;
+      }
+      .ink-scratches::before{
+        content:"";
+        position:absolute;
+        inset:-20px;
+        pointer-events:none;
+        opacity:.20;
+        background:
+          repeating-linear-gradient(
+            115deg,
+            transparent 0 14px,
+            var(--scratch) 14px 15px,
+            transparent 15px 22px
+          );
+        mix-blend-mode:multiply;
+      }
+
+      /* comic panel */
+      .panel{
+        position:relative;
+        background: var(--paper);
+        border: 3px solid var(--ink);
+        box-shadow: 6px 6px 0 var(--ink);
+        overflow:hidden;
+      }
+      .panel::after{
+        /* halftone overlay */
+        content:"";
+        position:absolute;
+        inset:0;
+        pointer-events:none;
+        opacity:.18;
+        background:
+          radial-gradient(circle at 35% 35%, rgba(0,0,0,.25) 1px, transparent 1.2px) 0 0/12px 12px,
+          radial-gradient(circle at 70% 65%, rgba(0,0,0,.18) 1px, transparent 1.2px) 0 0/18px 18px;
+        mix-blend-mode:multiply;
+        mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,.2));
+      }
+
+      .ink-divider{
+        height: 10px;
+        background:
+          repeating-linear-gradient(
+            90deg,
+            var(--ink) 0 7px,
+            transparent 7px 10px
+          );
+      }
+
+      /* speech bubble */
+      .bubble{
+        position:relative;
+        border: 3px solid var(--ink);
+        background: white;
+        border-radius: 9999px;
+        padding: .65rem 1rem;
+        box-shadow: 4px 4px 0 var(--ink);
+      }
+      .bubble::after{
+        content:"";
+        position:absolute;
+        bottom:-14px;
+        width: 18px;
+        height: 18px;
+        background:white;
+        border-right:3px solid var(--ink);
+        border-bottom:3px solid var(--ink);
+        transform:
+          translateX(calc(var(--tailDir) * 22px))
+          rotate(45deg);
+        right: 18px;
+      }
+
+      /* ink input */
+      .ink-input{
+        border: 2px solid var(--ink) !important;
+        background:white !important;
+        box-shadow: 3px 3px 0 var(--ink);
+      }
+      .ink-input:focus{
+        outline: none !important;
+        box-shadow: 0 0 0 6px var(--focus), 3px 3px 0 var(--ink);
+      }
+
+      /* manga button */
+      .ink-btn{
+        border: 3px solid var(--ink);
+        background: white;
+        box-shadow: 6px 6px 0 var(--ink);
+        transition: transform .08s ease;
+      }
+      .ink-btn:active{ transform: translate(2px,2px); box-shadow: 4px 4px 0 var(--ink); }
+      .ink-btn:focus{ outline:none; box-shadow: 0 0 0 6px var(--focus), 6px 6px 0 var(--ink); }
+
+      /* SFX */
+      .sfx{
+        font-weight: 900;
+        letter-spacing: .08em;
+        transform: rotate(-10deg);
+        text-shadow:
+          3px 3px 0 #000,
+          -1px -1px 0 #000;
+      }
+
+      /* step "page" tab */
+      .page-tab{
+        border: 2px solid var(--ink);
+        background: white;
+        box-shadow: 3px 3px 0 var(--ink);
+      }
+      .page-tab[aria-current="step"]{
+        outline: none;
+        box-shadow: 0 0 0 6px var(--focus), 3px 3px 0 var(--ink);
+      }
+      .page-tab:disabled{
+        opacity:.45;
+        cursor:not-allowed;
+      }
+
+      /* avatar tiles + speedlines */
+      .avatar-tile{
+        position:relative;
+        border: 3px solid var(--ink);
+        background: white;
+        box-shadow: 6px 6px 0 var(--ink);
+        cursor:pointer;
+        overflow:hidden;
+      }
+      .avatar-tile[data-selected="true"]{
+        outline:none;
+        box-shadow: 0 0 0 8px var(--focus), 6px 6px 0 var(--ink);
+      }
+      .speedlines{
+        position:absolute;
+        inset:-20%;
+        pointer-events:none;
+        opacity:0;
+        background:
+          repeating-linear-gradient(
+            135deg,
+            rgba(0,0,0,.0) 0 10px,
+            rgba(0,0,0,.22) 10px 12px,
+            rgba(0,0,0,.0) 12px 22px
+          );
+        transform: rotate(8deg);
+      }
+      .avatar-tile[data-selected="true"] .speedlines{
+        animation: whoosh .65s ease-out both;
+      }
+      @keyframes whoosh{
+        0% { opacity:0; transform: translateX(-20%) rotate(8deg); }
+        25%{ opacity:.75; }
+        100%{ opacity:0; transform: translateX(25%) rotate(8deg); }
+      }
+
+      /* manga stickers */
+      .sticker{
+        border:2px solid var(--ink);
+        box-shadow: 3px 3px 0 var(--ink);
+        background:white;
+        user-select:none;
+      }
+      .sticker[data-on="true"]{
+        box-shadow: 0 0 0 6px var(--focus), 3px 3px 0 var(--ink);
+      }
+
+      /* autocomplete dropdown */
+      .ac-box{
+        border:2px solid var(--ink);
+        box-shadow: 4px 4px 0 var(--ink);
+        background:white;
+      }
+      .ac-item{
+        border-bottom:1px solid rgba(0,0,0,.15);
+      }
+      .ac-item[aria-selected="true"]{
+        background: rgba(0,0,0,.06);
+      }
+
+      /* reduce motion */
+      @media (prefers-reduced-motion: reduce){
+        .avatar-tile[data-selected="true"] .speedlines{ animation:none; opacity:.25; }
+        .ink-btn{ transition:none; }
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen">
+    <div class="mx-auto max-w-5xl px-4 py-6 ink-scratches">
+      <!-- Header -->
+      <header class="panel p-5 md:p-6">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div class="space-y-1">
+            <h1 class="text-2xl md:text-3xl font-black tracking-tight" data-t="title">تسجيل — مانجا Ink B/W</h1>
+            <p class="text-sm md:text-base opacity-90" data-t="subtitle">
+              نموذج متعدد الخطوات داخل صفحة واحدة — Panels / Screentone / Halftone
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold" data-t="langLabel">اللغة</span>
+            <button id="langAr" class="ink-btn px-3 py-2 font-black" aria-label="Switch to Arabic">AR</button>
+            <button id="langEn" class="ink-btn px-3 py-2 font-black" aria-label="Switch to English">EN</button>
+          </div>
+        </div>
+
+        <div class="mt-5 ink-divider"></div>
+
+        <!-- Progress -->
+        <div class="mt-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="text-sm font-black">
+              <span data-t="progress">التقدم</span>:
+              <span id="progressText">1 / 7</span>
+            </p>
+
+            <div class="w-full max-w-md">
+              <div class="h-3 border-2 border-black bg-white">
+                <div id="progressBar" class="h-full bg-black" style="width:14.285%"></div>
+              </div>
+            </div>
+
+            <p class="text-sm font-black">
+              <span data-t="hintKeys">اختصارات</span>:
+              <span class="opacity-90" data-t="keys">Alt+→ التالي | Alt+← السابق</span>
+            </p>
+          </div>
+
+          <!-- Stepper tabs -->
+          <nav class="mt-4" aria-label="Registration steps">
+            <div class="flex flex-wrap gap-2" role="tablist" aria-label="Stepper pages">
+              <!-- Buttons injected by JS -->
+            </div>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Main -->
+      <main class="mt-6 space-y-6">
+        <!-- Global message bubble -->
+        <div id="globalBubble" class="hidden bubble" role="status" aria-live="polite"></div>
+
+        <!-- Steps -->
+        <section class="panel p-5 md:p-6" aria-label="Registration panel">
+          <!-- Step 1 -->
+          <div class="step space-y-6" data-step="0">
+            <div class="flex flex-col md:flex-row gap-5 items-start">
+              <div class="flex-1 space-y-3">
+                <h2 class="text-xl md:text-2xl font-black" data-t="s1Title">لوحة الترحيب</h2>
+                <p class="opacity-90" data-t="s1Body">
+                  أهلاً بك في عالم الحبر! اختر اسم مستخدم، ثم انتقل للصفحة التالية.
+                </p>
+
+                <div class="bubble inline-block" data-t="s1Bubble">
+                  "ابدأ رحلتك… صفحة جديدة!"
+                </div>
+              </div>
+
+              <div class="w-full md:w-[340px] panel p-4">
+                <p class="font-black mb-2" data-t="usernameLabel">اسم المستخدم</p>
+                <label class="sr-only" for="username" data-t="usernameLabel">اسم المستخدم</label>
+                <input
+                  id="username"
+                  type="text"
+                  class="ink-input w-full px-3 py-2 text-base"
+                  placeholder="dev.luffy"
+                  aria-label="Username"
+                  autocomplete="username"
+                />
+                <p class="mt-2 text-xs opacity-80" data-t="usernameHint">
+                  3–16 حرف/رقم/underscore.
+                </p>
+
+                <div id="sfxDon" class="mt-4 flex items-center justify-between">
+                  <span class="sfx text-2xl" aria-hidden="true">ドン!</span>
+                  <button class="ink-btn px-4 py-2 font-black" id="next0" aria-label="Next step">
+                    <span data-t="next">التالي</span>
+                  </button>
+                </div>
+
+                <div id="err0" class="mt-4 hidden bubble text-sm" role="alert" aria-live="assertive"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step hidden space-y-6" data-step="1">
+            <div class="space-y-2">
+              <h2 class="text-xl md:text-2xl font-black" data-t="s2Title">البريد وكلمة المرور</h2>
+              <p class="opacity-90" data-t="s2Body">
+                تحقق فوري + فقاعات أخطاء. (Email / Password / Confirm)
+              </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-5">
+              <div class="panel p-4 space-y-4">
+                <div>
+                  <label for="email" class="font-black" data-t="emailLabel">البريد الإلكتروني</label>
+                  <input
+                    id="email"
+                    type="email"
+                    class="ink-input w-full px-3 py-2 mt-2"
+                    placeholder="you@example.com"
+                    aria-label="Email"
+                    autocomplete="email"
+                  />
+                </div>
+
+                <div>
+                  <label for="password" class="font-black" data-t="passLabel">كلمة المرور</label>
+                  <input
+                    id="password"
+                    type="password"
+                    class="ink-input w-full px-3 py-2 mt-2"
+                    placeholder="••••••••"
+                    aria-label="Password"
+                    autocomplete="new-password"
+                  />
+                  <p class="mt-2 text-xs opacity-80" data-t="passHint">
+                    8+ أحرف، وتحتوي على رقم وحرف.
+                  </p>
+                </div>
+
+                <div>
+                  <label for="confirm" class="font-black" data-t="confirmLabel">تأكيد كلمة المرور</label>
+                  <input
+                    id="confirm"
+                    type="password"
+                    class="ink-input w-full px-3 py-2 mt-2"
+                    placeholder="••••••••"
+                    aria-label="Confirm password"
+                    autocomplete="new-password"
+                  />
+                </div>
+              </div>
+
+              <div class="panel p-4 space-y-4">
+                <h3 class="font-black" data-t="liveCheck">التحقق الفوري</h3>
+
+                <ul class="space-y-3 text-sm">
+                  <li class="flex items-center justify-between">
+                    <span data-t="checkEmail">صيغة Email صحيحة</span>
+                    <span id="okEmail" class="font-black">—</span>
+                  </li>
+                  <li class="flex items-center justify-between">
+                    <span data-t="checkPass">قوة كلمة المرور</span>
+                    <span id="okPass" class="font-black">—</span>
+                  </li>
+                  <li class="flex items-center justify-between">
+                    <span data-t="checkMatch">التطابق</span>
+                    <span id="okMatch" class="font-black">—</span>
+                  </li>
+                </ul>
+
+                <div id="err1" class="hidden bubble text-sm" role="alert" aria-live="assertive"></div>
+
+                <div class="flex items-center justify-between pt-2">
+                  <button class="ink-btn px-4 py-2 font-black" id="back1" aria-label="Previous step">
+                    <span data-t="back">السابق</span>
+                  </button>
+                  <button class="ink-btn px-4 py-2 font-black" id="next1" aria-label="Next step">
+                    <span data-t="next">التالي</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="step hidden space-y-6" data-step="2">
+            <div class="space-y-2">
+              <h2 class="text-xl md:text-2xl font-black" data-t="s3Title">معلومات المستخدم</h2>
+              <p class="opacity-90" data-t="s3Body">
+                العمر + الدولة + أسلوبك (قارئ / مشاهد / جامع مجلدات)
+              </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-5">
+              <div class="panel p-4 space-y-4">
+                <div>
+                  <label for="age" class="font-black" data-t="ageLabel">العمر</label>
+                  <input
+                    id="age"
+                    type="number"
+                    min="1"
+                    class="ink-input w-full px-3 py-2 mt-2"
+                    placeholder="18"
+                    aria-label="Age"
+                    inputmode="numeric"
+                  />
+                </div>
+
+                <div>
+                  <label for="country" class="font-black" data-t="countryLabel">الدولة</label>
+                  <select id="country" class="ink-input w-full px-3 py-2 mt-2" aria-label="Country">
+                    <option value="" data-t="choose">— اختر —</option>
+                    <option>Palestine</option>
+                    <option>Israel</option>
+                    <option>Jordan</option>
+                    <option>Egypt</option>
+                    <option>Saudi Arabia</option>
+                    <option>UAE</option>
+                    <option>Morocco</option>
+                    <option>France</option>
+                    <option>USA</option>
+                    <option>Japan</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="panel p-4 space-y-4">
+                <p class="font-black" data-t="styleLabel">أسلوبك</p>
+
+                <div class="space-y-3">
+                  <label class="flex items-center gap-3">
+                    <input type="radio" name="style" value="reader" aria-label="Reader" />
+                    <span class="font-black" data-t="styleReader">قارئ</span>
+                    <span class="text-xs opacity-80" data-t="styleReaderHint">مانجا/كوميكس قبل كل شيء</span>
+                  </label>
+
+                  <label class="flex items-center gap-3">
+                    <input type="radio" name="style" value="watcher" aria-label="Watcher" />
+                    <span class="font-black" data-t="styleWatcher">مشاهد</span>
+                    <span class="text-xs opacity-80" data-t="styleWatcherHint">أنمي + اقتباسات</span>
+                  </label>
+
+                  <label class="flex items-center gap-3">
+                    <input type="radio" name="style" value="collector" aria-label="Collector" />
+                    <span class="font-black" data-t="styleCollector">جامع مجلدات</span>
+                    <span class="text-xs opacity-80" data-t="styleCollectorHint">طبعات خاصة ورفوف</span>
+                  </label>
+                </div>
+
+                <div id="err2" class="hidden bubble text-sm" role="alert" aria-live="assertive"></div>
+
+                <div class="flex items-center justify-between pt-2">
+                  <button class="ink-btn px-4 py-2 font-black" id="back2" aria-label="Previous step">
+                    <span data-t="back">السابق</span>
+                  </button>
+                  <button class="ink-btn px-4 py-2 font-black" id="next2" aria-label="Next step">
+                    <span data-t="next">التالي</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="step hidden space-y-6" data-step="3">
+            <div class="space-y-2">
+              <h2 class="text-xl md:text-2xl font-black" data-t="s4Title">الأفاتار</h2>
+              <p class="opacity-90" data-t="s4Body">
+                اختر silhouette (SVG) — عند الاختيار تظهر "خطوط سرعة".
+              </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-4">
+              <!-- Avatar 1 -->
+              <button class="avatar-tile p-4 text-left" data-avatar="shadow-ninja" aria-label="Choose avatar 1">
+                <div class="speedlines" aria-hidden="true"></div>
+                <p class="font-black mb-3" data-t="av1">ظل نينجا</p>
+                <svg viewBox="0 0 200 200" class="w-full h-40">
+                  <path d="M100 28c25 0 46 16 46 41 0 11-4 21-10 28 18 10 28 26 28 48v18H36v-18c0-22 10-38 28-48-6-7-10-17-10-28 0-25 21-41 46-41z" fill="#0a0a0a"/>
+                  <path d="M58 83c16-12 68-12 84 0-8 10-20 17-42 17S66 93 58 83z" fill="#fcfcfc"/>
+                  <circle cx="76" cy="90" r="6" fill="#0a0a0a"/>
+                  <circle cx="124" cy="90" r="6" fill="#0a0a0a"/>
+                </svg>
+              </button>
+
+              <!-- Avatar 2 -->
+              <button class="avatar-tile p-4 text-left" data-avatar="shadow-hero" aria-label="Choose avatar 2">
+                <div class="speedlines" aria-hidden="true"></div>
+                <p class="font-black mb-3" data-t="av2">بطل مقنّع</p>
+                <svg viewBox="0 0 200 200" class="w-full h-40">
+                  <path d="M100 26c26 0 48 18 48 46 0 28-22 46-48 46s-48-18-48-46c0-28 22-46 48-46z" fill="#0a0a0a"/>
+                  <path d="M52 78c18-16 78-16 96 0l-12 20c-18-10-54-10-72 0L52 78z" fill="#fcfcfc"/>
+                  <path d="M100 124c30 0 56 16 56 38v12H44v-12c0-22 26-38 56-38z" fill="#0a0a0a"/>
+                </svg>
+              </button>
+
+              <!-- Avatar 3 -->
+              <button class="avatar-tile p-4 text-left" data-avatar="shadow-mage" aria-label="Choose avatar 3">
+                <div class="speedlines" aria-hidden="true"></div>
+                <p class="font-black mb-3" data-t="av3">ساحر الحبر</p>
+                <svg viewBox="0 0 200 200" class="w-full h-40">
+                  <path d="M100 20c18 0 34 12 34 30 0 10-5 19-12 24 14 6 24 20 24 36v64H54v-64c0-16 10-30 24-36-7-5-12-14-12-24 0-18 16-30 34-30z" fill="#0a0a0a"/>
+                  <path d="M48 92c20-14 84-14 104 0-10 12-28 20-52 20s-42-8-52-20z" fill="#fcfcfc"/>
+                  <path d="M32 66l68-40 68 40-68 10-68-10z" fill="#0a0a0a"/>
+                </svg>
+              </button>
+            </div>
+
+            <div id="err3" class="hidden bubble text-sm" role="alert" aria-live="assertive"></div>
+
+            <div class="flex items-center justify-between pt-2">
+              <button class="ink-btn px-4 py-2 font-black" id="back3" aria-label="Previous step">
+                <span data-t="back">السابق</span>
+              </button>
+              <button class="ink-btn px-4 py-2 font-black" id="next3" aria-label="Next step">
+                <span data-t="next">التالي</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="step hidden space-y-6" data-step="4">
+            <div class="space-y-2">
+              <h2 class="text-xl md:text-2xl font-black" data-t="s5Title">الاهتمامات</h2>
+              <p class="opacity-90" data-t="s5Body">
+                Genres كملصقات مانجا + اختر 3 أعمال مفضلة (Autocomplete بسيط).
+              </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-5">
+              <div class="panel p-4 space-y-4">
+                <p class="font-black" data-t="genresLabel">الأنواع (Genres)</p>
+                <div id="genres" class="flex flex-wrap gap-2" aria-label="Genres"></div>
+                <p class="text-xs opacity-80" data-t="genresHint">اختيار متعدد — خذ وقتك.</p>
+              </div>
+
+              <div class="panel p-4 space-y-4">
+                <p class="font-black" data-t="favLabel">3 أعمال مفضلة</p>
+
+                <div class="relative">
+                  <label class="sr-only" for="favInput" data-t="favInputLabel">اكتب اسم العمل</label>
+                  <input
+                    id="favInput"
+                    type="text"
+                    class="ink-input w-full px-3 py-2"
+                    placeholder="ابحث… (مثال: One Piece)"
+                    aria-label="Favorite works input"
+                    autocomplete="off"
+                  />
+                  <div id="ac" class="ac-box hidden absolute z-20 mt-2 w-full max-h-56 overflow-auto">
+                    <!-- suggestions -->
+                  </div>
+                </div>
+
+                <div>
+                  <p class="font-black text-sm mb-2" data-t="selectedFav">المحدد</p>
+                  <div id="favChips" class="flex flex-wrap gap-2" aria-label="Selected favorites"></div>
+                  <p class="text-xs opacity-80 mt-2" data-t="favHint">اضغط Enter لإضافة — حد أقصى 3.</p>
+                </div>
+
+                <div id="err4" class="hidden bubble text-sm" role="alert" aria-live="assertive"></div>
+
+                <div class="flex items-center justify-between pt-2">
+                  <button class="ink-btn px-4 py-2 font-black" id="back4" aria-label="Previous step">
+                    <span data-t="back">السابق</span>
+                  </button>
+                  <button class="ink-btn px-4 py-2 font-black" id="next4" aria-label="Next step">
+                    <span data-t="next">التالي</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 6 -->
+          <div class="step hidden space-y-6" data-step="5">
+            <div class="space-y-2">
+              <h2 class="text-xl md:text-2xl font-black" data-t="s6Title">متابعة — طاقمك</h2>
+              <p class="opacity-90" data-t="s6Body">
+                6 حسابات مقترحة داخل Panels مع زر Follow.
+              </p>
+            </div>
+
+            <div id="crewGrid" class="grid md:grid-cols-3 gap-4" aria-label="Suggested crew"></div>
+
+            <div id="err5" class="hidden bubble text-sm" role="alert" aria-live="assertive"></div>
+
+            <div class="flex items-center justify-between pt-2">
+              <button class="ink-btn px-4 py-2 font-black" id="back5" aria-label="Previous step">
+                <span data-t="back">السابق</span>
+              </button>
+              <button class="ink-btn px-4 py-2 font-black" id="next5" aria-label="Next step">
+                <span data-t="next">التالي</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 7 -->
+          <div class="step hidden space-y-6" data-step="6">
+            <div class="space-y-2">
+              <h2 class="text-xl md:text-2xl font-black" data-t="s7Title">المراجعة — الصفحة الختامية</h2>
+              <p class="opacity-90" data-t="s7Body">
+                Summary كأنه فصل أخير… ثم “إنهاء”.
+              </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              <div class="panel p-4 space-y-3">
+                <h3 class="font-black" data-t="summaryPanel">لوحة الملخص</h3>
+                <div id="summary" class="space-y-2 text-sm"></div>
+              </div>
+
+              <div class="panel p-4 space-y-3">
+                <div class="flex items-start justify-between gap-3">
+                  <h3 class="font-black" data-t="finalPage">الصفحة الأخيرة</h3>
+                  <span class="sfx text-xl" aria-hidden="true">ザッ…</span>
+                </div>
+
+                <div class="bubble" data-t="finalBubble">
+                  "جاهز؟… اربط الحزام، الفصل يبدأ الآن!"
+                </div>
+
+                <div class="panel p-4">
+                  <p class="text-center font-black text-3xl tracking-widest">THE END</p>
+                  <p class="text-center text-xs opacity-80 mt-2" data-t="endNote">
+                    (أو… البداية الحقيقية)
+                  </p>
+                </div>
+
+                <div id="err6" class="hidden bubble text-sm" role="alert" aria-live="assertive"></div>
+
+                <div class="flex items-center justify-between pt-2">
+                  <button class="ink-btn px-4 py-2 font-black" id="back6" aria-label="Previous step">
+                    <span data-t="back">السابق</span>
+                  </button>
+                  <button class="ink-btn px-4 py-2 font-black" id="submit" aria-label="Finish registration">
+                    <span data-t="finish">إنهاء</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel p-4">
+              <p class="font-black mb-2" data-t="a11yNoteTitle">وصولية</p>
+              <ul class="text-sm list-disc ps-6 space-y-1 opacity-90">
+                <li data-t="a11y1">كل المدخلات لها aria-label + labels.</li>
+                <li data-t="a11y2">Alt+→ / Alt+← للتنقل بين الصفحات.</li>
+                <li data-t="a11y3">Autocomplete قابل للكيبورد (↑ ↓ Enter Esc).</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <footer class="panel p-4 text-sm opacity-90">
+          <p>
+            <span class="font-black">Ink B/W</span> —
+            <span data-t="footerNote">كل شيء داخل ملف HTML واحد (بدون صور خارجية).</span>
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      /* =========================
+         i18n (AR / EN)
+      ========================= */
+      const I18N = {
+        ar: {
+          title: "تسجيل — مانجا Ink B/W",
+          subtitle: "نموذج متعدد الخطوات داخل صفحة واحدة — Panels / Screentone / Halftone",
+          langLabel: "اللغة",
+          progress: "التقدم",
+          hintKeys: "اختصارات",
+          keys: "Alt+→ التالي | Alt+← السابق",
+          next: "التالي",
+          back: "السابق",
+          finish: "إنهاء",
+
+          s1Title: "لوحة الترحيب",
+          s1Body: "أهلاً بك في عالم الحبر! اختر اسم مستخدم، ثم انتقل للصفحة التالية.",
+          s1Bubble: "\"ابدأ رحلتك… صفحة جديدة!\"",
+          usernameLabel: "اسم المستخدم",
+          usernameHint: "3–16 حرف/رقم/underscore.",
+
+          s2Title: "البريد وكلمة المرور",
+          s2Body: "تحقق فوري + فقاعات أخطاء. (Email / Password / Confirm)",
+          emailLabel: "البريد الإلكتروني",
+          passLabel: "كلمة المرور",
+          passHint: "8+ أحرف، وتحتوي على رقم وحرف.",
+          confirmLabel: "تأكيد كلمة المرور",
+          liveCheck: "التحقق الفوري",
+          checkEmail: "صيغة Email صحيحة",
+          checkPass: "قوة كلمة المرور",
+          checkMatch: "التطابق",
+
+          s3Title: "معلومات المستخدم",
+          s3Body: "العمر + الدولة + أسلوبك (قارئ / مشاهد / جامع مجلدات)",
+          ageLabel: "العمر",
+          countryLabel: "الدولة",
+          choose: "— اختر —",
+          styleLabel: "أسلوبك",
+          styleReader: "قارئ",
+          styleReaderHint: "مانجا/كوميكس قبل كل شيء",
+          styleWatcher: "مشاهد",
+          styleWatcherHint: "أنمي + اقتباسات",
+          styleCollector: "جامع مجلدات",
+          styleCollectorHint: "طبعات خاصة ورفوف",
+
+          s4Title: "الأفاتار",
+          s4Body: "اختر silhouette (SVG) — عند الاختيار تظهر \"خطوط سرعة\".",
+          av1: "ظل نينجا",
+          av2: "بطل مقنّع",
+          av3: "ساحر الحبر",
+
+          s5Title: "الاهتمامات",
+          s5Body: "Genres كملصقات مانجا + اختر 3 أعمال مفضلة (Autocomplete بسيط).",
+          genresLabel: "الأنواع (Genres)",
+          genresHint: "اختيار متعدد — خذ وقتك.",
+          favLabel: "3 أعمال مفضلة",
+          favInputLabel: "اكتب اسم العمل",
+          selectedFav: "المحدد",
+          favHint: "اضغط Enter لإضافة — حد أقصى 3.",
+
+          s6Title: "متابعة — طاقمك",
+          s6Body: "6 حسابات مقترحة داخل Panels مع زر Follow.",
+          follow: "Follow",
+          following: "Following",
+
+          s7Title: "المراجعة — الصفحة الختامية",
+          s7Body: "Summary كأنه فصل أخير… ثم “إنهاء”.",
+          summaryPanel: "لوحة الملخص",
+          finalPage: "الصفحة الأخيرة",
+          finalBubble: "\"جاهز؟… اربط الحزام، الفصل يبدأ الآن!\"",
+          endNote: "(أو… البداية الحقيقية)",
+
+          a11yNoteTitle: "وصولية",
+          a11y1: "كل المدخلات لها aria-label + labels.",
+          a11y2: "Alt+→ / Alt+← للتنقل بين الصفحات.",
+          a11y3: "Autocomplete قابل للكيبورد (↑ ↓ Enter Esc).",
+
+          footerNote: "كل شيء داخل ملف HTML واحد (بدون صور خارجية).",
+
+          // errors
+          e_username: "فقاعة خطأ: اكتب اسم مستخدم (3–16) — حروف/أرقام/_ فقط.",
+          e_email: "فقاعة خطأ: اكتب بريد صحيح (مثل you@example.com).",
+          e_password: "فقاعة خطأ: كلمة المرور ضعيفة (8+ وبها حرف + رقم).",
+          e_confirm: "فقاعة خطأ: التأكيد لا يطابق كلمة المرور.",
+          e_age: "فقاعة خطأ: أدخل عمرًا منطقيًا (13–120).",
+          e_country: "فقاعة خطأ: اختر دولة.",
+          e_style: "فقاعة خطأ: اختر أسلوبك.",
+          e_avatar: "فقاعة خطأ: اختر أفاتار واحد.",
+          e_favs: "فقاعة خطأ: اختر 3 أعمال مفضلة.",
+          e_submit: "فقاعة خطأ: هناك نقص في البيانات — ارجع للصفحات السابقة.",
+          done: "تم! تم إنهاء التسجيل (عرض تجريبي)."
+        },
+        en: {
+          title: "Register — Manga Ink B/W",
+          subtitle: "Multi-step form on one page — Panels / Screentone / Halftone",
+          langLabel: "Language",
+          progress: "Progress",
+          hintKeys: "Shortcuts",
+          keys: "Alt+→ next | Alt+← back",
+          next: "Next",
+          back: "Back",
+          finish: "Finish",
+
+          s1Title: "Welcome Panel",
+          s1Body: "Welcome to the ink world! Pick a username, then turn the page.",
+          s1Bubble: "\"Start your journey… a new page!\"",
+          usernameLabel: "Username",
+          usernameHint: "3–16 chars: letters/numbers/_",
+
+          s2Title: "Email & Password",
+          s2Body: "Live validation + error bubbles. (Email / Password / Confirm)",
+          emailLabel: "Email",
+          passLabel: "Password",
+          passHint: "8+ chars, includes a letter + a number.",
+          confirmLabel: "Confirm password",
+          liveCheck: "Live checks",
+          checkEmail: "Valid email format",
+          checkPass: "Password strength",
+          checkMatch: "Match",
+
+          s3Title: "User Info",
+          s3Body: "Age + Country + Your style (Reader / Watcher / Collector)",
+          ageLabel: "Age",
+          countryLabel: "Country",
+          choose: "— Choose —",
+          styleLabel: "Your style",
+          styleReader: "Reader",
+          styleReaderHint: "Manga/comics first",
+          styleWatcher: "Watcher",
+          styleWatcherHint: "Anime + adaptations",
+          styleCollector: "Collector",
+          styleCollectorHint: "Special editions & shelves",
+
+          s4Title: "Avatar",
+          s4Body: "Pick a silhouette (SVG) — speed lines appear on select.",
+          av1: "Shadow Ninja",
+          av2: "Masked Hero",
+          av3: "Ink Mage",
+
+          s5Title: "Interests",
+          s5Body: "Genres as manga stickers + pick 3 favorite works (simple autocomplete).",
+          genresLabel: "Genres",
+          genresHint: "Multi-select — take your time.",
+          favLabel: "3 Favorite works",
+          favInputLabel: "Type a work name",
+          selectedFav: "Selected",
+          favHint: "Press Enter to add — max 3.",
+
+          s6Title: "Follow — Your Crew",
+          s6Body: "6 suggested accounts inside panels with Follow buttons.",
+          follow: "Follow",
+          following: "Following",
+
+          s7Title: "Review — Final Manga Page",
+          s7Body: "A final-chapter summary… then Finish.",
+          summaryPanel: "Summary Panel",
+          finalPage: "Last Page",
+          finalBubble: "\"Ready?… buckle up, the chapter starts now!\"",
+          endNote: "(or… the real beginning)",
+
+          a11yNoteTitle: "Accessibility",
+          a11y1: "All inputs include aria-label + labels.",
+          a11y2: "Alt+→ / Alt+← to navigate pages.",
+          a11y3: "Autocomplete supports keyboard (↑ ↓ Enter Esc).",
+
+          footerNote: "Everything is inside one HTML file (no external images).",
+
+          // errors
+          e_username: "Error bubble: enter a valid username (3–16) — letters/numbers/_ only.",
+          e_email: "Error bubble: enter a valid email (like you@example.com).",
+          e_password: "Error bubble: weak password (8+ with letter + number).",
+          e_confirm: "Error bubble: confirmation doesn't match.",
+          e_age: "Error bubble: enter a reasonable age (13–120).",
+          e_country: "Error bubble: choose a country.",
+          e_style: "Error bubble: select your style.",
+          e_avatar: "Error bubble: choose one avatar.",
+          e_favs: "Error bubble: pick 3 favorite works.",
+          e_submit: "Error bubble: missing data — go back to fix earlier pages.",
+          done: "Done! Registration finished (demo)."
+        }
+      };
+
+      let LANG = "ar";
+
+      function setLang(lang){
+        LANG = lang;
+        const dict = I18N[lang];
+        document.querySelectorAll("[data-t]").forEach(el=>{
+          const k = el.getAttribute("data-t");
+          if(dict[k] != null) el.textContent = dict[k];
+        });
+
+        // placeholders
+        const favInput = document.getElementById("favInput");
+        favInput.placeholder = (lang === "ar") ? "ابحث… (مثال: One Piece)" : "Search… (e.g. One Piece)";
+
+        // dir + tail direction
+        const html = document.documentElement;
+        if(lang === "ar"){
+          html.lang = "ar";
+          html.dir = "rtl";
+          document.documentElement.style.setProperty("--tailDir", "-1");
+        }else{
+          html.lang = "en";
+          html.dir = "ltr";
+          document.documentElement.style.setProperty("--tailDir", "1");
+        }
+
+        // crew buttons relabel
+        renderCrew(); // refresh labels
+        renderSummary(); // refresh summary wording
+        showGlobalMessage(""); // clear
+      }
+
+      /* =========================
+         State
+      ========================= */
+      const state = {
+        step: 0,
+        maxReached: 0,
+        username: "",
+        email: "",
+        password: "",
+        confirm: "",
+        age: "",
+        country: "",
+        style: "",
+        avatar: "",
+        genres: new Set(),
+        favorites: [],
+        crew: [
+          { id:"ink_sensei", name:"InkSensei", bio:"Panels • Composition" },
+          { id:"tone_master", name:"ToneMaster", bio:"Screentone Wizard" },
+          { id:"manga_editor", name:"MangaEditor", bio:"Story • Pacing" },
+          { id:"shonen_lab", name:"ShonenLab", bio:"Hype • Battles" },
+          { id:"comic_archivist", name:"ComicArchivist", bio:"Collections • Prints" },
+          { id:"anime_cut", name:"AnimeCut", bio:"Openings • Cuts" },
+        ],
+        follows: new Set()
+      };
+
+      const steps = Array.from(document.querySelectorAll(".step"));
+      const stepCount = steps.length;
+
+      /* =========================
+         Stepper UI
+      ========================= */
+      const tabWrap = document.querySelector('[role="tablist"]');
+      const progressText = document.getElementById("progressText");
+      const progressBar = document.getElementById("progressBar");
+
+      function buildStepper(){
+        tabWrap.innerHTML = "";
+        for(let i=0;i<stepCount;i++){
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "page-tab px-3 py-2 font-black text-sm";
+          btn.textContent = (i+1);
+          btn.setAttribute("role","tab");
+          btn.setAttribute("aria-label", `Step ${i+1}`);
+          btn.addEventListener("click", ()=> gotoStep(i, {fromTab:true}));
+          tabWrap.appendChild(btn);
+        }
+      }
+
+      function updateStepper(){
+        progressText.textContent = `${state.step+1} / ${stepCount}`;
+        const pct = ((state.step+1) / stepCount) * 100;
+        progressBar.style.width = pct.toFixed(3) + "%";
+
+        const tabs = Array.from(tabWrap.querySelectorAll("button"));
+        tabs.forEach((t, idx)=>{
+          const disabled = idx > state.maxReached;
+          t.disabled = disabled;
+          t.setAttribute("aria-current", idx === state.step ? "step" : "false");
+          t.title = disabled ? "Locked" : "";
+        });
+      }
+
+      function showStep(i){
+        steps.forEach((el, idx)=>{
+          el.classList.toggle("hidden", idx !== i);
+        });
+        state.step = i;
+        updateStepper();
+
+        // focus first focusable element
+        const stepEl = steps[i];
+        const focusable = stepEl.querySelector("input, select, button, textarea, [tabindex]:not([tabindex='-1'])");
+        if(focusable) focusable.focus();
+
+        // render summary when entering final step
+        if(i === stepCount - 1) renderSummary();
+      }
+
+      function gotoStep(i, {fromTab=false} = {}){
+        if(i < 0 || i >= stepCount) return;
+        if(i > state.maxReached) return;
+
+        if(!fromTab && i > state.step){
+          // moving forward: validate current
+          if(!validateStep(state.step)) return;
+        }
+        showGlobalMessage("");
+        showStep(i);
+      }
+
+      /* =========================
+         Global bubble
+      ========================= */
+      const globalBubble = document.getElementById("globalBubble");
+      function showGlobalMessage(msg){
+        if(!msg){
+          globalBubble.classList.add("hidden");
+          globalBubble.textContent = "";
+          return;
+        }
+        globalBubble.textContent = msg;
+        globalBubble.classList.remove("hidden");
+      }
+
+      /* =========================
+         Validation helpers
+      ========================= */
+      const reEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const reUser = /^[A-Za-z0-9_]{3,16}$/;
+      function passOk(p){
+        if(typeof p !== "string") return false;
+        if(p.length < 8) return false;
+        const hasLetter = /[A-Za-z]/.test(p);
+        const hasNum = /\d/.test(p);
+        return hasLetter && hasNum;
+      }
+
+      function setLiveMark(el, ok){
+        el.textContent = ok ? "✓" : "✗";
+        el.classList.toggle("opacity-60", !ok);
+      }
+
+      function setError(stepIndex, msgKey){
+        const dict = I18N[LANG];
+        const box = document.getElementById("err"+stepIndex);
+        box.textContent = dict[msgKey] || "Error";
+        box.classList.remove("hidden");
+        // also announce globally (nice for screen readers)
+        showGlobalMessage(box.textContent);
+      }
+
+      function clearError(stepIndex){
+        const box = document.getElementById("err"+stepIndex);
+        box.classList.add("hidden");
+        box.textContent = "";
+      }
+
+      function validateStep(i){
+        const dict = I18N[LANG];
+        clearError(i);
+
+        if(i === 0){
+          const u = document.getElementById("username").value.trim();
+          state.username = u;
+          if(!reUser.test(u)){
+            setError(0, "e_username");
+            return false;
+          }
+          return true;
+        }
+
+        if(i === 1){
+          const email = document.getElementById("email").value.trim();
+          const pw = document.getElementById("password").value;
+          const cf = document.getElementById("confirm").value;
+          state.email = email; state.password = pw; state.confirm = cf;
+
+          if(!reEmail.test(email)){ setError(1, "e_email"); return false; }
+          if(!passOk(pw)){ setError(1, "e_password"); return false; }
+          if(pw !== cf){ setError(1, "e_confirm"); return false; }
+          return true;
+        }
+
+        if(i === 2){
+          const ageRaw = document.getElementById("age").value.trim();
+          const age = Number(ageRaw);
+          const country = document.getElementById("country").value;
+          const style = (document.querySelector('input[name="style"]:checked') || {}).value || "";
+
+          state.age = ageRaw;
+          state.country = country;
+          state.style = style;
+
+          if(!Number.isFinite(age) || age < 13 || age > 120){ setError(2, "e_age"); return false; }
+          if(!country){ setError(2, "e_country"); return false; }
+          if(!style){ setError(2, "e_style"); return false; }
+          return true;
+        }
+
+        if(i === 3){
+          if(!state.avatar){ setError(3, "e_avatar"); return false; }
+          return true;
+        }
+
+        if(i === 4){
+          if(state.favorites.length !== 3){
+            setError(4, "e_favs");
+            return false;
+          }
+          return true;
+        }
+
+        if(i === 5){
+          // crew is optional; no strict validation
+          return true;
+        }
+
+        if(i === 6){
+          // final: ensure essentials exist
+          const ok =
+            reUser.test(state.username) &&
+            reEmail.test(state.email) &&
+            passOk(state.password) &&
+            state.password === state.confirm &&
+            Number(state.age) >= 13 &&
+            state.country &&
+            state.style &&
+            state.avatar &&
+            state.favorites.length === 3;
+
+          if(!ok){
+            setError(6, "e_submit");
+            return false;
+          }
+          return true;
+        }
+
+        return true;
+      }
+
+      function moveNext(){
+        if(!validateStep(state.step)) return;
+        state.maxReached = Math.max(state.maxReached, state.step + 1);
+        if(state.step < stepCount - 1) showStep(state.step + 1);
+      }
+
+      function moveBack(){
+        if(state.step > 0) showStep(state.step - 1);
+      }
+
+      /* =========================
+         Step bindings
+      ========================= */
+      function bindNavButtons(){
+        const pairs = [
+          ["next0", moveNext],
+          ["next1", moveNext], ["back1", moveBack],
+          ["next2", moveNext], ["back2", moveBack],
+          ["next3", moveNext], ["back3", moveBack],
+          ["next4", moveNext], ["back4", moveBack],
+          ["next5", moveNext], ["back5", moveBack],
+          ["back6", moveBack]
+        ];
+        pairs.forEach(([id, fn])=>{
+          const el = document.getElementById(id);
+          if(el) el.addEventListener("click", fn);
+        });
+
+        // keyboard shortcuts
+        document.addEventListener("keydown", (e)=>{
+          if(e.altKey && e.key === "ArrowRight"){
+            e.preventDefault();
+            gotoStep(state.step + 1);
+          }
+          if(e.altKey && e.key === "ArrowLeft"){
+            e.preventDefault();
+            gotoStep(state.step - 1);
+          }
+        });
+      }
+
+      /* =========================
+         Live validation (step 2)
+      ========================= */
+      function bindLiveValidation(){
+        const email = document.getElementById("email");
+        const pw = document.getElementById("password");
+        const cf = document.getElementById("confirm");
+
+        const okEmail = document.getElementById("okEmail");
+        const okPass = document.getElementById("okPass");
+        const okMatch = document.getElementById("okMatch");
+
+        function refresh(){
+          setLiveMark(okEmail, reEmail.test(email.value.trim()));
+          setLiveMark(okPass, passOk(pw.value));
+          setLiveMark(okMatch, pw.value.length > 0 && pw.value === cf.value);
+          clearError(1);
+        }
+        [email, pw, cf].forEach(el=> el.addEventListener("input", refresh));
+        refresh();
+      }
+
+      /* =========================
+         Avatar selection (step 4)
+      ========================= */
+      function bindAvatar(){
+        const tiles = Array.from(document.querySelectorAll(".avatar-tile"));
+        tiles.forEach(tile=>{
+          tile.addEventListener("click", ()=>{
+            tiles.forEach(t=> t.dataset.selected = "false");
+            tile.dataset.selected = "true";
+            state.avatar = tile.dataset.avatar;
+            clearError(3);
+            showGlobalMessage("");
+          });
+          tile.addEventListener("keydown", (e)=>{
+            if(e.key === "Enter" || e.key === " "){
+              e.preventDefault();
+              tile.click();
+            }
+          });
+        });
+      }
+
+      /* =========================
+         Genres (step 5)
+      ========================= */
+      const GENRES = [
+        "Shonen","Seinen","Shojo","Josei","Isekai","Mecha","Slice of Life","Mystery","Horror",
+        "Romance","Sports","Fantasy","Sci-Fi","Comedy","Drama","Supernatural"
+      ];
+
+      function renderGenres(){
+        const wrap = document.getElementById("genres");
+        wrap.innerHTML = "";
+        GENRES.forEach(g=>{
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "sticker px-3 py-2 text-sm font-black";
+          b.textContent = g;
+          b.dataset.on = state.genres.has(g) ? "true" : "false";
+          b.setAttribute("aria-label", `Genre ${g}`);
+          b.addEventListener("click", ()=>{
+            if(state.genres.has(g)) state.genres.delete(g);
+            else state.genres.add(g);
+            b.dataset.on = state.genres.has(g) ? "true" : "false";
+          });
+          wrap.appendChild(b);
+        });
+      }
+
+      /* =========================
+         Favorites autocomplete (step 5)
+      ========================= */
+      const WORKS = [
+        "One Piece","Naruto","Bleach","Attack on Titan","Fullmetal Alchemist","Death Note","Demon Slayer",
+        "Jujutsu Kaisen","Chainsaw Man","Hunter x Hunter","Haikyuu!!","Slam Dunk","JoJo's Bizarre Adventure",
+        "Berserk","Vagabond","Tokyo Ghoul","Monster","Vinland Saga","Spy x Family","My Hero Academia",
+        "Dragon Ball","Gintama","Black Clover","Fairy Tail","Steins;Gate","Nana","Fruits Basket","Claymore",
+        "Akira","Ghost in the Shell","Tokyo Revengers","Blue Lock","Kuroko no Basket","Mob Psycho 100"
+      ];
+
+      const favInput = document.getElementById("favInput");
+      const ac = document.getElementById("ac");
+      const favChips = document.getElementById("favChips");
+      let acIndex = -1;
+      let acItems = [];
+
+      function renderFavChips(){
+        favChips.innerHTML = "";
+        state.favorites.forEach((w, idx)=>{
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "sticker px-3 py-2 text-sm font-black";
+          chip.textContent = w + " ×";
+          chip.setAttribute("aria-label", `Remove ${w}`);
+          chip.addEventListener("click", ()=>{
+            state.favorites.splice(idx,1);
+            renderFavChips();
+            clearError(4);
+          });
+          favChips.appendChild(chip);
+        });
+      }
+
+      function openAC(list){
+        ac.innerHTML = "";
+        acIndex = -1;
+        acItems = list.slice(0,8).map((w)=>{
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "ac-item w-full text-left px-3 py-2 font-black";
+          btn.textContent = w;
+          btn.setAttribute("role","option");
+          btn.setAttribute("aria-selected","false");
+          btn.addEventListener("click", ()=> addFavorite(w));
+          ac.appendChild(btn);
+          return btn;
+        });
+        ac.classList.toggle("hidden", acItems.length === 0);
+      }
+
+      function closeAC(){
+        ac.classList.add("hidden");
+        ac.innerHTML = "";
+        acIndex = -1;
+        acItems = [];
+      }
+
+      function highlightAC(i){
+        acItems.forEach((it, idx)=>{
+          it.setAttribute("aria-selected", idx === i ? "true" : "false");
+        });
+      }
+
+      function addFavorite(work){
+        const w = work.trim();
+        if(!w) return;
+        if(state.favorites.includes(w)) { closeAC(); favInput.value = ""; return; }
+        if(state.favorites.length >= 3) { closeAC(); return; }
+        state.favorites.push(w);
+        favInput.value = "";
+        closeAC();
+        renderFavChips();
+        clearError(4);
+        showGlobalMessage("");
+      }
+
+      function bindAutocomplete(){
+        favInput.addEventListener("input", ()=>{
+          const q = favInput.value.trim().toLowerCase();
+          if(!q){ closeAC(); return; }
+          const list = WORKS.filter(w => w.toLowerCase().includes(q));
+          openAC(list);
+        });
+
+        favInput.addEventListener("keydown", (e)=>{
+          if(ac.classList.contains("hidden")){
+            if(e.key === "Enter"){
+              // allow adding typed value if it matches something, else add as-is (demo)
+              e.preventDefault();
+              addFavorite(favInput.value);
+            }
+            return;
+          }
+
+          if(e.key === "Escape"){
+            e.preventDefault();
+            closeAC();
+            return;
+          }
+          if(e.key === "ArrowDown"){
+            e.preventDefault();
+            acIndex = Math.min(acIndex + 1, acItems.length - 1);
+            highlightAC(acIndex);
+            return;
+          }
+          if(e.key === "ArrowUp"){
+            e.preventDefault();
+            acIndex = Math.max(acIndex - 1, 0);
+            highlightAC(acIndex);
+            return;
+          }
+          if(e.key === "Enter"){
+            e.preventDefault();
+            if(acIndex >= 0 && acItems[acIndex]) addFavorite(acItems[acIndex].textContent);
+            else addFavorite(favInput.value);
+            return;
+          }
+        });
+
+        // click outside closes
+        document.addEventListener("click", (e)=>{
+          if(!ac.contains(e.target) && e.target !== favInput) closeAC();
+        });
+      }
+
+      /* =========================
+         Crew (step 6)
+      ========================= */
+      function renderCrew(){
+        const grid = document.getElementById("crewGrid");
+        grid.innerHTML = "";
+
+        state.crew.forEach((u)=>{
+          const card = document.createElement("div");
+          card.className = "panel p-4 space-y-3";
+
+          const top = document.createElement("div");
+          top.className = "flex items-center gap-3";
+
+          const badge = document.createElement("div");
+          badge.className = "panel px-3 py-2";
+          badge.innerHTML = `<span class="font-black">@${u.id}</span>`;
+          badge.setAttribute("aria-hidden","true");
+
+          const meta = document.createElement("div");
+          meta.className = "flex-1";
+          meta.innerHTML = `
+            <p class="font-black text-lg">${u.name}</p>
+            <p class="text-sm opacity-90">${u.bio}</p>
+          `;
+
+          top.appendChild(badge);
+          top.appendChild(meta);
+
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "ink-btn w-full px-4 py-2 font-black";
+          const isOn = state.follows.has(u.id);
+          btn.textContent = isOn ? I18N[LANG].following : I18N[LANG].follow;
+          btn.setAttribute("aria-label", `${isOn ? "Unfollow" : "Follow"} ${u.name}`);
+          btn.addEventListener("click", ()=>{
+            if(state.follows.has(u.id)) state.follows.delete(u.id);
+            else state.follows.add(u.id);
+            renderCrew();
+          });
+
+          card.appendChild(top);
+          card.appendChild(btn);
+          grid.appendChild(card);
+        });
+      }
+
+      /* =========================
+         Summary (step 7)
+      ========================= */
+      function renderSummary(){
+        const box = document.getElementById("summary");
+        if(!box) return;
+
+        const dict = I18N[LANG];
+        const styleMap = {
+          reader: (LANG==="ar" ? "قارئ" : "Reader"),
+          watcher: (LANG==="ar" ? "مشاهد" : "Watcher"),
+          collector: (LANG==="ar" ? "جامع مجلدات" : "Collector")
+        };
+
+        const genres = Array.from(state.genres);
+        const follows = Array.from(state.follows);
+
+        const lines = [
+          { k: (LANG==="ar" ? "اسم المستخدم" : "Username"), v: state.username || "—" },
+          { k: (LANG==="ar" ? "البريد" : "Email"), v: state.email || "—" },
+          { k: (LANG==="ar" ? "العمر" : "Age"), v: state.age || "—" },
+          { k: (LANG==="ar" ? "الدولة" : "Country"), v: state.country || "—" },
+          { k: (LANG==="ar" ? "الأسلوب" : "Style"), v: styleMap[state.style] || "—" },
+          { k: (LANG==="ar" ? "الأفاتار" : "Avatar"), v: state.avatar || "—" },
+          { k: (LANG==="ar" ? "Genres" : "Genres"), v: genres.length ? genres.join(", ") : "—" },
+          { k: (LANG==="ar" ? "المفضلة" : "Favorites"), v: state.favorites.length ? state.favorites.join(" • ") : "—" },
+          { k: (LANG==="ar" ? "تابعت" : "Followed"), v: follows.length ? follows.map(x=>"@"+x).join(" ") : (LANG==="ar" ? "لا أحد" : "Nobody") }
+        ];
+
+        box.innerHTML = "";
+        lines.forEach(item=>{
+          const p = document.createElement("div");
+          p.className = "panel p-3";
+          p.innerHTML = `
+            <p class="text-xs font-black opacity-80">${item.k}</p>
+            <p class="font-black">${item.v}</p>
+          `;
+          box.appendChild(p);
+        });
+      }
+
+      /* =========================
+         Submit
+      ========================= */
+      function bindSubmit(){
+        document.getElementById("submit").addEventListener("click", ()=>{
+          clearError(6);
+          if(!validateStep(6)) return;
+          showGlobalMessage(I18N[LANG].done);
+          alert(I18N[LANG].done);
+        });
+      }
+
+      /* =========================
+         Language buttons
+      ========================= */
+      function bindLang(){
+        document.getElementById("langAr").addEventListener("click", ()=> setLang("ar"));
+        document.getElementById("langEn").addEventListener("click", ()=> setLang("en"));
+      }
+
+      /* =========================
+         Enter-to-next (friendly)
+      ========================= */
+      function bindEnterNext(){
+        document.addEventListener("keydown", (e)=>{
+          // avoid hijacking inside textarea (none here) and autocomplete list
+          if(e.key !== "Enter") return;
+          const active = document.activeElement;
+          if(!active) return;
+
+          // don't auto-next when selecting favorites via input (we handle there)
+          if(active.id === "favInput") return;
+
+          // if focused on button, let it work naturally
+          if(active.tagName === "BUTTON") return;
+
+          // if inside visible step and there's a Next button, try validate + next
+          const stepEl = steps[state.step];
+          if(stepEl && stepEl.contains(active)){
+            // but not in select: allow Enter to open/close; skip
+            if(active.tagName === "SELECT") return;
+
+            // prevent accidental submit when in earlier steps
+            e.preventDefault();
+            moveNext();
+          }
+        });
+      }
+
+      /* =========================
+         Init
+      ========================= */
+      buildStepper();
+      bindNavButtons();
+      bindLiveValidation();
+      bindAvatar();
+      renderGenres();
+      bindAutocomplete();
+      renderCrew();
+      bindSubmit();
+      bindLang();
+      bindEnterNext();
+
+      // Default state
+      showStep(0);
+      state.maxReached = 0;
+
+      // Keep state synced on change for step 1/3
+      document.getElementById("username").addEventListener("input", ()=> clearError(0));
+      document.getElementById("age").addEventListener("input", ()=> clearError(2));
+      document.getElementById("country").addEventListener("change", ()=> clearError(2));
+      document.querySelectorAll('input[name="style"]').forEach(r=>{
+        r.addEventListener("change", ()=> clearError(2));
+      });
+
+      // initial language (Arabic)
+      setLang("ar");
+    </script>
+  </body>
+</html>

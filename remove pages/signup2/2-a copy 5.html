@@ -1,0 +1,1380 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>تجربة تسجيل احترافية داخل Modal (RTL + Tailwind)</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Arabic font (optional but nice) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      /* Accent as RGB triplet (Tailwind-friendly via custom classes below) */
+      --accent: 236 72 153;   /* default: pink-ish (girls) */
+      --accent-soft: 252 231 243;
+      --ink: 15 23 42;        /* slate-900 */
+    }
+    html, body { font-family: "Cairo", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans Arabic"; }
+    .bg-accent { background-color: rgb(var(--accent)); }
+    .text-accent { color: rgb(var(--accent)); }
+    .ring-accent { --tw-ring-color: rgb(var(--accent)); }
+    .border-accent { border-color: rgb(var(--accent)); }
+    .bg-accent-soft { background-color: rgb(var(--accent-soft)); }
+    .shadow-accent {
+      box-shadow: 0 10px 30px rgba(0,0,0,.06), 0 10px 40px rgba(0,0,0,.04), 0 1px 0 rgba(0,0,0,.04);
+    }
+    .glass {
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* Smooth step transitions */
+    .step-enter { opacity: 0; transform: translateY(8px) scale(.99); }
+    .step-enter-active { opacity: 1; transform: translateY(0) scale(1); transition: all .22s ease; }
+    .step-leave { opacity: 1; transform: translateY(0) scale(1); }
+    .step-leave-active { opacity: 0; transform: translateY(-6px) scale(.99); transition: all .18s ease; }
+
+    /* cute subtle background pattern */
+    .bg-anime {
+      background:
+        radial-gradient(900px 600px at 80% 15%, rgba(236,72,153,.10), transparent 60%),
+        radial-gradient(900px 700px at 10% 30%, rgba(59,130,246,.08), transparent 55%),
+        radial-gradient(900px 700px at 60% 95%, rgba(16,185,129,.08), transparent 55%),
+        linear-gradient(to bottom, #ffffff, #fbfbff);
+    }
+    .dots {
+      background-image:
+        radial-gradient(rgba(15,23,42,.08) 1px, transparent 1px);
+      background-size: 18px 18px;
+      background-position: 0 0;
+      mask-image: radial-gradient(280px 240px at 50% 30%, black, transparent 75%);
+      -webkit-mask-image: radial-gradient(280px 240px at 50% 30%, black, transparent 75%);
+    }
+
+    /* nicer scrollbars (optional) */
+    .nice-scroll::-webkit-scrollbar { height: 10px; width: 10px; }
+    .nice-scroll::-webkit-scrollbar-thumb { background: rgba(15,23,42,.12); border-radius: 999px; }
+    .nice-scroll::-webkit-scrollbar-track { background: transparent; }
+
+    /* Chip states */
+    .chip { transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease, border-color .12s ease; }
+    .chip:active { transform: scale(.98); }
+    .chip-on {
+      border-color: rgba(0,0,0,.0) !important;
+      background: rgb(var(--accent-soft)) !important;
+      box-shadow: inset 0 0 0 2px rgb(var(--accent));
+    }
+  </style>
+</head>
+
+<body class="bg-anime min-h-screen text-slate-900">
+  <!-- Backdrop -->
+  <div class="fixed inset-0 flex items-center justify-center p-4 sm:p-6">
+    <div class="absolute inset-0 bg-slate-950/30"></div>
+
+    <!-- Decorative layer -->
+    <div class="absolute inset-0 pointer-events-none dots opacity-60"></div>
+
+    <!-- Modal -->
+    <div id="modal"
+      class="relative w-full max-w-5xl rounded-3xl shadow-accent overflow-hidden border border-slate-200/70 glass">
+      <!-- Top bar -->
+      <div class="relative px-5 sm:px-7 pt-6 pb-4 border-b border-slate-200/70">
+        <!-- tiny decorations -->
+        <div class="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-accent-soft blur-2xl opacity-80"></div>
+        <div class="absolute -bottom-8 -left-10 w-40 h-40 rounded-full bg-sky-100 blur-2xl opacity-70"></div>
+
+        <div class="flex items-start gap-4">
+          <!-- Icon badge -->
+          <div class="shrink-0 w-11 h-11 rounded-2xl bg-white/90 border border-slate-200/70 flex items-center justify-center">
+            <!-- cute inline svg -->
+            <svg viewBox="0 0 24 24" class="w-6 h-6 text-accent" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 21s-7-4.35-9.5-8.5S3 3.5 7.2 4.2C9 4.5 10.2 6 12 7.7c1.8-1.7 3-3.2 4.8-3.5C21 3.5 23 8 21.5 12.5 19 16.65 12 21 12 21z"/>
+              <path d="M9.2 12.2c.6.5 1.4.8 2.8.8s2.2-.3 2.8-.8" opacity=".55"/>
+            </svg>
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">
+                  أنشئ حسابك — أسلوب أنمي لطيف ✨
+                </h1>
+                <p class="mt-1 text-sm sm:text-base text-slate-600">
+                  تجربة تسجيل داخل Modal — خطوات خفيفة، تصميم نظيف، وبدون تحقق إدخال.
+                </p>
+              </div>
+
+              <button id="closeBtn"
+                class="shrink-0 inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-sm border border-slate-200 bg-white/70 hover:bg-white transition">
+                <span class="hidden sm:inline">إغلاق</span>
+                <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Progress + Stepper -->
+            <div class="mt-5">
+              <div class="flex items-center justify-between text-xs sm:text-sm text-slate-600">
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center gap-1">
+                    <span class="font-bold text-slate-800">الخطوة</span>
+                    <span id="stepNum" class="font-extrabold text-accent">1</span>
+                    <span class="text-slate-400">/</span>
+                    <span id="stepTotal" class="font-semibold">10</span>
+                  </span>
+                  <span class="mx-2 text-slate-300">•</span>
+                  <span id="stepTitle" class="font-semibold">اختيار الهدف</span>
+                </div>
+                <span class="inline-flex items-center gap-2">
+                  <span class="hidden sm:inline text-slate-500">سرعة خفيفة</span>
+                  <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/70 border border-slate-200/70">
+                    <!-- sparkle -->
+                    <svg viewBox="0 0 24 24" class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <path d="M12 2l1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5L12 2z"/>
+                      <path d="M4 14l.8 2.9L8 18l-3.2 1.1L4 22l-.8-2.9L0 18l3.2-1.1L4 14z" opacity=".55"/>
+                    </svg>
+                    <span class="text-slate-700">Minimal Anime</span>
+                  </span>
+                </span>
+              </div>
+
+              <div class="mt-3 h-2.5 rounded-full bg-slate-200/70 overflow-hidden">
+                <div id="progressBar" class="h-full bg-accent rounded-full" style="width: 10%;"></div>
+              </div>
+
+              <!-- Dots stepper (clickable) -->
+              <div class="mt-4 -mx-1 overflow-x-auto nice-scroll">
+                <div id="stepper" class="flex items-center gap-2 px-1 min-w-max">
+                  <!-- injected by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="grid grid-cols-1 lg:grid-cols-[1.05fr_.95fr]">
+        <!-- Left: steps -->
+        <div class="px-5 sm:px-7 py-6">
+          <!-- Steps container -->
+          <div id="stepsHost" class="relative">
+            <!-- Step 1 -->
+            <section data-step="0" class="space-y-5">
+              <div class="rounded-2xl border border-slate-200 bg-white/70 p-5">
+                <h2 class="text-lg sm:text-xl font-extrabold">1) اختر هدفك داخل المجتمع</h2>
+                <p class="mt-1 text-slate-600">هذا يساعدنا نضبط الواجهة والمحتوى بشكل ألطف.</p>
+
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <!-- Goal cards -->
+                  <button class="goalCard text-right rounded-2xl border border-slate-200 bg-white hover:bg-white/90 transition p-4 flex gap-3"
+                          data-goal="توصيات">
+                    <span class="mt-0.5 inline-flex w-10 h-10 rounded-2xl bg-accent-soft items-center justify-center border border-slate-200">
+                      <svg viewBox="0 0 24 24" class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2l2.2 6.6H21l-5.4 3.9 2.1 6.6L12 15.8 6.3 19.1l2.1-6.6L3 8.6h6.8L12 2z"/>
+                      </svg>
+                    </span>
+                    <span class="min-w-0">
+                      <span class="block font-bold">توصيات</span>
+                      <span class="block text-sm text-slate-600">اكتشف أنمي/كوميكس مناسب لك</span>
+                    </span>
+                  </button>
+
+                  <button class="goalCard text-right rounded-2xl border border-slate-200 bg-white hover:bg-white/90 transition p-4 flex gap-3"
+                          data-goal="نقاش">
+                    <span class="mt-0.5 inline-flex w-10 h-10 rounded-2xl bg-sky-50 items-center justify-center border border-slate-200">
+                      <svg viewBox="0 0 24 24" class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+                        <path d="M8 9h8M8 13h6" opacity=".65"/>
+                      </svg>
+                    </span>
+                    <span class="min-w-0">
+                      <span class="block font-bold">نقاش</span>
+                      <span class="block text-sm text-slate-600">نقاشات، آراء، ونظريات</span>
+                    </span>
+                  </button>
+
+                  <button class="goalCard text-right rounded-2xl border border-slate-200 bg-white hover:bg-white/90 transition p-4 flex gap-3"
+                          data-goal="فن">
+                    <span class="mt-0.5 inline-flex w-10 h-10 rounded-2xl bg-emerald-50 items-center justify-center border border-slate-200">
+                      <svg viewBox="0 0 24 24" class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/>
+                        <path d="M13 7l4 4" opacity=".65"/>
+                      </svg>
+                    </span>
+                    <span class="min-w-0">
+                      <span class="block font-bold">فن</span>
+                      <span class="block text-sm text-slate-600">شارك رسوماتك واطلب نقد لطيف</span>
+                    </span>
+                  </button>
+
+                  <button class="goalCard text-right rounded-2xl border border-slate-200 bg-white hover:bg-white/90 transition p-4 flex gap-3"
+                          data-goal="كوسبلاي">
+                    <span class="mt-0.5 inline-flex w-10 h-10 rounded-2xl bg-amber-50 items-center justify-center border border-slate-200">
+                      <svg viewBox="0 0 24 24" class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2c2.2 0 4 1.8 4 4v2h2a2 2 0 0 1 2 2v10H4V10a2 2 0 0 1 2-2h2V6c0-2.2 1.8-4 4-4z"/>
+                        <path d="M9 8V6a3 3 0 0 1 6 0v2" opacity=".65"/>
+                      </svg>
+                    </span>
+                    <span class="min-w-0">
+                      <span class="block font-bold">كوسبلاي</span>
+                      <span class="block text-sm text-slate-600">إطلالات + تجهيزات + تصوير</span>
+                    </span>
+                  </button>
+                </div>
+
+                <div class="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                  <span class="inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/60 border border-slate-200">
+                    <svg viewBox="0 0 24 24" class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <path d="M12 3v2M4.2 6.2l1.4 1.4M3 12h2M4.2 17.8l1.4-1.4M12 19v2M18.4 16.4l1.4 1.4M19 12h2M18.4 7.6l1.4-1.4"/>
+                    </svg>
+                    تلميح: تستطيع تغيير كل شيء لاحقًا من الإعدادات
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 2 -->
+            <section data-step="1" class="space-y-5 hidden">
+              <div class="rounded-2xl border border-slate-200 bg-white/70 p-5">
+                <h2 class="text-lg sm:text-xl font-extrabold">2) البريد + كلمة المرور</h2>
+                <p class="mt-1 text-slate-600">بدون تحقق إدخال — فقط تجربة واجهة.</p>
+
+                <div class="mt-4 grid grid-cols-1 gap-4">
+                  <label class="space-y-2">
+                    <span class="text-sm font-semibold text-slate-700">البريد الإلكتروني</span>
+                    <div class="relative">
+                      <input id="email" type="email" placeholder="name@example.com"
+                        class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:ring-4 ring-accent/20 focus:border-slate-300" />
+                      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                          <path d="M4 4h16v16H4z" opacity=".15"/>
+                          <path d="m4 7 8 6 8-6"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </label>
+
+                  <label class="space-y-2">
+                    <span class="text-sm font-semibold text-slate-700">كلمة المرور</span>
+                    <div class="relative">
+                      <input id="password" type="password" placeholder="••••••••"
+                        class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:ring-4 ring-accent/20 focus:border-slate-300" />
+                      <button type="button" id="togglePass"
+                        class="absolute left-2 top-1/2 -translate-y-1/2 px-3 py-2 rounded-xl text-sm border border-slate-200 bg-white/80 hover:bg-white transition">
+                        إظهار
+                      </button>
+                    </div>
+                  </label>
+
+                  <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 flex gap-3">
+                    <div class="mt-0.5">
+                      <svg viewBox="0 0 24 24" class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M12 22s7-4 9-9V6l-9-4-9 4v7c2 5 9 9 9 9z"/>
+                        <path d="M9 12l2 2 4-5" opacity=".65"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="font-bold">تجربة آمنة بصريًا</div>
+                      <div class="text-sm text-slate-600">تأثيرات تركيز ناعمة + حواف مستديرة + مساحات واضحة.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 3 -->
+            <section data-step="2" class="space-y-5 hidden">
+              <div class="rounded-2xl border border-slate-200 bg-white/70 p-5">
+                <h2 class="text-lg sm:text-xl font-extrabold">3) اسم عرض + عمر + لغة</h2>
+
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <label class="space-y-2 sm:col-span-2">
+                    <span class="text-sm font-semibold text-slate-700">اسم العرض</span>
+                    <input id="displayName" type="text" placeholder="مثال: LuffySensei"
+                      class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:ring-4 ring-accent/20 focus:border-slate-300" />
+                  </label>
+
+                  <label class="space-y-2">
+                    <span class="text-sm font-semibold text-slate-700">العمر (+16)</span>
+                    <input id="age" type="number" min="16" placeholder="16"
+                      class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:ring-4 ring-accent/20 focus:border-slate-300" />
+                  </label>
+
+                  <label class="space-y-2">
+                    <span class="text-sm font-semibold text-slate-700">اللغة</span>
+                    <select id="language"
+                      class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:ring-4 ring-accent/20 focus:border-slate-300">
+                      <option>العربية</option>
+                      <option>English</option>
+                      <option>Français</option>
+                      <option>日本語</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="flex items-center gap-2">
+                      <svg viewBox="0 0 24 24" class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M12 3c4 0 7 2.7 7 6s-3 6-7 6-7-2.7-7-6 3-6 7-6z"/>
+                        <path d="M6 20c1.8-3 4.2-4.5 6-4.5S16.2 17 18 20" opacity=".6"/>
+                      </svg>
+                      <div class="font-bold">هوية لطيفة</div>
+                    </div>
+                    <p class="mt-1 text-sm text-slate-600">اسم العرض يظهر في البوستات والملف الشخصي.</p>
+                  </div>
+
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="flex items-center gap-2">
+                      <svg viewBox="0 0 24 24" class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M12 21s-7-4-9-9 1-9 9-9 11 4 9 9-9 9-9 9z"/>
+                        <path d="M9.5 10.5h.01M14.5 10.5h.01" />
+                        <path d="M9 14c1 .8 2 .9 3 .9s2-.1 3-.9" opacity=".6"/>
+                      </svg>
+                      <div class="font-bold">شخصية مرنة</div>
+                    </div>
+                    <p class="mt-1 text-sm text-slate-600">اللغة تساعدنا في اقتراح المحتوى والحسابات.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 4 -->
+            <section data-step="3" class="space-y-5 hidden">
+              <div class="rounded-2xl border border-slate-200 bg-white/70 p-5">
+                <h2 class="text-lg sm:text-xl font-extrabold">4) نسخة أولاد/بنات + نبرة الحساب</h2>
+                <p class="mt-1 text-slate-600">النسخة تؤثر فقط على لون الـ Accent.</p>
+
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="font-bold">النسخة</div>
+                      <span class="text-xs text-slate-500">Accent فقط</span>
+                    </div>
+
+                    <div class="mt-3 grid grid-cols-2 gap-2">
+                      <button id="verGirls" class="verBtn rounded-2xl border border-slate-200 bg-white hover:bg-white/90 transition px-4 py-3 text-right">
+                        <span class="inline-flex items-center gap-2">
+                          <span class="w-3 h-3 rounded-full" style="background: rgb(236 72 153);"></span>
+                          <span class="font-bold">بنات</span>
+                        </span>
+                        <div class="text-xs text-slate-600 mt-1">لمسة وردية لطيفة</div>
+                      </button>
+
+                      <button id="verBoys" class="verBtn rounded-2xl border border-slate-200 bg-white hover:bg-white/90 transition px-4 py-3 text-right">
+                        <span class="inline-flex items-center gap-2">
+                          <span class="w-3 h-3 rounded-full" style="background: rgb(37 99 235);"></span>
+                          <span class="font-bold">أولاد</span>
+                        </span>
+                        <div class="text-xs text-slate-600 mt-1">لمسة زرقاء نظيفة</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="font-bold">نبرة الحساب</div>
+                      <span class="text-xs text-slate-500">تأثير بصري خفيف</span>
+                    </div>
+
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      <button class="toneChip chip px-3 py-2 rounded-2xl border border-slate-200 bg-white text-sm" data-tone="لطيف">لطيف 🌸</button>
+                      <button class="toneChip chip px-3 py-2 rounded-2xl border border-slate-200 bg-white text-sm" data-tone="رسمي">رسمي 🧾</button>
+                      <button class="toneChip chip px-3 py-2 rounded-2xl border border-slate-200 bg-white text-sm" data-tone="مرح">مرح 🍬</button>
+                    </div>
+
+                    <div class="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                      <span class="font-bold">ملاحظة:</span>
+                      النبرة تغيّر بعض العبارات داخل الملخص (بدون تحقق إدخال).
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 5 -->
+            <section data-step="4" class="space-y-5 hidden">
+              <div class="rounded-2xl border border-slate-200 bg-white/70 p-5">
+                <h2 class="text-lg sm:text-xl font-extrabold">5) أفاتار: اختر Avatar + رفع صورة (اختياري)</h2>
+
+                <div class="mt-4 grid grid-cols-1 lg:grid-cols-[1fr_.9fr] gap-4">
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="font-bold">Avatars جاهزة</div>
+                      <span class="text-xs text-slate-500">انقر للاختيار</span>
+                    </div>
+                    <div id="avatarGrid" class="mt-3 grid grid-cols-4 sm:grid-cols-6 gap-2">
+                      <!-- injected by JS -->
+                    </div>
+                  </div>
+
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="font-bold">رفع صورة</div>
+                      <span class="text-xs text-slate-500">اختياري</span>
+                    </div>
+
+                    <div class="mt-3 flex items-center gap-3">
+                      <div id="uploadPreview"
+                        class="w-16 h-16 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                        <svg viewBox="0 0 24 24" class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                          <path d="M4 16l4-4 4 4 8-8 0 12H4z" opacity=".25"/>
+                          <path d="M4 20h16"/>
+                          <path d="M8 12l2-2 2 2" opacity=".65"/>
+                        </svg>
+                      </div>
+
+                      <div class="flex-1">
+                        <input id="avatarUpload" type="file" accept="image/*"
+                          class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-2xl file:border-0 file:bg-slate-900 file:text-white file:px-4 file:py-2 file:text-sm hover:file:opacity-90 transition cursor-pointer" />
+                        <p class="mt-2 text-xs text-slate-500">تلميح: حتى لو رفعت، تستطيع ترك Avatar جاهز كخيار بديل.</p>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 rounded-2xl bg-accent-soft border border-slate-200 p-4">
+                      <div class="flex items-center gap-2">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                          <path d="M12 2l1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5L12 2z"/>
+                        </svg>
+                        <div class="font-bold">لمسة أنمي</div>
+                      </div>
+                      <p class="mt-1 text-sm text-slate-700">اختر وجه “كيوت” جاهز أو ارفع صورة — كله مجرد UI.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 6 -->
+            <section data-step="5" class="space-y-5 hidden">
+              <div class="rounded-2xl border border-slate-200 bg-white/70 p-5">
+                <h2 class="text-lg sm:text-xl font-extrabold">6) الاهتمامات الأساسية</h2>
+                <p class="mt-1 text-slate-600">Anime Genres + Comics Types</p>
+
+                <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="font-bold">أنواع الأنمي</div>
+                      <span class="text-xs text-slate-500">Chips</span>
+                    </div>
+                    <div id="genresBox" class="mt-3 flex flex-wrap gap-2"></div>
+                  </div>
+
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="font-bold">أنواع الكوميكس</div>
+                      <span class="text-xs text-slate-500">Chips</span>
+                    </div>
+                    <div id="comicsBox" class="mt-3 flex flex-wrap gap-2"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 7 -->
+            <section data-step="6" class="space-y-5 hidden">
+              <div class="rounded-2xl border border-slate-200 bg-white/70 p-5">
+                <h2 class="text-lg sm:text-xl font-extrabold">7) تفضيلات المحتوى</h2>
+                <p class="mt-1 text-slate-600">طريقة العرض + السبويلر</p>
+
+                <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="font-bold">ماذا تفضل في الصفحة الرئيسية؟</div>
+                    <div class="mt-3 space-y-2">
+                      <label class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 px-4 py-3 hover:bg-slate-50 cursor-pointer">
+                        <span class="flex items-center gap-2">
+                          <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                          <span class="font-semibold">جديد</span>
+                        </span>
+                        <input type="radio" name="feed" value="جديد" class="accent-slate-900" />
+                      </label>
+                      <label class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 px-4 py-3 hover:bg-slate-50 cursor-pointer">
+                        <span class="flex items-center gap-2">
+                          <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                          <span class="font-semibold">ترند</span>
+                        </span>
+                        <input type="radio" name="feed" value="ترند" class="accent-slate-900" />
+                      </label>
+                      <label class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 px-4 py-3 hover:bg-slate-50 cursor-pointer">
+                        <span class="flex items-center gap-2">
+                          <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                          <span class="font-semibold">حسب الاهتمامات</span>
+                        </span>
+                        <input type="radio" name="feed" value="حسب الاهتمامات" class="accent-slate-900" checked />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="font-bold">السبويلر (Spoilers)</div>
+                      <span class="text-xs text-slate-500">Toggle</span>
+                    </div>
+
+                    <div class="mt-3 flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+                          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" opacity=".55"/>
+                        </svg>
+                        <div>
+                          <div class="font-semibold">إخفاء السبويلر افتراضيًا</div>
+                          <div class="text-xs text-slate-500">يمكنك تغييره لاحقًا</div>
+                        </div>
+                      </div>
+
+                      <button id="spoilerToggle"
+                        class="relative w-14 h-8 rounded-full bg-slate-200 border border-slate-200 transition">
+                        <span id="spoilerKnob"
+                          class="absolute top-1 right-1 w-6 h-6 rounded-full bg-white border border-slate-200 transition"></span>
+                      </button>
+                    </div>
+
+                    <div class="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                      <div class="flex items-center gap-2">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                          <path d="M12 21s-7-4.35-9.5-8.5S3 3.5 7.2 4.2C9 4.5 10.2 6 12 7.7c1.8-1.7 3-3.2 4.8-3.5C21 3.5 23 8 21.5 12.5 19 16.65 12 21 12 21z"/>
+                        </svg>
+                        <div class="font-bold">راحة المشاهدة</div>
+                      </div>
+                      <p class="mt-1 text-sm text-slate-600">نحاول نخلي التجربة “سلسة” بدون مفاجآت.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 8 -->
+            <section data-step="7" class="space-y-5 hidden">
+              <div class="rounded-2xl border border-slate-200 bg-white/70 p-5">
+                <h2 class="text-lg sm:text-xl font-extrabold">8) متابعة مقترحات</h2>
+                <p class="mt-1 text-slate-600">6 حسابات جاهزة مع زر Follow (toggle).</p>
+
+                <div id="followList" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <!-- injected by JS -->
+                </div>
+
+                <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                  <span class="font-bold">ملحوظة:</span> زر المتابعة هنا مجرد UI — لا تحقق ولا قيود.
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 9 -->
+            <section data-step="8" class="space-y-5 hidden">
+              <div class="rounded-2xl border border-slate-200 bg-white/70 p-5">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 class="text-lg sm:text-xl font-extrabold">9) اختيار 5 كلمات تمثّلك</h2>
+                    <p class="mt-1 text-slate-600">Chips ذكية — تختار اللي تحبه.</p>
+                  </div>
+                  <div class="text-sm text-slate-600">
+                    <span class="font-bold text-slate-800">المختار:</span>
+                    <span id="wordsCount" class="font-extrabold text-accent">0</span>
+                  </div>
+                </div>
+
+                <div id="wordsBox" class="mt-4 flex flex-wrap gap-2"></div>
+
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                  <button id="clearWords"
+                    class="rounded-2xl px-4 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-50 transition">
+                    تفريغ الكلمات
+                  </button>
+                  <span class="text-xs text-slate-500">تلميح: الهدف “5” اقتراح فقط — ما في تحقق.</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 10 -->
+            <section data-step="9" class="space-y-5 hidden">
+              <div class="rounded-2xl border border-slate-200 bg-white/70 p-5">
+                <h2 class="text-lg sm:text-xl font-extrabold">10) النهاية: ملخص + إنشاء الحساب</h2>
+                <p class="mt-1 text-slate-600">عرض سريع لما اخترته — ثم زر “إنشاء”.</p>
+
+                <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="font-bold">ملخص</div>
+                      <span id="toneBadge" class="text-xs px-2 py-1 rounded-full border border-slate-200 bg-slate-50">نبرة: —</span>
+                    </div>
+                    <div id="summaryBox" class="mt-3 space-y-2 text-sm text-slate-700">
+                      <!-- injected by JS -->
+                    </div>
+                  </div>
+
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="font-bold">لمسة أخيرة ✨</div>
+                    <p id="finalCopy" class="mt-2 text-sm text-slate-600">
+                      جاهز/ة! اضغط “إنشاء الحساب” لتشوف رسالة نجاح لطيفة.
+                    </p>
+
+                    <div class="mt-4 flex items-center gap-3">
+                      <button id="createBtn"
+                        class="flex-1 rounded-2xl px-5 py-3 text-base font-extrabold text-white bg-accent hover:opacity-95 transition focus:ring-4 ring-accent/25">
+                        إنشاء الحساب
+                      </button>
+                      <button id="restartBtn"
+                        class="rounded-2xl px-4 py-3 text-base font-bold border border-slate-200 bg-white hover:bg-slate-50 transition">
+                        إعادة
+                      </button>
+                    </div>
+
+                    <div id="successBox" class="mt-4 hidden rounded-2xl border border-slate-200 bg-accent-soft p-4">
+                      <div class="flex items-start gap-3">
+                        <div class="mt-0.5">
+                          <svg viewBox="0 0 24 24" class="w-6 h-6 text-accent" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <path d="M20 6 9 17l-5-5"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <div class="font-extrabold">تم إنشاء الحساب (تجريبيًا) 🎉</div>
+                          <div class="text-sm text-slate-700 mt-1">
+                            هذه مجرد واجهة UX/UI داخل HTML واحد.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 text-xs text-slate-500">
+                      * لا يوجد تحقق إدخال — التنقل دائمًا متاح (حسب طلبك).
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Footer nav -->
+          <div class="mt-5 flex items-center justify-between gap-3">
+            <button id="backBtn"
+              class="rounded-2xl px-4 py-3 text-base font-bold border border-slate-200 bg-white hover:bg-slate-50 transition">
+              رجوع
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button id="jumpBtn"
+                class="hidden sm:inline-flex rounded-2xl px-4 py-3 text-base font-bold border border-slate-200 bg-white hover:bg-slate-50 transition">
+                انتقال سريع
+              </button>
+              <button id="nextBtn"
+                class="rounded-2xl px-5 py-3 text-base font-extrabold text-white bg-accent hover:opacity-95 transition focus:ring-4 ring-accent/25">
+                التالي
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: side card (preview / vibe) -->
+        <aside class="hidden lg:block border-r border-slate-200/70 bg-white/40">
+          <div class="h-full p-7">
+            <div class="rounded-3xl border border-slate-200 bg-white/70 p-6 relative overflow-hidden">
+              <div class="absolute -top-10 -left-10 w-44 h-44 rounded-full bg-accent-soft blur-2xl opacity-90"></div>
+              <div class="absolute -bottom-10 -right-10 w-48 h-48 rounded-full bg-sky-100 blur-2xl opacity-80"></div>
+
+              <div class="relative">
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-white border border-slate-200">
+                    <svg viewBox="0 0 24 24" class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <path d="M12 2l1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5L12 2z"/>
+                    </svg>
+                    <span class="font-bold">Preview</span>
+                  </span>
+                  <span id="accentLabel" class="text-sm text-slate-600">Accent: بنات</span>
+                </div>
+
+                <div class="mt-5">
+                  <div class="text-2xl font-extrabold tracking-tight">
+                    واجهة نظيفة + طابع أنمي خفيف
+                  </div>
+                  <p class="mt-2 text-slate-600">
+                    كل خطوة “بطاقة” واضحة، مساحات كبيرة، وأزرار لطيفة.
+                  </p>
+                </div>
+
+                <div class="mt-6 grid grid-cols-2 gap-3">
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="flex items-center gap-2">
+                      <svg viewBox="0 0 24 24" class="w-5 h-5 text-slate-900" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M4 7h16M4 12h10M4 17h16"/>
+                      </svg>
+                      <div class="font-bold">بطاقات</div>
+                    </div>
+                    <div class="mt-1 text-sm text-slate-600">محتوى منظم وسهل المسح.</div>
+                  </div>
+
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div class="flex items-center gap-2">
+                      <svg viewBox="0 0 24 24" class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M3 12h18"/>
+                        <path d="M12 3v18" opacity=".5"/>
+                      </svg>
+                      <div class="font-bold">Minimal</div>
+                    </div>
+                    <div class="mt-1 text-sm text-slate-600">زخارف خفيفة بدون ازدحام.</div>
+                  </div>
+
+                  <div class="rounded-2xl border border-slate-200 bg-white p-4 col-span-2">
+                    <div class="flex items-center justify-between">
+                      <div class="font-bold">Micro-interactions</div>
+                      <span class="text-xs text-slate-500">Transitions</span>
+                    </div>
+                    <div class="mt-2 text-sm text-slate-600">
+                      انتقالات ناعمة بين الخطوات + Dots قابلة للنقر.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-6 rounded-2xl bg-slate-950 text-white p-4">
+                  <div class="flex items-center justify-between">
+                    <div class="font-bold">Tip</div>
+                    <span class="text-xs text-white/70">UX</span>
+                  </div>
+                  <div class="mt-2 text-sm text-white/80">
+                    خليك على نفس الإيقاع: عنوان واضح، وصف صغير، ثم اختيارات سهلة.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Toast -->
+      <div id="toast"
+        class="pointer-events-none absolute bottom-4 left-4 right-4 sm:right-auto sm:left-6 sm:bottom-6 hidden">
+        <div class="pointer-events-auto w-full sm:w-[360px] rounded-2xl border border-slate-200 bg-white shadow-accent p-4 flex items-start gap-3">
+          <div class="mt-0.5">
+            <svg viewBox="0 0 24 24" class="w-6 h-6 text-accent" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M12 2l1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5L12 2z"/>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div id="toastTitle" class="font-extrabold">تم</div>
+            <div id="toastMsg" class="text-sm text-slate-600 mt-1">رسالة صغيرة هنا</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // -----------------------------
+  // Data + State (no validation)
+  // -----------------------------
+  const stepTitles = [
+    "اختيار الهدف",
+    "البريد + كلمة المرور",
+    "اسم عرض + عمر + لغة",
+    "النسخة + النبرة",
+    "أفاتار + رفع صورة",
+    "الاهتمامات الأساسية",
+    "تفضيلات المحتوى",
+    "اقتراحات متابعة",
+    "5 كلمات تمثّلك",
+    "ملخص + إنشاء الحساب"
+  ];
+
+  const state = {
+    goal: "توصيات",
+    email: "",
+    password: "",
+    displayName: "",
+    age: "",
+    language: "العربية",
+    version: "girls", // girls/boys -> accent only
+    tone: "لطيف",
+    avatarId: null,
+    avatarUploadDataUrl: null,
+    genres: [],
+    comics: [],
+    feed: "حسب الاهتمامات",
+    spoilersHidden: false,
+    follows: {}, // username -> true/false
+    words: []
+  };
+
+  const avatars = [
+    { id: "a1", label: "猫", emoji: "😺" },
+    { id: "a2", label: "星", emoji: "⭐" },
+    { id: "a3", label: "桜", emoji: "🌸" },
+    { id: "a4", label: "狐", emoji: "🦊" },
+    { id: "a5", label: "龍", emoji: "🐉" },
+    { id: "a6", label: "音", emoji: "🎧" },
+    { id: "a7", label: "剣", emoji: "⚔️" },
+    { id: "a8", label: "虹", emoji: "🌈" },
+    { id: "a9", label: "茶", emoji: "🍵" },
+    { id: "a10", label: "月", emoji: "🌙" },
+    { id: "a11", label: "火", emoji: "🔥" },
+    { id: "a12", label: "雪", emoji: "❄️" }
+  ];
+
+  const genres = ["شونين","سينين","إيسيكاي","رومانسي","كوميدي","أكشن","غموض","رعب","خيال","مدرسي","رياضة","موسيقى","سايبربنك","Slice of Life"];
+  const comicsTypes = ["Manga","Manhwa","Manhua","Webtoon","Marvel/DC","Indie","Graphic Novel","Short Comics"];
+  const wordChips = ["هادئ","حماسي","فضولي","مبدع","محلل","اجتماعي","مستكشف","محب للدراما","محب للكوميديا","عميق","خفيف دم","منظم","عفوي","وفِيّ","جريء","لطيف","ناقد","حالم","مهووس تفاصيل","محب للفن"];
+
+  const followSuggestions = [
+    { u: "@SakuraPanels", name: "Sakura Panels", note: "توصيات مانغا يومية", vibe: "🌸" },
+    { u: "@ShonenHub", name: "Shonen Hub", note: "مقارنات قتالات + تحليل", vibe: "⚔️" },
+    { u: "@CosplayKohi", name: "Cosplay Kohi", note: "كوسبلاي + أدوات", vibe: "☕" },
+    { u: "@FrameByFrame", name: "Frame by Frame", note: "لقطات سينمائية أنمي", vibe: "🎬" },
+    { u: "@InkSensei", name: "Ink Sensei", note: "نقد رسم لطيف", vibe: "🖊️" },
+    { u: "@NoSpoilerClub", name: "No Spoiler Club", note: "نقاشات بدون حرق", vibe: "🛡️" }
+  ];
+
+  // -----------------------------
+  // DOM refs
+  // -----------------------------
+  const modal = document.getElementById("modal");
+  const closeBtn = document.getElementById("closeBtn");
+
+  const steps = [...document.querySelectorAll("[data-step]")];
+  const stepper = document.getElementById("stepper");
+  const progressBar = document.getElementById("progressBar");
+  const stepNum = document.getElementById("stepNum");
+  const stepTotal = document.getElementById("stepTotal");
+  const stepTitle = document.getElementById("stepTitle");
+
+  const backBtn = document.getElementById("backBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const jumpBtn = document.getElementById("jumpBtn");
+
+  const toast = document.getElementById("toast");
+  const toastTitle = document.getElementById("toastTitle");
+  const toastMsg = document.getElementById("toastMsg");
+
+  // Inputs
+  const emailEl = document.getElementById("email");
+  const passwordEl = document.getElementById("password");
+  const togglePass = document.getElementById("togglePass");
+
+  const displayNameEl = document.getElementById("displayName");
+  const ageEl = document.getElementById("age");
+  const languageEl = document.getElementById("language");
+
+  const verGirls = document.getElementById("verGirls");
+  const verBoys = document.getElementById("verBoys");
+  const accentLabel = document.getElementById("accentLabel");
+
+  const spoilerToggle = document.getElementById("spoilerToggle");
+  const spoilerKnob = document.getElementById("spoilerKnob");
+
+  const avatarGrid = document.getElementById("avatarGrid");
+  const avatarUpload = document.getElementById("avatarUpload");
+  const uploadPreview = document.getElementById("uploadPreview");
+
+  const genresBox = document.getElementById("genresBox");
+  const comicsBox = document.getElementById("comicsBox");
+
+  const followList = document.getElementById("followList");
+
+  const wordsBox = document.getElementById("wordsBox");
+  const wordsCount = document.getElementById("wordsCount");
+  const clearWords = document.getElementById("clearWords");
+
+  const summaryBox = document.getElementById("summaryBox");
+  const toneBadge = document.getElementById("toneBadge");
+  const finalCopy = document.getElementById("finalCopy");
+  const createBtn = document.getElementById("createBtn");
+  const restartBtn = document.getElementById("restartBtn");
+  const successBox = document.getElementById("successBox");
+
+  // -----------------------------
+  // Helpers
+  // -----------------------------
+  function showToast(title, msg){
+    toastTitle.textContent = title;
+    toastMsg.textContent = msg;
+    toast.classList.remove("hidden");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.add("hidden"), 2200);
+  }
+
+  function setAccent(version){
+    state.version = version;
+    if(version === "boys"){
+      document.documentElement.style.setProperty("--accent", "37 99 235");    // blue
+      document.documentElement.style.setProperty("--accent-soft", "219 234 254"); // sky-100-ish
+      accentLabel.textContent = "Accent: أولاد";
+      verBoys.classList.add("chip-on");
+      verGirls.classList.remove("chip-on");
+    } else {
+      document.documentElement.style.setProperty("--accent", "236 72 153");   // pink
+      document.documentElement.style.setProperty("--accent-soft", "252 231 243"); // pink-100-ish
+      accentLabel.textContent = "Accent: بنات";
+      verGirls.classList.add("chip-on");
+      verBoys.classList.remove("chip-on");
+    }
+  }
+
+  function setTone(tone){
+    state.tone = tone;
+    document.querySelectorAll(".toneChip").forEach(btn => {
+      btn.classList.toggle("chip-on", btn.dataset.tone === tone);
+    });
+  }
+
+  function toggleArrayValue(arr, val){
+    const i = arr.indexOf(val);
+    if(i >= 0) arr.splice(i, 1);
+    else arr.push(val);
+  }
+
+  function createChip(label, onClick){
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chip px-3 py-2 rounded-2xl border border-slate-200 bg-white text-sm hover:bg-slate-50";
+    btn.textContent = label;
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  function setChipOn(btn, on){
+    btn.classList.toggle("chip-on", on);
+  }
+
+  // -----------------------------
+  // Stepper
+  // -----------------------------
+  let currentStep = 0;
+
+  function buildStepper(){
+    stepper.innerHTML = "";
+    for(let i=0;i<stepTitles.length;i++){
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className =
+        "group flex items-center gap-2 px-3 py-2 rounded-2xl border border-slate-200 bg-white/70 hover:bg-white transition";
+      btn.dataset.stepJump = String(i);
+
+      const dot = document.createElement("span");
+      dot.className = "w-2.5 h-2.5 rounded-full bg-slate-300 group-hover:bg-slate-400 transition";
+      dot.dataset.dot = "1";
+
+      const label = document.createElement("span");
+      label.className = "text-xs sm:text-sm text-slate-700 font-semibold whitespace-nowrap";
+      label.textContent = (i+1) + ") " + stepTitles[i];
+
+      btn.appendChild(dot);
+      btn.appendChild(label);
+
+      btn.addEventListener("click", () => goToStep(i));
+      stepper.appendChild(btn);
+    }
+  }
+
+  function updateStepper(){
+    const buttons = [...stepper.querySelectorAll("button[data-step-jump]")];
+    buttons.forEach((btn, idx) => {
+      const dot = btn.querySelector("[data-dot]");
+      const isActive = idx === currentStep;
+      const isDone = idx < currentStep;
+
+      btn.classList.toggle("ring-4", isActive);
+      btn.classList.toggle("ring-accent/15", isActive);
+
+      dot.classList.toggle("bg-accent", isActive || isDone);
+      dot.classList.toggle("bg-slate-300", !(isActive || isDone));
+    });
+  }
+
+  function updateProgress(){
+    const pct = ((currentStep + 1) / stepTitles.length) * 100;
+    progressBar.style.width = pct + "%";
+    stepNum.textContent = String(currentStep + 1);
+    stepTotal.textContent = String(stepTitles.length);
+    stepTitle.textContent = stepTitles[currentStep];
+
+    backBtn.disabled = currentStep === 0;
+    backBtn.classList.toggle("opacity-50", currentStep === 0);
+    backBtn.classList.toggle("cursor-not-allowed", currentStep === 0);
+
+    nextBtn.textContent = (currentStep === stepTitles.length - 1) ? "تم" : "التالي";
+  }
+
+  function animateStepChange(from, to){
+    if(from === to) return;
+
+    const out = steps[from];
+    const inn = steps[to];
+
+    // leave
+    out.classList.remove("hidden");
+    out.classList.add("step-leave");
+    requestAnimationFrame(() => {
+      out.classList.add("step-leave-active");
+    });
+
+    // enter
+    inn.classList.remove("hidden");
+    inn.classList.add("step-enter");
+    requestAnimationFrame(() => {
+      inn.classList.add("step-enter-active");
+    });
+
+    setTimeout(() => {
+      // cleanup out
+      out.classList.add("hidden");
+      out.classList.remove("step-leave", "step-leave-active");
+
+      // cleanup in
+      inn.classList.remove("step-enter", "step-enter-active");
+    }, 240);
+  }
+
+  function goToStep(idx){
+    const prev = currentStep;
+    currentStep = Math.max(0, Math.min(stepTitles.length - 1, idx));
+    animateStepChange(prev, currentStep);
+    updateStepper();
+    updateProgress();
+
+    if(currentStep === 9) renderSummary();
+  }
+
+  // -----------------------------
+  // Render dynamic sections
+  // -----------------------------
+  function renderAvatars(){
+    avatarGrid.innerHTML = "";
+    avatars.forEach(a => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "avatarBtn rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition p-3 flex flex-col items-center gap-1";
+      btn.dataset.avatar = a.id;
+
+      const face = document.createElement("div");
+      face.className = "w-10 h-10 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-xl";
+      face.textContent = a.emoji;
+
+      const tag = document.createElement("div");
+      tag.className = "text-xs text-slate-600 font-semibold";
+      tag.textContent = a.label;
+
+      btn.appendChild(face);
+      btn.appendChild(tag);
+
+      btn.addEventListener("click", () => {
+        state.avatarId = a.id;
+        document.querySelectorAll(".avatarBtn").forEach(x => x.classList.remove("chip-on"));
+        btn.classList.add("chip-on");
+        showToast("تم اختيار أفاتار", "اخترت: " + a.emoji + " " + a.label);
+      });
+
+      avatarGrid.appendChild(btn);
+    });
+  }
+
+  function renderInterestChips(){
+    genresBox.innerHTML = "";
+    comicsBox.innerHTML = "";
+
+    genres.forEach(g => {
+      const btn = createChip(g, () => {
+        toggleArrayValue(state.genres, g);
+        setChipOn(btn, state.genres.includes(g));
+      });
+      genresBox.appendChild(btn);
+    });
+
+    comicsTypes.forEach(t => {
+      const btn = createChip(t, () => {
+        toggleArrayValue(state.comics, t);
+        setChipOn(btn, state.comics.includes(t));
+      });
+      comicsBox.appendChild(btn);
+    });
+  }
+
+  function renderFollowSuggestions(){
+    followList.innerHTML = "";
+    followSuggestions.forEach(s => {
+      state.follows[s.u] ??= false;
+
+      const card = document.createElement("div");
+      card.className = "rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-between gap-3";
+
+      const left = document.createElement("div");
+      left.className = "flex items-center gap-3 min-w-0";
+
+      const av = document.createElement("div");
+      av.className = "w-11 h-11 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center text-lg";
+      av.textContent = s.vibe;
+
+      const meta = document.createElement("div");
+      meta.className = "min-w-0";
+
+      const name = document.createElement("div");
+      name.className = "font-extrabold truncate";
+      name.textContent = s.name;
+
+      const handle = document.createElement("div");
+      handle.className = "text-xs text-slate-500 truncate";
+      handle.textContent = s.u + " • " + s.note;
+
+      meta.appendChild(name);
+      meta.appendChild(handle);
+
+      left.appendChild(av);
+      left.appendChild(meta);
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "followBtn shrink-0 rounded-2xl px-4 py-2 text-sm font-extrabold border border-slate-200 bg-white hover:bg-slate-50 transition";
+      btn.textContent = state.follows[s.u] ? "Following" : "Follow";
+      btn.classList.toggle("chip-on", state.follows[s.u]);
+
+      btn.addEventListener("click", () => {
+        state.follows[s.u] = !state.follows[s.u];
+        btn.textContent = state.follows[s.u] ? "Following" : "Follow";
+        btn.classList.toggle("chip-on", state.follows[s.u]);
+      });
+
+      card.appendChild(left);
+      card.appendChild(btn);
+      followList.appendChild(card);
+    });
+  }
+
+  function renderWords(){
+    wordsBox.innerHTML = "";
+    wordChips.forEach(w => {
+      const btn = createChip(w, () => {
+        toggleArrayValue(state.words, w);
+        setChipOn(btn, state.words.includes(w));
+        wordsCount.textContent = String(state.words.length);
+      });
+      wordsBox.appendChild(btn);
+    });
+    wordsCount.textContent = String(state.words.length);
+  }
+
+  function renderSummary(){
+    const followed = Object.entries(state.follows).filter(([,v]) => v).map(([k]) => k);
+
+    const toneCopy = {
+      "لطيف": "جاهز/ة! خلّينا نبدأ بشكل كيوت 🌸",
+      "رسمي": "جاهز/ة. يمكنك المتابعة لإكمال إنشاء الحساب.",
+      "مرح": "جاهز/ة! يلا نطلق الحساب 🍬"
+    }[state.tone] || "جاهز/ة!";
+
+    toneBadge.textContent = "نبرة: " + state.tone;
+    finalCopy.textContent = toneCopy;
+
+    const safe = (x) => (x && String(x).trim().length ? String(x) : "—");
+    const avatar = state.avatarId ? (avatars.find(a=>a.id===state.avatarId)?.emoji + " " + avatars.find(a=>a.id===state.avatarId)?.label) : "—";
+    const upload = state.avatarUploadDataUrl ? "مرفوع ✅" : "لا ❎";
+
+    summaryBox.innerHTML = `
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">الهدف</span><span class="font-bold">${safe(state.goal)}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">البريد</span><span class="font-bold truncate max-w-[220px]">${safe(state.email)}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">اسم العرض</span><span class="font-bold">${safe(state.displayName)}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">العمر</span><span class="font-bold">${safe(state.age)}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">اللغة</span><span class="font-bold">${safe(state.language)}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">Accent</span><span class="font-bold">${state.version === "boys" ? "أولاد" : "بنات"}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">Avatar</span><span class="font-bold">${avatar}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">رفع صورة</span><span class="font-bold">${upload}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">أنمي</span><span class="font-bold text-right">${state.genres.length ? state.genres.join("، ") : "—"}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">كوميكس</span><span class="font-bold text-right">${state.comics.length ? state.comics.join("، ") : "—"}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">الخلاصة</span><span class="font-bold">${safe(state.feed)}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">إخفاء السبويلر</span><span class="font-bold">${state.spoilersHidden ? "نعم" : "لا"}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">Following</span><span class="font-bold">${followed.length ? followed.join("، ") : "—"}</span></div>
+      <div class="flex items-center justify-between gap-3"><span class="text-slate-500">كلماتك</span><span class="font-bold text-right">${state.words.length ? state.words.join("، ") : "—"}</span></div>
+    `;
+  }
+
+  // -----------------------------
+  // Wire inputs (no validation)
+  // -----------------------------
+  function wire(){
+    // Goal
+    document.querySelectorAll(".goalCard").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.goal = btn.dataset.goal;
+        document.querySelectorAll(".goalCard").forEach(b => b.classList.remove("chip-on"));
+        btn.classList.add("chip-on");
+        showToast("تم", "اخترت هدف: " + state.goal);
+      });
+    });
+    // default selected goal
+    const defaultGoal = [...document.querySelectorAll(".goalCard")].find(b => b.dataset.goal === state.goal);
+    if(defaultGoal) defaultGoal.classList.add("chip-on");
+
+    // Email/pass
+    emailEl.addEventListener("input", () => state.email = emailEl.value);
+    passwordEl.addEventListener("input", () => state.password = passwordEl.value);
+    togglePass.addEventListener("click", () => {
+      const isPass = passwordEl.type === "password";
+      passwordEl.type = isPass ? "text" : "password";
+      togglePass.textContent = isPass ? "إخفاء" : "إظهار";
+    });
+
+    // Profile
+    displayNameEl.addEventListener("input", () => state.displayName = displayNameEl.value);
+    ageEl.addEventListener("input", () => state.age = ageEl.value);
+    languageEl.addEventListener("change", () => state.language = languageEl.value);
+
+    // Version
+    verGirls.addEventListener("click", () => setAccent("girls"));
+    verBoys.addEventListener("click", () => setAccent("boys"));
+
+    // Tone
+    document.querySelectorAll(".toneChip").forEach(btn => {
+      btn.addEventListener("click", () => setTone(btn.dataset.tone));
+    });
+
+    // Feed radio
+    document.querySelectorAll('input[name="feed"]').forEach(r => {
+      r.addEventListener("change", () => state.feed = r.value);
+    });
+
+    // Spoiler toggle
+    spoilerToggle.addEventListener("click", () => {
+      state.spoilersHidden = !state.spoilersHidden;
+      spoilerToggle.classList.toggle("bg-accent", state.spoilersHidden);
+      spoilerToggle.classList.toggle("bg-slate-200", !state.spoilersHidden);
+      spoilerKnob.style.transform = state.spoilersHidden ? "translateX(-24px)" : "translateX(0)";
+    });
+
+    // Upload preview
+    avatarUpload.addEventListener("change", () => {
+      const file = avatarUpload.files && avatarUpload.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.avatarUploadDataUrl = reader.result;
+        uploadPreview.innerHTML = "";
+        const img = document.createElement("img");
+        img.src = state.avatarUploadDataUrl;
+        img.className = "w-full h-full object-cover";
+        uploadPreview.appendChild(img);
+        showToast("رفع صورة", "تمت إضافة معاينة للصورة.");
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Words
+    clearWords.addEventListener("click", () => {
+      state.words = [];
+      [...wordsBox.querySelectorAll("button")].forEach(b => b.classList.remove("chip-on"));
+      wordsCount.textContent = "0";
+    });
+
+    // Create
+    createBtn.addEventListener("click", () => {
+      successBox.classList.remove("hidden");
+      showToast("نجاح", "تم إنشاء الحساب (واجهة فقط).");
+    });
+
+    // Restart
+    restartBtn.addEventListener("click", () => {
+      // Quick reset (minimal)
+      state.goal = "توصيات";
+      state.email = ""; state.password = "";
+      state.displayName = ""; state.age = ""; state.language = "العربية";
+      state.version = "girls"; state.tone = "لطيف";
+      state.avatarId = null; state.avatarUploadDataUrl = null;
+      state.genres = []; state.comics = [];
+      state.feed = "حسب الاهتمامات"; state.spoilersHidden = false;
+      Object.keys(state.follows).forEach(k => state.follows[k] = false);
+      state.words = [];
+      successBox.classList.add("hidden");
+
+      // Reset UI
+      emailEl.value = ""; passwordEl.value = ""; passwordEl.type = "password"; togglePass.textContent = "إظهار";
+      displayNameEl.value = ""; ageEl.value = ""; languageEl.value = "العربية";
+      document.querySelectorAll(".goalCard").forEach(b => b.classList.remove("chip-on"));
+      const dg = [...document.querySelectorAll(".goalCard")].find(b => b.dataset.goal === "توصيات");
+      if(dg) dg.classList.add("chip-on");
+
+      setAccent("girls");
+      setTone("لطيف");
+
+      document.querySelectorAll('input[name="feed"]').forEach(r => r.checked = (r.value === "حسب الاهتمامات"));
+      spoilerToggle.classList.remove("bg-accent"); spoilerToggle.classList.add("bg-slate-200");
+      spoilerKnob.style.transform = "translateX(0)";
+
+      // Reset chips
+      [...genresBox.querySelectorAll("button")].forEach(b => b.classList.remove("chip-on"));
+      [...comicsBox.querySelectorAll("button")].forEach(b => b.classList.remove("chip-on"));
+      [...wordsBox.querySelectorAll("button")].forEach(b => b.classList.remove("chip-on"));
+      wordsCount.textContent = "0";
+
+      // Reset avatars upload
+      avatarUpload.value = "";
+      uploadPreview.innerHTML = `
+        <svg viewBox="0 0 24 24" class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M4 16l4-4 4 4 8-8 0 12H4z" opacity=".25"/>
+          <path d="M4 20h16"/>
+          <path d="M8 12l2-2 2 2" opacity=".65"/>
+        </svg>
+      `;
+      document.querySelectorAll(".avatarBtn").forEach(x => x.classList.remove("chip-on"));
+
+      renderFollowSuggestions();
+      goToStep(0);
+      showToast("إعادة", "رجعناك لأول خطوة.");
+    });
+
+    // Navigation
+    backBtn.addEventListener("click", () => goToStep(currentStep - 1));
+    nextBtn.addEventListener("click", () => {
+      if(currentStep === stepTitles.length - 1){
+        showToast("انتهينا", "هذه آخر خطوة 🙂");
+      } else {
+        goToStep(currentStep + 1);
+      }
+    });
+
+    jumpBtn.addEventListener("click", () => {
+      const n = prompt("اكتب رقم الخطوة (1 - 10):");
+      const idx = (parseInt(n || "", 10) || 1) - 1;
+      goToStep(idx);
+    });
+
+    // Close
+    closeBtn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+      showToast("تم الإغلاق", "أغلقت الـ Modal.");
+      // bring it back quickly (demo)
+      setTimeout(() => modal.classList.remove("hidden"), 700);
+    });
+
+    // Sync initial
+    setAccent("girls");
+    setTone("لطيف");
+  }
+
+  // -----------------------------
+  // Init
+  // -----------------------------
+  buildStepper();
+  renderAvatars();
+  renderInterestChips();
+  renderFollowSuggestions();
+  renderWords();
+  wire();
+
+  // Start at step 1
+  updateStepper();
+  updateProgress();
+  goToStep(0);
+
+  // Set default feed value
+  state.feed = "حسب الاهتمامات";
+
+  // Make tone default highlighted
+  setTone(state.tone);
+</script>
+</body>
+</html>

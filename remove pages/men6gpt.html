@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aside Focus v3 (Tailwind)</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom palette (each page has its own color) -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { a: "#4F6BFF", b: "#6D5BFF" },
+            cHome: "#4F6BFF",
+            cAnime: "#8B5CF6",
+            cComics: "#F59E0B",
+            cSwipes: "#EC4899",
+            cWalls: "#06B6D4",
+            cCats: "#6366F1",
+            cStore: "#10B981",
+            cChats: "#22C55E",
+            cNotif: "#F43F5E",
+            cSearch: "#64748B",
+            cAI: "#22D3EE",
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Theme (NO JS): light default, checked = dark -->
+  <style>
+    .app{
+      --bg: #F6F8FC;
+      --bg2:#EEF2FF;
+      --panel: #FFFFFF;
+      --panel2: rgba(255,255,255,.72);
+      --border: rgba(15,23,42,.10);
+      --text: #0F172A;
+      --muted: rgba(15,23,42,.58);
+      --hover: rgba(15,23,42,.04);
+      --shadow: 0 18px 55px rgba(2,6,23,.10);
+      --shadow2: 0 12px 30px rgba(2,6,23,.08);
+    }
+    #theme:checked ~ .app{
+      --bg: #070A14;
+      --bg2:#0B1020;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.08);
+      --border: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.58);
+      --hover: rgba(255,255,255,.07);
+      --shadow: 0 18px 55px rgba(0,0,0,.35);
+      --shadow2: 0 12px 30px rgba(0,0,0,.22);
+    }
+  </style>
+</head>
+
+<body class="antialiased">
+  <!-- Theme controller -->
+  <input id="theme" type="checkbox" class="sr-only" />
+
+  <div class="app min-h-screen bg-[color:var(--bg)] text-[color:var(--text)] transition-colors duration-300
+              [background:radial-gradient(900px_520px_at_75%_10%,rgba(79,107,255,.12),transparent_60%),radial-gradient(900px_520px_at_20%_90%,rgba(34,211,238,.10),transparent_55%),linear-gradient(180deg,var(--bg2),var(--bg)_70%)]">
+
+    <div class="grid min-h-screen lg:grid-cols-[320px_1fr] gap-4 p-4">
+
+      <!-- ASIDE (FOCUS) -->
+      <aside class="lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)]">
+        <!-- Outer shell -->
+        <div class="h-full rounded-[34px] border border-[color:var(--border)]
+                    bg-[color:var(--panel2)] backdrop-blur-xl
+                    shadow-[var(--shadow)] overflow-hidden">
+
+          <!-- Inner card (creates depth) -->
+          <div class="h-full bg-[color:var(--panel)]">
+            <!-- Header -->
+            <div class="p-5 border-b border-[color:var(--border)]">
+              <div class="flex items-center gap-3">
+                <div class="h-11 w-11 rounded-2xl bg-gradient-to-br from-brand-a to-brand-b
+                            shadow-[0_14px_35px_rgba(79,107,255,.22)]"></div>
+                <div class="min-w-0">
+                  <div class="font-black tracking-tight truncate">منصة الأوتاكو</div>
+                  <div class="text-xs text-[color:var(--muted)] truncate">Anime • Manga • Comics</div>
+                </div>
+
+                <!-- Theme toggle (small, neat) -->
+                <label for="theme"
+                       class="ms-auto cursor-pointer select-none inline-flex items-center gap-2
+                              rounded-2xl border border-[color:var(--border)]
+                              bg-[color:var(--hover)] px-3 py-2 text-xs font-extrabold
+                              shadow-[var(--shadow2)] hover:translate-y-[-1px] transition">
+                  <span>Dark</span>
+                  <span class="relative h-6 w-11 rounded-full border border-[color:var(--border)] bg-[color:var(--panel)]">
+                    <span id="knob"
+                          class="absolute top-1 right-1 h-4 w-4 rounded-full bg-gradient-to-br from-brand-a to-brand-b transition-all"></span>
+                  </span>
+                </label>
+              </div>
+
+              <!-- Tiny hint / status -->
+              <div class="mt-4 flex items-center justify-between">
+                <span class="text-[11px] font-bold tracking-widest uppercase text-[color:var(--muted)]">القائمة</span>
+                <span class="inline-flex items-center gap-2 text-xs font-semibold text-[color:var(--muted)]">
+                  <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(34,197,94,.14)]"></span>
+                  متصل
+                </span>
+              </div>
+            </div>
+
+            <!-- NAV (centered like your screenshot) -->
+            <nav class="px-4 py-5 h-[calc(100%-168px)] overflow-auto">
+              <div class="space-y-1.5">
+
+                <!-- ACTIVE ITEM -->
+                <a href="#"
+                   class="mx-auto w-[88%] group relative flex items-center justify-between gap-3
+                          rounded-2xl px-3 py-2.5 text-white
+                          bg-gradient-to-l from-brand-a to-brand-b
+                          shadow-[0_14px_40px_rgba(79,107,255,.20)]
+                          hover:translate-y-[-1px] transition">
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-white/18">
+                      <!-- home -->
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20v-9.5Z" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M9.5 21.5v-7h5v7" stroke="currentColor" stroke-width="1.9" opacity=".9"/>
+                      </svg>
+                    </span>
+                    <span class="font-extrabold truncate">الرئيسية</span>
+                  </span>
+
+                  <span class="text-[11px] font-extrabold rounded-full bg-white/18 px-2 py-1">Live</span>
+                </a>
+
+                <!-- ITEMS -->
+                <a href="#" class="mx-auto w-[88%] flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                                   border border-transparent hover:border-[color:var(--border)]
+                                   hover:bg-[color:var(--hover)] hover:translate-y-[-1px] transition">
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-cAnime/10 text-cAnime">
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M9 10.2c.5-1 1.5-1.7 3-1.7s2.5.7 3 1.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M9.3 14.2c.9.8 1.9 1.2 2.7 1.2s1.8-.4 2.7-1.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" opacity=".9"/>
+                      </svg>
+                    </span>
+                    <span class="font-bold truncate">الانميات</span>
+                  </span>
+                  <span class="text-xs text-[color:var(--muted)]">›</span>
+                </a>
+
+                <a href="#" class="mx-auto w-[88%] flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                                   border border-transparent hover:border-[color:var(--border)]
+                                   hover:bg-[color:var(--hover)] hover:translate-y-[-1px] transition">
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-cComics/12 text-cComics">
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M4.5 4.5h7v7h-7v-7Z" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M12.5 4.5h7v7h-7v-7Z" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M4.5 12.5h7v7h-7v-7Z" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M12.5 12.5h7v7h-7v-7Z" stroke="currentColor" stroke-width="1.9"/>
+                      </svg>
+                    </span>
+                    <span class="font-bold truncate">القصص المصورة</span>
+                  </span>
+                  <span class="text-xs text-[color:var(--muted)]">›</span>
+                </a>
+
+                <a href="#" class="mx-auto w-[88%] flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                                   border border-transparent hover:border-[color:var(--border)]
+                                   hover:bg-[color:var(--hover)] hover:translate-y-[-1px] transition">
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-cSwipes/10 text-cSwipes">
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M14 3 5 14h6l-1 7 9-11h-6l1-7Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                      </svg>
+                    </span>
+                    <span class="font-bold truncate">سوايب</span>
+                  </span>
+                  <span class="text-xs text-[color:var(--muted)]">›</span>
+                </a>
+
+                <a href="#" class="mx-auto w-[88%] flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                                   border border-transparent hover:border-[color:var(--border)]
+                                   hover:bg-[color:var(--hover)] hover:translate-y-[-1px] transition">
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-cWalls/10 text-cWalls">
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M4.5 6.5A2 2 0 0 1 6.5 4.5h11A2 2 0 0 1 19.5 6.5v11a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-11Z" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M8.3 14.5 10.2 12.6 13.2 15.6 15 13.8 19.5 18.3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+                        <path d="M9 9a1.3 1.3 0 1 0 0 2.6A1.3 1.3 0 0 0 9 9Z" fill="currentColor" opacity=".85"/>
+                      </svg>
+                    </span>
+                    <span class="font-bold truncate">خلفيات</span>
+                  </span>
+                  <span class="text-xs text-[color:var(--muted)]">›</span>
+                </a>
+
+                <a href="#" class="mx-auto w-[88%] flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                                   border border-transparent hover:border-[color:var(--border)]
+                                   hover:bg-[color:var(--hover)] hover:translate-y-[-1px] transition">
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-cCats/10 text-cCats">
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 3.5l2.6 5.5 6 .8-4.4 4.1 1.1 5.9-5.3-2.9-5.3 2.9 1.1-5.9L3.4 10l6-.8L12 3.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                      </svg>
+                    </span>
+                    <span class="font-bold truncate">التصنيف</span>
+                  </span>
+                  <span class="text-xs text-[color:var(--muted)]">›</span>
+                </a>
+
+                <a href="#" class="mx-auto w-[88%] flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                                   border border-transparent hover:border-[color:var(--border)]
+                                   hover:bg-[color:var(--hover)] hover:translate-y-[-1px] transition">
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-cStore/10 text-cStore">
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 10h16l-1.2-5H5.2L4 10Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M5 10v9h14v-9" stroke="currentColor" stroke-width="1.9" opacity=".9"/>
+                        <path d="M9 19v-6h6v6" stroke="currentColor" stroke-width="1.9" opacity=".9"/>
+                      </svg>
+                    </span>
+                    <span class="font-bold truncate">المتجر</span>
+                  </span>
+                  <span class="text-xs text-[color:var(--muted)]">›</span>
+                </a>
+
+                <a href="#" class="mx-auto w-[88%] flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                                   border border-transparent hover:border-[color:var(--border)]
+                                   hover:bg-[color:var(--hover)] hover:translate-y-[-1px] transition">
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="relative grid h-9 w-9 place-items-center rounded-xl bg-cChats/10 text-cChats">
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v6A2.5 2.5 0 0 1 16.5 15H10l-4 4v-4H7.5A2.5 2.5 0 0 1 5 12.5v-6Z" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M8 8.5h8M8 11h5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" opacity=".9"/>
+                      </svg>
+                      <span class="absolute -top-1 -left-1 h-2.5 w-2.5 rounded-full bg-cChats shadow-[0_0_0_4px_rgba(34,197,94,.14)]"></span>
+                    </span>
+                    <span class="font-bold truncate">المحادثات</span>
+                  </span>
+                  <span class="text-xs rounded-full px-2 py-1 border border-cChats/20 bg-cChats/10 text-cChats font-bold">3</span>
+                </a>
+
+                <a href="#" class="mx-auto w-[88%] flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                                   border border-transparent hover:border-[color:var(--border)]
+                                   hover:bg-[color:var(--hover)] hover:translate-y-[-1px] transition">
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-cNotif/10 text-cNotif">
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 16v-5a6 6 0 1 0-12 0v5l-2 2h16l-2-2Z" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M10 20a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.9" opacity=".9"/>
+                      </svg>
+                    </span>
+                    <span class="font-bold truncate">الاشعارات</span>
+                  </span>
+                  <span class="text-xs rounded-full px-2 py-1 border border-cNotif/20 bg-cNotif/10 text-cNotif font-bold">12</span>
+                </a>
+
+                <a href="#" class="mx-auto w-[88%] flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                                   border border-transparent hover:border-[color:var(--border)]
+                                   hover:bg-[color:var(--hover)] hover:translate-y-[-1px] transition">
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-cSearch/10 text-cSearch">
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                    <span class="font-bold truncate">البحث</span>
+                  </span>
+                  <span class="text-xs text-[color:var(--muted)] font-bold">⌘K</span>
+                </a>
+
+                <a href="#" class="mx-auto w-[88%] flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                                   border border-transparent hover:border-[color:var(--border)]
+                                   hover:bg-[color:var(--hover)] hover:translate-y-[-1px] transition">
+                  <span class="flex items-center gap-3 min-w-0">
+                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-cAI/10 text-cAI">
+                      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 3l1.2 3.8L17 8l-3.8 1.2L12 13l-1.2-3.8L7 8l3.8-1.2L12 3Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M19 13l.8 2.5L22 16l-2.2.7L19 19l-.8-2.3L16 16l2.2-.5L19 13Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" opacity=".9"/>
+                      </svg>
+                    </span>
+                    <span class="font-bold truncate">خدمات AI</span>
+                  </span>
+                  <span class="text-xs rounded-full px-2 py-1 border border-cAI/20 bg-cAI/10 text-cAI font-bold">Pro</span>
+                </a>
+
+              </div>
+            </nav>
+
+            <!-- Bottom profile (premium) -->
+            <div class="p-4 border-t border-[color:var(--border)]">
+              <div class="rounded-2xl border border-[color:var(--border)] bg-[color:var(--panel)]
+                          shadow-[var(--shadow2)] px-3 py-2.5">
+                <div class="flex items-center gap-3">
+                  <div class="h-11 w-11 rounded-2xl overflow-hidden border border-[color:var(--border)] bg-[color:var(--hover)]">
+                    <img src="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=128&h=128&fit=crop"
+                         alt="Avatar" class="h-full w-full object-cover" />
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <div class="font-extrabold truncate">إبراهيم بصمة</div>
+                    <div class="text-xs text-blue-600 truncate">@luffy.dev</div>
+                  </div>
+
+                  <button type="button"
+                          class="grid h-11 w-11 place-items-center rounded-2xl
+                                 border border-[color:var(--border)] bg-[color:var(--hover)]
+                                 hover:bg-[rgba(127,127,127,.08)] hover:translate-y-[-1px] transition"
+                          aria-label="Menu">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN (minimal placeholder; focus on aside) -->
+      <main class="min-h-[calc(100vh-2rem)]">
+        <div class="rounded-[34px] border border-[color:var(--border)] bg-[color:var(--panel)]
+                    shadow-[var(--shadow2)] p-6">
+          <h1 class="text-xl font-black tracking-tight">Main Content</h1>
+          <p class="mt-2 text-sm text-[color:var(--muted)] leading-7">
+            هذه الصفحة مجرد Placeholder. التصميم هنا مركّز على الـ Aside (قائمة) بشكل فخم وبسيط.
+          </p>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Knob move (CSS only) -->
+  <style>
+    #theme:checked ~ .app #knob { transform: translateX(-20px); }
+  </style>
+</body>
+</html>

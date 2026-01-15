@@ -1,0 +1,1901 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Shonen Neon City — Multi-Step Signup</title>
+
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* ====== Shonen Neon City: Background (no external images) ====== */
+    :root{
+      --neon-cyan:#22d3ee;
+      --neon-pink:#fb7185;
+      --neon-violet:#a78bfa;
+      --ink:#060612;
+      --panel:#0b0b1a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 20% 10%, rgba(167,139,250,.25), transparent 60%),
+        radial-gradient(1000px 700px at 80% 20%, rgba(34,211,238,.22), transparent 55%),
+        radial-gradient(900px 700px at 60% 90%, rgba(251,113,133,.18), transparent 55%),
+        linear-gradient(180deg, #040412 0%, #070717 35%, #040412 100%);
+      color: #eef2ff;
+      overflow-x: hidden;
+    }
+
+    /* Soft grain */
+    .grain:before{
+      content:"";
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      background-image:
+        radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 14px 14px;
+      mix-blend-mode: overlay;
+      opacity: .12;
+      z-index: 0;
+    }
+
+    /* Neon glow helpers */
+    .glow-cyan{ box-shadow: 0 0 0 1px rgba(34,211,238,.35), 0 0 18px rgba(34,211,238,.22), 0 0 40px rgba(34,211,238,.12); }
+    .glow-pink{ box-shadow: 0 0 0 1px rgba(251,113,133,.35), 0 0 18px rgba(251,113,133,.22), 0 0 40px rgba(251,113,133,.12); }
+    .glow-violet{ box-shadow: 0 0 0 1px rgba(167,139,250,.35), 0 0 18px rgba(167,139,250,.22), 0 0 40px rgba(167,139,250,.12); }
+    .neon-border{
+      border: 1px solid rgba(167,139,250,.35);
+      box-shadow:
+        inset 0 0 0 1px rgba(34,211,238,.12),
+        0 0 0 1px rgba(251,113,133,.10),
+        0 0 30px rgba(167,139,250,.10);
+    }
+
+    /* Step transitions */
+    .step-panel{ display:none; }
+    .step-panel.active{ display:block; }
+    .anim-in{
+      animation: stepIn .42s ease-out both;
+    }
+    .anim-out{
+      animation: stepOut .28s ease-in both;
+    }
+    @keyframes stepIn{
+      from{ opacity:0; transform: translateY(14px); filter: blur(2px); }
+      to{ opacity:1; transform: translateY(0); filter: blur(0); }
+    }
+    @keyframes stepOut{
+      from{ opacity:1; transform: translateY(0); }
+      to{ opacity:0; transform: translateY(-10px); }
+    }
+
+    /* Chat-bubble error */
+    .bubble{
+      position: relative;
+      border: 1px solid rgba(251,113,133,.35);
+      background: rgba(251,113,133,.12);
+      box-shadow: 0 0 18px rgba(251,113,133,.18);
+    }
+    .bubble:before{
+      content:"";
+      position:absolute;
+      top:-8px;
+      inset-inline-start: 18px;
+      width: 0; height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 10px solid rgba(251,113,133,.20);
+      filter: drop-shadow(0 0 10px rgba(251,113,133,.18));
+    }
+
+    /* Toggle */
+    .toggle-track{
+      background: rgba(148,163,184,.15);
+      border: 1px solid rgba(148,163,184,.20);
+    }
+    input:checked + .toggle-track{
+      background: rgba(34,211,238,.18);
+      border-color: rgba(34,211,238,.35);
+      box-shadow: 0 0 18px rgba(34,211,238,.18);
+    }
+    input:checked + .toggle-track .toggle-dot{
+      transform: translateX(-22px); /* RTL */
+      background: rgba(34,211,238,.95);
+    }
+
+    /* Scrollbar subtle */
+    ::-webkit-scrollbar{ width: 10px; }
+    ::-webkit-scrollbar-thumb{ background: rgba(167,139,250,.25); border-radius: 999px; }
+    ::-webkit-scrollbar-track{ background: rgba(255,255,255,.03); }
+
+    /* Prevent iOS zoom on input */
+    input, textarea, select{ font-size: 16px; }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['ui-sans-serif','system-ui','Segoe UI','Tajawal','Noto Kufi Arabic','Arial']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="grain font-display">
+  <!-- ===== Decorative Anime Night City SVG (no external images) ===== -->
+  <div class="fixed inset-0 -z-10 pointer-events-none opacity-90">
+    <svg viewBox="0 0 1200 700" preserveAspectRatio="none" class="w-full h-full">
+      <!-- sky haze -->
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#04041a"/>
+          <stop offset="55%" stop-color="#070722"/>
+          <stop offset="100%" stop-color="#040412"/>
+        </linearGradient>
+        <linearGradient id="neonLine" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#22d3ee" stop-opacity=".2"/>
+          <stop offset="50%" stop-color="#a78bfa" stop-opacity=".35"/>
+          <stop offset="100%" stop-color="#fb7185" stop-opacity=".2"/>
+        </linearGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="b"/>
+          <feMerge>
+            <feMergeNode in="b"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      <rect width="1200" height="700" fill="url(#sky)"/>
+
+      <!-- neon horizon -->
+      <path d="M0 420 C 200 380, 420 460, 650 410 C 850 365, 1030 445, 1200 410 L1200 700 L0 700 Z"
+            fill="rgba(10,10,30,.65)"/>
+      <path d="M0 415 C 200 375, 420 455, 650 405 C 850 360, 1030 440, 1200 405"
+            stroke="url(#neonLine)" stroke-width="3" fill="none" filter="url(#glow)" opacity=".9"/>
+
+      <!-- moon -->
+      <circle cx="950" cy="140" r="55" fill="rgba(167,139,250,.12)"/>
+      <circle cx="950" cy="140" r="38" fill="rgba(34,211,238,.10)"/>
+      <circle cx="960" cy="128" r="22" fill="rgba(251,113,133,.08)"/>
+
+      <!-- buildings silhouette (simple rectangles) -->
+      <g opacity=".9">
+        <g fill="rgba(10,10,35,.90)">
+          <rect x="40"  y="300" width="80"  height="260" rx="8"/>
+          <rect x="140" y="260" width="110" height="300" rx="10"/>
+          <rect x="270" y="320" width="90"  height="240" rx="8"/>
+          <rect x="380" y="240" width="140" height="320" rx="12"/>
+          <rect x="540" y="290" width="110" height="270" rx="10"/>
+          <rect x="670" y="250" width="150" height="310" rx="12"/>
+          <rect x="840" y="310" width="120" height="250" rx="10"/>
+          <rect x="980" y="270" width="170" height="290" rx="12"/>
+        </g>
+
+        <!-- neon windows -->
+        <g filter="url(#glow)" opacity=".75">
+          <g fill="rgba(34,211,238,.25)">
+            <rect x="60" y="330" width="40" height="6" rx="3"/>
+            <rect x="60" y="352" width="50" height="6" rx="3"/>
+            <rect x="60" y="374" width="34" height="6" rx="3"/>
+          </g>
+          <g fill="rgba(167,139,250,.25)">
+            <rect x="170" y="292" width="62" height="6" rx="3"/>
+            <rect x="170" y="316" width="52" height="6" rx="3"/>
+            <rect x="170" y="340" width="66" height="6" rx="3"/>
+          </g>
+          <g fill="rgba(251,113,133,.22)">
+            <rect x="420" y="270" width="80" height="6" rx="3"/>
+            <rect x="420" y="294" width="70" height="6" rx="3"/>
+            <rect x="420" y="318" width="86" height="6" rx="3"/>
+          </g>
+        </g>
+      </g>
+
+      <!-- floating neon shapes -->
+      <g filter="url(#glow)" opacity=".75">
+        <path d="M140 120 L180 90 L220 120 L180 150 Z" fill="rgba(34,211,238,.12)" stroke="rgba(34,211,238,.35)" stroke-width="2"/>
+        <circle cx="220" cy="210" r="18" fill="rgba(251,113,133,.10)" stroke="rgba(251,113,133,.35)" stroke-width="2"/>
+        <path d="M720 160 h60 v60 h-60 z" fill="rgba(167,139,250,.10)" stroke="rgba(167,139,250,.35)" stroke-width="2"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ===== Page Container ===== -->
+  <main class="relative z-10 min-h-screen flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-5xl">
+      <!-- Header -->
+      <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full neon-border bg-white/5">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_18px_rgba(34,211,238,.55)]"></span>
+            <span class="text-xs tracking-wide text-slate-200/90">Shonen Neon City • Signup Wizard</span>
+          </div>
+          <h1 class="mt-3 text-2xl md:text-3xl font-bold leading-tight">
+            سجّل دخولك لعالم <span class="text-cyan-300">الأنمي</span> و<span class="text-pink-300">الكوميكس</span> — بأسلوب سايبربانك 🔥
+          </h1>
+          <p class="mt-2 text-sm text-slate-200/80 max-w-2xl">
+            خطوات سريعة + تحقّق لطيف + لمسة "Mission Complete" في النهاية.
+          </p>
+        </div>
+
+        <!-- Progress -->
+        <div class="w-full md:w-[320px] neon-border rounded-2xl bg-white/5 p-4">
+          <div class="flex items-center justify-between text-xs text-slate-200/80">
+            <span>التقدم</span>
+            <span id="progressText" class="text-slate-100 font-semibold">1 / 8</span>
+          </div>
+          <div class="mt-3 h-3 rounded-full bg-white/5 overflow-hidden">
+            <div id="progressBar" class="h-full w-[0%] rounded-full bg-gradient-to-l from-cyan-400/80 via-violet-400/70 to-pink-400/80 glow-cyan"></div>
+          </div>
+          <div class="mt-3 text-[11px] text-slate-200/70">
+            <span class="text-cyan-300">Tip:</span> استخدم مقبض (handle) مميز — بيظهر في ملفك العام.
+          </div>
+        </div>
+      </header>
+
+      <!-- Stepper -->
+      <section class="neon-border rounded-2xl bg-white/5 p-4 md:p-5">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <h2 class="text-sm md:text-base font-semibold text-slate-100">
+              مسار التسجيل
+              <span class="text-slate-200/70 font-normal text-xs">— Stepper بأيقونات</span>
+            </h2>
+
+            <div class="flex items-center gap-2">
+              <button id="btnReset" class="text-xs px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 neon-border transition">
+                إعادة تعيين
+              </button>
+              <a href="#" class="text-xs px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 neon-border transition" onclick="return false;">
+                المساعدة
+              </a>
+            </div>
+          </div>
+
+          <div id="stepper" class="grid grid-cols-4 md:grid-cols-8 gap-2">
+            <!-- populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Wizard Body -->
+      <section class="mt-6 grid grid-cols-1 lg:grid-cols-[1.1fr_.9fr] gap-6">
+        <!-- Left: Steps -->
+        <div class="neon-border rounded-3xl bg-[rgba(8,8,24,.72)] backdrop-blur-md p-5 md:p-7 overflow-hidden">
+          <!-- Top title / subtitle for step -->
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 id="stepTitle" class="text-xl font-bold"></h3>
+              <p id="stepSubtitle" class="mt-1 text-sm text-slate-200/75"></p>
+            </div>
+            <div class="hidden md:flex items-center gap-2">
+              <span class="px-3 py-1 rounded-full text-xs bg-cyan-400/10 border border-cyan-300/20 text-cyan-200 glow-cyan">
+                Neon Mode
+              </span>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <!-- ===== Step 1 ===== -->
+            <div class="step-panel" data-step="1">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                  <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                    <div class="flex items-start gap-3">
+                      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-400/30 via-violet-400/20 to-pink-400/30 neon-border flex items-center justify-center">
+                        <!-- lightning icon -->
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                          <path d="M13 2L3 14h7l-1 8 12-14h-7l-1-6z" stroke="rgba(34,211,238,.95)" stroke-width="1.8" stroke-linejoin="round"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p class="text-sm text-slate-100 font-semibold">أهلاً بك في مدينة النيون!</p>
+                        <p class="text-xs text-slate-200/70 mt-1">
+                          اختر اسمك داخل المجتمع، وحدد لغتك — وبعدها ننطلق.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="relative">
+                  <label class="block text-xs text-slate-200/80 mb-2">اسم المستخدم (Handle) *</label>
+                  <input id="handle" type="text" placeholder="dev.luffy"
+                         class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-cyan-300/50 focus:ring-2 focus:ring-cyan-300/20 transition"
+                  />
+                  <p class="mt-2 text-[11px] text-slate-200/70">
+                    3–16 حرف/رقم/underscore فقط.
+                  </p>
+                </div>
+
+                <div class="relative">
+                  <label class="block text-xs text-slate-200/80 mb-2">اللغة *</label>
+                  <select id="language"
+                          class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-violet-300/50 focus:ring-2 focus:ring-violet-300/20 transition">
+                    <option value="">اختر…</option>
+                    <option value="ar">العربية</option>
+                    <option value="en">English</option>
+                    <option value="jp">日本語 (Japanese)</option>
+                  </select>
+                  <p class="mt-2 text-[11px] text-slate-200/70">
+                    تقدر تغيّرها لاحقًا من الإعدادات.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== Step 2 ===== -->
+            <div class="step-panel" data-step="2">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="relative md:col-span-2">
+                  <label class="block text-xs text-slate-200/80 mb-2">البريد الإلكتروني *</label>
+                  <input id="email" type="email" placeholder="you@neon.city"
+                         class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-cyan-300/50 focus:ring-2 focus:ring-cyan-300/20 transition"/>
+                </div>
+
+                <div class="relative">
+                  <label class="block text-xs text-slate-200/80 mb-2">كلمة المرور *</label>
+                  <input id="password" type="password" placeholder="••••••••"
+                         class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-pink-300/50 focus:ring-2 focus:ring-pink-300/20 transition"/>
+                </div>
+
+                <div class="relative">
+                  <label class="block text-xs text-slate-200/80 mb-2">تأكيد كلمة المرور *</label>
+                  <input id="confirmPassword" type="password" placeholder="••••••••"
+                         class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-pink-300/50 focus:ring-2 focus:ring-pink-300/20 transition"/>
+                </div>
+
+                <!-- Password strength -->
+                <div class="md:col-span-2">
+                  <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-slate-200/80">مؤشر القوة</span>
+                      <span id="pwLabel" class="text-xs font-semibold text-slate-100">—</span>
+                    </div>
+                    <div class="mt-3 h-3 rounded-full bg-white/5 overflow-hidden">
+                      <div id="pwBar" class="h-full w-[0%] rounded-full bg-gradient-to-l from-pink-400/80 via-violet-400/70 to-cyan-400/80 glow-pink"></div>
+                    </div>
+                    <ul id="pwHints" class="mt-3 text-[11px] text-slate-200/70 grid md:grid-cols-2 gap-1">
+                      <!-- hints filled by JS -->
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== Step 3 ===== -->
+            <div class="step-panel" data-step="3">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="relative">
+                  <label class="block text-xs text-slate-200/80 mb-2">تاريخ الميلاد *</label>
+                  <input id="dob" type="date"
+                         class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-violet-300/50 focus:ring-2 focus:ring-violet-300/20 transition"/>
+                  <p class="mt-2 text-[11px] text-slate-200/70">لا يظهر للآخرين إن لم ترغب.</p>
+                </div>
+
+                <div class="relative">
+                  <label class="block text-xs text-slate-200/80 mb-2">الدولة *</label>
+                  <select id="country"
+                          class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-cyan-300/50 focus:ring-2 focus:ring-cyan-300/20 transition">
+                    <option value="">اختر…</option>
+                    <option value="PS">فلسطين</option>
+                    <option value="JO">الأردن</option>
+                    <option value="SA">السعودية</option>
+                    <option value="EG">مصر</option>
+                    <option value="AE">الإمارات</option>
+                    <option value="MA">المغرب</option>
+                    <option value="DZ">الجزائر</option>
+                    <option value="TN">تونس</option>
+                    <option value="IQ">العراق</option>
+                    <option value="SY">سوريا</option>
+                    <option value="LB">لبنان</option>
+                    <option value="QA">قطر</option>
+                    <option value="KW">الكويت</option>
+                    <option value="BH">البحرين</option>
+                    <option value="OM">عُمان</option>
+                    <option value="YE">اليمن</option>
+                    <option value="OTHER">أخرى</option>
+                  </select>
+                </div>
+
+                <div class="relative md:col-span-2">
+                  <label class="block text-xs text-slate-200/80 mb-2">نبذة قصيرة</label>
+                  <textarea id="bio" rows="3" maxlength="160" placeholder="قول لنا مين أنت… (160 حرف)"
+                            class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-pink-300/50 focus:ring-2 focus:ring-pink-300/20 transition resize-none"></textarea>
+                  <div class="flex justify-between mt-2 text-[11px] text-slate-200/70">
+                    <span>اختياري</span>
+                    <span id="bioCount">0 / 160</span>
+                  </div>
+                </div>
+
+                <div class="relative md:col-span-2">
+                  <label class="block text-xs text-slate-200/80 mb-2">مستوى الأوتاكو *</label>
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="otakuGrid">
+                    <!-- populated by JS -->
+                  </div>
+                  <p class="mt-2 text-[11px] text-slate-200/70">
+                    هذا يساعدنا على اقتراح محتوى مناسب لك.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== Step 4 ===== -->
+            <div class="step-panel" data-step="4">
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                  <div class="flex items-center justify-between">
+                    <p class="text-sm font-semibold text-slate-100">اختر أفاتار جاهز *</p>
+                    <span class="text-[11px] text-slate-200/70">Neon SVG</span>
+                  </div>
+                  <div id="avatarGrid" class="mt-4 grid grid-cols-3 gap-3">
+                    <!-- avatars by JS -->
+                  </div>
+                </div>
+
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                  <p class="text-sm font-semibold text-slate-100">أو ارفع صورة</p>
+                  <p class="text-[11px] text-slate-200/70 mt-1">Preview محلي فقط — لا يتم رفع شيء الآن.</p>
+
+                  <div class="mt-4">
+                    <input id="avatarUpload" type="file" accept="image/*"
+                           class="block w-full text-sm text-slate-200/80 file:mr-3 file:rounded-xl file:border-0 file:px-4 file:py-2 file:bg-white/10 file:text-slate-100 hover:file:bg-white/15 transition" />
+                  </div>
+
+                  <div class="mt-4 rounded-2xl bg-black/20 border border-white/10 p-4 flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-2xl overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
+                      <img id="avatarPreview" alt="preview" class="w-full h-full object-cover hidden"/>
+                      <span id="avatarPreviewPlaceholder" class="text-[11px] text-slate-200/60 text-center px-2">
+                        لا يوجد<br/>معاينة
+                      </span>
+                    </div>
+                    <div>
+                      <p class="text-xs text-slate-200/80">تلميح:</p>
+                      <p class="text-[11px] text-slate-200/70">لو رفعت صورة، سيتم اعتمادها بدل الجاهز.</p>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 text-[11px] text-slate-200/70">
+                    * مطلوب: اختر جاهز أو ارفع صورة.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== Step 5 ===== -->
+            <div class="step-panel" data-step="5">
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Genres -->
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                  <div class="flex items-center justify-between">
+                    <p class="text-sm font-semibold text-slate-100">Genres (أنمي) *</p>
+                    <span id="genresCount" class="text-[11px] text-slate-200/70">0 مختار</span>
+                  </div>
+
+                  <div class="mt-3 relative">
+                    <input id="genreSearch" type="text" placeholder="بحث سريع…"
+                           class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-cyan-300/50 focus:ring-2 focus:ring-cyan-300/20 transition"/>
+                  </div>
+
+                  <div id="genresList" class="mt-4 grid grid-cols-2 gap-2 max-h-56 overflow-auto pr-1">
+                    <!-- genres by JS -->
+                  </div>
+
+                  <p class="mt-3 text-[11px] text-slate-200/70">
+                    اختر على الأقل Genre واحد.
+                  </p>
+                </div>
+
+                <!-- Tags -->
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                  <div class="flex items-center justify-between">
+                    <p class="text-sm font-semibold text-slate-100">Comic Tags *</p>
+                    <span id="tagsCount" class="text-[11px] text-slate-200/70">0 مختار</span>
+                  </div>
+
+                  <div class="mt-3 relative">
+                    <input id="tagSearch" type="text" placeholder="ابحث داخل التاغات…"
+                           class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-violet-300/50 focus:ring-2 focus:ring-violet-300/20 transition"/>
+                  </div>
+
+                  <div id="tagsList" class="mt-4 flex flex-wrap gap-2 max-h-56 overflow-auto pr-1">
+                    <!-- tags by JS -->
+                  </div>
+
+                  <p class="mt-3 text-[11px] text-slate-200/70">
+                    اختر على الأقل Tag واحد.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== Step 6 ===== -->
+            <div class="step-panel" data-step="6">
+              <div class="flex items-center justify-between flex-wrap gap-3">
+                <div>
+                  <p class="text-sm font-semibold text-slate-100">تابع مستخدمين مقترحين</p>
+                  <p class="text-[11px] text-slate-200/70 mt-1">زر Follow/Unfollow + عدّاد.</p>
+                </div>
+
+                <div class="px-4 py-2 rounded-2xl bg-white/5 border border-white/10">
+                  <span class="text-xs text-slate-200/80">عدد المتابَعين:</span>
+                  <span id="followCount" class="text-xs font-bold text-cyan-200 glow-cyan ms-2">0</span>
+                </div>
+              </div>
+
+              <div id="suggestions" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <!-- cards by JS -->
+              </div>
+            </div>
+
+            <!-- ===== Step 7 ===== -->
+            <div class="step-panel" data-step="7">
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                  <p class="text-sm font-semibold text-slate-100">الإشعارات</p>
+                  <div class="mt-4 space-y-3">
+                    <!-- toggles -->
+                    <div class="flex items-center justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-slate-100">إشعارات المتابعة</p>
+                        <p class="text-[11px] text-slate-200/70">عند متابعة أحد لك أو تفاعله.</p>
+                      </div>
+                      <label class="inline-flex items-center cursor-pointer select-none">
+                        <input id="notifFollows" type="checkbox" class="sr-only" checked />
+                        <span class="toggle-track w-12 h-7 rounded-full relative transition">
+                          <span class="toggle-dot absolute top-1 right-1 w-5 h-5 rounded-full bg-white/60 transition"></span>
+                        </span>
+                      </label>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-slate-100">إشعارات المحتوى</p>
+                        <p class="text-[11px] text-slate-200/70">توصيات أنمي/كوميكس جديدة.</p>
+                      </div>
+                      <label class="inline-flex items-center cursor-pointer select-none">
+                        <input id="notifContent" type="checkbox" class="sr-only" checked />
+                        <span class="toggle-track w-12 h-7 rounded-full relative transition">
+                          <span class="toggle-dot absolute top-1 right-1 w-5 h-5 rounded-full bg-white/60 transition"></span>
+                        </span>
+                      </label>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-slate-100">إشعارات الرسائل</p>
+                        <p class="text-[11px] text-slate-200/70">عند وصول رسالة جديدة.</p>
+                      </div>
+                      <label class="inline-flex items-center cursor-pointer select-none">
+                        <input id="notifMessages" type="checkbox" class="sr-only" />
+                        <span class="toggle-track w-12 h-7 rounded-full relative transition">
+                          <span class="toggle-dot absolute top-1 right-1 w-5 h-5 rounded-full bg-white/60 transition"></span>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                  <p class="text-sm font-semibold text-slate-100">الخصوصية وما يظهر بالملف</p>
+                  <p class="text-[11px] text-slate-200/70 mt-1">اختيارات بسيطة — تقدر تغيّر لاحقًا.</p>
+
+                  <div class="mt-4 space-y-3">
+                    <div class="flex items-center justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-slate-100">الملف عام</p>
+                        <p class="text-[11px] text-slate-200/70">يسمح للآخرين برؤيتك والبحث عنك.</p>
+                      </div>
+                      <label class="inline-flex items-center cursor-pointer select-none">
+                        <input id="profilePublic" type="checkbox" class="sr-only" checked />
+                        <span class="toggle-track w-12 h-7 rounded-full relative transition">
+                          <span class="toggle-dot absolute top-1 right-1 w-5 h-5 rounded-full bg-white/60 transition"></span>
+                        </span>
+                      </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-2 pt-2">
+                      <label class="text-xs text-slate-200/80">أظهر في الملف:</label>
+
+                      <div class="flex items-center justify-between gap-3 rounded-2xl bg-black/20 border border-white/10 p-3">
+                        <span class="text-sm text-slate-100">الدولة</span>
+                        <input id="showCountry" type="checkbox" class="accent-cyan-300" checked />
+                      </div>
+
+                      <div class="flex items-center justify-between gap-3 rounded-2xl bg-black/20 border border-white/10 p-3">
+                        <span class="text-sm text-slate-100">العمر (بدون تاريخ الميلاد)</span>
+                        <input id="showAge" type="checkbox" class="accent-violet-300" />
+                      </div>
+
+                      <div class="flex items-center justify-between gap-3 rounded-2xl bg-black/20 border border-white/10 p-3">
+                        <span class="text-sm text-slate-100">البريد الإلكتروني</span>
+                        <input id="showEmail" type="checkbox" class="accent-pink-300" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== Step 8 ===== -->
+            <div class="step-panel" data-step="8">
+              <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <p class="text-sm font-semibold text-slate-100">مراجعة نهائية</p>
+                    <p class="text-[11px] text-slate-200/70 mt-1">Summary لكل البيانات + زر إنشاء الحساب.</p>
+                  </div>
+                  <span class="text-[11px] px-3 py-1 rounded-full bg-violet-400/10 border border-violet-300/20 text-violet-200 glow-violet">
+                    Final Check
+                  </span>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 lg:grid-cols-[.9fr_1.1fr] gap-4">
+                  <div class="rounded-2xl bg-black/20 border border-white/10 p-4">
+                    <p class="text-xs text-slate-200/80 mb-2">أفاتارك</p>
+                    <div class="flex items-center gap-3">
+                      <div class="w-16 h-16 rounded-2xl overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
+                        <img id="reviewAvatarImg" class="w-full h-full object-cover hidden" alt="avatar"/>
+                        <div id="reviewAvatarSvg" class="w-full h-full flex items-center justify-center"></div>
+                      </div>
+                      <div>
+                        <p class="text-sm font-semibold text-slate-100" id="reviewHandle">@—</p>
+                        <p class="text-[11px] text-slate-200/70" id="reviewLang">لغة: —</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="rounded-2xl bg-black/20 border border-white/10 p-4">
+                    <p class="text-xs text-slate-200/80 mb-2">الملخص</p>
+                    <div id="reviewSummary" class="space-y-2 text-sm">
+                      <!-- filled by JS -->
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-4 text-[11px] text-slate-200/70">
+                  بالضغط على "إنشاء الحساب" أنت توافق على قواعد المجتمع (اللطيفة 😄).
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="mt-6 flex items-center justify-between gap-3">
+            <button id="btnBack"
+                    class="px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition disabled:opacity-40 disabled:cursor-not-allowed">
+              ← رجوع
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button id="btnNext"
+                      class="px-5 py-3 rounded-2xl bg-gradient-to-l from-cyan-400/25 via-violet-400/20 to-pink-400/25 border border-cyan-300/25 hover:border-cyan-300/45 hover:shadow-[0_0_30px_rgba(34,211,238,.18)] transition">
+                التالي →
+              </button>
+
+              <button id="btnSubmit"
+                      class="hidden px-5 py-3 rounded-2xl bg-gradient-to-l from-pink-400/30 via-violet-400/25 to-cyan-400/30 border border-pink-300/25 hover:border-pink-300/45 hover:shadow-[0_0_30px_rgba(251,113,133,.18)] transition">
+                إنشاء الحساب ⚡
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Side Panel (Tips / Live State) -->
+        <aside class="neon-border rounded-3xl bg-[rgba(8,8,24,.66)] backdrop-blur-md p-5 md:p-7">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="text-base font-bold">لوحة النيون</h3>
+            <span class="text-[11px] text-slate-200/70">Live Preview</span>
+          </div>
+
+          <div class="mt-4 rounded-2xl bg-white/5 border border-white/10 p-4">
+            <p class="text-xs text-slate-200/80 mb-3">بطاقتك الآن</p>
+            <div class="flex items-center gap-3">
+              <div class="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
+                <img id="liveAvatarImg" class="w-full h-full object-cover hidden" alt="avatar"/>
+                <div id="liveAvatarSvg" class="w-full h-full flex items-center justify-center"></div>
+              </div>
+              <div class="min-w-0">
+                <p class="font-semibold text-slate-100 truncate" id="liveHandle">@—</p>
+                <p class="text-xs text-slate-200/70 truncate" id="liveMeta">—</p>
+              </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-2 gap-2 text-[11px] text-slate-200/75">
+              <div class="rounded-xl bg-black/20 border border-white/10 p-3">
+                <span class="text-slate-100 font-semibold" id="liveGenres">0</span> Genres
+              </div>
+              <div class="rounded-xl bg-black/20 border border-white/10 p-3">
+                <span class="text-slate-100 font-semibold" id="liveTags">0</span> Tags
+              </div>
+              <div class="rounded-xl bg-black/20 border border-white/10 p-3">
+                <span class="text-slate-100 font-semibold" id="liveFollows">0</span> Following
+              </div>
+              <div class="rounded-xl bg-black/20 border border-white/10 p-3">
+                <span class="text-slate-100 font-semibold" id="livePrivacy">عام</span> Profile
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-2xl bg-white/5 border border-white/10 p-4">
+            <p class="text-xs text-slate-200/80 mb-2">نصائح سريعة</p>
+            <ul class="text-[11px] text-slate-200/70 space-y-2">
+              <li class="flex gap-2">
+                <span class="text-cyan-300">◆</span>
+                <span>اختر كلمات مرور قوية: طول + تنوع + بدون تكرار.</span>
+              </li>
+              <li class="flex gap-2">
+                <span class="text-violet-300">◆</span>
+                <span>Genres + Tags = توصيات أدق داخل المنصة.</span>
+              </li>
+              <li class="flex gap-2">
+                <span class="text-pink-300">◆</span>
+                <span>تقدر تخلي ملفك خاص وتكسب خصوصية أعلى.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="mt-4 text-[11px] text-slate-200/60">
+            تصميم: شونين سايبربانك + نيون — بدون صور خارجية ✨
+          </div>
+        </aside>
+      </section>
+    </div>
+  </main>
+
+  <!-- ===== Loading Overlay ===== -->
+  <div id="loadingOverlay" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="neon-border rounded-3xl bg-[rgba(8,8,24,.85)] p-6 w-[min(520px,92vw)]">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+          <svg class="w-6 h-6 animate-spin" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2a10 10 0 1 0 10 10" stroke="rgba(34,211,238,.95)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-slate-100">جارٍ تجهيز حسابك…</p>
+          <p class="text-[11px] text-slate-200/70">Initializing Neon Protocol • Please wait</p>
+        </div>
+      </div>
+      <div class="mt-4 h-3 rounded-full bg-white/5 overflow-hidden">
+        <div class="h-full w-[65%] rounded-full bg-gradient-to-l from-cyan-400/70 via-violet-400/70 to-pink-400/70 glow-cyan animate-pulse"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Success Modal ===== -->
+  <div id="successModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true">
+    <div class="neon-border rounded-3xl bg-[rgba(8,8,24,.88)] p-6 w-[min(620px,92vw)]">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-400/25 via-violet-400/20 to-pink-400/25 border border-white/10 flex items-center justify-center glow-violet">
+            <!-- check icon -->
+            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17l-5-5" stroke="rgba(251,113,133,.95)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-lg font-bold text-slate-100">Mission Complete ✅</p>
+            <p class="text-[11px] text-slate-200/70">تم إنشاء الحساب بنجاح — أهلاً بك في مدينة النيون!</p>
+          </div>
+        </div>
+
+        <button id="btnCloseSuccess" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition">
+          إغلاق
+        </button>
+      </div>
+
+      <div class="mt-4 rounded-2xl bg-black/20 border border-white/10 p-4">
+        <p class="text-xs text-slate-200/80 mb-2">ملخّص سريع</p>
+        <div id="successSummary" class="grid md:grid-cols-2 gap-2 text-sm"></div>
+      </div>
+
+      <div class="mt-4 flex items-center justify-end gap-2">
+        <button class="px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition" onclick="location.reload()">
+          إنشاء حساب جديد
+        </button>
+        <button class="px-4 py-3 rounded-2xl bg-gradient-to-l from-cyan-400/25 via-violet-400/20 to-pink-400/25 border border-cyan-300/25 hover:border-cyan-300/45 transition" onclick="alert('Demo: ربطها بـ Next.js/Nest.js لاحقًا ✅')">
+          دخول للمنصة →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================
+      Shonen Neon City Wizard (No external libs)
+    ========================================================== */
+
+    const TOTAL_STEPS = 8;
+
+    // ----- State -----
+    const state = {
+      handle: "",
+      language: "",
+      email: "",
+      password: "",
+      dob: "",
+      country: "",
+      bio: "",
+      otakuLevel: "",
+      avatarPresetId: "",
+      avatarUploadDataUrl: "",
+
+      genres: new Set(),
+      tags: new Set(),
+
+      follows: new Set(),
+
+      notifFollows: true,
+      notifContent: true,
+      notifMessages: false,
+
+      profilePublic: true,
+      showCountry: true,
+      showAge: false,
+      showEmail: false
+    };
+
+    // ----- Data -----
+    const otakuLevels = [
+      { id:"rookie",    label:"Rookie",    desc:"لسه بادئ" },
+      { id:"binger",    label:"Binger",    desc:"يخلص الموسم بيومين" },
+      { id:"senpai",    label:"Senpai",    desc:"فاهم التلميحات" },
+      { id:"legend",    label:"Legend",    desc:"موسوعة متحركة" },
+    ];
+
+    const genresAll = [
+      "Shonen","Seinen","Isekai","Shojo","Josei","Mecha","Slice of Life",
+      "Horror","Sports","Fantasy","Sci-Fi","Mystery","Romance","Comedy","Action","Drama"
+    ];
+
+    const tagsAll = [
+      "Manga","Manhwa","Manhua","Webtoon","Indie","One-shot","Long-run",
+      "Color","Black & White","Light Novel Adaptation","Original","Dark Tone",
+      "Wholesome","Slow Burn","Fast Paced","Worldbuilding","Power System",
+      "Villain Arc","Tournament Arc","Crew Story","Time Travel","Post-Apocalyptic"
+    ];
+
+    const suggestionsAll = [
+      { id:"u1", name:"Rin Kisaragi", handle:"rin.neon", bio:"Isekai addict • Mecha fan • Memes" },
+      { id:"u2", name:"Kaito Shard", handle:"kaito.shard", bio:"Shonen power systems nerd" },
+      { id:"u3", name:"Mina Panels", handle:"mina.panels", bio:"Comic tags curator • Webtoon crew" },
+      { id:"u4", name:"Zero Spoilers", handle:"zero.spoilers", bio:"No spoilers zone • Reviews" }
+    ];
+
+    // ----- Elements -----
+    const $ = (id) => document.getElementById(id);
+
+    const panels = Array.from(document.querySelectorAll(".step-panel"));
+    const stepTitle = $("stepTitle");
+    const stepSubtitle = $("stepSubtitle");
+
+    const btnBack = $("btnBack");
+    const btnNext = $("btnNext");
+    const btnSubmit = $("btnSubmit");
+    const btnReset = $("btnReset");
+
+    const progressText = $("progressText");
+    const progressBar = $("progressBar");
+    const stepper = $("stepper");
+
+    // Inputs
+    const handleEl = $("handle");
+    const langEl = $("language");
+
+    const emailEl = $("email");
+    const passwordEl = $("password");
+    const confirmPasswordEl = $("confirmPassword");
+
+    const pwLabel = $("pwLabel");
+    const pwBar = $("pwBar");
+    const pwHints = $("pwHints");
+
+    const dobEl = $("dob");
+    const countryEl = $("country");
+    const bioEl = $("bio");
+    const bioCount = $("bioCount");
+    const otakuGrid = $("otakuGrid");
+
+    const avatarGrid = $("avatarGrid");
+    const avatarUpload = $("avatarUpload");
+    const avatarPreview = $("avatarPreview");
+    const avatarPreviewPlaceholder = $("avatarPreviewPlaceholder");
+
+    const genreSearch = $("genreSearch");
+    const tagSearch = $("tagSearch");
+    const genresList = $("genresList");
+    const tagsList = $("tagsList");
+    const genresCount = $("genresCount");
+    const tagsCount = $("tagsCount");
+
+    const suggestions = $("suggestions");
+    const followCount = $("followCount");
+
+    // Toggles
+    const notifFollowsEl = $("notifFollows");
+    const notifContentEl = $("notifContent");
+    const notifMessagesEl = $("notifMessages");
+
+    const profilePublicEl = $("profilePublic");
+    const showCountryEl = $("showCountry");
+    const showAgeEl = $("showAge");
+    const showEmailEl = $("showEmail");
+
+    // Review
+    const reviewHandle = $("reviewHandle");
+    const reviewLang = $("reviewLang");
+    const reviewSummary = $("reviewSummary");
+    const reviewAvatarImg = $("reviewAvatarImg");
+    const reviewAvatarSvg = $("reviewAvatarSvg");
+
+    // Live
+    const liveHandle = $("liveHandle");
+    const liveMeta = $("liveMeta");
+    const liveGenres = $("liveGenres");
+    const liveTags = $("liveTags");
+    const liveFollows = $("liveFollows");
+    const livePrivacy = $("livePrivacy");
+    const liveAvatarImg = $("liveAvatarImg");
+    const liveAvatarSvg = $("liveAvatarSvg");
+
+    // Loading / Success
+    const loadingOverlay = $("loadingOverlay");
+    const successModal = $("successModal");
+    const btnCloseSuccess = $("btnCloseSuccess");
+    const successSummary = $("successSummary");
+
+    // ----- Step meta -----
+    const stepMeta = [
+      { title:"الترحيب", subtitle:"اختيار اسم مستخدم + لغة" },
+      { title:"البيانات الأساسية", subtitle:"Email + Password + Confirm + قوة كلمة المرور" },
+      { title:"تفاصيل إضافية", subtitle:"تاريخ الميلاد + الدولة + نبذة + مستوى الأوتاكو" },
+      { title:"الأفاتار", subtitle:"اختيار جاهز (SVG) أو رفع صورة مع معاينة" },
+      { title:"الاهتمامات", subtitle:"Genres + Tags + بحث سريع داخل القائمة" },
+      { title:"متابعة مقترحة", subtitle:"Follow/Unfollow + عدّاد" },
+      { title:"الخصوصية والإشعارات", subtitle:"Toggles + ما يظهر بالملف" },
+      { title:"مراجعة نهائية", subtitle:"Summary + إنشاء الحساب" },
+    ];
+
+    // ----- Stepper icons (inline SVG) -----
+    const stepIcons = [
+      `<svg viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M12 3l2 5 5 .5-4 3.2 1.3 5-4.3-2.8-4.3 2.8 1.3-5-4-3.2 5-.5L12 3z" stroke="currentColor" stroke-width="1.6" /></svg>`,
+      `<svg viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M7 10V8a5 5 0 0 1 10 0v2" stroke="currentColor" stroke-width="1.6"/><rect x="6" y="10" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.6"/></svg>`,
+      `<svg viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4z" stroke="currentColor" stroke-width="1.6"/><path d="M4 21a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.6"/></svg>`,
+      `<svg viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M12 21s8-4.5 8-11a4.5 4.5 0 0 0-8-2.5A4.5 4.5 0 0 0 4 10c0 6.5 8 11 8 11z" stroke="currentColor" stroke-width="1.6"/></svg>`,
+      `<svg viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+      `<svg viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M20 8v6M17 11h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+      `<svg viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M12 22s8-4 8-10V6l-8-4-8 4v6c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.6"/></svg>`,
+      `<svg viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+    ];
+
+    // ----- Avatar presets (simple SVG shapes) -----
+    const avatarPresets = [
+      { id:"a1", name:"Neon Fox", svg: presetSvg("fox") },
+      { id:"a2", name:"Cyber Mask", svg: presetSvg("mask") },
+      { id:"a3", name:"Star Core", svg: presetSvg("star") },
+      { id:"a4", name:"Mecha Orb", svg: presetSvg("orb") },
+      { id:"a5", name:"Blade Cat", svg: presetSvg("cat") },
+      { id:"a6", name:"Pixel Ninja", svg: presetSvg("ninja") },
+    ];
+
+    function presetSvg(type){
+      const base = (inner) => `
+        <svg viewBox="0 0 100 100" class="w-14 h-14">
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="rgba(34,211,238,.85)"/>
+              <stop offset="50%" stop-color="rgba(167,139,250,.85)"/>
+              <stop offset="100%" stop-color="rgba(251,113,133,.85)"/>
+            </linearGradient>
+            <filter id="gl">
+              <feGaussianBlur stdDeviation="2.2" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <rect x="6" y="6" width="88" height="88" rx="18" fill="rgba(255,255,255,.05)" stroke="rgba(167,139,250,.35)" />
+          ${inner}
+        </svg>
+      `;
+      if(type==="fox"){
+        return base(`
+          <path d="M25 55 L20 30 L38 40 L50 25 L62 40 L80 30 L75 55 Q50 75 25 55Z" fill="url(#g)" filter="url(#gl)" opacity=".9"/>
+          <circle cx="40" cy="55" r="4" fill="rgba(4,4,18,.9)"/><circle cx="60" cy="55" r="4" fill="rgba(4,4,18,.9)"/>
+          <path d="M45 65 Q50 68 55 65" stroke="rgba(4,4,18,.9)" stroke-width="3" fill="none" stroke-linecap="round"/>
+        `);
+      }
+      if(type==="mask"){
+        return base(`
+          <path d="M30 30 Q50 18 70 30 L76 62 Q50 82 24 62Z" fill="url(#g)" filter="url(#gl)" opacity=".9"/>
+          <path d="M35 50 H65" stroke="rgba(4,4,18,.9)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M38 58 Q50 65 62 58" stroke="rgba(4,4,18,.9)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        `);
+      }
+      if(type==="star"){
+        return base(`
+          <path d="M50 20 L58 42 L82 42 L62 56 L70 80 L50 66 L30 80 L38 56 L18 42 L42 42Z"
+                fill="url(#g)" filter="url(#gl)" opacity=".9"/>
+          <circle cx="50" cy="52" r="6" fill="rgba(4,4,18,.85)"/>
+        `);
+      }
+      if(type==="orb"){
+        return base(`
+          <circle cx="50" cy="50" r="26" fill="url(#g)" filter="url(#gl)" opacity=".9"/>
+          <circle cx="50" cy="50" r="18" fill="rgba(4,4,18,.35)" stroke="rgba(255,255,255,.2)"/>
+          <path d="M26 55 Q50 35 74 55" stroke="rgba(255,255,255,.25)" stroke-width="3" fill="none"/>
+        `);
+      }
+      if(type==="cat"){
+        return base(`
+          <path d="M30 35 L24 25 L36 30 L50 25 L64 30 L76 25 L70 35 Q68 72 50 75 Q32 72 30 35Z"
+                fill="url(#g)" filter="url(#gl)" opacity=".9"/>
+          <circle cx="40" cy="52" r="4" fill="rgba(4,4,18,.9)"/><circle cx="60" cy="52" r="4" fill="rgba(4,4,18,.9)"/>
+          <path d="M50 56 v6" stroke="rgba(4,4,18,.9)" stroke-width="3" stroke-linecap="round"/>
+        `);
+      }
+      // ninja
+      return base(`
+        <path d="M28 34 Q50 20 72 34 L74 64 Q50 82 26 64Z" fill="url(#g)" filter="url(#gl)" opacity=".9"/>
+        <rect x="30" y="46" width="40" height="14" rx="7" fill="rgba(4,4,18,.85)"/>
+        <circle cx="42" cy="53" r="3" fill="rgba(34,211,238,.9)"/><circle cx="58" cy="53" r="3" fill="rgba(251,113,133,.9)"/>
+      `);
+    }
+
+    // ----- Renderers -----
+    function renderStepper(){
+      stepper.innerHTML = "";
+      for(let i=1;i<=TOTAL_STEPS;i++){
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `
+          group flex items-center gap-2 rounded-2xl px-3 py-2
+          bg-white/5 hover:bg-white/10 border border-white/10 transition
+          focus:outline-none focus:ring-2 focus:ring-cyan-300/20
+        `;
+        btn.dataset.goto = String(i);
+
+        const circle = document.createElement("div");
+        circle.className = `
+          w-9 h-9 rounded-2xl flex items-center justify-center
+          border border-white/10 bg-black/20
+          group-hover:border-cyan-300/40 transition
+        `;
+        circle.innerHTML = `<span class="text-slate-100/90">${stepIcons[i-1]}</span>`;
+
+        const text = document.createElement("div");
+        text.className = "hidden md:block text-start min-w-0";
+        text.innerHTML = `
+          <div class="text-[11px] text-slate-200/70 truncate">${i}/${TOTAL_STEPS}</div>
+          <div class="text-xs text-slate-100 truncate">${stepMeta[i-1].title}</div>
+        `;
+
+        btn.appendChild(circle);
+        btn.appendChild(text);
+
+        btn.addEventListener("click", () => {
+          // allow jumping only to completed steps or current/next ones
+          const maxAllowed = Math.max(currentStep, highestValidStep());
+          if(i <= maxAllowed){
+            goToStep(i);
+          } else {
+            flashToast("أكمل الخطوات السابقة أولاً ✨");
+          }
+        });
+
+        stepper.appendChild(btn);
+      }
+      updateStepperUI();
+    }
+
+    function highestValidStep(){
+      // conservative: only allow stepping forward by validation
+      // returns the farthest step you can reach right now based on sequential validation
+      let far = 1;
+      for(let s=1;s<TOTAL_STEPS;s++){
+        if(validateStep(s, {silent:true})){
+          far = s+1;
+        } else break;
+      }
+      return far;
+    }
+
+    function updateStepperUI(){
+      const buttons = Array.from(stepper.querySelectorAll("button"));
+      buttons.forEach((b, idx) => {
+        const step = idx+1;
+        const circle = b.firstElementChild;
+        const isActive = step === currentStep;
+        const isDone = step < currentStep && validateStep(step, {silent:true});
+
+        b.classList.toggle("glow-cyan", isActive);
+        b.classList.toggle("border-cyan-300/25", isActive);
+
+        circle.classList.toggle("border-cyan-300/45", isActive || isDone);
+        circle.classList.toggle("glow-violet", isDone && !isActive);
+
+        // tint icon
+        const iconWrap = circle.querySelector("span");
+        iconWrap.className = isActive
+          ? "text-cyan-200"
+          : isDone
+            ? "text-violet-200"
+            : "text-slate-100/80";
+      });
+    }
+
+    function renderOtaku(){
+      otakuGrid.innerHTML = "";
+      otakuLevels.forEach(lvl => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `
+          text-start rounded-2xl p-3 bg-white/5 border border-white/10 transition
+          hover:bg-white/10 hover:border-violet-300/35
+          focus:outline-none focus:ring-2 focus:ring-violet-300/20
+        `;
+        btn.dataset.level = lvl.id;
+        btn.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm font-semibold text-slate-100">${lvl.label}</span>
+            <span class="text-[10px] px-2 py-1 rounded-full bg-white/5 border border-white/10 text-slate-200/80">${lvl.desc}</span>
+          </div>
+        `;
+        btn.addEventListener("click", () => {
+          state.otakuLevel = lvl.id;
+          markOtakuSelected();
+          updateLive();
+        });
+        otakuGrid.appendChild(btn);
+      });
+      markOtakuSelected();
+    }
+
+    function markOtakuSelected(){
+      Array.from(otakuGrid.querySelectorAll("button")).forEach(b=>{
+        const isSel = b.dataset.level === state.otakuLevel;
+        b.classList.toggle("glow-violet", isSel);
+        b.classList.toggle("border-violet-300/45", isSel);
+      });
+    }
+
+    function renderAvatarGrid(){
+      avatarGrid.innerHTML = "";
+      avatarPresets.forEach(p=>{
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `
+          rounded-2xl p-3 bg-white/5 border border-white/10 transition
+          hover:bg-white/10 hover:border-cyan-300/35
+          focus:outline-none focus:ring-2 focus:ring-cyan-300/20
+          flex flex-col items-center gap-2
+        `;
+        btn.dataset.avatar = p.id;
+        btn.innerHTML = `
+          <div class="w-16 h-16 flex items-center justify-center">${p.svg}</div>
+          <div class="text-[11px] text-slate-200/80">${p.name}</div>
+        `;
+        btn.addEventListener("click", () => {
+          state.avatarPresetId = p.id;
+          state.avatarUploadDataUrl = ""; // prefer preset unless upload exists later
+          avatarUpload.value = "";
+          setUploadPreview("");
+          markAvatarSelected();
+          updateLive();
+        });
+        avatarGrid.appendChild(btn);
+      });
+      markAvatarSelected();
+      updateLiveAvatar();
+    }
+
+    function markAvatarSelected(){
+      Array.from(avatarGrid.querySelectorAll("button")).forEach(b=>{
+        const isSel = b.dataset.avatar === state.avatarPresetId && !state.avatarUploadDataUrl;
+        b.classList.toggle("glow-cyan", isSel);
+        b.classList.toggle("border-cyan-300/45", isSel);
+      });
+    }
+
+    function setUploadPreview(dataUrl){
+      if(dataUrl){
+        avatarPreview.src = dataUrl;
+        avatarPreview.classList.remove("hidden");
+        avatarPreviewPlaceholder.classList.add("hidden");
+      } else {
+        avatarPreview.removeAttribute("src");
+        avatarPreview.classList.add("hidden");
+        avatarPreviewPlaceholder.classList.remove("hidden");
+      }
+    }
+
+    function renderGenres(filter=""){
+      const q = filter.trim().toLowerCase();
+      const list = genresAll.filter(g => g.toLowerCase().includes(q));
+      genresList.innerHTML = "";
+      list.forEach(g=>{
+        const id = `g_${g.replace(/\W+/g,'_')}`;
+        const wrap = document.createElement("label");
+        wrap.className = `
+          flex items-center gap-2 rounded-2xl px-3 py-2
+          bg-black/20 border border-white/10 hover:border-cyan-300/30 transition cursor-pointer
+        `;
+        wrap.innerHTML = `
+          <input type="checkbox" class="accent-cyan-300" id="${id}" ${state.genres.has(g) ? "checked":""}/>
+          <span class="text-sm text-slate-100">${g}</span>
+        `;
+        wrap.querySelector("input").addEventListener("change", (e)=>{
+          if(e.target.checked) state.genres.add(g);
+          else state.genres.delete(g);
+          updateCounts();
+          updateLive();
+        });
+        genresList.appendChild(wrap);
+      });
+      updateCounts();
+    }
+
+    function renderTags(filter=""){
+      const q = filter.trim().toLowerCase();
+      const list = tagsAll.filter(t => t.toLowerCase().includes(q));
+      tagsList.innerHTML = "";
+      list.forEach(t=>{
+        const btn = document.createElement("button");
+        btn.type = "button";
+        const selected = state.tags.has(t);
+        btn.className = `
+          px-3 py-2 rounded-2xl text-sm border transition
+          ${selected ? "bg-pink-400/15 border-pink-300/35 glow-pink text-slate-100" : "bg-black/20 border-white/10 hover:border-pink-300/30 text-slate-100"}
+        `;
+        btn.textContent = t;
+        btn.addEventListener("click", ()=>{
+          if(state.tags.has(t)) state.tags.delete(t);
+          else state.tags.add(t);
+          renderTags(tagSearch.value);
+          updateCounts();
+          updateLive();
+        });
+        tagsList.appendChild(btn);
+      });
+      updateCounts();
+    }
+
+    function updateCounts(){
+      genresCount.textContent = `${state.genres.size} مختار`;
+      tagsCount.textContent = `${state.tags.size} مختار`;
+      liveGenres.textContent = String(state.genres.size);
+      liveTags.textContent = String(state.tags.size);
+    }
+
+    function renderSuggestions(){
+      suggestions.innerHTML = "";
+      suggestionsAll.forEach(u=>{
+        const card = document.createElement("div");
+        card.className = "rounded-2xl bg-white/5 border border-white/10 p-4 hover:border-cyan-300/25 transition";
+        const followed = state.follows.has(u.id);
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-slate-100 truncate">${u.name}</p>
+              <p class="text-[11px] text-cyan-200/90 truncate">@${u.handle}</p>
+              <p class="text-[11px] text-slate-200/70 mt-2">${u.bio}</p>
+            </div>
+            <button type="button"
+              class="followBtn px-3 py-2 rounded-xl text-xs border transition
+                     ${followed ? "bg-violet-400/15 border-violet-300/35 glow-violet" : "bg-white/5 border-white/10 hover:border-violet-300/25"}"
+              data-id="${u.id}">
+              ${followed ? "Unfollow" : "Follow"}
+            </button>
+          </div>
+        `;
+        card.querySelector(".followBtn").addEventListener("click", ()=>{
+          if(state.follows.has(u.id)) state.follows.delete(u.id);
+          else state.follows.add(u.id);
+          updateFollowCount();
+          renderSuggestions();
+          updateLive();
+        });
+        suggestions.appendChild(card);
+      });
+      updateFollowCount();
+    }
+
+    function updateFollowCount(){
+      followCount.textContent = String(state.follows.size);
+      liveFollows.textContent = String(state.follows.size);
+    }
+
+    function updateLiveAvatar(){
+      // If upload exists, show image; else show preset svg
+      const showImg = !!state.avatarUploadDataUrl;
+      liveAvatarImg.classList.toggle("hidden", !showImg);
+      liveAvatarSvg.classList.toggle("hidden", showImg);
+
+      if(showImg){
+        liveAvatarImg.src = state.avatarUploadDataUrl;
+        liveAvatarSvg.innerHTML = "";
+      } else {
+        const preset = avatarPresets.find(a=>a.id===state.avatarPresetId) || avatarPresets[0];
+        liveAvatarSvg.innerHTML = preset ? preset.svg : "";
+        liveAvatarImg.removeAttribute("src");
+      }
+
+      // Review area too
+      reviewAvatarImg.classList.toggle("hidden", !showImg);
+      reviewAvatarSvg.classList.toggle("hidden", showImg);
+
+      if(showImg){
+        reviewAvatarImg.src = state.avatarUploadDataUrl;
+        reviewAvatarSvg.innerHTML = "";
+      } else {
+        const preset = avatarPresets.find(a=>a.id===state.avatarPresetId) || avatarPresets[0];
+        reviewAvatarSvg.innerHTML = preset ? preset.svg : "";
+        reviewAvatarImg.removeAttribute("src");
+      }
+    }
+
+    function updateLive(){
+      liveHandle.textContent = state.handle ? `@${state.handle}` : "@—";
+      const langLabel = state.language === "ar" ? "العربية" : state.language === "en" ? "English" : state.language === "jp" ? "日本語" : "—";
+      const countryLabel = countryEl?.selectedOptions?.[0]?.textContent || "—";
+      liveMeta.textContent = `${langLabel} • ${state.country ? countryLabel : "بدون دولة"} • ${state.otakuLevel || "بدون مستوى"}`;
+      livePrivacy.textContent = state.profilePublic ? "عام" : "خاص";
+
+      updateCounts();
+      updateFollowCount();
+      updateLiveAvatar();
+    }
+
+    function flashToast(msg){
+      const t = document.createElement("div");
+      t.className = "fixed bottom-5 left-5 z-[60] neon-border rounded-2xl bg-[rgba(8,8,24,.92)] px-4 py-3 text-sm shadow-[0_0_30px_rgba(167,139,250,.15)]";
+      t.innerHTML = `<span class="text-slate-100">${msg}</span>`;
+      document.body.appendChild(t);
+      setTimeout(()=>{ t.style.opacity="0"; t.style.transform="translateY(8px)"; t.style.transition="all .25s"; }, 1200);
+      setTimeout(()=>t.remove(), 1600);
+    }
+
+    // ----- Validation (with chat-bubble errors) -----
+    function clearErrors(step){
+      const panel = document.querySelector(`.step-panel[data-step="${step}"]`);
+      if(!panel) return;
+      panel.querySelectorAll(".field-error").forEach(el=>el.remove());
+      panel.querySelectorAll(".border-pink-300\\/50").forEach(el=>{
+        el.classList.remove("border-pink-300/50");
+      });
+    }
+
+    function showError(targetEl, msg){
+      const wrapper = targetEl.closest(".relative") || targetEl.parentElement;
+      if(!wrapper) return;
+
+      targetEl.classList.add("border-pink-300/50");
+
+      const bubble = document.createElement("div");
+      bubble.className = "field-error bubble mt-2 rounded-2xl px-3 py-2 text-[11px] text-slate-100";
+      bubble.innerHTML = `<span class="text-pink-200 font-semibold">⚠</span> ${msg}`;
+      wrapper.appendChild(bubble);
+    }
+
+    function isValidEmail(email){
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    }
+
+    function handleValid(h){
+      return /^[a-zA-Z0-9_]{3,16}$/.test(h.trim());
+    }
+
+    function calcAge(dateStr){
+      if(!dateStr) return null;
+      const d = new Date(dateStr);
+      if(Number.isNaN(d.getTime())) return null;
+      const today = new Date();
+      let age = today.getFullYear() - d.getFullYear();
+      const m = today.getMonth() - d.getMonth();
+      if(m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
+      return age;
+    }
+
+    function validateStep(step, opts={silent:false}){
+      if(!opts.silent) clearErrors(step);
+
+      if(step === 1){
+        const h = handleEl.value.trim();
+        const l = langEl.value;
+        if(!handleValid(h)){
+          if(!opts.silent) showError(handleEl, "الـ Handle لازم يكون 3–16 (حروف/أرقام/underscore).");
+          return false;
+        }
+        if(!l){
+          if(!opts.silent) showError(langEl, "اختر لغة للواجهة.");
+          return false;
+        }
+        return true;
+      }
+
+      if(step === 2){
+        const e = emailEl.value.trim();
+        const p = passwordEl.value;
+        const c = confirmPasswordEl.value;
+
+        if(!isValidEmail(e)){
+          if(!opts.silent) showError(emailEl, "اكتب بريد صحيح (مثل you@neon.city).");
+          return false;
+        }
+        const pw = passwordScore(p);
+        if(pw.score < 3){
+          if(!opts.silent) showError(passwordEl, "كلمة المرور ضعيفة — زوّد الطول والتنوع.");
+          return false;
+        }
+        if(p !== c){
+          if(!opts.silent) showError(confirmPasswordEl, "التأكيد لا يطابق كلمة المرور.");
+          return false;
+        }
+        return true;
+      }
+
+      if(step === 3){
+        const dob = dobEl.value;
+        const country = countryEl.value;
+
+        const age = calcAge(dob);
+        if(!dob || age === null){
+          if(!opts.silent) showError(dobEl, "حدد تاريخ ميلاد صحيح.");
+          return false;
+        }
+        if(age < 13){
+          if(!opts.silent) showError(dobEl, "لازم يكون عمرك 13+ للانضمام.");
+          return false;
+        }
+        if(!country){
+          if(!opts.silent) showError(countryEl, "اختر الدولة.");
+          return false;
+        }
+        if(!state.otakuLevel){
+          if(!opts.silent) {
+            // show bubble under grid
+            const fake = otakuGrid;
+            const bubble = document.createElement("div");
+            bubble.className = "field-error bubble mt-3 rounded-2xl px-3 py-2 text-[11px] text-slate-100";
+            bubble.innerHTML = `<span class="text-pink-200 font-semibold">⚠</span> اختر مستوى أوتاكو.`;
+            fake.parentElement.appendChild(bubble);
+          }
+          return false;
+        }
+        return true;
+      }
+
+      if(step === 4){
+        if(!state.avatarUploadDataUrl && !state.avatarPresetId){
+          if(!opts.silent){
+            // bubble under grid block
+            const panel = document.querySelector(`.step-panel[data-step="4"]`);
+            const bubble = document.createElement("div");
+            bubble.className = "field-error bubble mt-3 rounded-2xl px-3 py-2 text-[11px] text-slate-100";
+            bubble.innerHTML = `<span class="text-pink-200 font-semibold">⚠</span> اختر أفاتار جاهز أو ارفع صورة.`;
+            panel.appendChild(bubble);
+          }
+          return false;
+        }
+        return true;
+      }
+
+      if(step === 5){
+        if(state.genres.size < 1){
+          if(!opts.silent) showError(genreSearch, "اختر Genre واحد على الأقل.");
+          return false;
+        }
+        if(state.tags.size < 1){
+          if(!opts.silent) showError(tagSearch, "اختر Tag واحد على الأقل.");
+          return false;
+        }
+        return true;
+      }
+
+      // steps 6 & 7 no required fields
+      return true;
+    }
+
+    // ----- Password strength -----
+    function passwordScore(p){
+      const tests = [
+        { id:"len",  ok: p.length >= 8, label:"طول 8+ أحرف" },
+        { id:"low",  ok: /[a-z]/.test(p), label:"حروف صغيرة" },
+        { id:"up",   ok: /[A-Z]/.test(p), label:"حروف كبيرة" },
+        { id:"num",  ok: /[0-9]/.test(p), label:"أرقام" },
+        { id:"sp",   ok: /[^a-zA-Z0-9]/.test(p), label:"رموز خاصة" },
+      ];
+      const passed = tests.filter(t=>t.ok).length;
+      // score 0..5
+      const label =
+        passed <= 1 ? "ضعيفة جدًا" :
+        passed === 2 ? "ضعيفة" :
+        passed === 3 ? "جيدة" :
+        passed === 4 ? "قوية" : "أسطورية";
+      const percent = Math.min(100, Math.round((passed/5)*100));
+      return { score: passed, label, percent, tests };
+    }
+
+    function updatePasswordUI(){
+      const p = passwordEl.value;
+      const s = passwordScore(p);
+      pwLabel.textContent = p ? s.label : "—";
+      pwBar.style.width = `${p ? s.percent : 0}%`;
+
+      pwHints.innerHTML = "";
+      s.tests.forEach(t=>{
+        const li = document.createElement("li");
+        li.className = "flex items-center gap-2";
+        li.innerHTML = `
+          <span class="${t.ok ? "text-cyan-300" : "text-slate-200/50"}">${t.ok ? "✔" : "•"}</span>
+          <span class="${t.ok ? "text-slate-100" : "text-slate-200/70"}">${t.label}</span>
+        `;
+        pwHints.appendChild(li);
+      });
+    }
+
+    // ----- Step navigation -----
+    let currentStep = 1;
+
+    function setHeaderForStep(step){
+      stepTitle.textContent = stepMeta[step-1].title;
+      stepSubtitle.textContent = stepMeta[step-1].subtitle;
+    }
+
+    function updateProgress(){
+      progressText.textContent = `${currentStep} / ${TOTAL_STEPS}`;
+      const pct = Math.round(((currentStep - 1) / (TOTAL_STEPS - 1)) * 100);
+      progressBar.style.width = `${pct}%`;
+      btnBack.disabled = currentStep === 1;
+
+      // toggle Next/Submit
+      const isLast = currentStep === TOTAL_STEPS;
+      btnNext.classList.toggle("hidden", isLast);
+      btnSubmit.classList.toggle("hidden", !isLast);
+
+      updateStepperUI();
+    }
+
+    function showStep(step){
+      panels.forEach(p => p.classList.remove("active","anim-in","anim-out"));
+      const panel = document.querySelector(`.step-panel[data-step="${step}"]`);
+      if(panel){
+        panel.classList.add("active","anim-in");
+      }
+      setHeaderForStep(step);
+      updateProgress();
+
+      // special: fill review on step 8
+      if(step === 8) buildReview();
+    }
+
+    function goToStep(step){
+      // animate out old panel quickly
+      const old = document.querySelector(`.step-panel[data-step="${currentStep}"]`);
+      if(old){
+        old.classList.remove("anim-in");
+        old.classList.add("anim-out");
+      }
+      // change after short timeout to let anim-out start
+      setTimeout(()=>{
+        currentStep = step;
+        showStep(currentStep);
+      }, 90);
+    }
+
+    function nextStep(){
+      if(!validateStep(currentStep)) return;
+      persistFromInputs(currentStep);
+      if(currentStep < TOTAL_STEPS) goToStep(currentStep + 1);
+    }
+
+    function prevStep(){
+      persistFromInputs(currentStep);
+      if(currentStep > 1) goToStep(currentStep - 1);
+    }
+
+    function persistFromInputs(step){
+      if(step === 1){
+        state.handle = handleEl.value.trim();
+        state.language = langEl.value;
+      }
+      if(step === 2){
+        state.email = emailEl.value.trim();
+        state.password = passwordEl.value;
+      }
+      if(step === 3){
+        state.dob = dobEl.value;
+        state.country = countryEl.value;
+        state.bio = bioEl.value.trim();
+      }
+      if(step === 7){
+        state.notifFollows = notifFollowsEl.checked;
+        state.notifContent = notifContentEl.checked;
+        state.notifMessages = notifMessagesEl.checked;
+
+        state.profilePublic = profilePublicEl.checked;
+        state.showCountry = showCountryEl.checked;
+        state.showAge = showAgeEl.checked;
+        state.showEmail = showEmailEl.checked;
+      }
+      updateLive();
+    }
+
+    // ----- Review -----
+    function langName(code){
+      return code === "ar" ? "العربية" : code === "en" ? "English" : code === "jp" ? "日本語" : "—";
+    }
+
+    function buildReview(){
+      persistFromInputs(7); // ensure toggles captured
+      persistFromInputs(3);
+      persistFromInputs(2);
+      persistFromInputs(1);
+
+      reviewHandle.textContent = state.handle ? `@${state.handle}` : "@—";
+      reviewLang.textContent = `لغة: ${langName(state.language)}`;
+
+      updateLiveAvatar();
+
+      const countryLabel = countryEl?.selectedOptions?.[0]?.textContent || "—";
+      const age = calcAge(state.dob);
+
+      const lines = [
+        { k:"Email", v: state.email || "—" },
+        { k:"Country", v: state.country ? countryLabel : "—" },
+        { k:"Otaku Level", v: state.otakuLevel || "—" },
+        { k:"Bio", v: state.bio ? state.bio : "—" },
+        { k:"Genres", v: state.genres.size ? Array.from(state.genres).slice(0,6).join(", ") + (state.genres.size>6?"…":"") : "—" },
+        { k:"Tags", v: state.tags.size ? Array.from(state.tags).slice(0,6).join(", ") + (state.tags.size>6?"…":"") : "—" },
+        { k:"Following", v: `${state.follows.size}` },
+        { k:"Profile", v: state.profilePublic ? "عام" : "خاص" },
+        { k:"Show Country", v: state.showCountry ? "نعم" : "لا" },
+        { k:"Show Age", v: state.showAge ? (age ? `نعم (${age})` : "نعم") : "لا" },
+        { k:"Show Email", v: state.showEmail ? "نعم" : "لا" },
+        { k:"Notifications", v: [
+            state.notifFollows ? "Follows" : null,
+            state.notifContent ? "Content" : null,
+            state.notifMessages ? "Messages" : null
+          ].filter(Boolean).join(", ") || "None" }
+      ];
+
+      reviewSummary.innerHTML = lines.map(x=>`
+        <div class="flex items-start justify-between gap-3 rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+          <span class="text-slate-200/80 text-xs">${x.k}</span>
+          <span class="text-slate-100 text-sm text-left max-w-[70%] break-words">${escapeHtml(x.v)}</span>
+        </div>
+      `).join("");
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[s]));
+    }
+
+    // ----- Submit flow (Loading -> Success modal) -----
+    function openLoading(){
+      loadingOverlay.classList.remove("hidden");
+      loadingOverlay.classList.add("flex");
+    }
+    function closeLoading(){
+      loadingOverlay.classList.add("hidden");
+      loadingOverlay.classList.remove("flex");
+    }
+    function openSuccess(){
+      successModal.classList.remove("hidden");
+      successModal.classList.add("flex");
+    }
+    function closeSuccess(){
+      successModal.classList.add("hidden");
+      successModal.classList.remove("flex");
+    }
+
+    function buildSuccessSummary(){
+      const countryLabel = countryEl?.selectedOptions?.[0]?.textContent || "—";
+      const age = calcAge(state.dob);
+
+      const items = [
+        { k:"@Handle", v: state.handle ? `@${state.handle}` : "—" },
+        { k:"Language", v: langName(state.language) },
+        { k:"Email", v: state.email || "—" },
+        { k:"Country", v: state.country ? countryLabel : "—" },
+        { k:"Age", v: age ? String(age) : "—" },
+        { k:"Otaku", v: state.otakuLevel || "—" },
+        { k:"Genres", v: String(state.genres.size) },
+        { k:"Tags", v: String(state.tags.size) },
+        { k:"Following", v: String(state.follows.size) },
+        { k:"Profile", v: state.profilePublic ? "Public" : "Private" },
+      ];
+
+      successSummary.innerHTML = items.map(x=>`
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+          <div class="text-[11px] text-slate-200/70">${x.k}</div>
+          <div class="text-sm text-slate-100 font-semibold break-words">${escapeHtml(x.v)}</div>
+        </div>
+      `).join("");
+    }
+
+    function submitWizard(){
+      // validate all sequentially
+      for(let s=1; s<=7; s++){
+        goToStep(s);
+        if(!validateStep(s)){
+          flashToast("فيه حاجة ناقصة — تم تحديدها برسالة فقاعة 💬");
+          return;
+        }
+        persistFromInputs(s);
+      }
+
+      // ensure review step up-to-date
+      buildReview();
+
+      openLoading();
+      // simulate network
+      setTimeout(()=>{
+        closeLoading();
+        buildSuccessSummary();
+        openSuccess();
+      }, 1100);
+    }
+
+    // ----- Wire events -----
+    btnNext.addEventListener("click", nextStep);
+    btnBack.addEventListener("click", prevStep);
+    btnSubmit.addEventListener("click", submitWizard);
+
+    btnReset.addEventListener("click", ()=>{
+      if(confirm("إعادة تعيين كل شيء؟")){
+        // quick reset
+        Object.assign(state, {
+          handle:"", language:"", email:"", password:"",
+          dob:"", country:"", bio:"", otakuLevel:"",
+          avatarPresetId:"", avatarUploadDataUrl:"",
+          genres:new Set(), tags:new Set(), follows:new Set(),
+          notifFollows:true, notifContent:true, notifMessages:false,
+          profilePublic:true, showCountry:true, showAge:false, showEmail:false
+        });
+
+        // reset inputs
+        handleEl.value = "";
+        langEl.value = "";
+        emailEl.value = "";
+        passwordEl.value = "";
+        confirmPasswordEl.value = "";
+        dobEl.value = "";
+        countryEl.value = "";
+        bioEl.value = "";
+        bioCount.textContent = "0 / 160";
+
+        // toggles
+        notifFollowsEl.checked = true;
+        notifContentEl.checked = true;
+        notifMessagesEl.checked = false;
+        profilePublicEl.checked = true;
+        showCountryEl.checked = true;
+        showAgeEl.checked = false;
+        showEmailEl.checked = false;
+
+        // avatar
+        state.avatarPresetId = "";
+        state.avatarUploadDataUrl = "";
+        avatarUpload.value = "";
+        setUploadPreview("");
+
+        // rerender lists
+        renderOtaku();
+        renderAvatarGrid();
+        renderGenres(genreSearch.value);
+        renderTags(tagSearch.value);
+        renderSuggestions();
+        updatePasswordUI();
+        updateLive();
+
+        // back to step 1
+        currentStep = 1;
+        clearAllErrors();
+        showStep(1);
+        flashToast("تمت إعادة التعيين ✨");
+      }
+    });
+
+    function clearAllErrors(){
+      for(let s=1;s<=TOTAL_STEPS;s++) clearErrors(s);
+    }
+
+    // Live state sync
+    handleEl.addEventListener("input", ()=>{
+      state.handle = handleEl.value.trim();
+      updateLive();
+    });
+    langEl.addEventListener("change", ()=>{
+      state.language = langEl.value;
+      updateLive();
+    });
+
+    emailEl.addEventListener("input", ()=> state.email = emailEl.value.trim());
+    passwordEl.addEventListener("input", ()=>{
+      state.password = passwordEl.value;
+      updatePasswordUI();
+    });
+    confirmPasswordEl.addEventListener("input", ()=>{ /* noop */ });
+
+    bioEl.addEventListener("input", ()=>{
+      state.bio = bioEl.value;
+      bioCount.textContent = `${bioEl.value.length} / 160`;
+    });
+
+    dobEl.addEventListener("change", ()=> state.dob = dobEl.value);
+    countryEl.addEventListener("change", ()=>{
+      state.country = countryEl.value;
+      updateLive();
+    });
+
+    avatarUpload.addEventListener("change", ()=>{
+      const file = avatarUpload.files && avatarUpload.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.avatarUploadDataUrl = String(reader.result || "");
+        // keep preset id (for fallback), but prioritize upload
+        setUploadPreview(state.avatarUploadDataUrl);
+        markAvatarSelected();
+        updateLive();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    genreSearch.addEventListener("input", ()=> renderGenres(genreSearch.value));
+    tagSearch.addEventListener("input", ()=> renderTags(tagSearch.value));
+
+    // toggles
+    [notifFollowsEl, notifContentEl, notifMessagesEl, profilePublicEl, showCountryEl, showAgeEl, showEmailEl].forEach(el=>{
+      el.addEventListener("change", ()=>{
+        persistFromInputs(7);
+        updateLive();
+      });
+    });
+
+    // close success
+    btnCloseSuccess.addEventListener("click", closeSuccess);
+    successModal.addEventListener("click", (e)=>{
+      if(e.target === successModal) closeSuccess();
+    });
+
+    // Keyboard: Esc closes success
+    window.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape"){
+        if(!successModal.classList.contains("hidden")) closeSuccess();
+      }
+    });
+
+    // ----- Init -----
+    function init(){
+      renderStepper();
+      renderOtaku();
+      renderAvatarGrid();
+      renderGenres("");
+      renderTags("");
+      renderSuggestions();
+      updatePasswordUI();
+      updateLive();
+
+      // default avatar selection (for nicer first look)
+      state.avatarPresetId = avatarPresets[0].id;
+      markAvatarSelected();
+      updateLiveAvatar();
+
+      showStep(1);
+    }
+
+    init();
+  </script>
+</body>
+</html>

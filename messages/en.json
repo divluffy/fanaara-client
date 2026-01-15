@@ -1,0 +1,553 @@
+{
+  "signup_steps_01": {
+    "title": "Prepare your list… and start the journey!",
+    "subtitle": "One account to track anime and comics and share your taste with the community.",
+
+    "email": {
+      "label": "Email address",
+      "placeholder": "name@example.com",
+      "required": "Email is required",
+      "invalid": "Invalid email format"
+    },
+
+    "social": {
+      "google": "Continue with Google",
+      "apple": "Continue with Apple",
+      "microsoft": "Continue with Microsoft"
+    },
+
+    "password": {
+      "label": "Password",
+      "placeholder": "••••••••",
+      "required": "Password is required",
+      "min": "Password must be at least 8 characters",
+      "pattern": "Must contain letters and numbers",
+      "hint": "8+ characters, must include letters and numbers.",
+      "show": "Show password",
+      "hide": "Hide password"
+    },
+
+    "terms": {
+      "text": "I agree to",
+      "link": "Privacy Policy & Terms of Use",
+      "required": "You must accept the terms and policies"
+    },
+
+    "submit": {
+      "button": "Create account",
+      "loading": "Creating account..."
+    },
+
+    "divider": "or continue with"
+  },
+
+  "signup_steps_02": {
+    "title": "Prepare your profile… and start the journey!",
+    "subtitle": "A few details to personalize your experience.",
+    "username": {
+      "label": "Username",
+      "placeholder": "your_username",
+      "description": "Unique username, 4–32 characters, letters, numbers, or underscore.",
+      "required": "Username is required.",
+      "invalid": "Must start with a letter, 4–32 chars, letters/numbers/_ only.",
+      "checking": "Checking…",
+      "taken": "This username is already taken."
+    },
+    "first_name": {
+      "label": "First name",
+      "placeholder": "first name",
+      "required": "First name is required.",
+      "invalid": "Please enter a valid name."
+    },
+    "last_name": {
+      "label": "Last name",
+      "placeholder": "last name",
+      "required": "Last name is required.",
+      "invalid": "Please enter a valid name."
+    },
+    "dob": {
+      "label": "Birthday",
+      "required": "Birthday is required."
+    },
+    "country": {
+      "label": "Your country",
+      "placeholder": "Search your country",
+      "required": "Country is required."
+    },
+    "gender": {
+      "label": "Your gender",
+      "required": "Gender is required.",
+      "aria": "Gender",
+      "male": { "label": "Male", "desc": "He / Him" },
+      "female": { "label": "Female", "desc": "She / Her" },
+      "na": { "label": "Prefer not to say", "desc": "No answer" }
+    },
+    "submit": {
+      "continue": "Continue",
+      "loading": "Saving…"
+    }
+  },
+
+  "date": {
+    "day": "Day",
+    "month": "Month",
+    "year": "Year"
+  },
+
+  "g": {
+    "platform_name": "Fanara",
+    "sign_up": "Sign up",
+    "login": "Log in"
+  },
+
+  "signup_playground": {
+    "pageTitle": "Pro Input + Action Ideas",
+    "pageSubtitle": "Multiple action button styles (delete / searching / verifying / alert). RTL/LTR ready.",
+
+    "title": "Create your account",
+    "subtitle": "Join the Anime & Comics community.",
+
+    "fields": {
+      "username": { "label": "Username", "placeholder": "e.g. Luffy" },
+      "email": { "label": "Email", "placeholder": "you@example.com" },
+      "password": {
+        "label": "Password",
+        "placeholder": "At least 8 characters"
+      },
+      "confirmPassword": {
+        "label": "Confirm password",
+        "placeholder": "Re-enter your password"
+      }
+    },
+
+    "description": {
+      "username": "Public name shown on your profile."
+    },
+
+    "actions": {
+      "submit": "Sign up",
+      "togglePasswordShow": "Show password",
+      "togglePasswordHide": "Hide password",
+      "notify": "Notify"
+    },
+
+    "toast": {
+      "signupTitle": "Success",
+      "signupMessage": "Form submitted (demo).",
+      "emailActionTitle": "Action triggered",
+      "emailActionMessage": "This button is inside the input frame with border + shadow."
+    },
+
+    "errors": {
+      "usernameMin": "Username must be at least 3 characters.",
+      "emailInvalid": "Please enter a valid email address.",
+      "passwordMin": "Password must be at least 8 characters.",
+      "confirmPasswordMin": "Please confirm your password.",
+      "passwordsDontMatch": "Passwords do not match."
+    },
+
+    "actionsDemo": {
+      "title": "Action button variations",
+      "subtitle": "All actions are inside the input frame and match its height.",
+
+      "alert": {
+        "label": "Alert action (chip button)",
+        "placeholder": "Type anything…",
+        "caption": "A clear button-like action with border + shadow.",
+        "actionLabel": "Alert"
+      },
+
+      "clear": {
+        "label": "Clear action (icon-only)",
+        "placeholder": "Type then clear…",
+        "caption": "Minimal icon action, still button-like.",
+        "actionAria": "Clear input"
+      },
+
+      "search": {
+        "label": "Search action (loading)",
+        "placeholder": "Search anime / comics…",
+        "caption": "Shows “Searching…” with spinner and disables itself.",
+        "actionIdle": "Search",
+        "actionSearching": "Searching…",
+        "toastStartTitle": "Search started",
+        "toastStartBody": "Demo search running…",
+        "toastDoneTitle": "Search done",
+        "toastDoneBody": "Demo search finished."
+      },
+
+      "verify": {
+        "label": "Verify action (idle → verifying → verified)",
+        "placeholder": "email@example.com",
+        "caption": "Chip switches label & style, stays inside input.",
+        "actionIdle": "Verify",
+        "actionVerifying": "Verifying…",
+        "actionVerified": "Verified",
+        "toastStartTitle": "Verification started",
+        "toastStartBody": "Checking your data…",
+        "toastDoneTitle": "Verified",
+        "toastDoneBody": "Your info is verified (demo)."
+      },
+
+      "delete": {
+        "label": "Delete action (danger)",
+        "placeholder": "Temporary…",
+        "caption": "Danger tone with subtle border + shadow.",
+        "actionLabel": "Delete",
+        "toastTitle": "Deleted",
+        "toastBody": "Value cleared (demo)."
+      },
+
+      "readonly": {
+        "label": "Readonly",
+        "caption": "Selectable text, no editing."
+      },
+
+      "disabled": {
+        "label": "Disabled",
+        "caption": "Blocked interactions (including action)."
+      },
+
+      "loading": {
+        "label": "Loading (input state)",
+        "caption": "Input shows a spinner inside the frame."
+      },
+
+      "clearToastTitle": "Cleared",
+      "clearToastBody": "Input value cleared (demo).",
+      "alertToastTitle": "Alert opened",
+      "alertToastBody": "Action button triggered a toast (demo).",
+      "deleteToastTitle": "Deleted",
+      "deleteToastBody": "Input value deleted (demo)."
+    }
+  },
+  "publish": {
+    "title_post": "Post",
+    "sub_post": "Write your thoughts",
+    "title_swipes": "Swipes",
+    "sub_swipes": "Short videos",
+    "title_story": "Story",
+    "sub_story": "Quick moments"
+  },
+  "aside": {
+    "home": "Home",
+    "anime": "Anime",
+    "comics": "Comics",
+    "swipes": "Swipes",
+    "gallery": "Gallery",
+    "ranks": "Ranks",
+    "chat": "Chat",
+    "ai": "AI Service",
+    "search": "Search",
+    "notifications": "Notifications",
+    "openProfileMenu": "Open profile menu",
+    "openNotifications": "Open notifications",
+    "link": "Profile"
+  },
+  "login": {
+    "headline": "✨ Welcome back to the world of Anime & Manga!",
+    "subheadline": "Log in to rejoin your otaku crew, continue your story, and never miss a new episode 🚀",
+    "email_label": "Email address",
+    "email_placeholder": "Enter the email you used for your account",
+    "password_label": "Password",
+    "password_placeholder": "Enter your secret password",
+    "remember_me": "Keep me logged in",
+    "forgot_password": "Forgot your password?",
+    "primary_button": "Enter the world",
+    "primary_button_loading": "Summoning your account...",
+    "or": "or continue with",
+    "login_with_google": "Continue with Google",
+    "login_with_apple": "Continue with Apple",
+    "no_account": "New to the community?",
+    "signup_link": "Create a new account",
+    "generic_error": "Something went wrong. Please try again.",
+    "email_required": "Please enter your email address.",
+    "email_invalid": "Please enter a valid email address.",
+    "password_required": "Please enter your password.",
+    "password_min": "Password must be at least 8 characters."
+  },
+  "Metadata": {
+    "landing": {
+      "title": "Fanara | Anime & comics community",
+      "description": "Fanara is a home for anime and comics fans to discuss, track and share."
+    },
+    "login": {
+      "title": "fanara – log in",
+      "description": "log in to fanara to join anime and comics communities."
+    }
+  },
+  "Landing": {
+    "brand": {
+      "tagline": "Anime & Comics Community"
+    },
+    "nav": {
+      "features": "Features",
+      "community": "Community",
+      "creators": "For Creators",
+      "howItWorks": "How it works"
+    },
+    "hero": {
+      "badge": "Built for anime & manga fans",
+      "title": "Your home for <anime>anime</anime> & <manga>manga</manga> communities.",
+      "subtitle": "Discover new series, follow your favorite creators, build lists, discuss episodes in real time, and grow your own audience – all in one social platform designed especially for otaku."
+    },
+    "cta": {
+      "primary": "Get started free",
+      "secondary": "I already have an account"
+    },
+    "stats": {
+      "watchlists": "watchlists created",
+      "creators": "active creators",
+      "noAds": "No ads during beta"
+    },
+    "footer": {
+      "madeFor": "Made for anime & manga fans. Not affiliated with any studios or publishers."
+    }
+  },
+  "countries": {
+    "PS": "Palestine",
+    "AD": "Andorra",
+    "AE": "United Arab Emirates",
+    "AF": "Afghanistan",
+    "AG": "Antigua and Barbuda",
+    "AI": "Anguilla",
+    "AL": "Albania",
+    "AM": "Armenia",
+    "AO": "Angola",
+    "AR": "Argentina",
+    "AS": "American Samoa",
+    "AT": "Austria",
+    "AU": "Australia",
+    "AW": "Aruba",
+    "AX": "Åland Islands",
+    "AZ": "Azerbaijan",
+    "BA": "Bosnia and Herzegovina",
+    "BB": "Barbados",
+    "BD": "Bangladesh",
+    "BE": "Belgium",
+    "BF": "Burkina Faso",
+    "BG": "Bulgaria",
+    "BH": "Bahrain",
+    "BI": "Burundi",
+    "BJ": "Benin",
+    "BL": "Saint Barthélemy",
+    "BM": "Bermuda",
+    "BN": "Brunei Darussalam",
+    "BO": "Bolivia",
+    "BQ": "Bonaire, Sint Eustatius and Saba",
+    "BR": "Brazil",
+    "BS": "Bahamas",
+    "BT": "Bhutan",
+    "BV": "Bouvet Island",
+    "BW": "Botswana",
+    "BY": "Belarus",
+    "BZ": "Belize",
+    "CA": "Canada",
+    "CC": "Cocos (Keeling) Islands",
+    "CD": "Democratic Republic of the Congo",
+    "CF": "Central African Republic",
+    "CG": "Republic of the Congo",
+    "CH": "Switzerland",
+    "CI": "Côte d'Ivoire",
+    "CK": "Cook Islands",
+    "CL": "Chile",
+    "CM": "Cameroon",
+    "CN": "China",
+    "CO": "Colombia",
+    "CR": "Costa Rica",
+    "CU": "Cuba",
+    "CV": "Cape Verde",
+    "CW": "Curaçao",
+    "CX": "Christmas Island",
+    "CY": "Cyprus",
+    "CZ": "Czech Republic",
+    "DE": "Germany",
+    "DJ": "Djibouti",
+    "DK": "Denmark",
+    "DM": "Dominica",
+    "DO": "Dominican Republic",
+    "DZ": "Algeria",
+    "EC": "Ecuador",
+    "EE": "Estonia",
+    "EG": "Egypt",
+    "EH": "Western Sahara",
+    "ER": "Eritrea",
+    "ES": "Spain",
+    "ET": "Ethiopia",
+    "FI": "Finland",
+    "FJ": "Fiji",
+    "FM": "Micronesia",
+    "FO": "Faroe Islands",
+    "FR": "France",
+    "GA": "Gabon",
+    "GB": "United Kingdom",
+    "GD": "Grenada",
+    "GE": "Georgia",
+    "GF": "French Guiana",
+    "GG": "Guernsey",
+    "GH": "Ghana",
+    "GI": "Gibraltar",
+    "GL": "Greenland",
+    "GM": "Gambia",
+    "GN": "Guinea",
+    "GP": "Guadeloupe",
+    "GQ": "Equatorial Guinea",
+    "GR": "Greece",
+    "GT": "Guatemala",
+    "GU": "Guam",
+    "GW": "Guinea-Bissau",
+    "GY": "Guyana",
+    "HK": "Hong Kong",
+    "HM": "Heard Island and McDonald Islands",
+    "HN": "Honduras",
+    "HR": "Croatia",
+    "HT": "Haiti",
+    "HU": "Hungary",
+    "ID": "Indonesia",
+    "IE": "Ireland",
+    "IM": "Isle of Man",
+    "IN": "India",
+    "IO": "British Indian Ocean Territory",
+    "IQ": "Iraq",
+    "IR": "Iran",
+    "IS": "Iceland",
+    "IT": "Italy",
+    "JE": "Jersey",
+    "JM": "Jamaica",
+    "JO": "Jordan",
+    "JP": "Japan",
+    "KE": "Kenya",
+    "KG": "Kyrgyzstan",
+    "KH": "Cambodia",
+    "KI": "Kiribati",
+    "KM": "Comoros",
+    "KN": "Saint Kitts and Nevis",
+    "KP": "North Korea",
+    "KR": "South Korea",
+    "KW": "Kuwait",
+    "KY": "Cayman Islands",
+    "KZ": "Kazakhstan",
+    "LA": "Lao People's Democratic Republic",
+    "LB": "Lebanon",
+    "LC": "Saint Lucia",
+    "LI": "Liechtenstein",
+    "LK": "Sri Lanka",
+    "LR": "Liberia",
+    "LS": "Lesotho",
+    "LT": "Lithuania",
+    "LU": "Luxembourg",
+    "LV": "Latvia",
+    "LY": "Libya",
+    "MA": "Morocco",
+    "MC": "Monaco",
+    "MD": "Moldova",
+    "ME": "Montenegro",
+    "MF": "Saint Martin (French part)",
+    "MG": "Madagascar",
+    "MH": "Marshall Islands",
+    "MK": "North Macedonia",
+    "ML": "Mali",
+    "MM": "Myanmar",
+    "MN": "Mongolia",
+    "MO": "Macao",
+    "MP": "Northern Mariana Islands",
+    "MQ": "Martinique",
+    "MR": "Mauritania",
+    "MS": "Montserrat",
+    "MT": "Malta",
+    "MU": "Mauritius",
+    "MV": "Maldives",
+    "MW": "Malawi",
+    "MX": "Mexico",
+    "MY": "Malaysia",
+    "MZ": "Mozambique",
+    "NA": "Namibia",
+    "NC": "New Caledonia",
+    "NE": "Niger",
+    "NF": "Norfolk Island",
+    "NG": "Nigeria",
+    "NI": "Nicaragua",
+    "NL": "Netherlands",
+    "NO": "Norway",
+    "NP": "Nepal",
+    "NR": "Nauru",
+    "NU": "Niue",
+    "NZ": "New Zealand",
+    "OM": "Oman",
+    "PA": "Panama",
+    "PE": "Peru",
+    "PF": "French Polynesia",
+    "PG": "Papua New Guinea",
+    "PH": "Philippines",
+    "PK": "Pakistan",
+    "PL": "Poland",
+    "PM": "Saint Pierre and Miquelon",
+    "PN": "Pitcairn",
+    "PR": "Puerto Rico",
+    "PT": "Portugal",
+    "PW": "Palau",
+    "PY": "Paraguay",
+    "QA": "Qatar",
+    "RE": "Réunion",
+    "RO": "Romania",
+    "RS": "Serbia",
+    "RU": "Russia",
+    "RW": "Rwanda",
+    "SA": "Saudi Arabia",
+    "SB": "Solomon Islands",
+    "SC": "Seychelles",
+    "SD": "Sudan",
+    "SE": "Sweden",
+    "SG": "Singapore",
+    "SH": "Saint Helena, Ascension and Tristan da Cunha",
+    "SI": "Slovenia",
+    "SJ": "Svalbard and Jan Mayen",
+    "SK": "Slovakia",
+    "SL": "Sierra Leone",
+    "SM": "San Marino",
+    "SN": "Senegal",
+    "SO": "Somalia",
+    "SR": "Suriname",
+    "SS": "South Sudan",
+    "ST": "São Tomé and Príncipe",
+    "SV": "El Salvador",
+    "SX": "Sint Maarten (Dutch part)",
+    "SY": "Syrian Arab Republic",
+    "SZ": "Eswatini",
+    "TC": "Turks and Caicos Islands",
+    "TD": "Chad",
+    "TF": "French Southern Territories",
+    "TG": "Togo",
+    "TH": "Thailand",
+    "TJ": "Tajikistan",
+    "TK": "Tokelau",
+    "TL": "Timor-Leste",
+    "TM": "Turkmenistan",
+    "TN": "Tunisia",
+    "TO": "Tonga",
+    "TR": "Turkey",
+    "TT": "Trinidad and Tobago",
+    "TV": "Tuvalu",
+    "TZ": "Tanzania",
+    "UA": "Ukraine",
+    "UG": "Uganda",
+    "UM": "United States Minor Outlying Islands",
+    "US": "United States",
+    "UY": "Uruguay",
+    "UZ": "Uzbekistan",
+    "VA": "Vatican City State",
+    "VC": "Saint Vincent and the Grenadines",
+    "VE": "Venezuela",
+    "VG": "British Virgin Islands",
+    "VI": "U.S. Virgin Islands",
+    "VN": "Viet Nam",
+    "VU": "Vanuatu",
+    "WF": "Wallis and Futuna",
+    "WS": "Samoa",
+    "YE": "Yemen",
+    "YT": "Mayotte",
+    "ZA": "South Africa",
+    "ZM": "Zambia",
+    "ZW": "Zimbabwe"
+  }
+}

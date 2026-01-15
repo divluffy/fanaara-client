@@ -1,0 +1,1461 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تسجيل خطوة-بخطوة — روح أنمي المدرسة</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- (اختياري) خط عربي لطيف -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --accent: #f97316;   /* برتقالي مشمس */
+      --accent2:#22c55e;   /* أخضر لطيف */
+      --ink: #0f172a;
+      --paper:#fff7ed;
+      --line:#b3d5ff;
+      --dots: rgba(59,130,246,.10);
+      --sticker:#fde68a;
+      --secondary:#60a5fa;
+    }
+
+    body{
+      font-family: "Tajawal", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12px 12px, var(--dots) 2px, transparent 3px) 0 0/24px 24px,
+        repeating-linear-gradient(to bottom, rgba(179,213,255,.55) 0px, rgba(179,213,255,.55) 1px, transparent 1px, transparent 26px),
+        linear-gradient(180deg, #fff 0%, var(--paper) 100%);
+      min-height: 100vh;
+    }
+
+    /* Card/Diary vibe */
+    .diary-card{
+      position: relative;
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(15,23,42,.08);
+      box-shadow:
+        0 10px 30px rgba(2, 6, 23, .10),
+        0 2px 0 rgba(2, 6, 23, .06);
+      backdrop-filter: blur(8px);
+    }
+    .diary-card::before{
+      content:"";
+      position:absolute;
+      inset:-10px;
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at 20px 20px, rgba(253,224,71,.55) 0 12px, transparent 13px),
+        radial-gradient(circle at calc(100% - 28px) 28px, rgba(96,165,250,.25) 0 16px, transparent 17px),
+        radial-gradient(circle at 26px calc(100% - 26px), rgba(34,197,94,.18) 0 16px, transparent 17px);
+      z-index:-1;
+      filter: blur(.2px);
+      opacity:.9;
+    }
+    /* “Tape” corners */
+    .tape{
+      position:absolute;
+      width: 110px;
+      height: 34px;
+      background: rgba(253, 230, 138, .85);
+      border: 1px dashed rgba(15, 23, 42, .14);
+      border-radius: 10px;
+      transform: rotate(-6deg);
+      top: -14px;
+      right: 26px;
+      box-shadow: 0 6px 14px rgba(2,6,23,.10);
+    }
+    .tape.left{
+      transform: rotate(8deg);
+      right:auto;
+      left: 26px;
+      top: -10px;
+      background: rgba(191, 219, 254, .65);
+    }
+
+    /* Cute wiggle for selected cards */
+    @keyframes pop {
+      0% { transform: translateY(0) scale(1); }
+      60%{ transform: translateY(-2px) scale(1.02); }
+      100%{ transform: translateY(0) scale(1); }
+    }
+    .pop { animation: pop .28s ease-out; }
+
+    /* Step transitions */
+    .step-panel{
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    .step-hidden{
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+    }
+    .step-visible{
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+      position: relative;
+    }
+
+    /* Icon chip */
+    .icon-chip{
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.75);
+    }
+
+    /* Use CSS variables inside Tailwind-ish */
+    .accent{
+      color: var(--accent);
+    }
+    .bg-accent{
+      background: var(--accent);
+    }
+    .ring-accent{
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 30%, transparent);
+    }
+
+    /* tiny confetti */
+    @keyframes floaty {
+      0% { transform: translateY(0); opacity: 0; }
+      20%{ opacity: 1; }
+      100%{ transform: translateY(-40px); opacity: 0; }
+    }
+    .confetti{
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      border-radius: 22px;
+    }
+    .confetti i{
+      position:absolute;
+      width: 10px; height: 10px;
+      border-radius: 3px;
+      opacity: 0;
+      animation: floaty .9s ease-out forwards;
+      background: color-mix(in oklab, var(--accent) 70%, white);
+      box-shadow: 0 0 0 2px rgba(255,255,255,.6) inset;
+    }
+  </style>
+</head>
+
+<body class="selection:bg-orange-200/70 selection:text-slate-900">
+  <div class="min-h-screen flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-4xl">
+      <!-- Modal -->
+      <div class="diary-card rounded-[22px] p-4 sm:p-6 md:p-8">
+        <div class="tape" aria-hidden="true"></div>
+        <div class="tape left" aria-hidden="true"></div>
+
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full icon-chip">
+              <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white border border-slate-200">
+                <!-- star -->
+                <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2l3.1 6.4L22 9.3l-5 4.9L18.2 22 12 18.7 5.8 22 7 14.2 2 9.3l6.9-1L12 2z"/>
+                </svg>
+              </span>
+              <span class="text-sm text-slate-700">تسجيل جديد • Light Mode</span>
+            </div>
+
+            <h1 class="mt-3 text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight">
+              دفتر البداية ✨
+              <span class="accent">لنصنع ملفك الأنمي اللطيف</span>
+            </h1>
+            <p class="mt-2 text-slate-600 text-sm sm:text-base max-w-2xl">
+              خطوات بسيطة، انتقالات ناعمة، بدون تحقق إدخال — فقط “إحساس المدرسة” المشمس واللطيف ☀️📚
+            </p>
+          </div>
+
+          <!-- Progress pill -->
+          <div class="flex md:flex-col md:items-end gap-2 md:gap-3">
+            <div class="px-4 py-2 rounded-2xl bg-white/80 border border-slate-200 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-extrabold">
+                <span id="stepNum">1</span>
+              </div>
+              <div class="min-w-[150px]">
+                <div class="text-xs text-slate-500">الخطوة</div>
+                <div class="font-bold text-slate-900"><span id="stepTitleMini">ترحيب</span></div>
+              </div>
+            </div>
+
+            <div class="w-full md:w-[240px] bg-white/70 border border-slate-200 rounded-2xl p-3">
+              <div class="flex items-center justify-between text-xs text-slate-500">
+                <span>التقدم</span>
+                <span><span id="stepPct">10</span>%</span>
+              </div>
+              <div class="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div id="bar" class="h-full rounded-full" style="width:10%; background: linear-gradient(90deg, var(--accent), var(--secondary));"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stepper -->
+        <div class="mt-6">
+          <div class="flex items-center gap-2 overflow-x-auto pb-2">
+            <!-- Stepper items will be injected -->
+            <div id="stepper" class="flex items-center gap-2"></div>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="mt-6 relative">
+          <div class="confetti" id="confetti" aria-hidden="true"></div>
+
+          <div id="stepsWrap" class="min-h-[420px]">
+            <!-- Step 1 -->
+            <section class="step-panel step-visible" data-step="1">
+              <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h2 class="text-xl font-extrabold">أهلًا بك في نادي الأنمي 🎒</h2>
+                  <p class="mt-2 text-slate-600">
+                    اختر هدفك الأساسي… والباقي سيأتي كفصل جديد في دفتر يومياتك!
+                  </p>
+
+                  <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="px-3 py-1 rounded-full bg-slate-900 text-white text-xs">مشمس</span>
+                    <span class="px-3 py-1 rounded-full bg-white border border-slate-200 text-xs">لطيف</span>
+                    <span class="px-3 py-1 rounded-full bg-white border border-slate-200 text-xs">ألوان حيوية</span>
+                    <span class="px-3 py-1 rounded-full bg-white border border-slate-200 text-xs">بدون تعقيد</span>
+                  </div>
+                </div>
+
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h3 class="font-extrabold text-slate-900">هدفك</h3>
+                  <p class="mt-1 text-slate-600 text-sm">اضغط بطاقة واحدة (يمكن تغييرها لاحقًا).</p>
+
+                  <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                    <button class="choice goal choice-card" data-choice="تكوين صداقات">
+                      <span class="emoji">🤝</span>
+                      <span class="label">تكوين صداقات</span>
+                      <span class="hint">نلتقي… ونصير فريق!</span>
+                    </button>
+                    <button class="choice goal choice-card" data-choice="توصيات">
+                      <span class="emoji">🎯</span>
+                      <span class="label">توصيات</span>
+                      <span class="hint">اقتراحات حسب ذوقك</span>
+                    </button>
+                    <button class="choice goal choice-card" data-choice="مناقشات">
+                      <span class="emoji">💬</span>
+                      <span class="label">مناقشات</span>
+                      <span class="hint">نقاشات محترمة وممتعة</span>
+                    </button>
+                    <button class="choice goal choice-card" data-choice="رسم">
+                      <span class="emoji">🎨</span>
+                      <span class="label">رسم</span>
+                      <span class="hint">معرض فنك يبدأ هنا</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 2 -->
+            <section class="step-panel step-hidden" data-step="2">
+              <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h2 class="text-xl font-extrabold">حسابك… مثل اسمك في الدفتر ✉️</h2>
+                  <p class="mt-2 text-slate-600">اكتب البريد وكلمة المرور (بدون تحقق هنا).</p>
+
+                  <div class="mt-4 space-y-3">
+                    <label class="block">
+                      <span class="text-sm font-bold text-slate-700">البريد الإلكتروني</span>
+                      <input id="email" type="email" placeholder="name@example.com"
+                        class="mt-2 w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-slate-200"
+                      />
+                    </label>
+                    <label class="block">
+                      <span class="text-sm font-bold text-slate-700">كلمة المرور</span>
+                      <input id="password" type="password" placeholder="••••••••"
+                        class="mt-2 w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-slate-200"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h3 class="font-extrabold">تلميح صغير ✨</h3>
+                  <p class="mt-2 text-slate-600">
+                    تخيّل كلمة المرور “تعويذة” سحرية… كلما كانت أطول وأكثر تنوعًا، كانت أقوى!
+                    <span class="block mt-2 text-xs text-slate-500">* مجرد تلميح — لن نتحقق هنا.</span>
+                  </p>
+
+                  <div class="mt-4 p-4 rounded-2xl border border-slate-200 bg-white/70">
+                    <div class="flex items-start gap-3">
+                      <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+                        <!-- lock -->
+                        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M7 11V8a5 5 0 0 1 10 0v3"/>
+                          <path d="M6 11h12v10H6z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <div class="font-extrabold">خصوصيتك أولًا</div>
+                        <div class="text-sm text-slate-600">سنحافظ على أجواء لطيفة وآمنة.</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 3 -->
+            <section class="step-panel step-hidden" data-step="3">
+              <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h2 class="text-xl font-extrabold">كيف تريد أن يناديك الجميع؟ 🏷️</h2>
+                  <p class="mt-2 text-slate-600">اسم عرض + عمر +16 + “شخصيتك”.</p>
+
+                  <div class="mt-4 space-y-3">
+                    <label class="block">
+                      <span class="text-sm font-bold text-slate-700">اسم العرض</span>
+                      <input id="displayName" type="text" placeholder="مثال: ساسوكي_اللطيف"
+                        class="mt-2 w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-slate-200"
+                      />
+                    </label>
+
+                    <label class="block">
+                      <span class="text-sm font-bold text-slate-700">العمر ( +16 )</span>
+                      <input id="age" type="number" min="16" placeholder="16"
+                        class="mt-2 w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-slate-200"
+                      />
+                      <span class="mt-1 block text-xs text-slate-500">ملاحظة: لا يوجد تحقق، لكن هذا هو الشرط.</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h3 class="font-extrabold">اختر شخصيتك</h3>
+                  <p class="mt-1 text-slate-600 text-sm">أي واحدة تمثلك اليوم؟</p>
+
+                  <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                    <button class="choice persona choice-card" data-choice="هادئ">
+                      <span class="emoji">🌙</span>
+                      <span class="label">هادئ</span>
+                      <span class="hint">ملاحظ ذكي</span>
+                    </button>
+                    <button class="choice persona choice-card" data-choice="مرح">
+                      <span class="emoji">😄</span>
+                      <span class="label">مرح</span>
+                      <span class="hint">مقالب لطيفة</span>
+                    </button>
+                    <button class="choice persona choice-card" data-choice="خجول">
+                      <span class="emoji">🫣</span>
+                      <span class="label">خجول</span>
+                      <span class="hint">ضحكة صغيرة</span>
+                    </button>
+                    <button class="choice persona choice-card" data-choice="حماسي">
+                      <span class="emoji">🔥</span>
+                      <span class="label">حماسي</span>
+                      <span class="hint">طاقة نادي</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 4 -->
+            <section class="step-panel step-hidden" data-step="4">
+              <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h2 class="text-xl font-extrabold">نسخة الأجواء 🎀🧢</h2>
+                  <p class="mt-2 text-slate-600">
+                    “أولاد/بنات” يغير فقط الزخارف والألوان الثانوية.
+                  </p>
+
+                  <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                    <button class="choice gender choice-card" data-choice="boys">
+                      <span class="emoji">🧢</span>
+                      <span class="label">نسخة أولاد</span>
+                      <span class="hint">زخارف حادة ولطيفة</span>
+                    </button>
+                    <button class="choice gender choice-card" data-choice="girls">
+                      <span class="emoji">🎀</span>
+                      <span class="label">نسخة بنات</span>
+                      <span class="hint">زخارف ناعمة ولامعة</span>
+                    </button>
+                  </div>
+
+                  <div class="mt-5 p-4 rounded-2xl border border-slate-200 bg-white/70">
+                    <div class="flex items-center justify-between gap-3">
+                      <div>
+                        <div class="font-extrabold">مؤشر الثيم</div>
+                        <div class="text-sm text-slate-600">يتغير فورًا عند الاختيار</div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-slate-200 bg-white/80">
+                          <span class="w-3 h-3 rounded-full" style="background:var(--accent)"></span>
+                          <span class="text-xs text-slate-700">Accent</span>
+                        </span>
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-slate-200 bg-white/80">
+                          <span class="w-3 h-3 rounded-full" style="background:var(--secondary)"></span>
+                          <span class="text-xs text-slate-700">Secondary</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h3 class="font-extrabold">لون بروفايلك</h3>
+                  <p class="mt-1 text-slate-600 text-sm">اختيار 1 من 6 (للاستعراض فقط).</p>
+
+                  <div class="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-3">
+                    <button class="colorPick w-full aspect-square rounded-2xl border border-slate-200 bg-white/80 flex items-center justify-center"
+                      data-color="#f97316" aria-label="برتقالي">
+                      <span class="w-10 h-10 rounded-2xl" style="background:#f97316"></span>
+                    </button>
+                    <button class="colorPick w-full aspect-square rounded-2xl border border-slate-200 bg-white/80 flex items-center justify-center"
+                      data-color="#22c55e" aria-label="أخضر">
+                      <span class="w-10 h-10 rounded-2xl" style="background:#22c55e"></span>
+                    </button>
+                    <button class="colorPick w-full aspect-square rounded-2xl border border-slate-200 bg-white/80 flex items-center justify-center"
+                      data-color="#60a5fa" aria-label="أزرق">
+                      <span class="w-10 h-10 rounded-2xl" style="background:#60a5fa"></span>
+                    </button>
+                    <button class="colorPick w-full aspect-square rounded-2xl border border-slate-200 bg-white/80 flex items-center justify-center"
+                      data-color="#a78bfa" aria-label="بنفسجي">
+                      <span class="w-10 h-10 rounded-2xl" style="background:#a78bfa"></span>
+                    </button>
+                    <button class="colorPick w-full aspect-square rounded-2xl border border-slate-200 bg-white/80 flex items-center justify-center"
+                      data-color="#fb7185" aria-label="وردي">
+                      <span class="w-10 h-10 rounded-2xl" style="background:#fb7185"></span>
+                    </button>
+                    <button class="colorPick w-full aspect-square rounded-2xl border border-slate-200 bg-white/80 flex items-center justify-center"
+                      data-color="#14b8a6" aria-label="تركواز">
+                      <span class="w-10 h-10 rounded-2xl" style="background:#14b8a6"></span>
+                    </button>
+                  </div>
+
+                  <div class="mt-5 rounded-2xl border border-slate-200 bg-white/70 p-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-extrabold"
+                           id="profileColorPreview" style="background: var(--accent);">
+                        P
+                      </div>
+                      <div>
+                        <div class="font-extrabold">معاينة</div>
+                        <div class="text-sm text-slate-600">هذا مجرد تمثيل للون بروفايلك</div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 5 -->
+            <section class="step-panel step-hidden" data-step="5">
+              <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h2 class="text-xl font-extrabold">أفاتارك اللطيف 😺</h2>
+                  <p class="mt-2 text-slate-600">اختر 1 من 12 SVG أو ارفع صورة.</p>
+
+                  <div class="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-3" id="avatarGrid">
+                    <!-- avatars injected -->
+                  </div>
+                </div>
+
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h3 class="font-extrabold">رفع صورة</h3>
+                  <p class="mt-1 text-slate-600 text-sm">اختياري — للمعاينة فقط.</p>
+
+                  <div class="mt-4 p-4 rounded-2xl border border-slate-200 bg-white/80">
+                    <input id="avatarUpload" type="file" accept="image/*"
+                      class="block w-full text-sm text-slate-700
+                             file:mr-3 file:rounded-xl file:border-0 file:px-4 file:py-2
+                             file:bg-slate-900 file:text-white hover:file:opacity-90"
+                    />
+                    <div class="mt-4 flex items-center gap-4">
+                      <div class="w-20 h-20 rounded-2xl border border-slate-200 bg-white overflow-hidden flex items-center justify-center">
+                        <img id="uploadPreview" alt="معاينة الصورة" class="w-full h-full object-cover hidden" />
+                        <span id="uploadPlaceholder" class="text-xs text-slate-400">لا توجد صورة</span>
+                      </div>
+                      <div class="text-sm text-slate-600">
+                        <div class="font-extrabold text-slate-900">ملاحظة</div>
+                        <div>اختيار SVG أو رفع صورة — أيهما تحب.</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-5 rounded-2xl border border-slate-200 bg-white/70 p-4">
+                    <div class="flex items-start gap-3">
+                      <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center">
+                        <!-- pen -->
+                        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M12 20h9"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <div class="font-extrabold">تفاصيل صغيرة</div>
+                        <div class="text-sm text-slate-600">كل شيء هنا “لطيف”، لا ضغط 💛</div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 6 -->
+            <section class="step-panel step-hidden" data-step="6">
+              <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h2 class="text-xl font-extrabold">اهتمامات الأنمي 🎬</h2>
+                  <p class="mt-2 text-slate-600">اختر Genres تحبها.</p>
+
+                  <div class="mt-4 flex flex-wrap gap-2" id="genreChips">
+                    <!-- chips injected -->
+                  </div>
+
+                  <div class="mt-5 p-4 rounded-2xl border border-slate-200 bg-white/70">
+                    <div class="text-sm text-slate-600">
+                      <span class="font-extrabold text-slate-900">معلومة:</span>
+                      الاختيارات هنا تساعد في اقتراح محتوى… لكن لا يوجد تحقق.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h3 class="font-extrabold">موسم أنمي تحبه (كمجاز)</h3>
+                  <p class="mt-1 text-slate-600 text-sm">أي فصل يشبه “مزاجك الأنمي”؟</p>
+
+                  <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                    <button class="choice season choice-card" data-choice="شتاء">
+                      <span class="emoji">❄️</span>
+                      <span class="label">شتاء</span>
+                      <span class="hint">هدوء وحماس داخلي</span>
+                    </button>
+                    <button class="choice season choice-card" data-choice="ربيع">
+                      <span class="emoji">🌸</span>
+                      <span class="label">ربيع</span>
+                      <span class="hint">بدايات لطيفة</span>
+                    </button>
+                    <button class="choice season choice-card" data-choice="صيف">
+                      <span class="emoji">☀️</span>
+                      <span class="label">صيف</span>
+                      <span class="hint">طاقة ونشاط</span>
+                    </button>
+                    <button class="choice season choice-card" data-choice="خريف">
+                      <span class="emoji">🍂</span>
+                      <span class="label">خريف</span>
+                      <span class="hint">دراما جميلة</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 7 -->
+            <section class="step-panel step-hidden" data-step="7">
+              <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h2 class="text-xl font-extrabold">كوميكس تحبها 📚</h2>
+                  <p class="mt-2 text-slate-600">اختر اهتمامك الرئيسي.</p>
+
+                  <div class="mt-4 grid sm:grid-cols-3 gap-3">
+                    <button class="choice comics choice-card" data-choice="ويب تون">
+                      <span class="emoji">📱</span>
+                      <span class="label">ويب تون</span>
+                      <span class="hint">تمرير لا نهائي</span>
+                    </button>
+                    <button class="choice comics choice-card" data-choice="سوبرهيرو">
+                      <span class="emoji">🦸</span>
+                      <span class="label">سوبرهيرو</span>
+                      <span class="hint">قوى ومغامرات</span>
+                    </button>
+                    <button class="choice comics choice-card" data-choice="قصص قصيرة">
+                      <span class="emoji">📝</span>
+                      <span class="label">قصص قصيرة</span>
+                      <span class="hint">جرعة سريعة</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h3 class="font-extrabold">نوع المنشور المفضل</h3>
+                  <p class="mt-1 text-slate-600 text-sm">اختر ما تحب نشره/قراءته غالبًا.</p>
+
+                  <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                    <button class="choice posttype choice-card" data-choice="مراجعات">
+                      <span class="emoji">⭐</span>
+                      <span class="label">مراجعات</span>
+                      <span class="hint">تقييم لطيف</span>
+                    </button>
+                    <button class="choice posttype choice-card" data-choice="فن">
+                      <span class="emoji">🖌️</span>
+                      <span class="label">فن</span>
+                      <span class="hint">رسومات وملصقات</span>
+                    </button>
+                    <button class="choice posttype choice-card" data-choice="أسئلة">
+                      <span class="emoji">❓</span>
+                      <span class="label">أسئلة</span>
+                      <span class="hint">تفاعل سريع</span>
+                    </button>
+                    <button class="choice posttype choice-card" data-choice="ميمز">
+                      <span class="emoji">😂</span>
+                      <span class="label">ميمز</span>
+                      <span class="hint">ضحكة جماعية</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 8 -->
+            <section class="step-panel step-hidden" data-step="8">
+              <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                <h2 class="text-xl font-extrabold">متابعة حسابات مقترحة 👀</h2>
+                <p class="mt-2 text-slate-600">6 اقتراحات — اضغط Follow للتبديل.</p>
+
+                <div class="mt-4 grid md:grid-cols-2 gap-3" id="followList">
+                  <!-- injected -->
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 9 -->
+            <section class="step-panel step-hidden" data-step="9">
+              <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h2 class="text-xl font-extrabold">تفضيلات السبويلر 🙈</h2>
+                  <p class="mt-2 text-slate-600">اختر مستوى الراحة لديك.</p>
+
+                  <div class="mt-4 space-y-3">
+                    <button class="choice spoiler w-full text-right choice-card" data-choice="تجنّب السبويلر تمامًا">
+                      <span class="emoji">🛡️</span>
+                      <span class="label">تجنّب السبويلر تمامًا</span>
+                      <span class="hint">إخفاء قوي</span>
+                    </button>
+                    <button class="choice spoiler w-full text-right choice-card" data-choice="عرض مع تحذير">
+                      <span class="emoji">⚠️</span>
+                      <span class="label">عرض مع تحذير</span>
+                      <span class="hint">تحذير قبل الإظهار</span>
+                    </button>
+                    <button class="choice spoiler w-full text-right choice-card" data-choice="لا مشكلة مع السبويلر">
+                      <span class="emoji">😈</span>
+                      <span class="label">لا مشكلة مع السبويلر</span>
+                      <span class="hint">كامل المحتوى</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h3 class="font-extrabold">تفضيلات الصفحة الرئيسية</h3>
+                  <p class="mt-1 text-slate-600 text-sm">فعّل/عطّل (مجرد واجهة).</p>
+
+                  <div class="mt-4 space-y-3" id="homePrefs">
+                    <!-- toggles injected -->
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 10 -->
+            <section class="step-panel step-hidden" data-step="10">
+              <div class="grid md:grid-cols-2 gap-6 items-stretch">
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h2 class="text-2xl font-extrabold">انتهينا! 🌟</h2>
+                  <p class="mt-2 text-slate-600">
+                    أنت جاهز لفتح صفحة جديدة… وتكتب أول سطر في مجتمعك.
+                  </p>
+
+                  <div class="mt-5 p-4 rounded-2xl border border-slate-200 bg-white/80">
+                    <div class="font-extrabold">رسالة إيجابية</div>
+                    <p class="mt-1 text-slate-600">
+                      تذكّر: ذوقك هو “سوبر باور” — شاركه بلطف، وستجد ناس يشبهونك 💛
+                    </p>
+                  </div>
+
+                  <button id="createAccount"
+                    class="mt-5 w-full rounded-2xl px-5 py-3 text-white font-extrabold transition hover:opacity-95 active:scale-[.99]"
+                    style="background: linear-gradient(90deg, var(--accent), var(--secondary));">
+                    إنشاء الحساب 🚀
+                  </button>
+
+                  <div class="mt-3 text-xs text-slate-500">
+                    * لا يوجد تحقق إدخال — هذا نموذج واجهة فقط.
+                  </div>
+                </div>
+
+                <div class="bg-white/70 border border-slate-200 rounded-2xl p-5">
+                  <h3 class="font-extrabold">ملخص سريع (للعرض)</h3>
+                  <p class="mt-1 text-slate-600 text-sm">التغييرات هنا “محلية” داخل الصفحة فقط.</p>
+
+                  <div class="mt-4 space-y-3 text-sm">
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-white/80">
+                      <div class="text-xs text-slate-500">هدفك</div>
+                      <div class="font-extrabold" id="sumGoal">—</div>
+                    </div>
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-white/80">
+                      <div class="text-xs text-slate-500">شخصيتك</div>
+                      <div class="font-extrabold" id="sumPersona">—</div>
+                    </div>
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-white/80">
+                      <div class="text-xs text-slate-500">موسمك الأنمي</div>
+                      <div class="font-extrabold" id="sumSeason">—</div>
+                    </div>
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-white/80">
+                      <div class="text-xs text-slate-500">ثيم</div>
+                      <div class="font-extrabold" id="sumTheme">—</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-5 p-4 rounded-2xl border border-slate-200 bg-white/70">
+                    <div class="flex items-start gap-3">
+                      <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+                        <!-- heart -->
+                        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <div class="font-extrabold">جاهز للانطلاق</div>
+                        <div class="text-sm text-slate-600">ابدأ بنشر أول “بوست نادي” 😄</div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+
+        <!-- Footer Nav -->
+        <div class="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <button id="backBtn"
+            class="rounded-2xl px-5 py-3 border border-slate-200 bg-white/80 font-extrabold text-slate-700 transition hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed">
+            رجوع
+          </button>
+
+          <div class="flex items-center justify-between sm:justify-end gap-3">
+            <button id="skipBtn"
+              class="rounded-2xl px-5 py-3 border border-slate-200 bg-white/60 font-bold text-slate-600 transition hover:bg-white">
+              تخطّي
+            </button>
+            <button id="nextBtn"
+              class="rounded-2xl px-5 py-3 text-white font-extrabold transition hover:opacity-95 active:scale-[.99]"
+              style="background: linear-gradient(90deg, var(--accent), var(--secondary));">
+              التالي
+            </button>
+          </div>
+        </div>
+
+        <p class="mt-4 text-center text-xs text-slate-500">
+          ملاحظة: كل شيء داخل ملف HTML واحد • RTL عربي • Responsive
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* Reusable choice card styles */
+    .choice-card{
+      display:flex;
+      flex-direction: column;
+      align-items:flex-start;
+      gap:6px;
+      width:100%;
+      text-align:right;
+      padding:14px;
+      border-radius: 16px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.80);
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .choice-card:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(2,6,23,.08);
+      border-color: color-mix(in oklab, var(--accent) 35%, rgba(15,23,42,.10));
+    }
+    .choice-card .emoji{ font-size: 22px; line-height: 1; }
+    .choice-card .label{ font-weight: 800; color: #0f172a; }
+    .choice-card .hint{ font-size: 12px; color: rgba(15,23,42,.62); }
+    .choice-card.selected{
+      border-color: color-mix(in oklab, var(--accent) 60%, rgba(15,23,42,.10));
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 18%, transparent);
+    }
+
+    /* Stepper item */
+    .stepper-btn{
+      flex: 0 0 auto;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.70);
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, opacity .15s ease;
+    }
+    .stepper-btn:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(2,6,23,.06);
+    }
+    .stepper-btn .bubble{
+      width: 36px; height: 36px;
+      border-radius: 14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(255,255,255,.85);
+      border: 1px solid rgba(15,23,42,.08);
+    }
+    .stepper-btn.active{
+      border-color: color-mix(in oklab, var(--accent) 55%, rgba(15,23,42,.10));
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 18%, transparent);
+    }
+    .stepper-btn.done{
+      opacity: .95;
+    }
+
+    /* Toggle */
+    .toggle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.80);
+    }
+    .switch{
+      width: 52px; height: 30px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.12);
+      position: relative;
+      transition: background .2s ease;
+      flex: 0 0 auto;
+    }
+    .knob{
+      width: 24px; height: 24px;
+      border-radius: 999px;
+      background: white;
+      position:absolute;
+      top: 3px;
+      right: 3px; /* RTL */
+      transition: transform .2s ease, box-shadow .2s ease;
+      box-shadow: 0 6px 14px rgba(2,6,23,.12);
+    }
+    .toggle.on .switch{
+      background: color-mix(in oklab, var(--accent) 70%, #0000);
+    }
+    .toggle.on .knob{
+      transform: translateX(-22px); /* RTL */
+      box-shadow: 0 8px 16px rgba(2,6,23,.14);
+    }
+
+    /* Avatar tile */
+    .avatarTile{
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.85);
+      border-radius: 18px;
+      padding: 10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .avatarTile:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(2,6,23,.06);
+      border-color: color-mix(in oklab, var(--accent) 35%, rgba(15,23,42,.10));
+    }
+    .avatarTile.selected{
+      border-color: color-mix(in oklab, var(--accent) 60%, rgba(15,23,42,.10));
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 18%, transparent);
+    }
+
+    /* Genre chip */
+    .chip{
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.85);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 13px;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .chip:hover{ transform: translateY(-1px); box-shadow: 0 10px 18px rgba(2,6,23,.06); }
+    .chip.selected{
+      border-color: color-mix(in oklab, var(--accent) 60%, rgba(15,23,42,.10));
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 18%, transparent);
+    }
+
+    /* Follow row */
+    .followRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.80);
+    }
+    .followBtn{
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 900;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.90);
+      transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+      white-space: nowrap;
+    }
+    .followBtn:hover{ transform: translateY(-1px); box-shadow: 0 10px 18px rgba(2,6,23,.06); }
+    .followBtn.on{
+      background: color-mix(in oklab, var(--accent) 15%, white);
+      border-color: color-mix(in oklab, var(--accent) 60%, rgba(15,23,42,.10));
+    }
+  </style>
+
+  <script>
+    // ---------- State ----------
+    const TOTAL = 10;
+    const state = {
+      goal: null,
+      email: "",
+      password: "",
+      displayName: "",
+      age: "",
+      persona: null,
+      genderTheme: null,       // boys | girls
+      profileColor: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(),
+      avatarId: null,
+      season: null,
+      genres: new Set(),
+      comics: null,
+      posttype: null,
+      follows: new Set(),
+      spoiler: null,
+      homePrefs: new Map()
+    };
+
+    let current = 1;
+
+    const stepMeta = [
+      { title:"ترحيب", icon: iconBook() },
+      { title:"الحساب", icon: iconMail() },
+      { title:"الهوية", icon: iconPencil() },
+      { title:"الثيم", icon: iconSparkle() },
+      { title:"الأفاتار", icon: iconCat() },
+      { title:"اهتمامات", icon: iconStar() },
+      { title:"كوميكس", icon: iconPanel() },
+      { title:"متابعة", icon: iconEye() },
+      { title:"تفضيلات", icon: iconShield() },
+      { title:"النهاية", icon: iconHeart() },
+    ];
+
+    // ---------- Init ----------
+    initStepper();
+    initChoiceButtons();
+    initColors();
+    initAvatars();
+    initGenres();
+    initFollows();
+    initHomePrefs();
+    initUpload();
+
+    updateUI();
+
+    // ---------- Navigation ----------
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (current < TOTAL) current++;
+      showStep(current);
+    });
+    document.getElementById('backBtn').addEventListener('click', () => {
+      if (current > 1) current--;
+      showStep(current);
+    });
+    document.getElementById('skipBtn').addEventListener('click', () => {
+      // تخطّي يعني التالي بلا شروط
+      if (current < TOTAL) current++;
+      showStep(current);
+    });
+
+    document.getElementById('createAccount').addEventListener('click', () => {
+      burstConfetti();
+      alert("🎉 تم إنشاء الحساب (واجهة فقط)! أهلاً بك في نادي الأنمي ✨");
+    });
+
+    function showStep(n){
+      const panels = document.querySelectorAll('[data-step]');
+      panels.forEach(p => {
+        const s = Number(p.getAttribute('data-step'));
+        p.classList.toggle('step-visible', s === n);
+        p.classList.toggle('step-hidden', s !== n);
+      });
+      updateUI();
+    }
+
+    function updateUI(){
+      // header
+      document.getElementById('stepNum').textContent = current;
+      document.getElementById('stepTitleMini').textContent = stepMeta[current-1].title;
+      const pct = Math.round((current / TOTAL) * 100);
+      document.getElementById('stepPct').textContent = pct;
+      document.getElementById('bar').style.width = pct + '%';
+
+      // buttons
+      const backBtn = document.getElementById('backBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const skipBtn = document.getElementById('skipBtn');
+
+      backBtn.disabled = current === 1;
+      if (current === TOTAL){
+        nextBtn.classList.add('hidden');
+        skipBtn.classList.add('hidden');
+      } else {
+        nextBtn.classList.remove('hidden');
+        skipBtn.classList.remove('hidden');
+      }
+
+      // stepper active/done
+      document.querySelectorAll('.stepper-btn').forEach(btn=>{
+        const s = Number(btn.dataset.step);
+        btn.classList.toggle('active', s === current);
+        btn.classList.toggle('done', s < current);
+      });
+
+      // summary
+      document.getElementById('sumGoal').textContent = state.goal ?? "—";
+      document.getElementById('sumPersona').textContent = state.persona ?? "—";
+      document.getElementById('sumSeason').textContent = state.season ?? "—";
+      document.getElementById('sumTheme').textContent =
+        state.genderTheme === "boys" ? "نسخة أولاد" :
+        state.genderTheme === "girls" ? "نسخة بنات" : "—";
+
+      // preview letter color
+      document.getElementById('profileColorPreview').style.background = state.profileColor || "var(--accent)";
+    }
+
+    // ---------- Stepper ----------
+    function initStepper(){
+      const stepper = document.getElementById('stepper');
+      stepper.innerHTML = "";
+
+      stepMeta.forEach((m, idx) => {
+        const s = idx + 1;
+        const btn = document.createElement('button');
+        btn.type = "button";
+        btn.className = "stepper-btn";
+        btn.dataset.step = s;
+        btn.innerHTML = `
+          <span class="bubble" style="color: var(--accent)">${m.icon}</span>
+          <span class="text-sm font-extrabold text-slate-800">${s}</span>
+          <span class="text-xs text-slate-600 hidden sm:inline">${m.title}</span>
+        `;
+        btn.addEventListener('click', () => {
+          current = s;
+          showStep(current);
+        });
+        stepper.appendChild(btn);
+      });
+    }
+
+    // ---------- Choices ----------
+    function initChoiceButtons(){
+      document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.choice');
+        if(!btn) return;
+
+        const group =
+          btn.classList.contains('goal') ? 'goal' :
+          btn.classList.contains('persona') ? 'persona' :
+          btn.classList.contains('gender') ? 'gender' :
+          btn.classList.contains('season') ? 'season' :
+          btn.classList.contains('comics') ? 'comics' :
+          btn.classList.contains('posttype') ? 'posttype' :
+          btn.classList.contains('spoiler') ? 'spoiler' :
+          null;
+
+        if(!group) return;
+
+        // single-select per group
+        document.querySelectorAll('.choice.' + group).forEach(x => x.classList.remove('selected'));
+        btn.classList.add('selected','pop');
+
+        setTimeout(()=>btn.classList.remove('pop'), 280);
+
+        const choice = btn.dataset.choice;
+
+        if(group === 'goal') state.goal = choice;
+        if(group === 'persona') state.persona = choice;
+        if(group === 'season') state.season = choice;
+        if(group === 'comics') state.comics = choice;
+        if(group === 'posttype') state.posttype = choice;
+        if(group === 'spoiler') state.spoiler = choice;
+
+        if(group === 'gender'){
+          state.genderTheme = choice;
+          applyGenderTheme(choice);
+        }
+
+        updateUI();
+      });
+
+      // Keep state in sync for inputs (no validation)
+      document.getElementById('email').addEventListener('input', (e)=> state.email = e.target.value);
+      document.getElementById('password').addEventListener('input', (e)=> state.password = e.target.value);
+      document.getElementById('displayName').addEventListener('input', (e)=> state.displayName = e.target.value);
+      document.getElementById('age').addEventListener('input', (e)=> state.age = e.target.value);
+    }
+
+    // ---------- Theme Switch (boys/girls) ----------
+    function applyGenderTheme(kind){
+      // فقط زخارف + ألوان ثانوية
+      const root = document.documentElement;
+
+      if(kind === 'boys'){
+        root.style.setProperty('--secondary', '#60a5fa'); // أزرق
+        root.style.setProperty('--dots', 'rgba(59,130,246,.10)');
+        root.style.setProperty('--sticker', 'rgba(191,219,254,.75)');
+      } else if(kind === 'girls'){
+        root.style.setProperty('--secondary', '#fb7185'); // وردي
+        root.style.setProperty('--dots', 'rgba(236,72,153,.10)');
+        root.style.setProperty('--sticker', 'rgba(253,230,138,.85)');
+      }
+    }
+
+    // ---------- Profile colors ----------
+    function initColors(){
+      document.querySelectorAll('.colorPick').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          document.querySelectorAll('.colorPick').forEach(b=>b.classList.remove('ring-4','ring-offset-2'));
+          btn.classList.add('ring-4','ring-offset-2');
+          const color = btn.dataset.color;
+          state.profileColor = color;
+          document.documentElement.style.setProperty('--accent', color);
+          updateUI();
+          burstConfetti(10);
+        });
+      });
+    }
+
+    // ---------- Avatars ----------
+    function initAvatars(){
+      const grid = document.getElementById('avatarGrid');
+      const avatars = Array.from({length: 12}, (_,i)=> makeCuteAvatarSVG(i+1));
+      grid.innerHTML = "";
+
+      avatars.forEach((svg, idx) => {
+        const id = idx + 1;
+        const btn = document.createElement('button');
+        btn.type = "button";
+        btn.className = "avatarTile";
+        btn.dataset.avatarId = id;
+        btn.innerHTML = svg;
+
+        btn.addEventListener('click', ()=>{
+          document.querySelectorAll('.avatarTile').forEach(x=>x.classList.remove('selected'));
+          btn.classList.add('selected','pop');
+          setTimeout(()=>btn.classList.remove('pop'), 280);
+          state.avatarId = id;
+
+          // If user selected SVG, hide upload preview but keep chosen file if any
+          updateUI();
+        });
+
+        grid.appendChild(btn);
+      });
+    }
+
+    function makeCuteAvatarSVG(seed){
+      // لُطف بسيط: ألوان تتأثر بالـaccent/secondary عبر CSS vars
+      // ملاحظة: SVG inline يستخدم currentColor/vars
+      const face = [
+        { mouth:"M9 14c1 1 5 1 6 0", blushY: 12.5 },
+        { mouth:"M9 15c1.2 1.2 4.8 1.2 6 0", blushY: 12.5 },
+        { mouth:"M9 14c1.2 2 4.8 2 6 0", blushY: 13 },
+        { mouth:"M10 14c1 0.8 3 0.8 4 0", blushY: 12.5 },
+      ][(seed-1) % 4];
+
+      const hair = [
+        "M5 10c1-5 13-5 14 0v1c-1-2-3-3-7-3S7 9 5 11z",
+        "M5 10c2-6 12-6 14 0v1c-2-2-4-2-7-2S7 9 5 11z",
+        "M5 10c1-4 13-4 14 0v1c-1-1-4-2-7-2S7 10 5 11z"
+      ][(seed-1) % 3];
+
+      const acc = (seed % 3 === 0) ? `
+        <path d="M8.2 11.2h7.6" stroke="rgba(15,23,42,.55)" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M8 11.2c-.2 0-.4.2-.4.4v1.2c0 .2.2.4.4.4h2.8c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4H8z" fill="rgba(255,255,255,.7)" stroke="rgba(15,23,42,.45)" stroke-width=".9"/>
+        <path d="M13.2 11.2c-.2 0-.4.2-.4.4v1.2c0 .2.2.4.4.4H16c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4h-2.8z" fill="rgba(255,255,255,.7)" stroke="rgba(15,23,42,.45)" stroke-width=".9"/>
+      ` : (seed % 3 === 1) ? `
+        <path d="M12 8.2l.7 1.5 1.7.2-1.3 1.1.4 1.7-1.5-.8-1.5.8.4-1.7-1.3-1.1 1.7-.2z" fill="color-mix(in oklab, var(--accent) 55%, white)" opacity=".9"/>
+      ` : `
+        <path d="M17.8 8.6c0 1.4-1.1 2.5-2.5 2.5-1.4 0-2.5-1.1-2.5-2.5 0-1.4 1.1-2.5 2.5-2.5 1.4 0 2.5 1.1 2.5 2.5z"
+          fill="color-mix(in oklab, var(--secondary) 40%, white)" opacity=".7"/>
+      `;
+
+      return `
+        <svg viewBox="0 0 24 24" class="w-full h-full" aria-hidden="true">
+          <defs>
+            <linearGradient id="g${seed}" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="var(--accent)" stop-opacity=".35"/>
+              <stop offset="1" stop-color="var(--secondary)" stop-opacity=".35"/>
+            </linearGradient>
+          </defs>
+          <rect x="2.2" y="2.2" width="19.6" height="19.6" rx="6" fill="url(#g${seed})" />
+          <rect x="2.2" y="2.2" width="19.6" height="19.6" rx="6" fill="rgba(255,255,255,.65)" />
+          <circle cx="12" cy="13" r="6.2" fill="rgba(255,255,255,.95)" stroke="rgba(15,23,42,.10)" />
+          <path d="${hair}" fill="color-mix(in oklab, var(--accent) 25%, rgba(15,23,42,.85))" opacity=".92"/>
+          <circle cx="10" cy="13" r=".7" fill="rgba(15,23,42,.85)"/>
+          <circle cx="14" cy="13" r=".7" fill="rgba(15,23,42,.85)"/>
+          <path d="${face.mouth}" stroke="rgba(15,23,42,.75)" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          <circle cx="8.6" cy="${face.blushY}" r="1.0" fill="color-mix(in oklab, var(--secondary) 35%, white)" opacity=".55"/>
+          <circle cx="15.4" cy="${face.blushY}" r="1.0" fill="color-mix(in oklab, var(--secondary) 35%, white)" opacity=".55"/>
+          ${acc}
+        </svg>
+      `;
+    }
+
+    // ---------- Genres ----------
+    function initGenres(){
+      const list = [
+        "شونين","شوجو","سينين","كوميدي","رومانسي","دراما",
+        "خارق","خيال","أكشن","مدرسي","غموض","إيسيكاي"
+      ];
+      const wrap = document.getElementById('genreChips');
+      wrap.innerHTML = "";
+
+      list.forEach(name=>{
+        const btn = document.createElement('button');
+        btn.type="button";
+        btn.className="chip";
+        btn.textContent = name;
+        btn.addEventListener('click', ()=>{
+          if(state.genres.has(name)){
+            state.genres.delete(name);
+            btn.classList.remove('selected');
+          }else{
+            state.genres.add(name);
+            btn.classList.add('selected','pop');
+            setTimeout(()=>btn.classList.remove('pop'), 280);
+          }
+        });
+        wrap.appendChild(btn);
+      });
+    }
+
+    // ---------- Follow suggestions ----------
+    function initFollows(){
+      const suggestions = [
+        { handle:"@MangaSensei", name:"أستاذ المانجا", bio:"تبسيط + توصيات أسبوعية" },
+        { handle:"@AnimeWeather", name:"مزاج أنمي", bio:"اقتباسات لطيفة ولقطات" },
+        { handle:"@SketchClub", name:"نادي الرسم", bio:"تحديات يومية خفيفة" },
+        { handle:"@SpoilerFree", name:"بدون سبويلر", bio:"مناقشات آمنة" },
+        { handle:"@CosplayCorner", name:"زاوية كوسبلاي", bio:"أفكار وأزياء" },
+        { handle:"@WebtoonRadar", name:"رادار ويب تون", bio:"إصدارات جديدة" },
+      ];
+
+      const list = document.getElementById('followList');
+      list.innerHTML = "";
+
+      suggestions.forEach((s, idx)=>{
+        const row = document.createElement('div');
+        row.className = "followRow";
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl border border-slate-200 bg-white flex items-center justify-center overflow-hidden"
+                 style="background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 18%, white), color-mix(in oklab, var(--secondary) 18%, white));">
+              ${tinyMascot(idx+1)}
+            </div>
+            <div class="min-w-0">
+              <div class="font-extrabold text-slate-900 leading-tight">${s.name}</div>
+              <div class="text-xs text-slate-500">${s.handle} • ${s.bio}</div>
+            </div>
+          </div>
+          <button type="button" class="followBtn" data-handle="${s.handle}">Follow</button>
+        `;
+        const btn = row.querySelector('.followBtn');
+        btn.addEventListener('click', ()=>{
+          const h = btn.dataset.handle;
+          const on = state.follows.has(h);
+          if(on){
+            state.follows.delete(h);
+            btn.classList.remove('on');
+            btn.textContent = "Follow";
+          }else{
+            state.follows.add(h);
+            btn.classList.add('on','pop');
+            btn.textContent = "Following ✓";
+            setTimeout(()=>btn.classList.remove('pop'), 280);
+          }
+        });
+
+        list.appendChild(row);
+      });
+    }
+
+    function tinyMascot(seed){
+      // SVG صغير لطيف جداً
+      const eyeX = (seed % 2 === 0) ? 14 : 10;
+      return `
+        <svg viewBox="0 0 24 24" class="w-9 h-9" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="rgba(255,255,255,.85)" stroke="rgba(15,23,42,.10)"/>
+          <circle cx="10" cy="12" r="1" fill="rgba(15,23,42,.85)"/>
+          <circle cx="14" cy="12" r="1" fill="rgba(15,23,42,.85)"/>
+          <path d="M9 15c1.2 1 4.8 1 6 0" stroke="rgba(15,23,42,.70)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+          <circle cx="${eyeX}" cy="9" r="1.6" fill="color-mix(in oklab, var(--accent) 45%, white)" opacity=".7"/>
+        </svg>
+      `;
+    }
+
+    // ---------- Home prefs toggles ----------
+    function initHomePrefs(){
+      const prefs = [
+        { key:"ForYou", label:"For You (مناسب لذوقك)", desc:"اقتراحات ذكية" },
+        { key:"Trending", label:"الأكثر رواجًا", desc:"ما يتكلم عنه الجميع" },
+        { key:"Following", label:"متابَعون", desc:"محتوى من تتابعهم" },
+        { key:"Art", label:"فن ورسومات", desc:"إلهام لطيف" },
+        { key:"Reviews", label:"مراجعات", desc:"آراء قبل المشاهدة" },
+      ];
+      const wrap = document.getElementById('homePrefs');
+      wrap.innerHTML = "";
+
+      prefs.forEach((p, i)=>{
+        state.homePrefs.set(p.key, i % 2 === 0); // افتراضي بسيط
+        const el = document.createElement('div');
+        el.className = "toggle " + (state.homePrefs.get(p.key) ? "on" : "");
+        el.innerHTML = `
+          <div>
+            <div class="font-extrabold text-slate-900">${p.label}</div>
+            <div class="text-xs text-slate-500">${p.desc}</div>
+          </div>
+          <button type="button" class="switch" aria-label="تبديل">
+            <span class="knob"></span>
+          </button>
+        `;
+        el.addEventListener('click', ()=>{
+          const on = !state.homePrefs.get(p.key);
+          state.homePrefs.set(p.key, on);
+          el.classList.toggle('on', on);
+        });
+
+        wrap.appendChild(el);
+      });
+    }
+
+    // ---------- Upload preview ----------
+    function initUpload(){
+      const input = document.getElementById('avatarUpload');
+      const img = document.getElementById('uploadPreview');
+      const ph = document.getElementById('uploadPlaceholder');
+
+      input.addEventListener('change', ()=>{
+        const file = input.files && input.files[0];
+        if(!file) return;
+
+        const url = URL.createObjectURL(file);
+        img.src = url;
+        img.classList.remove('hidden');
+        ph.classList.add('hidden');
+        burstConfetti(12);
+      });
+    }
+
+    // ---------- Confetti ----------
+    function burstConfetti(count = 18){
+      const box = document.getElementById('confetti');
+      box.innerHTML = "";
+      const rect = box.getBoundingClientRect();
+
+      for(let i=0;i<count;i++){
+        const p = document.createElement('i');
+        const x = Math.random() * (rect.width || 400);
+        const y = (rect.height || 300) - 20 + Math.random() * 20;
+        const delay = Math.random() * 120;
+
+        p.style.left = x + "px";
+        p.style.top = y + "px";
+        p.style.animationDelay = delay + "ms";
+
+        // diversify color slightly
+        const tint = (i % 3 === 0) ? "var(--accent)" : (i % 3 === 1) ? "var(--secondary)" : "#fbbf24";
+        p.style.background = `color-mix(in oklab, ${tint} 70%, white)`;
+
+        box.appendChild(p);
+      }
+    }
+
+    // ---------- Icons (inline) ----------
+    function iconBook(){
+      return `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 19a2 2 0 0 0 2 2h13"/>
+        <path d="M6 2h13v18H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+      </svg>`;
+    }
+    function iconMail(){
+      return `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 4h16v16H4z"/>
+        <path d="M4 7l8 6 8-6"/>
+      </svg>`;
+    }
+    function iconPencil(){
+      return `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 20h9"/>
+        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+      </svg>`;
+    }
+    function iconSparkle(){
+      return `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2l1.2 4.2L17 8l-3.8 1.8L12 14l-1.2-4.2L7 8l3.8-1.8Z"/>
+        <path d="M5 14l.7 2.5L8 17l-2.3.5L5 20l-.7-2.5L2 17l2.3-.5Z"/>
+        <path d="M19 14l.7 2.5L22 17l-2.3.5L19 20l-.7-2.5L16 17l2.3-.5Z"/>
+      </svg>`;
+    }
+    function iconCat(){
+      return `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5c-3 0-6 2-6 6s3 7 6 7 6-3 6-7-3-6-6-6z"/>
+        <path d="M6 9L4 6v5"/>
+        <path d="M18 9l2-3v5"/>
+        <path d="M9 12h.01M15 12h.01"/>
+        <path d="M10 15c.7.7 3.3.7 4 0"/>
+      </svg>`;
+    }
+    function iconStar(){
+      return `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2l3.1 6.4L22 9.3l-5 4.9L18.2 22 12 18.7 5.8 22 7 14.2 2 9.3l6.9-1Z"/>
+      </svg>`;
+    }
+    function iconPanel(){
+      return `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 5h8v14H4z"/>
+        <path d="M12 5h8v7h-8z"/>
+        <path d="M12 12h8v7h-8z"/>
+      </svg>`;
+    }
+    function iconEye(){
+      return `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>`;
+    }
+    function iconShield(){
+      return `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/>
+      </svg>`;
+    }
+    function iconHeart(){
+      return `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+      </svg>`;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1567 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title> 4  gpt</title>
+
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            arabic: ["Tajawal", "system-ui", "-apple-system", "Segoe UI", "Arial"],
+          },
+          colors: {
+            ink: "#070815",
+            night: "#0b0f2b",
+            neon: {
+              v: "#7c3aed",
+              c: "#22d3ee",
+              p: "#fb7185",
+              e: "#34d399",
+              a: "#fbbf24",
+            }
+          },
+          keyframes: {
+            floaty: { "0%,100%": { transform:"translateY(0px)" }, "50%": { transform:"translateY(-10px)" } },
+            popIn: { "0%": { opacity:"0", transform:"translateY(14px) scale(.985)", filter:"blur(10px)" }, "100%": { opacity:"1", transform:"translateY(0) scale(1)", filter:"blur(0)" } },
+            wipeIn: { "0%": { clipPath:"polygon(0 0, 0 0, 0 100%, 0 100%)", opacity:"0" }, "100%": { clipPath:"polygon(0 0, 100% 0, 100% 100%, 0 100%)", opacity:"1" } },
+            shimmer: { "0%": { transform:"translateX(-120%) skewX(-18deg)", opacity:"0" }, "20%": { opacity:".55" }, "55%": { opacity:".55" }, "100%": { transform:"translateX(160%) skewX(-18deg)", opacity:"0" } },
+            confetti: { "0%": { transform:"translateY(-30px) rotate(0deg)", opacity:"1" }, "100%": { transform:"translateY(700px) rotate(780deg)", opacity:".95" } },
+          },
+          animation: {
+            floaty: "floaty 5s ease-in-out infinite",
+            popIn: "popIn .45s ease both",
+            wipeIn: "wipeIn .55s ease both",
+            shimmer: "shimmer 3.2s ease-in-out infinite",
+            confetti: "confetti 1.35s linear forwards",
+          },
+          boxShadow: {
+            glow: "0 0 0 1px rgba(255,255,255,.10), 0 22px 90px rgba(124,58,237,.20)",
+            glow2:"0 0 0 1px rgba(255,255,255,.10), 0 22px 90px rgba(34,211,238,.16)",
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Arabic font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --a1: 124 58 237; /* violet */
+      --a2: 34 211 238; /* cyan */
+      --a3: 251 113 133; /* pink */
+    }
+    .scanlines{
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      background: repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0px, rgba(255,255,255,.05) 1px, transparent 2px, transparent 7px);
+      opacity:.14; mix-blend-mode: overlay;
+    }
+    .halftone{
+      position:fixed; inset:-40px; pointer-events:none; z-index:0;
+      background-image: radial-gradient(rgba(255,255,255,.10) 1px, transparent 1px);
+      background-size: 10px 10px;
+      opacity:.06; transform: rotate(-9deg) scale(1.1);
+    }
+    .bgfx{
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:
+        radial-gradient(900px 520px at 18% 12%, rgba(124,58,237,.30), transparent 60%),
+        radial-gradient(900px 520px at 92% 18%, rgba(34,211,238,.22), transparent 58%),
+        radial-gradient(1000px 560px at 60% 110%, rgba(251,113,133,.16), transparent 62%),
+        repeating-linear-gradient(115deg, rgba(255,255,255,.045) 0px, rgba(255,255,255,.045) 1px, transparent 2px, transparent 10px);
+      opacity:.9;
+    }
+    .shimmerWrap{ position:relative; overflow:hidden; }
+    .shimmerWrap::after{
+      content:"";
+      position:absolute; inset:-40% -60%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+      transform: translateX(-120%) skewX(-18deg);
+      opacity:0;
+      animation: shimmer 3.2s ease-in-out infinite;
+      pointer-events:none;
+    }
+    .cardGlass{
+      position:relative;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.20), 0 24px 110px rgba(0,0,0,.34);
+      overflow:hidden;
+    }
+    .cardGlass::before{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(900px 380px at 20% 0%, rgba(var(--a1), .18), transparent 60%),
+        radial-gradient(700px 360px at 110% 55%, rgba(var(--a2), .14), transparent 60%),
+        radial-gradient(700px 360px at 50% 120%, rgba(var(--a3), .12), transparent 65%);
+      z-index:0;
+    }
+    .cardGlass > *{ position:relative; z-index:1; }
+    .step{ display:none; }
+    .step.active{ display:block; }
+    .focusRing:focus-visible{
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(34,211,238,.14), 0 0 0 1px rgba(34,211,238,.32);
+      border-color: rgba(34,211,238,.45) !important;
+    }
+    .srOnlyFocus:focus-visible{
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(124,58,237,.16), 0 0 0 1px rgba(124,58,237,.35);
+    }
+    /* prevent background scroll when modal open */
+    body.modal-open{ overflow:hidden; }
+    @media (prefers-reduced-motion: reduce){
+      .shimmerWrap::after{ animation:none !important; }
+      .scanlines{ animation:none !important; }
+      *{ scroll-behavior:auto !important; }
+    }
+  </style>
+</head>
+
+<body class="font-arabic min-h-screen bg-gradient-to-b from-ink to-night text-white/90 dark:bg-black overflow-x-hidden">
+  <!-- Background FX -->
+  <div class="bgfx dark:opacity-60"></div>
+  <div class="halftone"></div>
+  <div class="scanlines"></div>
+
+  <!-- Skip link (a11y) -->
+  <a href="#main"
+     class="sr-only focus:not-sr-only fixed top-3 right-3 z-50 px-4 py-2 rounded-full bg-white text-black srOnlyFocus">
+    تخطّي إلى المحتوى
+  </a>
+
+  <main id="main" class="relative z-10 px-4 py-7 sm:py-10">
+    <div class="mx-auto w-full max-w-6xl grid lg:grid-cols-[1.05fr_.95fr] gap-4 lg:gap-6 items-start">
+
+      <!-- Left: Brand / Preview -->
+      <aside class="cardGlass shadow-glow">
+        <div class="p-5 sm:p-7">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-neon-v to-neon-c shadow-[0_22px_70px_rgba(124,58,237,.22)] shimmerWrap"></div>
+              <div>
+                <div class="font-black tracking-wide">منصة الفاندوم</div>
+                <div class="text-xs text-white/65">Anime • Manga • Comics • Community ✨</div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button id="themeToggle"
+                type="button"
+                class="px-3 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition shimmerWrap focusRing"
+                aria-pressed="false"
+                aria-label="تبديل الوضع الليلي">
+                🌙
+              </button>
+            </div>
+          </div>
+
+          <h1 class="mt-5 text-2xl sm:text-3xl font-black leading-tight">
+            سجّل حسابك بأسلوب <span class="text-transparent bg-clip-text bg-gradient-to-l from-neon-c via-white/90 to-neon-p">أنمي/مانجا</span>
+          </h1>
+
+          <p class="mt-3 text-sm leading-relaxed text-white/70">
+            تسجيل متعدد الخطوات، واجهة ناعمة، بطاقات جذابة، وتخزين محلي تلقائي — تجربة UX قوية ومناسبة للمجتمعات.
+          </p>
+
+          <!-- Live Preview Card -->
+          <div class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div id="liveAvatar" class="w-12 h-12 rounded-2xl border border-white/10 bg-black/30 overflow-hidden grid place-items-center">
+                <!-- avatar preview -->
+              </div>
+              <div>
+                <div id="liveName" class="font-black text-sm">اسم العرض…</div>
+                <div id="liveUser" class="text-xs text-white/60">@user</div>
+              </div>
+            </div>
+            <div class="text-left">
+              <div id="liveInterests" class="text-[11px] text-white/60">اختر اهتماماتك…</div>
+              <div id="liveSocial" class="text-[11px] text-white/50 mt-1">متابعة: 0</div>
+            </div>
+          </div>
+
+          <!-- Micro UX hints -->
+          <div class="mt-5 grid sm:grid-cols-3 gap-3">
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 transition">
+              <div class="text-lg">⚡</div>
+              <div class="mt-1 font-bold text-sm">خطوات سلسة</div>
+              <div class="mt-1 text-xs text-white/60">انتقالات لطيفة + منع الأخطاء قبلها.</div>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 transition">
+              <div class="text-lg">🎨</div>
+              <div class="mt-1 font-bold text-sm">أفاتار فوري</div>
+              <div class="mt-1 text-xs text-white/60">رفع صورة أو اختيار تشيبّي.</div>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 transition">
+              <div class="text-lg">💾</div>
+              <div class="mt-1 font-bold text-sm">حفظ تلقائي</div>
+              <div class="mt-1 text-xs text-white/60">localStorage بدون إزعاج.</div>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-white/10 bg-gradient-to-l from-white/5 to-white/0 p-4">
+            <div class="text-xs text-white/70 leading-relaxed">
+              نصيحة: جرّب كلمة مرور تحتوي رقمًا وحروفًا (مثال: <b class="text-white/90">Otaku2025!</b>).
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right: Wizard -->
+      <section class="cardGlass shadow-glow2">
+        <div class="p-5 sm:p-7">
+          <!-- Stepper / Progress -->
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div id="stepTitle" class="text-sm font-black">الخطوة 1: بيانات الحساب</div>
+              <div id="stepSub" class="text-xs text-white/65 mt-1">املأ البيانات الأساسية للحساب.</div>
+            </div>
+
+            <div class="w-[220px] sm:w-[290px]">
+              <div class="h-2.5 rounded-full bg-white/10 border border-white/10 overflow-hidden">
+                <div id="progress" class="h-full w-0 rounded-full bg-gradient-to-l from-neon-v via-neon-c to-neon-p transition-[width] duration-500"></div>
+              </div>
+              <div class="mt-2 flex items-center justify-between text-[11px] text-white/55">
+                <span id="stepCount">1 / 5</span>
+                <span class="px-2.5 py-1 rounded-full border border-white/10 bg-white/5">Multi-step</span>
+              </div>
+
+              <!-- Dots -->
+              <div class="mt-3 flex items-center gap-2 justify-end" aria-label="مؤشر الخطوات">
+                <span id="dot0" class="w-2.5 h-2.5 rounded-full bg-gradient-to-l from-neon-c to-neon-v ring-2 ring-white/15"></span>
+                <span id="dot1" class="w-2.5 h-2.5 rounded-full bg-white/10 ring-2 ring-white/10"></span>
+                <span id="dot2" class="w-2.5 h-2.5 rounded-full bg-white/10 ring-2 ring-white/10"></span>
+                <span id="dot3" class="w-2.5 h-2.5 rounded-full bg-white/10 ring-2 ring-white/10"></span>
+                <span id="dot4" class="w-2.5 h-2.5 rounded-full bg-white/10 ring-2 ring-white/10"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wizard Form -->
+          <form id="wizard" class="mt-6" novalidate>
+            <!-- STEP 1: Account -->
+            <section class="step active animate-wipeIn" data-step="0" aria-labelledby="step1">
+              <h2 id="step1" class="sr-only">الخطوة 1: بيانات الحساب</h2>
+
+              <div class="grid sm:grid-cols-2 gap-3">
+                <div class="sm:col-span-2">
+                  <label for="displayName" class="text-xs text-white/75">اسم العرض</label>
+                  <input id="displayName" name="displayName" type="text" required maxlength="30"
+                    placeholder="مثال: لوفي / نيكو روبن / …"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none focusRing hover:border-white/20 transition" />
+                  <p class="mt-1 text-[11px] text-white/55">سيظهر في الملف الشخصي والتعليقات.</p>
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label for="email" class="text-xs text-white/75">البريد الإلكتروني</label>
+                  <input id="email" name="email" type="email" required placeholder="name@domain.com"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none focusRing hover:border-white/20 transition" />
+                </div>
+
+                <div>
+                  <label for="password" class="text-xs text-white/75">كلمة المرور</label>
+                  <input id="password" name="password" type="password" required minlength="8" placeholder="••••••••"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none focusRing hover:border-white/20 transition" />
+                  <div class="mt-2 flex items-center gap-2">
+                    <div class="h-2 rounded-full bg-white/10 border border-white/10 overflow-hidden flex-1">
+                      <div id="pwStrengthBar" class="h-full w-0 rounded-full bg-gradient-to-l from-neon-p via-neon-a to-neon-e transition-[width] duration-300"></div>
+                    </div>
+                    <span id="pwStrengthLabel" class="text-[11px] px-2.5 py-1 rounded-full border border-neon-p/30 bg-neon-p/10 text-neon-p">ضعيفة</span>
+                  </div>
+                  <p class="mt-1 text-[11px] text-white/55">مطلوب: 8 أحرف + رقم على الأقل.</p>
+                </div>
+
+                <div>
+                  <label for="confirmPassword" class="text-xs text-white/75">تأكيد كلمة المرور</label>
+                  <input id="confirmPassword" name="confirmPassword" type="password" required placeholder="••••••••"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none focusRing hover:border-white/20 transition" />
+                  <p id="pwMatchHint" class="mt-1 text-[11px] text-white/55">طابق كلمة المرور.</p>
+                </div>
+              </div>
+
+              <div id="err0" class="hidden mt-4 rounded-2xl border border-neon-p/40 bg-neon-p/10 px-4 py-3 text-sm"></div>
+            </section>
+
+            <!-- STEP 2: Profile -->
+            <section class="step animate-wipeIn" data-step="1" aria-labelledby="step2">
+              <h2 id="step2" class="sr-only">الخطوة 2: الملف الشخصي</h2>
+
+              <div class="grid lg:grid-cols-[1.05fr_.95fr] gap-4">
+                <!-- Avatar block -->
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="font-black text-sm">صورة الأفاتار</div>
+                      <div class="text-xs text-white/60 mt-0.5">رفع صورة أو اختيار تشيبّي جاهز.</div>
+                    </div>
+                    <label class="text-[11px] px-3 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition cursor-pointer shimmerWrap focusRing">
+                      رفع صورة
+                      <input id="avatarUpload" type="file" accept="image/*" class="hidden" />
+                    </label>
+                  </div>
+
+                  <div class="mt-4 grid grid-cols-[72px_1fr] gap-3 items-center">
+                    <div id="avatarPreview" class="w-[72px] h-[72px] rounded-2xl border border-white/10 bg-black/30 overflow-hidden grid place-items-center">
+                      <!-- preview -->
+                    </div>
+
+                    <div class="text-xs text-white/70 leading-relaxed">
+                      اختر أفاتار من المجموعة أو ارفع صورتك (Preview فوري).<br />
+                      <span class="text-white/55">ملاحظة: الصور تُحفظ محليًا فقط.</span>
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <div class="text-xs text-white/70 mb-2">أفاتارات جاهزة (تشيبّي)</div>
+                    <div id="presetAvatars" class="grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
+                  </div>
+                </div>
+
+                <!-- Bio + optional -->
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="font-black text-sm">نبذة قصيرة</div>
+                  <div class="text-xs text-white/60 mt-0.5">خلّها تعكس ذوقك.</div>
+
+                  <label for="bio" class="sr-only">النبذة</label>
+                  <textarea id="bio" name="bio" rows="5" maxlength="180"
+                    placeholder="مثال: أحب الشونين والمانجا… أقرأ الفصول فور نزولها!"
+                    class="mt-3 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none focusRing hover:border-white/20 transition"></textarea>
+                  <div class="mt-1 text-[11px] text-white/55"><span id="bioCount">0</span>/180</div>
+
+                  <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                    <div>
+                      <label for="country" class="text-xs text-white/75">الدولة (اختياري)</label>
+                      <input id="country" name="country" type="text" maxlength="40" placeholder="مثال: السعودية"
+                        class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none focusRing hover:border-white/20 transition" />
+                    </div>
+                    <div>
+                      <label for="language" class="text-xs text-white/75">اللغة (اختياري)</label>
+                      <select id="language" name="language"
+                        class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none focusRing hover:border-white/20 transition">
+                        <option value="">—</option>
+                        <option value="ar">العربية</option>
+                        <option value="en">English</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="err1" class="hidden mt-4 rounded-2xl border border-neon-p/40 bg-neon-p/10 px-4 py-3 text-sm"></div>
+            </section>
+
+            <!-- STEP 3: Interests -->
+            <section class="step animate-wipeIn" data-step="2" aria-labelledby="step3">
+              <h2 id="step3" class="sr-only">الخطوة 3: الاهتمامات</h2>
+
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="font-black text-sm">اهتماماتك وتفضيلاتك</div>
+                  <div class="text-xs text-white/60 mt-0.5">اختر اهتمامات متعددة + أنواع مفضلة.</div>
+                </div>
+                <div class="text-[11px] px-3 py-1.5 rounded-full border border-white/10 bg-white/5">
+                  المختار: <span id="interestCount" class="font-black">0</span>
+                </div>
+              </div>
+
+              <div class="mt-4 grid gap-3">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs text-white/70 mb-2">اهتمامات</div>
+                  <div id="interestChips" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs text-white/70 mb-2">الأنواع المفضلة</div>
+                  <div id="genreChips" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs text-white/70 mb-2">اختر 3 أعمال مفضلة (اقتراحات)</div>
+                  <div class="grid sm:grid-cols-3 gap-3">
+                    <div>
+                      <label for="fav1" class="sr-only">المفضل 1</label>
+                      <input id="fav1" list="worksList" placeholder="مثال: One Piece"
+                        class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none focusRing hover:border-white/20 transition" />
+                    </div>
+                    <div>
+                      <label for="fav2" class="sr-only">المفضل 2</label>
+                      <input id="fav2" list="worksList" placeholder="مثال: Attack on Titan"
+                        class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none focusRing hover:border-white/20 transition" />
+                    </div>
+                    <div>
+                      <label for="fav3" class="sr-only">المفضل 3</label>
+                      <input id="fav3" list="worksList" placeholder="مثال: Batman"
+                        class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none focusRing hover:border-white/20 transition" />
+                    </div>
+                  </div>
+
+                  <datalist id="worksList">
+                    <option value="One Piece"></option>
+                    <option value="Naruto"></option>
+                    <option value="Jujutsu Kaisen"></option>
+                    <option value="Attack on Titan"></option>
+                    <option value="Demon Slayer"></option>
+                    <option value="Death Note"></option>
+                    <option value="Bleach"></option>
+                    <option value="Fullmetal Alchemist"></option>
+                    <option value="Berserk"></option>
+                    <option value="Vinland Saga"></option>
+                    <option value="Solo Leveling"></option>
+                    <option value="Tower of God"></option>
+                    <option value="Batman"></option>
+                    <option value="Spider-Man"></option>
+                    <option value="X-Men"></option>
+                  </datalist>
+
+                  <p class="mt-2 text-[11px] text-white/55">اختياري، لكن يساعد في التوصيات.</p>
+                </div>
+              </div>
+
+              <div id="err2" class="hidden mt-4 rounded-2xl border border-neon-p/40 bg-neon-p/10 px-4 py-3 text-sm"></div>
+            </section>
+
+            <!-- STEP 4: Social -->
+            <section class="step animate-wipeIn" data-step="3" aria-labelledby="step4">
+              <h2 id="step4" class="sr-only">الخطوة 4: التفاعل الاجتماعي</h2>
+
+              <div class="grid lg:grid-cols-2 gap-4">
+                <!-- Goals -->
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="font-black text-sm">ماذا تريد داخل المجتمع؟</div>
+                  <div class="text-xs text-white/60 mt-0.5">اختر واحدًا على الأقل.</div>
+
+                  <div class="mt-4 space-y-2" role="group" aria-label="أهداف التفاعل">
+                    <label class="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition cursor-pointer">
+                      <input type="checkbox" class="w-4 h-4 accent-neon-c" name="goals" value="أريد أصدقاء بنفس الذوق">
+                      <span class="text-sm">أريد أصدقاء بنفس الذوق</span>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition cursor-pointer">
+                      <input type="checkbox" class="w-4 h-4 accent-neon-c" name="goals" value="أبحث عن نقاشات أسبوعية">
+                      <span class="text-sm">أبحث عن نقاشات أسبوعية</span>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition cursor-pointer">
+                      <input type="checkbox" class="w-4 h-4 accent-neon-c" name="goals" value="أريد نشر رسوماتي">
+                      <span class="text-sm">أريد نشر رسوماتي</span>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition cursor-pointer">
+                      <input type="checkbox" class="w-4 h-4 accent-neon-c" name="goals" value="أريد مراجعات وتقييمات">
+                      <span class="text-sm">أريد مراجعات وتقييمات</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Suggested follows -->
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="flex items-end justify-between gap-3">
+                    <div>
+                      <div class="font-black text-sm">اقتراح متابعة</div>
+                      <div class="text-xs text-white/60 mt-0.5">تجريبي — لتجهيز تغذية البداية.</div>
+                    </div>
+                    <div class="text-[11px] px-3 py-1.5 rounded-full border border-white/10 bg-white/5">
+                      المتابعة: <span id="followingCount" class="font-black">0</span>
+                    </div>
+                  </div>
+
+                  <div id="followList" class="mt-4 grid gap-2"></div>
+
+                  <div class="mt-4 rounded-2xl border border-white/10 bg-gradient-to-l from-white/5 to-white/0 p-4">
+                    <div class="text-xs text-white/70">
+                      المتابعين/المتابَعين هنا تجريبي للـ UI فقط.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="err3" class="hidden mt-4 rounded-2xl border border-neon-p/40 bg-neon-p/10 px-4 py-3 text-sm"></div>
+            </section>
+
+            <!-- STEP 5: Review -->
+            <section class="step animate-wipeIn" data-step="4" aria-labelledby="step5">
+              <h2 id="step5" class="sr-only">الخطوة 5: مراجعة وإنشاء الحساب</h2>
+
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="font-black text-sm">مراجعة وإنشاء الحساب</div>
+                  <div class="text-xs text-white/60 mt-0.5">تحقق من كل شيء قبل الإرسال.</div>
+                </div>
+                <span class="text-[11px] px-3 py-1.5 rounded-full border border-white/10 bg-white/5">Review</span>
+              </div>
+
+              <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="flex items-center gap-3">
+                  <div id="reviewAvatar" class="w-14 h-14 rounded-2xl border border-white/10 bg-black/30 overflow-hidden"></div>
+                  <div>
+                    <div id="reviewName" class="font-black text-lg">—</div>
+                    <div id="reviewEmail" class="text-sm text-white/65">—</div>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="text-xs text-white/65">الملف</div>
+                    <div id="reviewProfile" class="mt-2 text-sm leading-relaxed"></div>
+                  </div>
+
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="text-xs text-white/65">الاهتمامات</div>
+                    <div id="reviewInterests" class="mt-2 text-sm leading-relaxed"></div>
+                  </div>
+
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-4 sm:col-span-2">
+                    <div class="text-xs text-white/65">التفاعل الاجتماعي</div>
+                    <div id="reviewSocial" class="mt-2 text-sm leading-relaxed"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="err4" class="hidden mt-4 rounded-2xl border border-neon-p/40 bg-neon-p/10 px-4 py-3 text-sm"></div>
+            </section>
+
+            <!-- Nav Buttons -->
+            <div class="mt-6 flex items-center justify-between gap-3">
+              <button type="button" id="backBtn"
+                class="px-4 py-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition
+                       active:translate-y-[1px] disabled:opacity-50 disabled:cursor-not-allowed focusRing">
+                السابق ←
+              </button>
+
+              <button type="button" id="nextBtn"
+                class="group px-5 py-3 rounded-2xl border border-white/10 bg-gradient-to-l from-neon-v to-neon-c
+                       hover:from-neon-v hover:via-neon-c hover:to-neon-p transition
+                       shadow-[0_22px_70px_rgba(124,58,237,.18),0_22px_70px_rgba(34,211,238,.12)]
+                       active:translate-y-[1px] shimmerWrap focusRing">
+                <span id="nextBtnText" class="font-black">التالي →</span>
+                <span class="mr-2 inline-block opacity-80 group-hover:opacity-100 transition">✨</span>
+              </button>
+            </div>
+
+            <p class="mt-3 text-[11px] text-white/55">
+              يتم الحفظ تلقائيًا محليًا: <b>anime_signup_wizard</b>
+            </p>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-xl" role="dialog" aria-modal="true" aria-labelledby="successTitle">
+    <div class="cardGlass w-full max-w-xl shadow-glow overflow-hidden">
+      <div id="confetti" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+
+      <div class="p-6 sm:p-7">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-neon-v to-neon-c shimmerWrap"></div>
+            <div>
+              <div id="successTitle" class="font-black text-lg">تم إنشاء الحساب ✅</div>
+              <div class="text-xs text-white/65">أهلاً بك في عالم الفاندوم!</div>
+            </div>
+          </div>
+          <button id="closeSuccess" type="button"
+            class="px-3 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition focusRing"
+            aria-label="إغلاق">
+            ✕
+          </button>
+        </div>
+
+        <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center gap-3">
+          <div id="successAvatar" class="w-14 h-14 rounded-2xl border border-white/10 bg-black/30 overflow-hidden"></div>
+          <div>
+            <div id="successName" class="font-black text-lg">—</div>
+            <div id="successMeta" class="text-sm text-white/65">—</div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex items-center justify-between gap-3">
+          <a href="#"
+             class="px-5 py-3 rounded-2xl border border-white/10 bg-gradient-to-l from-neon-v to-neon-c hover:to-neon-p transition shimmerWrap focusRing text-center font-black">
+            الانتقال للملف الشخصي →
+          </a>
+          <button id="resetAll" type="button"
+            class="px-4 py-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition focusRing">
+            إنشاء حساب جديد
+          </button>
+        </div>
+
+        <p class="mt-3 text-[11px] text-white/55">
+          (Demo) لا يوجد إرسال لسيرفر — البيانات محفوظة محليًا.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // State + Storage
+    // =========================
+    const LS_KEY = "anime_signup_wizard";
+
+    const state = {
+      step: 0,
+      dark: false,
+      // Step 1
+      displayName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      // Step 2
+      avatarType: "preset", // "preset" | "upload"
+      avatarPresetId: "c1",
+      avatarUploadData: "", // dataURL
+      bio: "",
+      country: "",
+      language: "",
+      // Step 3
+      interests: [],
+      genres: [],
+      favorites: ["", "", ""],
+      // Step 4
+      goals: [],
+      following: [], // handles
+    };
+
+    const STEPS = 5;
+    const TITLES = [
+      ["الخطوة 1: بيانات الحساب", "املأ البيانات الأساسية للحساب."],
+      ["الخطوة 2: الملف الشخصي", "أفاتار + نبذة + اختيارية."],
+      ["الخطوة 3: الاهتمامات", "اختر اهتمامات/أنواع + مفضلات."],
+      ["الخطوة 4: التفاعل الاجتماعي", "أهداف + متابعة مقترحات."],
+      ["الخطوة 5: مراجعة وإنشاء الحساب", "ملخص نهائي قبل الإنشاء."]
+    ];
+
+    function saveState(){
+      try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
+    }
+    function loadState(){
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return;
+        const data = JSON.parse(raw);
+        if(typeof data !== "object" || !data) return;
+        Object.assign(state, data);
+      } catch(e){}
+    }
+    function clearState(){
+      try { localStorage.removeItem(LS_KEY); } catch(e){}
+    }
+
+    // =========================
+    // DOM refs
+    // =========================
+    const wizard = document.getElementById("wizard");
+    const stepsEl = [...document.querySelectorAll(".step")];
+    const progress = document.getElementById("progress");
+    const stepTitle = document.getElementById("stepTitle");
+    const stepSub = document.getElementById("stepSub");
+    const stepCount = document.getElementById("stepCount");
+    const dots = [0,1,2,3,4].map(i => document.getElementById("dot"+i));
+
+    const backBtn = document.getElementById("backBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const nextBtnText = document.getElementById("nextBtnText");
+
+    // Live preview
+    const liveAvatar = document.getElementById("liveAvatar");
+    const liveName = document.getElementById("liveName");
+    const liveUser = document.getElementById("liveUser");
+    const liveInterests = document.getElementById("liveInterests");
+    const liveSocial = document.getElementById("liveSocial");
+
+    // Theme
+    const themeToggle = document.getElementById("themeToggle");
+
+    // Step 1 inputs
+    const displayNameEl = document.getElementById("displayName");
+    const emailEl = document.getElementById("email");
+    const passwordEl = document.getElementById("password");
+    const confirmPasswordEl = document.getElementById("confirmPassword");
+    const pwStrengthBar = document.getElementById("pwStrengthBar");
+    const pwStrengthLabel = document.getElementById("pwStrengthLabel");
+    const pwMatchHint = document.getElementById("pwMatchHint");
+
+    // Step 2
+    const avatarUpload = document.getElementById("avatarUpload");
+    const avatarPreview = document.getElementById("avatarPreview");
+    const presetAvatars = document.getElementById("presetAvatars");
+    const bioEl = document.getElementById("bio");
+    const bioCount = document.getElementById("bioCount");
+    const countryEl = document.getElementById("country");
+    const languageEl = document.getElementById("language");
+
+    // Step 3
+    const interestChips = document.getElementById("interestChips");
+    const genreChips = document.getElementById("genreChips");
+    const interestCount = document.getElementById("interestCount");
+    const fav1 = document.getElementById("fav1");
+    const fav2 = document.getElementById("fav2");
+    const fav3 = document.getElementById("fav3");
+
+    // Step 4
+    const followList = document.getElementById("followList");
+    const followingCount = document.getElementById("followingCount");
+
+    // Step 5 Review
+    const reviewAvatar = document.getElementById("reviewAvatar");
+    const reviewName = document.getElementById("reviewName");
+    const reviewEmail = document.getElementById("reviewEmail");
+    const reviewProfile = document.getElementById("reviewProfile");
+    const reviewInterests = document.getElementById("reviewInterests");
+    const reviewSocial = document.getElementById("reviewSocial");
+
+    // Errors
+    const errBoxes = [0,1,2,3,4].map(i => document.getElementById("err"+i));
+
+    // Success modal
+    const successModal = document.getElementById("successModal");
+    const closeSuccess = document.getElementById("closeSuccess");
+    const resetAll = document.getElementById("resetAll");
+    const successAvatar = document.getElementById("successAvatar");
+    const successName = document.getElementById("successName");
+    const successMeta = document.getElementById("successMeta");
+    const confetti = document.getElementById("confetti");
+
+    // =========================
+    // Data: chips + follows + avatars
+    // =========================
+    const INTERESTS = ["Anime","Manga","Manhwa","Comics","Cosplay","Fanart","Games"];
+    const GENRES = ["Shonen","Seinen","Isekai","Slice of Life","Romance","Horror","Sci-Fi","Fantasy","Mystery","Sports"];
+
+    const SUGGESTED_FOLLOWS = [
+      { handle:"sakuga_lab", name:"مختبر ساكوغا", bio:"لقطات أنيميشن + تقدير الحركة", tag:"Anime", icon:"🎞️" },
+      { handle:"manga_arch", name:"أرشيف مانجا", bio:"ترشيحات + قراءات سريعة", tag:"Manga", icon:"📚" },
+      { handle:"webtoon_wave", name:"موجة ويب تون", bio:"مانهوا/ويب تون يوميًا", tag:"Manhwa", icon:"🌊" },
+      { handle:"panel_sensei", name:"سنسي البانلز", bio:"تحليل صفحات القصص المصورة", tag:"Comics", icon:"🧩" },
+      { handle:"lore_mage", name:"ساحر اللور", bio:"نظريات + تفكيك العالم", tag:"Lore", icon:"🪄" },
+      { handle:"art_dojo", name:"دوجو الرسم", bio:"نصائح رسم + تحديات أسبوعية", tag:"Fanart", icon:"🎨" },
+    ];
+
+    // Chibi SVG presets (no external libs)
+    const CHIBI = [
+      { id:"c1", name:"تشيبّي 1", svg: chibiSvg("v", "⭐") },
+      { id:"c2", name:"تشيبّي 2", svg: chibiSvg("c", "⚡") },
+      { id:"c3", name:"تشيبّي 3", svg: chibiSvg("p", "🍬") },
+      { id:"c4", name:"تشيبّي 4", svg: chibiSvg("e", "🌿") },
+      { id:"c5", name:"تشيبّي 5", svg: chibiSvg("a", "🔥") },
+      { id:"c6", name:"تشيبّي 6", svg: chibiSvg("v", "🫧") },
+    ];
+
+    function chibiSvg(accentKey, badge){
+      const accent = ({
+        v: "rgba(124,58,237,.95)",
+        c: "rgba(34,211,238,.95)",
+        p: "rgba(251,113,133,.95)",
+        e: "rgba(52,211,153,.95)",
+        a: "rgba(251,191,36,.95)",
+      })[accentKey] || "rgba(124,58,237,.95)";
+
+      // SVG is simple + cute (anime-ish)
+      return `
+        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="bg" x1="0" x2="1">
+              <stop offset="0" stop-color="rgba(124,58,237,.55)"/>
+              <stop offset="1" stop-color="rgba(34,211,238,.40)"/>
+            </linearGradient>
+          </defs>
+          <rect width="120" height="120" rx="26" fill="url(#bg)"/>
+          <circle cx="60" cy="66" r="30" fill="rgba(255,255,255,.92)"/>
+          <path d="M22 58c5-24 18-38 38-38s33 14 38 38c-12-8-24-12-38-12s-26 4-38 12z" fill="${accent}"/>
+          <circle cx="49" cy="70" r="7" fill="rgba(0,0,0,.55)"/>
+          <circle cx="71" cy="70" r="7" fill="rgba(0,0,0,.55)"/>
+          <circle cx="47" cy="68" r="2.3" fill="rgba(255,255,255,.95)"/>
+          <circle cx="69" cy="68" r="2.3" fill="rgba(255,255,255,.95)"/>
+          <path d="M54 84c4 6 8 6 12 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="39" cy="80" r="4" fill="rgba(251,113,133,.70)"/>
+          <circle cx="81" cy="80" r="4" fill="rgba(251,113,133,.70)"/>
+          <rect x="9" y="9" width="102" height="102" rx="24" fill="none" stroke="rgba(255,255,255,.18)"/>
+          <text x="92" y="28" font-size="18" text-anchor="middle">${badge}</text>
+        </svg>
+      `.trim();
+    }
+
+    // =========================
+    // UI helpers
+    // =========================
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;");
+    }
+
+    function showErr(stepIndex, msg){
+      errBoxes.forEach((b,i)=> { if(i !== stepIndex) b.classList.add("hidden"); });
+      const box = errBoxes[stepIndex];
+      box.textContent = msg;
+      box.classList.remove("hidden");
+      box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    function clearErr(){
+      errBoxes.forEach(b => { b.classList.add("hidden"); b.textContent = ""; });
+    }
+
+    function setStep(n){
+      state.step = n;
+      clearErr();
+
+      stepsEl.forEach((el,i)=> {
+        el.classList.toggle("active", i === n);
+      });
+
+      const pct = Math.round((n/(STEPS-1))*100);
+      progress.style.width = pct + "%";
+      stepTitle.textContent = TITLES[n][0];
+      stepSub.textContent = TITLES[n][1];
+      stepCount.textContent = `${n+1} / ${STEPS}`;
+
+      dots.forEach((d,i)=>{
+        if(i === n){
+          d.className = "w-2.5 h-2.5 rounded-full bg-gradient-to-l from-neon-c to-neon-v ring-2 ring-white/15";
+        } else if(i < n){
+          d.className = "w-2.5 h-2.5 rounded-full bg-neon-e/70 ring-2 ring-neon-e/30";
+        } else {
+          d.className = "w-2.5 h-2.5 rounded-full bg-white/10 ring-2 ring-white/10";
+        }
+      });
+
+      backBtn.disabled = (n === 0);
+      nextBtnText.textContent = (n === STEPS-1) ? "إنشاء الحساب" : "التالي →";
+
+      // Focus first input in the step (a11y)
+      const focusable = stepsEl[n].querySelector("input,textarea,select,button");
+      if(focusable) focusable.focus({ preventScroll: true });
+
+      if(n === 4) renderReview();
+      syncLivePreview();
+      saveState();
+    }
+
+    function toggleDark(on){
+      state.dark = !!on;
+      document.documentElement.classList.toggle("dark", state.dark);
+      themeToggle.textContent = state.dark ? "☀️" : "🌙";
+      themeToggle.setAttribute("aria-pressed", String(state.dark));
+      saveState();
+    }
+
+    // =========================
+    // Chips UI
+    // =========================
+    function chipButton(label, selected, onClick){
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = label;
+      btn.className =
+        "px-3 py-2 rounded-full text-xs border transition select-none focusRing " +
+        (selected
+          ? "border-neon-c/45 bg-gradient-to-l from-neon-c/15 to-neon-v/15 shadow-[0_0_0_4px_rgba(34,211,238,.08)]"
+          : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20");
+      btn.addEventListener("click", onClick);
+      return btn;
+    }
+
+    function renderChips(){
+      interestChips.innerHTML = "";
+      genreChips.innerHTML = "";
+
+      INTERESTS.forEach(x => {
+        const on = state.interests.includes(x);
+        interestChips.appendChild(chipButton(x, on, ()=>{
+          if(on) state.interests = state.interests.filter(i => i !== x);
+          else state.interests = [...state.interests, x];
+          renderChips();
+          syncLivePreview();
+          saveState();
+        }));
+      });
+
+      GENRES.forEach(x => {
+        const on = state.genres.includes(x);
+        genreChips.appendChild(chipButton(x, on, ()=>{
+          if(on) state.genres = state.genres.filter(i => i !== x);
+          else state.genres = [...state.genres, x];
+          renderChips();
+          syncLivePreview();
+          saveState();
+        }));
+      });
+
+      interestCount.textContent = String(state.interests.length + state.genres.length);
+    }
+
+    // =========================
+    // Avatar UI
+    // =========================
+    function setAvatarPreset(id){
+      state.avatarType = "preset";
+      state.avatarPresetId = id;
+      state.avatarUploadData = "";
+      renderAvatarPreview();
+      renderPresetAvatars();
+      syncLivePreview();
+      saveState();
+    }
+
+    function setAvatarUpload(dataURL){
+      state.avatarType = "upload";
+      state.avatarUploadData = dataURL;
+      renderAvatarPreview();
+      renderPresetAvatars();
+      syncLivePreview();
+      saveState();
+    }
+
+    function renderPresetAvatars(){
+      presetAvatars.innerHTML = "";
+      CHIBI.forEach(a => {
+        const selected = (state.avatarType === "preset" && state.avatarPresetId === a.id);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className =
+          "rounded-2xl border bg-black/30 overflow-hidden aspect-square grid place-items-center transition focusRing " +
+          (selected
+            ? "border-neon-p/45 shadow-[0_0_0_4px_rgba(251,113,133,.08)]"
+            : "border-white/10 hover:border-white/20 hover:-translate-y-0.5 active:translate-y-0");
+        btn.innerHTML = a.svg;
+        btn.setAttribute("aria-label", a.name);
+        btn.addEventListener("click", ()=> setAvatarPreset(a.id));
+        presetAvatars.appendChild(btn);
+      });
+    }
+
+    function renderAvatarPreview(){
+      avatarPreview.innerHTML = "";
+      const live = document.createElement("div");
+      live.className = "w-full h-full";
+
+      if(state.avatarType === "upload" && state.avatarUploadData){
+        live.style.backgroundImage = `url('${state.avatarUploadData}')`;
+        live.style.backgroundSize = "cover";
+        live.style.backgroundPosition = "center";
+        live.style.backgroundRepeat = "no-repeat";
+        avatarPreview.appendChild(live);
+      } else {
+        const preset = CHIBI.find(x => x.id === state.avatarPresetId) || CHIBI[0];
+        avatarPreview.innerHTML = preset.svg;
+      }
+
+      // Also update liveAvatar / review later
+      syncAvatarBlocks();
+    }
+
+    function syncAvatarBlocks(){
+      const html = getAvatarHTML();
+      liveAvatar.innerHTML = html;
+      reviewAvatar.innerHTML = html;
+      successAvatar.innerHTML = html;
+    }
+
+    function getAvatarHTML(){
+      if(state.avatarType === "upload" && state.avatarUploadData){
+        return `<div class="w-full h-full" style="background-image:url('${state.avatarUploadData}');background-size:cover;background-position:center;background-repeat:no-repeat"></div>`;
+      }
+      const preset = CHIBI.find(x => x.id === state.avatarPresetId) || CHIBI[0];
+      return preset.svg;
+    }
+
+    // =========================
+    // Follows UI
+    // =========================
+    function renderFollows(){
+      followList.innerHTML = "";
+      SUGGESTED_FOLLOWS.forEach(u=>{
+        const on = state.following.includes(u.handle);
+
+        const row = document.createElement("div");
+        row.className = "rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 hover:border-white/20 transition flex items-start justify-between gap-3";
+
+        row.innerHTML = `
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-2xl border border-white/10 bg-black/30 grid place-items-center">
+              <span class="text-lg">${u.icon}</span>
+            </div>
+            <div>
+              <div class="font-black text-sm">${escapeHtml(u.name)}</div>
+              <div class="text-xs text-white/60">@${escapeHtml(u.handle)} • <span class="text-white/55">${escapeHtml(u.tag)}</span></div>
+              <div class="mt-1 text-xs text-white/65 leading-relaxed">${escapeHtml(u.bio)}</div>
+            </div>
+          </div>
+          <button type="button"
+            class="px-3 py-2 rounded-full text-[11px] border transition focusRing ${on
+              ? "border-neon-e/40 bg-neon-e/10 text-neon-e hover:bg-neon-e/15"
+              : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10 hover:border-white/20"}">
+            ${on ? "متابعة ✓" : "تابع"}
+          </button>
+        `.trim();
+
+        const btn = row.querySelector("button");
+        btn.addEventListener("click", ()=>{
+          if(on) state.following = state.following.filter(x => x !== u.handle);
+          else state.following = [...state.following, u.handle];
+          renderFollows();
+          syncLivePreview();
+          saveState();
+        });
+
+        followList.appendChild(row);
+      });
+
+      followingCount.textContent = String(state.following.length);
+    }
+
+    // =========================
+    // Live Preview
+    // =========================
+    function syncLivePreview(){
+      liveName.textContent = state.displayName?.trim() || "اسم العرض…";
+      const user = (state.email || "").split("@")[0] || "user";
+      liveUser.textContent = "@" + user;
+
+      const picks = [...state.interests, ...state.genres];
+      liveInterests.textContent = picks.length ? picks.slice(0,3).join(" • ") + (picks.length > 3 ? " …" : "") : "اختر اهتماماتك…";
+      liveSocial.textContent = "متابعة: " + String(state.following.length);
+
+      syncAvatarBlocks();
+    }
+
+    // =========================
+    // Review Render
+    // =========================
+    function renderReview(){
+      reviewName.textContent = state.displayName?.trim() || "—";
+      reviewEmail.textContent = state.email?.trim() || "—";
+
+      const bio = state.bio?.trim() ? escapeHtml(state.bio.trim()) : "—";
+      const country = state.country?.trim() ? escapeHtml(state.country.trim()) : "—";
+      const lang = state.language ? escapeHtml(state.language) : "—";
+
+      reviewProfile.innerHTML = `
+        <div class="text-white/85"><b>نبذة:</b> ${bio}</div>
+        <div class="mt-2 text-white/75"><b>الدولة:</b> ${country}</div>
+        <div class="mt-1 text-white/75"><b>اللغة:</b> ${lang}</div>
+      `.trim();
+
+      const interests = state.interests.length ? state.interests.join(" • ") : "—";
+      const genres = state.genres.length ? state.genres.join(" • ") : "—";
+      const favs = state.favorites.filter(Boolean);
+      const favText = favs.length ? favs.map(escapeHtml).join(" • ") : "—";
+
+      reviewInterests.innerHTML = `
+        <div class="text-white/85"><b>اهتمامات:</b> ${escapeHtml(interests)}</div>
+        <div class="mt-2 text-white/85"><b>أنواع:</b> ${escapeHtml(genres)}</div>
+        <div class="mt-2 text-white/75"><b>مفضلات:</b> ${favText}</div>
+      `.trim();
+
+      const goals = state.goals.length ? state.goals.map(escapeHtml).join(" • ") : "—";
+      const follow = state.following.length ? state.following.map(h => "@"+escapeHtml(h)).join("، ") : "—";
+
+      reviewSocial.innerHTML = `
+        <div class="text-white/85"><b>أهداف:</b> ${goals}</div>
+        <div class="mt-2 text-white/75"><b>يتابع:</b> ${follow}</div>
+      `.trim();
+    }
+
+    // =========================
+    // Validation
+    // =========================
+    function isValidEmail(v){
+      // simple robust enough for UI
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    }
+    function passwordScore(p){
+      // requirements: >=8 and has a digit; extra: letters + symbol
+      let s = 0;
+      if(p.length >= 8) s += 40;
+      if(/[0-9]/.test(p)) s += 25;
+      if(/[A-Za-z]/.test(p)) s += 20;
+      if(/[^A-Za-z0-9]/.test(p)) s += 15;
+      return Math.min(100, s);
+    }
+    function updatePasswordUI(){
+      const p = passwordEl.value;
+      const s = passwordScore(p);
+      pwStrengthBar.style.width = s + "%";
+
+      let label = "ضعيفة";
+      let cls = "border-neon-p/30 bg-neon-p/10 text-neon-p";
+      if(s >= 80){ label = "قوية"; cls = "border-neon-e/30 bg-neon-e/10 text-neon-e"; }
+      else if(s >= 55){ label = "متوسطة"; cls = "border-neon-a/30 bg-neon-a/10 text-neon-a"; }
+      pwStrengthLabel.textContent = label;
+      pwStrengthLabel.className = "text-[11px] px-2.5 py-1 rounded-full border " + cls;
+
+      const c = confirmPasswordEl.value;
+      if(!c){
+        pwMatchHint.textContent = "طابق كلمة المرور.";
+        pwMatchHint.className = "mt-1 text-[11px] text-white/55";
+      } else if(p === c){
+        pwMatchHint.textContent = "مطابقة ✓";
+        pwMatchHint.className = "mt-1 text-[11px] text-neon-e";
+      } else {
+        pwMatchHint.textContent = "غير متطابقة ✕";
+        pwMatchHint.className = "mt-1 text-[11px] text-neon-p";
+      }
+    }
+
+    function validateStep(step){
+      clearErr();
+
+      if(step === 0){
+        const dn = displayNameEl.value.trim();
+        const em = emailEl.value.trim();
+        const pw = passwordEl.value;
+        const cf = confirmPasswordEl.value;
+
+        if(!dn) return showErr(0, "اكتب اسم العرض للاستمرار.");
+        if(!em || !isValidEmail(em)) return showErr(0, "اكتب بريدًا إلكترونيًا صحيحًا.");
+        if(pw.length < 8 || !/[0-9]/.test(pw)) return showErr(0, "كلمة المرور يجب أن تكون 8 أحرف على الأقل وتحتوي رقمًا.");
+        if(pw !== cf) return showErr(0, "تأكيد كلمة المرور غير مطابق.");
+
+        return true;
+      }
+
+      if(step === 1){
+        // Avatar optional (default preset ok), bio optional, country/language optional
+        return true;
+      }
+
+      if(step === 2){
+        // require at least 1 interest and 1 genre? (nice UX) - or at least 2 total
+        const total = state.interests.length + state.genres.length;
+        if(total < 2) return showErr(2, "اختر على الأقل عنصرين (اهتمامات/أنواع) لتحسين التوصيات.");
+        return true;
+      }
+
+      if(step === 3){
+        // require at least one goal
+        if(state.goals.length < 1) return showErr(3, "اختر هدفًا واحدًا على الأقل داخل المجتمع.");
+        return true;
+      }
+
+      if(step === 4){
+        return true;
+      }
+
+      return true;
+    }
+
+    // =========================
+    // Submit
+    // =========================
+    function openSuccess(){
+      document.body.classList.add("modal-open");
+      successModal.classList.remove("hidden");
+      successModal.classList.add("flex");
+      syncAvatarBlocks();
+
+      successName.textContent = state.displayName?.trim() || "—";
+      const metaParts = [];
+      if(state.interests.length) metaParts.push("اهتمامات: " + state.interests.slice(0,3).join(" • ") + (state.interests.length>3 ? " …" : ""));
+      if(state.following.length) metaParts.push("يتابع: " + state.following.slice(0,2).map(x=>"@"+x).join("، ") + (state.following.length>2 ? " …" : ""));
+      successMeta.textContent = metaParts.length ? metaParts.join(" • ") : "جاهز تبدأ رحلتك!";
+
+      burstConfetti();
+    }
+
+    function closeSuccessModal(){
+      document.body.classList.remove("modal-open");
+      successModal.classList.add("hidden");
+      successModal.classList.remove("flex");
+      confetti.innerHTML = "";
+    }
+
+    function burstConfetti(){
+      confetti.innerHTML = "";
+      const colors = [
+        "rgba(124,58,237,.95)","rgba(34,211,238,.95)",
+        "rgba(251,113,133,.95)","rgba(52,211,153,.95)",
+        "rgba(251,191,36,.95)","rgba(245,245,245,.95)"
+      ];
+      const n = 46;
+      for(let i=0;i<n;i++){
+        const c = document.createElement("div");
+        c.style.position = "absolute";
+        c.style.left = (Math.random()*100) + "%";
+        c.style.top = (-30 - Math.random()*60) + "px";
+        c.style.width = (8 + Math.random()*7) + "px";
+        c.style.height = (12 + Math.random()*12) + "px";
+        c.style.borderRadius = "3px";
+        c.style.background = colors[(Math.random()*colors.length)|0];
+        c.style.opacity = ".95";
+        c.style.animation = `confetti ${1.05 + Math.random()*1.1}s linear forwards`;
+        c.style.transform = `rotate(${Math.random()*180}deg)`;
+        confetti.appendChild(c);
+      }
+    }
+
+    // =========================
+    // Wiring: inputs -> state
+    // =========================
+    function bindInputs(){
+      displayNameEl.addEventListener("input", ()=>{
+        state.displayName = displayNameEl.value;
+        syncLivePreview(); saveState();
+      });
+      emailEl.addEventListener("input", ()=>{
+        state.email = emailEl.value;
+        syncLivePreview(); saveState();
+      });
+
+      passwordEl.addEventListener("input", ()=>{
+        state.password = passwordEl.value;
+        updatePasswordUI(); saveState();
+      });
+      confirmPasswordEl.addEventListener("input", ()=>{
+        state.confirmPassword = confirmPasswordEl.value;
+        updatePasswordUI(); saveState();
+      });
+
+      bioEl.addEventListener("input", ()=>{
+        state.bio = bioEl.value;
+        bioCount.textContent = String(bioEl.value.length);
+        saveState();
+      });
+
+      countryEl.addEventListener("input", ()=>{
+        state.country = countryEl.value;
+        saveState();
+      });
+      languageEl.addEventListener("change", ()=>{
+        state.language = languageEl.value;
+        saveState();
+      });
+
+      fav1.addEventListener("input", ()=> { state.favorites[0] = fav1.value.trim(); saveState(); });
+      fav2.addEventListener("input", ()=> { state.favorites[1] = fav2.value.trim(); saveState(); });
+      fav3.addEventListener("input", ()=> { state.favorites[2] = fav3.value.trim(); saveState(); });
+
+      // Goals checkboxes (step 4)
+      document.querySelectorAll('input[name="goals"]').forEach(cb=>{
+        cb.addEventListener("change", ()=>{
+          const values = [...document.querySelectorAll('input[name="goals"]:checked')].map(x => x.value);
+          state.goals = values;
+          syncLivePreview();
+          saveState();
+        });
+      });
+
+      // Avatar upload
+      avatarUpload.addEventListener("change", ()=>{
+        const file = avatarUpload.files && avatarUpload.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = ()=> setAvatarUpload(reader.result);
+        reader.readAsDataURL(file);
+      });
+
+      // Keyboard: Enter -> Next (except textarea)
+      wizard.addEventListener("keydown", (e)=>{
+        if(e.key === "Enter"){
+          const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+          if(tag === "textarea") return;
+          e.preventDefault();
+          nextBtn.click();
+        }
+      });
+    }
+
+    // =========================
+    // Navigation
+    // =========================
+    backBtn.addEventListener("click", ()=>{
+      if(state.step > 0) setStep(state.step - 1);
+    });
+
+    nextBtn.addEventListener("click", ()=>{
+      // sync from DOM for step 1/2 before validating
+      hydrateFromDOM();
+      if(!validateStep(state.step)) return;
+
+      if(state.step < STEPS - 1){
+        setStep(state.step + 1);
+      } else {
+        // Submit
+        renderReview();
+        openSuccess();
+      }
+    });
+
+    function hydrateFromDOM(){
+      // Step 1
+      state.displayName = displayNameEl.value;
+      state.email = emailEl.value;
+      state.password = passwordEl.value;
+      state.confirmPassword = confirmPasswordEl.value;
+
+      // Step 2
+      state.bio = bioEl.value;
+      state.country = countryEl.value;
+      state.language = languageEl.value;
+
+      // Step 3
+      state.favorites = [fav1.value.trim(), fav2.value.trim(), fav3.value.trim()];
+
+      // Step 4
+      state.goals = [...document.querySelectorAll('input[name="goals"]:checked')].map(x => x.value);
+    }
+
+    // =========================
+    // Theme toggle
+    // =========================
+    themeToggle.addEventListener("click", ()=>{
+      toggleDark(!state.dark);
+    });
+
+    // =========================
+    // Success modal buttons
+    // =========================
+    closeSuccess.addEventListener("click", closeSuccessModal);
+    successModal.addEventListener("click", (e)=>{
+      if(e.target === successModal) closeSuccessModal();
+    });
+    window.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape" && !successModal.classList.contains("hidden")){
+        closeSuccessModal();
+      }
+    });
+
+    resetAll.addEventListener("click", ()=>{
+      closeSuccessModal();
+      clearState();
+      // Hard reset state
+      Object.assign(state, {
+        step: 0, dark: state.dark,
+        displayName:"", email:"", password:"", confirmPassword:"",
+        avatarType:"preset", avatarPresetId:"c1", avatarUploadData:"",
+        bio:"", country:"", language:"",
+        interests:[], genres:[], favorites:["","",""],
+        goals:[], following:[]
+      });
+      applyStateToUI();
+      setStep(0);
+    });
+
+    // =========================
+    // Apply state to UI
+    // =========================
+    function applyStateToUI(){
+      // Theme
+      toggleDark(!!state.dark);
+
+      // Step 1
+      displayNameEl.value = state.displayName || "";
+      emailEl.value = state.email || "";
+      passwordEl.value = state.password || "";
+      confirmPasswordEl.value = state.confirmPassword || "";
+
+      // Step 2
+      bioEl.value = state.bio || "";
+      bioCount.textContent = String((state.bio || "").length);
+      countryEl.value = state.country || "";
+      languageEl.value = state.language || "";
+
+      // Step 3
+      fav1.value = state.favorites?.[0] || "";
+      fav2.value = state.favorites?.[1] || "";
+      fav3.value = state.favorites?.[2] || "";
+
+      // Goals
+      const goalSet = new Set(state.goals || []);
+      document.querySelectorAll('input[name="goals"]').forEach(cb=>{
+        cb.checked = goalSet.has(cb.value);
+      });
+
+      // Avatar
+      renderPresetAvatars();
+      renderAvatarPreview();
+
+      // Chips
+      renderChips();
+
+      // Follows
+      renderFollows();
+
+      // Update pw UI + preview
+      updatePasswordUI();
+      syncLivePreview();
+      renderReview();
+    }
+
+    // =========================
+    // Init
+    // =========================
+    function init(){
+      loadState();
+
+      // Default: if user prefers dark, keep dark off unless saved (optional)
+      if(typeof state.dark !== "boolean") state.dark = false;
+
+      // Ensure arrays
+      state.interests = Array.isArray(state.interests) ? state.interests : [];
+      state.genres = Array.isArray(state.genres) ? state.genres : [];
+      state.favorites = Array.isArray(state.favorites) ? state.favorites : ["","",""];
+      state.goals = Array.isArray(state.goals) ? state.goals : [];
+      state.following = Array.isArray(state.following) ? state.following : [];
+
+      // Render UI
+      renderPresetAvatars();
+      renderChips();
+      renderFollows();
+      bindInputs();
+      applyStateToUI();
+
+      // Step from saved
+      const s = Number.isFinite(state.step) ? state.step : 0;
+      setStep(Math.min(Math.max(s, 0), STEPS-1));
+    }
+
+    init();
+
+    // =========================
+    // Additional wiring for follows count preview
+    // =========================
+    function updateFollowingPreview(){
+      followingCount.textContent = String(state.following.length);
+      syncLivePreview();
+    }
+    // Hook update after render
+    const _renderFollows = renderFollows;
+    renderFollows = function(){
+      _renderFollows();
+      updateFollowingPreview();
+    };
+
+    // =========================
+    // Auto-save timer (extra UX)
+    // =========================
+    let saveTimer = null;
+    function scheduleSave(){
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveState, 180);
+    }
+    // Replace direct saveState in high-frequency inputs with scheduleSave
+    // (Keep saveState for important transitions.)
+    ["input","change"].forEach(evt=>{
+      wizard.addEventListener(evt, (e)=>{
+        const t = e.target;
+        if(!t) return;
+        // avoid saving on button clicks
+        if(t.tagName && t.tagName.toLowerCase() === "button") return;
+        scheduleSave();
+      }, { passive:true });
+    });
+
+    // =========================
+    // Keep state.following preview up to date
+    // =========================
+    function renderFollows(){
+      followList.innerHTML = "";
+      SUGGESTED_FOLLOWS.forEach(u=>{
+        const on = state.following.includes(u.handle);
+
+        const row = document.createElement("div");
+        row.className = "rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 hover:border-white/20 transition flex items-start justify-between gap-3";
+
+        row.innerHTML = `
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-2xl border border-white/10 bg-black/30 grid place-items-center">
+              <span class="text-lg">${u.icon}</span>
+            </div>
+            <div>
+              <div class="font-black text-sm">${escapeHtml(u.name)}</div>
+              <div class="text-xs text-white/60">@${escapeHtml(u.handle)} • <span class="text-white/55">${escapeHtml(u.tag)}</span></div>
+              <div class="mt-1 text-xs text-white/65 leading-relaxed">${escapeHtml(u.bio)}</div>
+            </div>
+          </div>
+          <button type="button"
+            class="px-3 py-2 rounded-full text-[11px] border transition focusRing ${on
+              ? "border-neon-e/40 bg-neon-e/10 text-neon-e hover:bg-neon-e/15"
+              : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10 hover:border-white/20"}">
+            ${on ? "متابعة ✓" : "تابع"}
+          </button>
+        `.trim();
+
+        const btn = row.querySelector("button");
+        btn.addEventListener("click", ()=>{
+          if(on) state.following = state.following.filter(x => x !== u.handle);
+          else state.following = [...state.following, u.handle];
+          renderFollows();
+          syncLivePreview();
+          saveState();
+        });
+
+        followList.appendChild(row);
+      });
+
+      followingCount.textContent = String(state.following.length);
+    }
+
+    // =========================
+    // Ensure review updates on entering step 5
+    // =========================
+    function setStep(n){
+      state.step = n;
+      clearErr();
+
+      stepsEl.forEach((el,i)=> el.classList.toggle("active", i === n));
+
+      const pct = Math.round((n/(STEPS-1))*100);
+      progress.style.width = pct + "%";
+      stepTitle.textContent = TITLES[n][0];
+      stepSub.textContent = TITLES[n][1];
+      stepCount.textContent = `${n+1} / ${STEPS}`;
+
+      dots.forEach((d,i)=>{
+        if(i === n){
+          d.className = "w-2.5 h-2.5 rounded-full bg-gradient-to-l from-neon-c to-neon-v ring-2 ring-white/15";
+        } else if(i < n){
+          d.className = "w-2.5 h-2.5 rounded-full bg-neon-e/70 ring-2 ring-neon-e/30";
+        } else {
+          d.className = "w-2.5 h-2.5 rounded-full bg-white/10 ring-2 ring-white/10";
+        }
+      });
+
+      backBtn.disabled = (n === 0);
+      nextBtnText.textContent = (n === STEPS-1) ? "إنشاء الحساب" : "التالي →";
+
+      // When on review step, refresh summary
+      if(n === 4){
+        hydrateFromDOM();
+        renderReview();
+      }
+
+      // Focus first control
+      const focusable = stepsEl[n].querySelector("input,textarea,select,button");
+      if(focusable) focusable.focus({ preventScroll: true });
+
+      syncLivePreview();
+      saveState();
+    }
+
+    // =========================
+    // Init again after function overrides
+    // =========================
+    (function finalInit(){
+      // Because we redefined setStep/renderFollows, ensure UI is consistent:
+      applyStateToUI();
+      setStep(Math.min(Math.max(Number(state.step)||0, 0), STEPS-1));
+    })();
+  </script>
+</body>
+</html>

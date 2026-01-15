@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OtakuVerse Pro - أوتاكو فيرس الاحترافي</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 
+              p: "#6366F1", 
+              c: "#06B6D4", 
+              d: "#4338CA",
+              light: "#818CF8"
+            },
+            dark: {
+              bg: "#0F172A",
+              card: "#1E293B",
+              border: "#334155"
+            }
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-out',
+            'slide-up': 'slideUp 0.6s ease-out',
+            'slide-right': 'slideRight 0.5s ease-out',
+            'scale-in': 'scaleIn 0.4s ease-out',
+            'glow': 'glow 2s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' }
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(30px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' }
+            },
+            slideRight: {
+              '0%': { transform: 'translateX(-30px)', opacity: '0' },
+              '100%': { transform: 'translateX(0)', opacity: '1' }
+            },
+            scaleIn: {
+              '0%': { transform: 'scale(0.9)', opacity: '0' },
+              '100%': { transform: 'scale(1)', opacity: '1' }
+            },
+            glow: {
+              '0%, 100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.4)' },
+              '50%': { boxShadow: '0 0 40px rgba(99, 102, 241, 0.7)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Readex+Pro:wght@300;400;500;600;700;800&display=swap');
+    
+    * {
+      font-family: 'Readex Pro', 'IBM Plex Sans Arabic', sans-serif;
+    }
+
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-light {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .gradient-brand {
+      background: linear-gradient(135deg, #6366F1 0%, #06B6D4 100%);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #6366F1 0%, #06B6D4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hover-lift {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .hover-lift:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-item {
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      background: linear-gradient(135deg, #6366F1, #06B6D4);
+      border-radius: 0 8px 8px 0;
+      transition: all 0.3s ease;
+    }
+
+    .nav-item.active::before {
+      width: 5px;
+      height: 75%;
+    }
+
+    .nav-item:hover {
+      background: rgba(99, 102, 241, 0.1);
+      transform: translateX(-4px);
+    }
+
+    .scrollbar-custom::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .scrollbar-custom::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+
+    .scrollbar-custom::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.5);
+      border-radius: 10px;
+    }
+
+    .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.7);
+    }
+
+    .post-card {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .post-card:hover {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366F1 0%, #06B6D4 100%);
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
+    }
+
+    .badge {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: .7;
+      }
+    }
+
+    .shimmer {
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.1) 50%, 
+        transparent 100%);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .story-ring {
+      background: linear-gradient(135deg, #6366F1, #06B6D4, #EC4899);
+      padding: 3px;
+      border-radius: 1.25rem;
+    }
+
+    .avatar-glow {
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    }
+
+    @media (max-width: 1024px) {
+      .hide-on-mobile {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body class="antialiased">
+  <input id="theme" type="checkbox" class="peer sr-only" />
+
+  <!-- Main Container -->
+  <div class="min-h-screen transition-all duration-700 bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A] text-slate-100 peer-checked:from-slate-50 peer-checked:via-blue-50 peer-checked:to-slate-100 peer-checked:text-slate-900">
+    
+    <!-- Animated Background Orbs -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none opacity-30 peer-checked:opacity-20">
+      <div class="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-brand-p blur-[120px] animate-pulse"></div>
+      <div class="absolute top-1/2 left-1/3 w-[400px] h-[400px] rounded-full bg-brand-c blur-[120px] animate-pulse" style="animation-delay: 1s;"></div>
+      <div class="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-purple-600 blur-[120px] animate-pulse" style="animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="relative z-10 min-h-screen">
+      <div class="max-w-[1800px] mx-auto">
+        <div class="grid lg:grid-cols-[300px_1fr_340px] gap-6 p-6">
+          
+          <!-- LEFT SIDEBAR -->
+          <aside class="animate-slide-right lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)]">
+            <div class="h-full rounded-3xl glass peer-checked:glass-light overflow-hidden shadow-2xl">
+              
+              <!-- Brand Header -->
+              <div class="p-6 border-b border-white/10 peer-checked:border-black/10">
+                <div class="flex items-center gap-4 mb-5">
+                  <div class="relative">
+                    <div class="w-14 h-14 rounded-2xl gradient-brand shadow-2xl animate-glow flex items-center justify-center">
+                      <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    <div class="absolute -bottom-1 -left-1 w-5 h-5 bg-green-500 rounded-full border-4 border-[#0F172A] peer-checked:border-white"></div>
+                  </div>
+                  
+                  <div class="flex-1 min-w-0">
+                    <h1 class="text-xl font-black gradient-text mb-0.5">أوتاكو فيرس</h1>
+                    <p class="text-xs text-white/60 peer-checked:text-black/60">منصة الأنمي الاحترافية</p>
+                  </div>
+                </div>
+
+                <!-- User Stats Mini -->
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="text-center p-2 rounded-xl bg-white/5 peer-checked:bg-black/5">
+                    <div class="text-lg font-bold">890</div>
+                    <div class="text-[10px] text-white/60 peer-checked:text-black/60">نقطة</div>
+                  </div>
+                  <div class="text-center p-2 rounded-xl bg-white/5 peer-checked:bg-black/5">
+                    <div class="text-lg font-bold">3.2K</div>
+                    <div class="text-[10px] text-white/60 peer-checked:text-black/60">متابع</div>
+                  </div>
+                  <div class="text-center p-2 rounded-xl bg-white/5 peer-checked:bg-black/5">
+                    <div class="text-lg font-bold">156</div>
+                    <div class="text-[10px] text-white/60 peer-checked:text-black/60">منشور</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Navigation -->
+              <nav class="p-4 h-[calc(100%-280px)] overflow-y-auto scrollbar-custom">
+                <div class="space-y-1.5">
+                  <a href="#" class="nav-item active flex items-center gap-4 px-4 py-3.5 rounded-2xl">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-p to-brand-c flex items-center justify-center shadow-lg">
+                      <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M9 22V12h6v10" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </div>
+                    <div class="flex-1">
+                      <div class="font-bold text-sm">الرئيسية</div>
+                      <div class="text-xs text-white/50 peer-checked:text-black/50">آخر التحديثات</div>
+                    </div>
+                    <span class="w-7 h-7 rounded-lg gradient-brand text-white text-xs font-bold flex items-center justify-center shadow-lg">5</span>
+                  </a>
+
+                  <a href="#" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl">
+                    <div class="w-11 h-11 rounded-xl bg-white/5 peer-checked:bg-black/5 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-cyan-400" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 3h7v7H3V3zM14 3h7v7h-7V3zM3 14h7v7H3v-7zM14 14h7v7h-7v-7z" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </div>
+                    <div class="flex-1">
+                      <div class="font-bold text-sm">التقنيات</div>
+                      <div class="text-xs text-white/50 peer-checked:text-black/50">استكشاف محتوى</div>
+                    </div>
+                  </a>
+
+                  <a href="#" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl">
+                    <div class="w-11 h-11 rounded-xl bg-white/5 peer-checked:bg-black/5 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-amber-400" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="2"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </div>
+                    <div class="flex-1">
+                      <div class="font-bold text-sm">القصص المصورة</div>
+                      <div class="text-xs text-white/50 peer-checked:text-black/50">مانجا وكوميكس</div>
+                    </div>
+                  </a>
+
+                  <a href="#" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl">
+                    <div class="w-11 h-11 rounded-xl bg-white/5 peer-checked:bg-black/5 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-rose-400" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M10 8l6 4-6 4V8z" fill="currentColor"/>
+                      </svg>
+                    </div>
+                    <div class="flex-1">
+                      <div class="font-bold text-sm">حلقات الأنمي</div>
+                      <div class="text-xs text-white/50 peer-checked:text-black/50">شاهد الآن</div>
+                    </div>
+                    <span class="px-2 py-1 rounded-lg bg-rose-500/20 text-rose-400 text-xs font-bold">24</span>
+                  </a>
+
+                  <a href="#" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl">
+                    <div class="w-11 h-11 rounded-xl bg-white/5 peer-checked:bg-black/5 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-purple-400" viewBox="0 0 24 24" fill="none">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </div>
+                    <div class="flex-1">
+                      <div class="font-bold text-sm">المجتمع</div>
+                      <div class="text-xs text-white/50 peer-checked:text-black/50">المجموعات النشطة</div>
+                    </div>
+                    <span class="px-2 py-1 rounded-lg bg-purple-500/20 text-purple-400 text-xs font-bold">12</span>
+                  </a>
+
+                  <a href="#" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl">
+                    <div class="w-11 h-11 rounded-xl bg-white/5 peer-checked:bg-black/5 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-blue-400" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </div>
+                    <div class="flex-1">
+                      <div class="font-bold text-sm">المحادثات</div>
+                      <div class="text-xs text-white/50 peer-checked:text-black/50">رسائل جديدة</div>
+                    </div>
+                    <span class="w-7 h-7 rounded-lg bg-red-500 text-white text-xs font-bold flex items-center justify-center shadow-lg badge">3</span>
+                  </a>
+
+                  <div class="my-4 border-t border-white/10 peer-checked:border-black/10"></div>
+
+                  <a href="#" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl">
+                    <div class="w-11 h-11 rounded-xl bg-white/5 peer-checked:bg-black/5 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-emerald-400" viewBox="0 0 24 24" fill="none">
+                        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                        <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                    </div>
+                    <span class="font-bold text-sm">البحث</span>
+                  </a>
+
+                  <a href="#" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl">
+                    <div class="w-11 h-11 rounded-xl bg-white/5 peer-checked:bg-black/5 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-yellow-400" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9zM13.73 21a2 2 0 01-3.46 0" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </div>
+                    <div class="flex-1">
+                      <span class="font-bold text-sm">الإشعارات</span>
+                    </div>
+                    <span class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
+                  </a>
+
+                  <a href="#" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl">
+                    <div class="w-11 h-11 rounded-xl bg-white/5 peer-checked:bg-black/5 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-indigo-400" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 1v6m0 6v6M23 12h-6m-6 0H5" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </div>
+                    <span class="font-bold text-sm">الإعدادات</span>
+                  </a>
+                </div>
+              </nav>
+
+              <!-- User Profile Card -->
+              <div class="p-4 border-t border-white/10 peer-checked:border-black/10">
+                <div class="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition peer-checked:bg-black/5 peer-checked:hover:bg-black/10 cursor-pointer">
+                  <div class="relative">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=ibrahim-pro" class="w-12 h-12 rounded-xl avatar-glow"/>
+                    <div class="absolute -bottom-0.5 -left-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-[#0F172A] peer-checked:border-white"></div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-bold text-sm truncate">إبراهيم دحمة</div>
+                    <div class="text-xs text-white/60 peer-checked:text-black/60 truncate">@luffy.dev • Pro</div>
+                  </div>
+                  <button class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition peer-checked:bg-black/5 peer-checked:hover:bg-black/10">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- MAIN FEED -->
+          <main class="animate-slide-up space-y-6">
+            <!-- Top Header -->
+            <header class="glass peer-checked:glass-light rounded-3xl p-6 shadow-xl">
+              <div class="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <h1 class="text-3xl font-black mb-2 flex items-center gap-3">
+                    <span>مرحباً، إبراهيم</span>
+                    <span class="text-4xl">👋</span>
+                  </h1>
+                  <p class="text-sm text-white/60 peer-checked:text-black/60">اكتشف آخر التحديثات في عالم الأنمي والمانجا</p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <label for="theme" class="cursor-pointer w-12 h-12 rounded-2xl glass peer-checked:glass-light hover:scale-110 transition-transform flex items-center justify-center shadow-lg">
+                    <svg class="w-6 h-6 hidden peer-checked:block text-yellow-500" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <svg class="w-6 h-6 peer-checked:hidden text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                    </svg>
+                  </label>
+
+                  <button class="px-6 h-12 rounded-2xl btn-primary text-white font-bold shadow-xl flex items-center gap-2">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                    إنشاء منشور
+                  </button>
+                </div>
+              </div>
+
+              <!-- Stats Dashboard -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <div class="hover-lift p-4 rounded-2xl bg-gradient-to-br from-brand-p/20 to-brand-c/20 border border-brand-p/20">
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="w-12 h-12 rounded-xl bg-brand-p/30 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-brand-p" viewBox="0 0 24 24" fill="none">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </div>
+                    <span class="text-xs font-bold text-brand-p px-2 py-1 rounded-lg bg-brand-p/20">+12%</span>
+                  </div>
+                  <div class="text-2xl font-black mb-1">12.5K</div>
+                  <div class="text-xs text-white/60 peer-checked:text-black/60 font-medium">إجمالي المشاهدات</div>
+                </div>
+
+                <div class="hover-lift p-4 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/20">
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/30 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-emerald-400" viewBox="0 0 24 24" fill="none">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </div>
+                    <span class="text-xs font-bold text-emerald-400 px-2 py-1 rounded-lg bg-emerald-500/20">+8%</span>
+                  </div>
+                  <div class="text-2xl font-black mb-1">3.2K</div>
+                  <div class="text-xs text-white/60 peer-checked:text-black/60 font-medium

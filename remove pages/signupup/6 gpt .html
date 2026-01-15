@@ -1,0 +1,1913 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>6 gpt</title>
+
+  <!-- Tailwind via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          boxShadow: {
+            glass: "0 20px 60px rgba(0,0,0,.18)",
+            soft: "0 12px 30px rgba(0,0,0,.14)",
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --bg1:#f7d9ff;
+      --bg2:#dbeafe;
+      --bg3:#dcfce7;
+      --ink:#0b1220;
+      --glass: rgba(255,255,255,.14);
+      --glass2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.22);
+      --accent1:#a78bfa; /* violet */
+      --accent2:#fb7185; /* rose */
+      --accent3:#60a5fa; /* blue */
+      --accent4:#34d399; /* emerald */
+    }
+
+    /* Background layers */
+    .bg-soft {
+      background:
+        radial-gradient(1200px 600px at 10% 10%, rgba(167,139,250,.35), transparent 60%),
+        radial-gradient(900px 500px at 90% 10%, rgba(251,113,133,.30), transparent 55%),
+        radial-gradient(900px 550px at 30% 95%, rgba(96,165,250,.28), transparent 55%),
+        radial-gradient(900px 600px at 85% 85%, rgba(52,211,153,.24), transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2) 45%, var(--bg3));
+    }
+
+    .glass {
+      background: linear-gradient(180deg, var(--glass), var(--glass2));
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .noise::before{
+      content:"";
+      position:absolute; inset:0;
+      pointer-events:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='.09'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+      opacity:.55;
+      border-radius: 28px;
+    }
+
+    /* Decorative blobs */
+    .blob{
+      position:absolute; border-radius:9999px;
+      filter: blur(28px);
+      opacity:.55;
+      transform: translateZ(0);
+      animation: floaty 10s ease-in-out infinite;
+    }
+    .blob.b1{ width:240px; height:240px; left:-60px; top:90px; background: radial-gradient(circle at 30% 30%, rgba(167,139,250,.75), rgba(167,139,250,0));}
+    .blob.b2{ width:260px; height:260px; right:-80px; top:40px; background: radial-gradient(circle at 30% 30%, rgba(251,113,133,.70), rgba(251,113,133,0)); animation-duration: 12s;}
+    .blob.b3{ width:280px; height:280px; left:10%; bottom:-120px; background: radial-gradient(circle at 30% 30%, rgba(96,165,250,.65), rgba(96,165,250,0)); animation-duration: 14s;}
+    .blob.b4{ width:220px; height:220px; right:8%; bottom:-110px; background: radial-gradient(circle at 30% 30%, rgba(52,211,153,.55), rgba(52,211,153,0)); animation-duration: 13s;}
+
+    @keyframes floaty{
+      0%,100%{ transform: translate3d(0,0,0) scale(1);}
+      50%{ transform: translate3d(0,-18px,0) scale(1.03);}
+    }
+
+    /* Speed lines */
+    .speedlines{
+      position:absolute; inset:0;
+      pointer-events:none;
+      opacity:.14;
+      mix-blend-mode: soft-light;
+    }
+
+    /* Sakura petals */
+    .petal{
+      position:absolute;
+      width: 16px; height: 16px;
+      opacity: .45;
+      filter: blur(.1px);
+      animation: petalFall 9s linear infinite;
+      pointer-events:none;
+    }
+    @keyframes petalFall{
+      0%{ transform: translate3d(0,-40px,0) rotate(0deg); opacity:0;}
+      10%{ opacity:.45;}
+      100%{ transform: translate3d(60px, calc(100vh + 60px), 0) rotate(240deg); opacity:0;}
+    }
+
+    /* Micro-interactions */
+    .btn {
+      position: relative;
+      overflow: hidden;
+      transform: translateZ(0);
+    }
+    .btn:active{ transform: translateY(1px); }
+    .ripple{
+      position:absolute;
+      border-radius:9999px;
+      transform: scale(0);
+      animation: ripple 650ms ease-out;
+      background: rgba(255,255,255,.35);
+      pointer-events:none;
+    }
+    @keyframes ripple{
+      to{ transform: scale(14); opacity:0; }
+    }
+
+    /* Step transitions */
+    .step {
+      display:none;
+      animation: fadeInUp 520ms ease both;
+    }
+    .step.active { display:block; }
+    .step.enter-right { animation: enterRight 520ms cubic-bezier(.2,.8,.2,1) both; }
+    .step.enter-left  { animation: enterLeft  520ms cubic-bezier(.2,.8,.2,1) both; }
+    .step.exit-left   { animation: exitLeft   420ms cubic-bezier(.4,0,.2,1) both; }
+    .step.exit-right  { animation: exitRight  420ms cubic-bezier(.4,0,.2,1) both; }
+
+    @keyframes enterRight{ from{ opacity:0; transform: translateX(-14px) translateY(6px);} to{opacity:1; transform: translateX(0) translateY(0);} }
+    @keyframes enterLeft { from{ opacity:0; transform: translateX(14px) translateY(6px);}  to{opacity:1; transform: translateX(0) translateY(0);} }
+    @keyframes exitLeft  { from{ opacity:1; transform: translateX(0);} to{opacity:0; transform: translateX(-14px);} }
+    @keyframes exitRight { from{ opacity:1; transform: translateX(0);} to{opacity:0; transform: translateX(14px);} }
+    @keyframes fadeInUp  { from{ opacity:0; transform: translateY(10px);} to{opacity:1; transform: translateY(0);} }
+
+    /* Stagger */
+    [data-stagger]{
+      opacity:0;
+      transform: translateY(10px);
+      animation: staggerIn 520ms ease both;
+      animation-delay: var(--d, 0ms);
+    }
+    @keyframes staggerIn{
+      to{ opacity:1; transform: translateY(0); }
+    }
+
+    /* Error + success */
+    .shake { animation: shake 420ms cubic-bezier(.36,.07,.19,.97) both; }
+    @keyframes shake{
+      10%,90%{ transform: translateX(-1px); }
+      20%,80%{ transform: translateX(2px); }
+      30%,50%,70%{ transform: translateX(-4px); }
+      40%,60%{ transform: translateX(4px); }
+    }
+    .glow-ok{
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.22),
+        0 0 0 6px rgba(167,139,250,.10),
+        0 25px 70px rgba(167,139,250,.20);
+      animation: glowPulse 1.2s ease-in-out infinite;
+    }
+    @keyframes glowPulse{
+      0%,100%{ filter: saturate(1); }
+      50%{ filter: saturate(1.15); }
+    }
+
+    /* Cute icon wiggle */
+    .wiggle:hover { animation: wiggle 620ms ease-in-out both; transform-origin: 50% 60%; }
+    @keyframes wiggle{
+      0%{ transform: rotate(0deg) translateY(0); }
+      25%{ transform: rotate(-4deg) translateY(-1px); }
+      50%{ transform: rotate(4deg) translateY(0); }
+      75%{ transform: rotate(-2deg) translateY(-1px); }
+      100%{ transform: rotate(0deg) translateY(0); }
+    }
+
+    /* Chips */
+    .chip[data-on="true"]{
+      background: linear-gradient(135deg, rgba(167,139,250,.28), rgba(251,113,133,.22));
+      border-color: rgba(255,255,255,.28);
+      box-shadow: 0 10px 26px rgba(0,0,0,.12);
+    }
+
+    /* Avatar crop */
+    .crop-wrap{
+      position:relative;
+      width: 240px; height: 240px;
+      border-radius: 22px;
+      overflow:hidden;
+      background: rgba(255,255,255,.08);
+      border: 1px dashed rgba(255,255,255,.26);
+    }
+    .crop-mask{
+      position:absolute; inset:0;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at center, transparent 0 44%, rgba(0,0,0,.28) 45% 100%);
+      mix-blend-mode: multiply;
+    }
+    .crop-ring{
+      position:absolute; inset: 18px;
+      border-radius: 9999px;
+      border: 2px solid rgba(255,255,255,.50);
+      box-shadow: 0 0 0 10px rgba(255,255,255,.06);
+      pointer-events:none;
+    }
+
+    /* Confetti */
+    .confetti-piece{
+      position:absolute;
+      width: 10px; height: 14px;
+      border-radius: 3px;
+      opacity:.95;
+      animation: confettiFall 1200ms linear forwards;
+      transform: translate3d(0,-18px,0) rotate(0deg);
+    }
+    @keyframes confettiFall{
+      to{ transform: translate3d(var(--dx, 0px), 420px, 0) rotate(var(--r, 180deg)); opacity:0;}
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      *{ animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-soft text-slate-900 selection:bg-white/40 selection:text-slate-900">
+  <!-- Decorative layers -->
+  <div class="fixed inset-0 -z-10 overflow-hidden">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="blob b4"></div>
+
+    <!-- speed lines svg -->
+    <svg class="speedlines" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="sl" x1="0" x2="1">
+          <stop offset="0" stop-color="white" stop-opacity="0"/>
+          <stop offset=".5" stop-color="white" stop-opacity=".9"/>
+          <stop offset="1" stop-color="white" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <g stroke="url(#sl)" stroke-width="2">
+        <path d="M-50 110 L380 40" />
+        <path d="M-70 180 L520 60" />
+        <path d="M-90 260 L650 90" />
+        <path d="M-110 340 L780 120" />
+        <path d="M-130 430 L920 160" />
+        <path d="M-150 540 L1040 210" />
+        <path d="M-170 660 L1180 260" />
+        <path d="M200 860 L1260 520" />
+        <path d="M320 880 L1300 600" />
+        <path d="M480 900 L1380 700" />
+      </g>
+    </svg>
+
+    <!-- petals container -->
+    <div id="petals"></div>
+  </div>
+
+  <main class="relative mx-auto w-full max-w-3xl px-4 pt-5 pb-28 md:pb-8 md:pt-10">
+    <!-- Top bar -->
+    <div class="flex items-start justify-between gap-3 mb-4 md:mb-6">
+      <div class="flex items-center gap-3">
+        <div class="glass shadow-soft rounded-2xl px-3 py-2 flex items-center gap-2">
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 border border-white/25 wiggle" aria-hidden="true">🌸</span>
+          <div class="leading-tight">
+            <div class="text-sm font-semibold">منصة الأنمي والكوميكس</div>
+            <div class="text-xs text-slate-700/80">إنشاء حساب جديد</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="dirToggle" class="btn glass rounded-2xl px-3 py-2 text-xs font-semibold border border-white/25 hover:bg-white/10 transition" type="button">
+          RTL / LTR
+        </button>
+        <div class="glass rounded-2xl px-3 py-2 text-xs text-slate-700/90 border border-white/25">
+          <span class="wiggle inline-block" aria-hidden="true">✨</span>
+          <span>ستايل: Glass + Pastel</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card -->
+    <section id="card" class="relative glass noise rounded-[28px] shadow-glass overflow-hidden">
+      <!-- Cute stickers -->
+      <div class="absolute -top-3 -left-3 rotate-[-8deg] glass border border-white/25 rounded-2xl px-3 py-2 text-xs font-semibold shadow-soft">
+        <span aria-hidden="true">🍡</span> تسجيل لطيف
+      </div>
+      <div class="absolute -top-2 -right-3 rotate-[10deg] glass border border-white/25 rounded-2xl px-3 py-2 text-xs font-semibold shadow-soft">
+        <span aria-hidden="true">⚡</span> سرعة ✨
+      </div>
+
+      <!-- Stepper -->
+      <header class="sticky top-0 z-10 glass border-b border-white/20 px-4 pt-4 pb-3 md:px-6">
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 border border-white/25 wiggle" aria-hidden="true">🪄</span>
+              <h1 class="text-base md:text-lg font-bold truncate">معالج التسجيل (Multi-step)</h1>
+            </div>
+            <p id="stepHint" class="text-xs md:text-sm text-slate-700/85 mt-1">لنصنع ملفك “أنمي-ستايل” خطوة بخطوة 🌙</p>
+          </div>
+
+          <div class="shrink-0 text-right">
+            <div class="text-xs text-slate-700/90">الخطوة</div>
+            <div class="text-sm font-bold"><span id="stepNow">1</span><span class="text-slate-700/70"> / 5</span></div>
+          </div>
+        </div>
+
+        <!-- progress bar -->
+        <div class="mt-3">
+          <div class="flex items-center gap-2 text-[11px] overflow-x-auto no-scrollbar pb-1">
+            <div id="stepLabels" class="flex items-center gap-2"></div>
+          </div>
+          <div class="mt-2 h-2 w-full rounded-full bg-white/10 border border-white/15 overflow-hidden">
+            <div id="stepBar" class="h-full rounded-full transition-all duration-500 ease-out"
+                 style="width:20%; background: linear-gradient(90deg, rgba(167,139,250,.85), rgba(251,113,133,.75), rgba(96,165,250,.75));"></div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="px-4 py-5 md:px-6 md:py-7">
+        <!-- subtle note -->
+        <div class="mb-4 flex items-start gap-3 glass rounded-2xl border border-white/20 px-3 py-3">
+          <div class="mt-0.5 wiggle" aria-hidden="true">🫧</div>
+          <div class="text-xs md:text-sm text-slate-700/90 leading-relaxed">
+            تلميح: اضغط على الحقول وستلاحظ <span class="font-semibold">Glow</span> لطيف. وكل خطوة لها انتقال <span class="font-semibold">Slide + Fade</span> ✨
+          </div>
+        </div>
+
+        <div id="stepsWrap" class="relative">
+          <!-- STEP 1 -->
+          <section id="step-1" class="step active" aria-label="معلومات التسجيل الأساسية">
+            <div class="grid gap-4 md:grid-cols-2">
+              <div class="md:col-span-2" data-stagger style="--d:30ms">
+                <div class="flex items-center justify-between">
+                  <h2 class="text-base md:text-lg font-bold">1) معلومات التسجيل الأساسية</h2>
+                  <span class="text-xs text-slate-700/80">(* إلزامي)</span>
+                </div>
+              </div>
+
+              <div data-stagger style="--d:80ms">
+                <label class="block text-xs font-semibold text-slate-700/90 mb-1">الاسم/اللقب *</label>
+                <div class="relative">
+                  <input id="name" type="text" placeholder="مثال: dev.luffy"
+                    class="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3 outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition"
+                  />
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-lg wiggle" aria-hidden="true">🪪</span>
+                </div>
+                <p id="nameMsg" class="mt-1 text-[11px] text-slate-700/80"></p>
+              </div>
+
+              <div data-stagger style="--d:130ms">
+                <label class="block text-xs font-semibold text-slate-700/90 mb-1">البريد الإلكتروني *</label>
+                <div class="relative">
+                  <input id="email" type="email" placeholder="you@domain.com"
+                    class="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3 outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition"
+                  />
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-lg wiggle" aria-hidden="true">📩</span>
+                </div>
+                <p id="emailMsg" class="mt-1 text-[11px] text-slate-700/80"></p>
+              </div>
+
+              <div data-stagger style="--d:180ms">
+                <label class="block text-xs font-semibold text-slate-700/90 mb-1">كلمة المرور *</label>
+                <div class="relative">
+                  <input id="password" type="password" placeholder="••••••••"
+                    class="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3 outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition pr-12"
+                  />
+                  <button id="togglePass" type="button" class="btn absolute left-2 top-1/2 -translate-y-1/2 rounded-xl px-3 py-2 text-xs font-semibold bg-white/12 border border-white/20 hover:bg-white/18 transition">
+                    إظهار
+                  </button>
+                </div>
+                <div class="mt-2">
+                  <div class="flex items-center justify-between text-[11px] text-slate-700/80">
+                    <span>قوة كلمة المرور</span>
+                    <span id="passStrengthTxt" class="font-semibold">—</span>
+                  </div>
+                  <div class="mt-1 h-2 rounded-full bg-white/10 border border-white/15 overflow-hidden">
+                    <div id="passStrengthBar" class="h-full rounded-full transition-all duration-300 ease-out"
+                      style="width:0%; background: linear-gradient(90deg, rgba(251,113,133,.7), rgba(167,139,250,.8), rgba(52,211,153,.75));"></div>
+                  </div>
+                </div>
+                <p id="passMsg" class="mt-1 text-[11px] text-slate-700/80"></p>
+              </div>
+
+              <div data-stagger style="--d:230ms">
+                <label class="block text-xs font-semibold text-slate-700/90 mb-1">تأكيد كلمة المرور *</label>
+                <div class="relative">
+                  <input id="confirm" type="password" placeholder="••••••••"
+                    class="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3 outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition"
+                  />
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-lg wiggle" aria-hidden="true">🧷</span>
+                </div>
+                <p id="confirmMsg" class="mt-1 text-[11px] text-slate-700/80"></p>
+              </div>
+
+              <div class="md:col-span-2" data-stagger style="--d:280ms">
+                <div class="glass rounded-2xl border border-white/20 px-4 py-3 flex items-start gap-3">
+                  <span class="wiggle" aria-hidden="true">💡</span>
+                  <p class="text-xs md:text-sm text-slate-700/90 leading-relaxed">
+                    نصيحة أنميّة: كلمة مرور قوية = <span class="font-semibold">8+</span> أحرف + رقم + رمز ✨
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 2 -->
+          <section id="step-2" class="step" aria-label="معلومات عامة">
+            <div class="grid gap-4 md:grid-cols-2">
+              <div class="md:col-span-2" data-stagger style="--d:30ms">
+                <h2 class="text-base md:text-lg font-bold">2) معلومات عامة</h2>
+                <p class="text-xs text-slate-700/85 mt-1">خلّينا نرسم ملامح شخصيتك… بدون سبويلر 😄</p>
+              </div>
+
+              <div data-stagger style="--d:90ms">
+                <label class="block text-xs font-semibold text-slate-700/90 mb-1">الدولة *</label>
+                <select id="country" class="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3 outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition">
+                  <option value="">اختر الدولة</option>
+                </select>
+                <p id="countryMsg" class="mt-1 text-[11px] text-slate-700/80"></p>
+              </div>
+
+              <div data-stagger style="--d:140ms">
+                <label class="block text-xs font-semibold text-slate-700/90 mb-1">المدينة *</label>
+                <select id="city" class="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3 outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition" disabled>
+                  <option value="">اختر المدينة</option>
+                </select>
+                <p id="cityMsg" class="mt-1 text-[11px] text-slate-700/80"></p>
+              </div>
+
+              <div class="md:col-span-2" data-stagger style="--d:190ms">
+                <label class="block text-xs font-semibold text-slate-700/90 mb-1">نبذة قصيرة *</label>
+                <textarea id="bio" rows="3" placeholder="مثال: أحب الشونين… وأعيش على الهايب 🔥"
+                  class="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3 outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition resize-none"></textarea>
+                <div class="mt-1 flex items-center justify-between text-[11px] text-slate-700/80">
+                  <span id="bioMsg">قل 20 حرفًا على الأقل… وصف لطيف 👀</span>
+                  <span><span id="bioCount">0</span>/160</span>
+                </div>
+              </div>
+
+              <div data-stagger style="--d:240ms">
+                <label class="block text-xs font-semibold text-slate-700/90 mb-1">تاريخ الميلاد (اختياري)</label>
+                <div class="relative">
+                  <input id="dob" type="date"
+                    class="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3 outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition"
+                  />
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-lg wiggle" aria-hidden="true">🎂</span>
+                </div>
+              </div>
+
+              <div data-stagger style="--d:290ms">
+                <label class="block text-xs font-semibold text-slate-700/90 mb-1">روابط سوشيال (اختياري)</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <input id="socialX" type="url" placeholder="X"
+                    class="w-full rounded-2xl bg-white/10 border border-white/20 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition"/>
+                  <input id="socialIG" type="url" placeholder="IG"
+                    class="w-full rounded-2xl bg-white/10 border border-white/20 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition"/>
+                  <input id="socialTT" type="url" placeholder="TikTok"
+                    class="w-full rounded-2xl bg-white/10 border border-white/20 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition"/>
+                </div>
+                <p class="mt-1 text-[11px] text-slate-700/80">ضع روابط كاملة (https://) لو تحب 🌙</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 3 -->
+          <section id="step-3" class="step" aria-label="صورة المستخدم">
+            <div class="grid gap-4 md:grid-cols-2">
+              <div class="md:col-span-2" data-stagger style="--d:30ms">
+                <h2 class="text-base md:text-lg font-bold">3) صورة المستخدم (Avatar)</h2>
+                <p class="text-xs text-slate-700/85 mt-1">ارفع صورة أو اختر “ترشيحات” عامة بأسلوب أنمي (بدون شخصيات محمية).</p>
+              </div>
+
+              <!-- Upload + Crop -->
+              <div class="glass rounded-3xl border border-white/20 p-4" data-stagger style="--d:100ms">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="wiggle" aria-hidden="true">🖼️</span>
+                    <h3 class="text-sm font-bold">رفع + معاينة</h3>
+                  </div>
+                  <span id="avatarModeBadge" class="text-[11px] px-2 py-1 rounded-full bg-white/12 border border-white/18">لم يتم</span>
+                </div>
+
+                <div class="flex flex-col items-center gap-3">
+                  <div class="crop-wrap" id="cropWrap" aria-label="منطقة قص الصورة">
+                    <img id="cropImg" alt="Preview" class="absolute inset-0 w-full h-full object-contain select-none cursor-grab active:cursor-grabbing" draggable="false" />
+                    <div class="crop-ring"></div>
+                    <div class="crop-mask"></div>
+                  </div>
+
+                  <div class="w-full">
+                    <div class="flex items-center gap-2">
+                      <label class="btn w-full text-center rounded-2xl px-4 py-3 text-sm font-semibold border border-white/20 bg-white/10 hover:bg-white/16 transition cursor-pointer">
+                        <input id="avatarFile" type="file" accept="image/*" class="hidden" />
+                        <span aria-hidden="true">⬆️</span> اختر صورة
+                      </label>
+                      <button id="clearAvatar" type="button"
+                        class="btn rounded-2xl px-4 py-3 text-sm font-semibold border border-white/20 bg-white/10 hover:bg-white/16 transition">
+                        مسح
+                      </button>
+                    </div>
+
+                    <div class="mt-3">
+                      <div class="flex items-center justify-between text-[11px] text-slate-700/80">
+                        <span>Zoom (قص بسيط اختياري)</span>
+                        <span id="zoomVal" class="font-semibold">1.00×</span>
+                      </div>
+                      <input id="zoom" type="range" min="1" max="2.4" step="0.01" value="1"
+                        class="w-full mt-2 accent-white"/>
+                      <div class="mt-3 flex gap-2">
+                        <button id="applyCrop" type="button"
+                          class="btn w-full rounded-2xl px-4 py-3 text-sm font-bold border border-white/20 bg-gradient-to-r from-white/15 to-white/10 hover:to-white/15 transition">
+                          اعتماد الصورة ✅
+                        </button>
+                      </div>
+
+                      <p id="avatarMsg" class="mt-2 text-[11px] text-slate-700/85">
+                        اسحب الصورة داخل الإطار الدائري لتعديلها ✨
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Suggestions grid -->
+              <div class="glass rounded-3xl border border-white/20 p-4" data-stagger style="--d:150ms">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="wiggle" aria-hidden="true">🧩</span>
+                    <h3 class="text-sm font-bold">ترشيحات عامة</h3>
+                  </div>
+                  <span class="text-[11px] text-slate-700/80">اختر واحدة</span>
+                </div>
+
+                <div id="avatarGrid" class="grid grid-cols-3 gap-2"></div>
+
+                <div class="mt-3 glass rounded-2xl border border-white/20 px-3 py-2 text-[11px] text-slate-700/85 leading-relaxed">
+                  <span aria-hidden="true">🫶</span>
+                  ملاحظة: كلها <span class="font-semibold">Placeholders</span> مولّدة/عامة + تصنيفات (Shonen, Fantasy, Mecha…)
+                </div>
+              </div>
+
+              <div class="md:col-span-2" data-stagger style="--d:200ms">
+                <div class="flex items-center gap-2 text-xs text-slate-700/85">
+                  <span class="wiggle" aria-hidden="true">🧷</span>
+                  <span>ستُحفظ صورة واحدة فقط (رفع أو ترشيح). يمكنك تغييرها لاحقًا.</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 4 -->
+          <section id="step-4" class="step" aria-label="متابعة مشاهير داخل المنصة">
+            <div class="grid gap-4">
+              <div data-stagger style="--d:30ms">
+                <h2 class="text-base md:text-lg font-bold">4) تابع بعض “المشاهير” داخل المنصة</h2>
+                <p class="text-xs text-slate-700/85 mt-1">اختيارات سريعة لتغذية ممتعة من أول يوم 🍜</p>
+              </div>
+
+              <div class="grid gap-3 md:grid-cols-3" data-stagger style="--d:90ms">
+                <div class="md:col-span-2">
+                  <label class="block text-xs font-semibold text-slate-700/90 mb-1">بحث سريع</label>
+                  <div class="relative">
+                    <input id="creatorSearch" type="text" placeholder="ابحث بالاسم أو التخصص…"
+                      class="w-full rounded-2xl bg-white/10 border border-white/20 px-4 py-3 outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition"
+                    />
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-lg wiggle" aria-hidden="true">🔎</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700/90 mb-1">فلتر</label>
+                  <div id="creatorFilters" class="flex flex-wrap gap-2"></div>
+                </div>
+              </div>
+
+              <div class="glass rounded-3xl border border-white/20 p-3 md:p-4" data-stagger style="--d:140ms">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="text-xs text-slate-700/85">
+                    <span aria-hidden="true">⭐</span>
+                    <span>اضغط Follow / Unfollow</span>
+                  </div>
+                  <div class="text-xs font-semibold">
+                    المتابعة: <span id="followCount" class="text-slate-900">0</span>
+                  </div>
+                </div>
+
+                <div id="creatorList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+              </div>
+
+              <div class="glass rounded-2xl border border-white/20 px-3 py-2 text-[11px] text-slate-700/85" data-stagger style="--d:190ms">
+                <span class="wiggle" aria-hidden="true">⚡</span>
+                Tip: جرّب الفلتر + البحث… إحساس “أنمي UI” 🫧
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 5 -->
+          <section id="step-5" class="step" aria-label="الاهتمامات والتصنيفات">
+            <div class="grid gap-4">
+              <div data-stagger style="--d:30ms">
+                <h2 class="text-base md:text-lg font-bold">5) الاهتمامات والتصنيفات</h2>
+                <p class="text-xs text-slate-700/85 mt-1">اختَر ما تحبه… وسنجهّز لك Feed سريع 🔥</p>
+              </div>
+
+              <div class="glass rounded-3xl border border-white/20 p-4" data-stagger style="--d:90ms">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="wiggle" aria-hidden="true">🧠</span>
+                    <h3 class="text-sm font-bold">الأنواع (Genres)</h3>
+                  </div>
+                  <span class="text-[11px] text-slate-700/80">اختيار متعدد</span>
+                </div>
+                <div id="genreChips" class="mt-3 flex flex-wrap gap-2"></div>
+              </div>
+
+              <div class="glass rounded-3xl border border-white/20 p-4" data-stagger style="--d:140ms">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="wiggle" aria-hidden="true">📚</span>
+                    <h3 class="text-sm font-bold">أنواع المحتوى</h3>
+                  </div>
+                  <span class="text-[11px] text-slate-700/80">اختيار متعدد</span>
+                </div>
+                <div id="typeChips" class="mt-3 flex flex-wrap gap-2"></div>
+              </div>
+
+              <div class="glass rounded-3xl border border-white/20 p-4" data-stagger style="--d:190ms">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="wiggle" aria-hidden="true">✅</span>
+                    <h3 class="text-sm font-bold">Profile completeness</h3>
+                  </div>
+                  <span id="completePct" class="text-sm font-extrabold">0%</span>
+                </div>
+
+                <div class="h-3 rounded-full bg-white/10 border border-white/15 overflow-hidden">
+                  <div id="completeBar" class="h-full rounded-full transition-all duration-500 ease-out"
+                       style="width:0%; background: linear-gradient(90deg, rgba(52,211,153,.75), rgba(96,165,250,.70), rgba(167,139,250,.80), rgba(251,113,133,.70));"></div>
+                </div>
+
+                <div class="mt-3 grid gap-2 md:grid-cols-2 text-[12px] text-slate-700/90">
+                  <div class="glass rounded-2xl border border-white/20 px-3 py-2">
+                    <div class="font-semibold mb-1">ملخّص سريع</div>
+                    <div id="summary" class="leading-relaxed"></div>
+                  </div>
+                  <div class="glass rounded-2xl border border-white/20 px-3 py-2">
+                    <div class="font-semibold mb-1">لمسة أنمي</div>
+                    <div class="leading-relaxed">
+                      <span aria-hidden="true">🌙</span>
+                      كل اختيار هنا يضيف “بهارات” للتوصيات… مثل فتح Arc جديد 😄
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SUCCESS -->
+          <section id="step-success" class="step" aria-label="تم إنشاء الحساب بنجاح">
+            <div class="relative overflow-hidden">
+              <div id="successBox" class="glow-ok glass rounded-[28px] border border-white/25 p-5 md:p-7">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <div class="inline-flex items-center gap-2 rounded-2xl bg-white/12 border border-white/18 px-3 py-2 text-xs font-semibold">
+                      <span class="wiggle" aria-hidden="true">🎉</span>
+                      <span>نجاح!</span>
+                    </div>
+                    <h2 class="mt-3 text-xl md:text-2xl font-extrabold">تم إنشاء الحساب بنجاح!</h2>
+                    <p class="mt-2 text-sm text-slate-700/90 leading-relaxed">
+                      أهلًا <span id="helloName" class="font-bold"></span> ✨
+                      جهّزنا لك بداية جميلة… الآن خلّينا نطير للـ Dashboard 🚀
+                    </p>
+                  </div>
+                  <div class="text-4xl wiggle" aria-hidden="true">🌸</div>
+                </div>
+
+                <div class="mt-5 grid gap-3 md:grid-cols-2">
+                  <div class="glass rounded-2xl border border-white/20 px-4 py-3">
+                    <div class="text-xs font-semibold text-slate-700/90">اختياراتك</div>
+                    <div id="finalRecap" class="mt-1 text-sm font-bold"></div>
+                  </div>
+                  <div class="glass rounded-2xl border border-white/20 px-4 py-3">
+                    <div class="text-xs font-semibold text-slate-700/90">رسالة ترحيبية</div>
+                    <div class="mt-1 text-sm">
+                      <span aria-hidden="true">🍜</span>
+                      “ابدأ رحلتك… والهايب علينا!” 
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-6 flex flex-col md:flex-row gap-2">
+                  <button id="goDash" type="button"
+                    class="btn w-full rounded-2xl px-4 py-3 text-sm font-extrabold border border-white/25 bg-gradient-to-r from-white/18 to-white/10 hover:to-white/18 transition">
+                    الذهاب للـ Dashboard ➜
+                  </button>
+                  <button id="restart" type="button"
+                    class="btn w-full md:w-auto rounded-2xl px-4 py-3 text-sm font-semibold border border-white/20 bg-white/10 hover:bg-white/16 transition">
+                    إعادة التجربة
+                  </button>
+                </div>
+              </div>
+
+              <div id="confetti" class="absolute inset-0 pointer-events-none"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom action bar (mobile fixed) -->
+  <div class="fixed bottom-0 left-0 right-0 z-20 md:static md:z-auto">
+    <div class="mx-auto w-full max-w-3xl px-4 pb-4 md:pb-0">
+      <div class="glass rounded-[22px] border border-white/20 shadow-soft px-3 py-3 md:px-4 md:py-4">
+        <div class="flex items-center justify-between gap-2">
+          <button id="prevBtn" type="button"
+            class="btn rounded-2xl px-4 py-3 text-sm font-semibold border border-white/20 bg-white/10 hover:bg-white/16 transition disabled:opacity-40 disabled:cursor-not-allowed">
+            ◀ السابق
+          </button>
+
+          <div class="text-center px-2">
+            <div id="statusLine" class="text-[11px] md:text-xs text-slate-700/85">
+              جاهز للخطوة التالية؟ ✨
+            </div>
+            <div class="text-[11px] text-slate-700/70">
+              اضغط <span class="font-semibold">التالي</span> أو راجع الحقول
+            </div>
+          </div>
+
+          <button id="nextBtn" type="button"
+            class="btn rounded-2xl px-4 py-3 text-sm font-extrabold border border-white/25 bg-gradient-to-r from-white/18 to-white/10 hover:to-white/18 transition">
+            التالي ▶
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -----------------------------
+    // Mock data
+    // -----------------------------
+    const STEP_TITLES = [
+      { t: "أساسي", icon: "🪪" },
+      { t: "عام", icon: "🌍" },
+      { t: "أفاتار", icon: "🖼️" },
+      { t: "متابعة", icon: "⭐" },
+      { t: "اهتمامات", icon: "🧠" },
+    ];
+
+    const COUNTRY_CITY = {
+      "فلسطين": ["القدس", "غزة", "رام الله", "نابلس", "الخليل"],
+      "مصر": ["القاهرة", "الإسكندرية", "المنصورة", "أسيوط", "طنطا"],
+      "السعودية": ["الرياض", "جدة", "الدمام", "المدينة", "مكة"],
+      "المغرب": ["الدار البيضاء", "الرباط", "فاس", "مراكش", "طنجة"],
+      "الإمارات": ["دبي", "أبوظبي", "الشارقة", "العين"],
+      "الأردن": ["عمّان", "إربد", "الزرقاء", "العقبة"],
+    };
+
+    const AVATAR_TAGS = ["Shonen","Fantasy","Mecha","Romance","Isekai","Slice of Life","Mystery","Cyber"];
+    const GENRES = [
+      "Shonen","Seinen","Josei","Isekai","Romance","Comedy","Drama","Mystery","Thriller",
+      "Fantasy","Sci-Fi","Mecha","Horror","Sports","Slice of Life","Supernatural","Adventure",
+      "Historical","Music","School","Psychological","Action","Crime","Ghibli-Vibes"
+    ];
+    const CONTENT_TYPES = ["Anime","Manga","Manhwa","Comics","Light Novels","AMV","Cosplay","Fanart"];
+
+    const CREATOR_FILTERS = ["الكل","Anime","Manga","Cosplay","AMV"];
+    const CREATORS = [
+      { id:"c1",  name:"Hana Sketch", role:"Artist",     cat:"Manga",  vibe:"Inky lines + flowers", badge:"🎨" },
+      { id:"c2",  name:"Ryu Review",   role:"Reviewer",  cat:"Anime",  vibe:"Hype meter 9000",     badge:"📺" },
+      { id:"c3",  name:"Sora AMV",      role:"Editor",    cat:"AMV",    vibe:"Beat-sync master",    badge:"🎵" },
+      { id:"c4",  name:"Kumo Cos",      role:"Cosplayer", cat:"Cosplay",vibe:"Soft + detail",       badge:"🧵" },
+      { id:"c5",  name:"Neo Panels",    role:"Creator",   cat:"Manga",  vibe:"Panel pacing tips",   badge:"🧩" },
+      { id:"c6",  name:"Yuki Lore",     role:"Reviewer",  cat:"Anime",  vibe:"Plot twists hunter",  badge:"🧠" },
+      { id:"c7",  name:"Pixel Sensei",  role:"Artist",    cat:"Manga",  vibe:"Chibi & stickers",    badge:"🍡" },
+      { id:"c8",  name:"Echo Cuts",     role:"Editor",    cat:"AMV",    vibe:"Speed lines edits",   badge:"⚡" },
+      { id:"c9",  name:"Mika CosLab",   role:"Cosplayer", cat:"Cosplay",vibe:"Props & armor",       badge:"🛡️" },
+      { id:"c10", name:"Zen Episodes",  role:"Reviewer",  cat:"Anime",  vibe:"Cozy recaps",         badge:"🌙" },
+      { id:"c11", name:"Ink & Bloom",   role:"Artist",    cat:"Manga",  vibe:"Sakura vibes",        badge:"🌸" },
+      { id:"c12", name:"Frame By Frame",role:"Creator",   cat:"AMV",    vibe:"Transitions guru",    badge:"🎬" },
+    ];
+
+    // -----------------------------
+    // State
+    // -----------------------------
+    const state = {
+      step: 1,
+      dir: document.documentElement.getAttribute("dir") || "rtl",
+      data: {
+        name: "",
+        email: "",
+        password: "",
+        confirm: "",
+        country: "",
+        city: "",
+        bio: "",
+        dob: "",
+        socials: { x:"", ig:"", tt:"" },
+        avatar: { mode:"none", dataUrl:"", tag:"" }, // mode: none|upload|suggested
+        following: new Set(),
+        genres: new Set(),
+        types: new Set()
+      },
+      avatarCrop: {
+        img: null,
+        src: "",
+        zoom: 1,
+        x: 0, y: 0,
+        drag: { on:false, sx:0, sy:0, ox:0, oy:0 }
+      },
+      creatorFilter: "الكل",
+      creatorSearch: ""
+    };
+
+    // -----------------------------
+    // Helpers
+    // -----------------------------
+    const $ = (id) => document.getElementById(id);
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+    const escapeHtml = (s) => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    function addRipple(el, ev){
+      const rect = el.getBoundingClientRect();
+      const r = document.createElement("span");
+      r.className = "ripple";
+      const x = (ev?.clientX ?? (rect.left + rect.width/2)) - rect.left;
+      const y = (ev?.clientY ?? (rect.top + rect.height/2)) - rect.top;
+      r.style.left = x + "px";
+      r.style.top = y + "px";
+      r.style.width = r.style.height = Math.max(rect.width, rect.height) + "px";
+      el.appendChild(r);
+      r.addEventListener("animationend", () => r.remove(), { once:true });
+    }
+
+    function setFieldMsg(id, ok, msg){
+      const el = $(id);
+      if(!el) return;
+      el.textContent = msg || "";
+      el.className = "mt-1 text-[11px] " + (ok ? "text-slate-700/80" : "text-rose-700/90 font-semibold");
+    }
+
+    function shake(el){
+      el.classList.remove("shake");
+      void el.offsetWidth;
+      el.classList.add("shake");
+    }
+
+    function markInput(el, ok){
+      if(!el) return;
+      el.classList.toggle("border-rose-300/70", !ok);
+      el.classList.toggle("focus:ring-rose-200/30", !ok);
+      el.classList.toggle("border-white/20", ok);
+    }
+
+    function animateStagger(section){
+      const nodes = section.querySelectorAll("[data-stagger]");
+      nodes.forEach((n, i) => n.style.setProperty("--d", (i*60 + 30) + "ms"));
+      // reflow to restart
+      nodes.forEach(n => { n.style.animation = "none"; void n.offsetWidth; n.style.animation = ""; });
+    }
+
+    // -----------------------------
+    // Stepper render
+    // -----------------------------
+    function renderStepper(){
+      const wrap = $("stepLabels");
+      wrap.innerHTML = "";
+      STEP_TITLES.forEach((s, idx) => {
+        const n = idx+1;
+        const isActive = n === state.step;
+        const isDone = n < state.step;
+        const pill = document.createElement("button");
+        pill.type = "button";
+        pill.className =
+          "btn shrink-0 flex items-center gap-2 rounded-full px-3 py-2 border transition " +
+          (isActive
+            ? "bg-white/14 border-white/25 shadow-soft"
+            : isDone
+              ? "bg-white/10 border-white/18 hover:bg-white/14"
+              : "bg-white/8 border-white/14 hover:bg-white/12");
+        pill.innerHTML = `
+          <span class="wiggle">${s.icon}</span>
+          <span class="font-semibold">${escapeHtml(s.t)}</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full border ${isDone ? "bg-white/10 border-white/20" : "bg-white/8 border-white/14"}">
+            ${isDone ? "✓" : n}
+          </span>
+        `;
+        pill.addEventListener("click", (e) => {
+          addRipple(pill, e);
+          // allow jump back only (keeps wizard friendly)
+          if(n <= state.step){
+            gotoStep(n, n < state.step ? "back" : "none");
+          } else {
+            // forward jump requires validation per intermediate step
+            // We'll just attempt next repeatedly
+            (async () => {
+              while(state.step < n){
+                const ok = await next();
+                if(!ok) break;
+              }
+            })();
+          }
+        });
+        wrap.appendChild(pill);
+      });
+
+      $("stepNow").textContent = state.step;
+      $("stepBar").style.width = (state.step * 20) + "%";
+
+      const hints = [
+        "ابدأ الأساسيات… ثم نكمل السحر ✨",
+        "قليل من التفاصيل = توصيات أفضل 🌙",
+        "اختر أفاتار لطيف… بدون شخصيات محمية 🧩",
+        "تابع مبدعين لتحصل على Feed جاهز ⚡",
+        "آخر خطوة! حضّر اهتماماتك 🔥"
+      ];
+      $("stepHint").textContent = hints[state.step-1] || "جاهز؟";
+      $("prevBtn").disabled = state.step === 1;
+
+      // Next button label
+      $("nextBtn").textContent = (state.step === 5) ? "إنهاء ✅" : "التالي ▶";
+    }
+
+    function showSection(step, direction){
+      const current = document.querySelector(".step.active");
+      const nextEl = (step === "success") ? $("step-success") : $("step-" + step);
+
+      if(!nextEl) return;
+
+      // exit animation
+      if(current && current !== nextEl){
+        current.classList.remove("enter-left","enter-right");
+        current.classList.add(direction === "back" ? "exit-right" : "exit-left");
+        current.addEventListener("animationend", () => {
+          current.classList.remove("active","exit-left","exit-right");
+          current.style.display = "none";
+        }, { once:true });
+      }
+
+      // enter animation
+      nextEl.classList.remove("exit-left","exit-right");
+      nextEl.classList.add("active");
+      nextEl.style.display = "block";
+      nextEl.classList.add(direction === "back" ? "enter-left" : "enter-right");
+      nextEl.addEventListener("animationend", () => {
+        nextEl.classList.remove("enter-left","enter-right");
+      }, { once:true });
+
+      animateStagger(nextEl);
+
+      // Update status line
+      const status = [
+        "تأكد من الاسم والبريد وكلمة المرور ✨",
+        "البلد والمدينة والنبذة… لمسة شخصية 🌍",
+        "صورة لطيفة = حضور لطيف 🖼️",
+        "تابع من تحب… لبدء الهايب ⭐",
+        "اختياراتك تصنع الـ Feed 🔥"
+      ];
+      $("statusLine").textContent = status[state.step-1] || "جاهز!";
+    }
+
+    function gotoStep(n, direction="none"){
+      state.step = n;
+      renderStepper();
+      showSection(n, direction);
+      computeCompleteness();
+    }
+
+    // -----------------------------
+    // Validation
+    // -----------------------------
+    function validateEmail(v){
+      // simple & friendly
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(v.trim());
+    }
+
+    function passStrength(p){
+      const s = p.length;
+      let score = 0;
+      if(s >= 8) score += 1;
+      if(/[A-Z]/.test(p)) score += 1;
+      if(/[a-z]/.test(p)) score += 1;
+      if(/[0-9]/.test(p)) score += 1;
+      if(/[^A-Za-z0-9]/.test(p)) score += 1;
+      // 0..5
+      const pct = clamp(Math.round((score/5)*100), 0, 100);
+      const txt = (score<=1) ? "ضعيفة 🥲" : (score===2) ? "مقبولة 🙂" : (score===3) ? "جيدة 😼" : (score===4) ? "قوية 🔥" : "أسطورية ⚡";
+      return { score, pct, txt };
+    }
+
+    function validateStep1(live=false){
+      const name = $("name").value.trim();
+      const email = $("email").value.trim();
+      const pass = $("password").value;
+      const conf = $("confirm").value;
+
+      state.data.name = name;
+      state.data.email = email;
+      state.data.password = pass;
+      state.data.confirm = conf;
+
+      let ok = true;
+
+      // name
+      if(name.length < 2){
+        ok = false;
+        setFieldMsg("nameMsg", false, live ? "اسم قصير جدًا… نحتاج حرفين على الأقل 🌸" : "أدخل اسمًا صالحًا ✨");
+        markInput($("name"), false);
+      } else {
+        setFieldMsg("nameMsg", true, "تمام! اسم جميل 😄");
+        markInput($("name"), true);
+      }
+
+      // email
+      if(!validateEmail(email)){
+        ok = false;
+        setFieldMsg("emailMsg", false, "البريد يبدو غير صحيح… جرّب you@domain.com 🫧");
+        markInput($("email"), false);
+      } else {
+        setFieldMsg("emailMsg", true, "Perfect! 📩");
+        markInput($("email"), true);
+      }
+
+      // pass
+      const st = passStrength(pass);
+      $("passStrengthBar").style.width = st.pct + "%";
+      $("passStrengthTxt").textContent = pass ? st.txt : "—";
+      $("zoomVal"); // keep linter calm
+      if(pass.length < 8){
+        ok = false;
+        setFieldMsg("passMsg", false, "كلمة المرور تحتاج 8 أحرف على الأقل ✨");
+        markInput($("password"), false);
+      } else {
+        setFieldMsg("passMsg", true, st.score >= 3 ? "ممتاز! حماية لطيفة 🛡️" : "جيد… زد رقم/رمز لتصبح أقوى 🔥");
+        markInput($("password"), true);
+      }
+
+      // confirm
+      if(conf !== pass || !conf){
+        ok = false;
+        setFieldMsg("confirmMsg", false, "التأكيد لا يطابق… لا تقلق، تحدث للجميع 😄");
+        markInput($("confirm"), false);
+      } else {
+        setFieldMsg("confirmMsg", true, "يطابق تمامًا ✅");
+        markInput($("confirm"), true);
+      }
+
+      return ok;
+    }
+
+    function validateStep2(live=false){
+      const country = $("country").value;
+      const city = $("city").value;
+      const bio = $("bio").value.trim();
+
+      state.data.country = country;
+      state.data.city = city;
+      state.data.bio = bio;
+      state.data.dob = $("dob").value || "";
+      state.data.socials.x = $("socialX").value.trim();
+      state.data.socials.ig = $("socialIG").value.trim();
+      state.data.socials.tt = $("socialTT").value.trim();
+
+      let ok = true;
+
+      if(!country){
+        ok = false;
+        setFieldMsg("countryMsg", false, "اختر دولة… بسرعة نكمل 🌍");
+        markInput($("country"), false);
+      } else {
+        setFieldMsg("countryMsg", true, "تمام ✅");
+        markInput($("country"), true);
+      }
+
+      if(!city){
+        ok = false;
+        setFieldMsg("cityMsg", false, "اختر مدينة… عشان نضبط الأصدقاء القريبين ✨");
+        markInput($("city"), false);
+      } else {
+        setFieldMsg("cityMsg", true, "ممتاز ✅");
+        markInput($("city"), true);
+      }
+
+      if(bio.length < 20){
+        ok = false;
+        $("bioMsg").textContent = live ? "زيدها شوي… 20 حرف على الأقل 🌸" : "النبذة قصيرة… أعطنا لمسة شخصية ✨";
+        $("bioMsg").className = "mt-1 text-[11px] text-rose-700/90 font-semibold";
+        markInput($("bio"), false);
+      } else {
+        $("bioMsg").textContent = "نبذة لطيفة! 😄";
+        $("bioMsg").className = "mt-1 text-[11px] text-slate-700/80";
+        markInput($("bio"), true);
+      }
+
+      // bio count
+      $("bioCount").textContent = String(bio.length);
+
+      return ok;
+    }
+
+    function validateStep3(){
+      // Avatar step is optional, but we give a friendly nudge
+      if(state.data.avatar.mode === "none"){
+        $("avatarMsg").textContent = "ممكن تكمل بدون أفاتار… لكن اختيار واحد يعطي حضورًا لطيفًا 🌸";
+      }
+      return true;
+    }
+
+    function validateStep4(){
+      // Following optional
+      return true;
+    }
+
+    function validateStep5(){
+      // Interests optional, but completeness benefits
+      return true;
+    }
+
+    // -----------------------------
+    // Navigation
+    // -----------------------------
+    async function next(){
+      const card = $("card");
+      let ok = true;
+
+      if(state.step === 1) ok = validateStep1(false);
+      if(state.step === 2) ok = validateStep2(false);
+      if(state.step === 3) ok = validateStep3();
+      if(state.step === 4) ok = validateStep4();
+      if(state.step === 5) ok = validateStep5();
+
+      if(!ok){
+        shake(card);
+        return false;
+      }
+
+      if(state.step < 5){
+        gotoStep(state.step + 1, "forward");
+        return true;
+      }
+
+      // Submit -> success
+      await submitSuccess();
+      return true;
+    }
+
+    function prev(){
+      if(state.step <= 1) return;
+      gotoStep(state.step - 1, "back");
+    }
+
+    // -----------------------------
+    // Avatar suggestions (SVG placeholders)
+    // -----------------------------
+    function makeAvatarSvg(tag, seed){
+      const hue1 = (seed*47) % 360;
+      const hue2 = (hue1 + 55) % 360;
+      const hue3 = (hue1 + 110) % 360;
+      const svg =
+`<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="hsla(${hue1},85%,78%,1)"/>
+      <stop offset=".55" stop-color="hsla(${hue2},85%,80%,1)"/>
+      <stop offset="1" stop-color="hsla(${hue3},85%,82%,1)"/>
+    </linearGradient>
+    <filter id="b" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 .75 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="220" height="220" rx="26" fill="url(#g)"/>
+  <circle cx="78" cy="78" r="55" fill="rgba(255,255,255,.25)" filter="url(#b)"/>
+  <circle cx="150" cy="136" r="70" fill="rgba(255,255,255,.18)" filter="url(#b)"/>
+  <g transform="translate(35,40)" opacity=".92">
+    <circle cx="75" cy="62" r="42" fill="rgba(255,255,255,.38)"/>
+    <path d="M35 153c7-28 32-45 75-45s68 17 75 45" fill="rgba(255,255,255,.28)"/>
+    <path d="M53 62c8 10 17 15 27 15s19-5 27-15" stroke="rgba(15,23,42,.5)" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M88 62c8 10 17 15 27 15s19-5 27-15" stroke="rgba(15,23,42,.5)" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <circle cx="75" cy="62" r="6" fill="rgba(15,23,42,.55)"/>
+    <circle cx="115" cy="62" r="6" fill="rgba(15,23,42,.55)"/>
+    <path d="M93 82c6 7 14 7 20 0" stroke="rgba(15,23,42,.45)" stroke-width="4" stroke-linecap="round" fill="none"/>
+  </g>
+  <g font-family="ui-sans-serif, system-ui" font-size="12" font-weight="700">
+    <rect x="12" y="12" rx="999" ry="999" width="92" height="26" fill="rgba(255,255,255,.30)" stroke="rgba(255,255,255,.35)"/>
+    <text x="24" y="30" fill="rgba(15,23,42,.78)">${tag}</text>
+  </g>
+</svg>`;
+      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    }
+
+    function renderAvatarGrid(){
+      const grid = $("avatarGrid");
+      grid.innerHTML = "";
+      const picks = Array.from({length: 9}).map((_,i) => {
+        const tag = AVATAR_TAGS[i % AVATAR_TAGS.length];
+        return { tag, src: makeAvatarSvg(tag, i+3) };
+      });
+
+      picks.forEach((p, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className =
+          "btn group relative rounded-2xl overflow-hidden border border-white/18 bg-white/8 hover:bg-white/12 transition focus:outline-none focus:ring-2 focus:ring-white/30";
+        btn.innerHTML = `
+          <img alt="${escapeHtml(p.tag)}" src="${p.src}" class="w-full aspect-square object-cover" />
+          <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-gradient-to-t from-black/30 to-transparent"></div>
+          <div class="absolute bottom-2 right-2 left-2 flex items-center justify-between gap-2">
+            <span class="text-[10px] px-2 py-1 rounded-full bg-white/18 border border-white/20 backdrop-blur font-bold text-slate-900">${escapeHtml(p.tag)}</span>
+            <span class="text-xs opacity-90">✨</span>
+          </div>
+        `;
+        btn.addEventListener("click", (e) => {
+          addRipple(btn, e);
+          state.data.avatar.mode = "suggested";
+          state.data.avatar.dataUrl = p.src;
+          state.data.avatar.tag = p.tag;
+          $("avatarModeBadge").textContent = "ترشيح: " + p.tag;
+          // also set preview image for a unified feel
+          setCropSource(p.src, /*isDataUrl*/true);
+          $("avatarMsg").textContent = "تم اختيار ترشيح ✅ يمكنك اعتمادها أو رفع صورة بدلًا منها.";
+          computeCompleteness();
+          // highlight selected
+          grid.querySelectorAll("button").forEach(b => b.classList.remove("ring-2","ring-white/40"));
+          btn.classList.add("ring-2","ring-white/40");
+        });
+        grid.appendChild(btn);
+      });
+    }
+
+    // -----------------------------
+    // Avatar upload + crop (simple)
+    // -----------------------------
+    function setCropSource(src, isDataUrl=false){
+      const img = $("cropImg");
+      img.src = src;
+      state.avatarCrop.src = src;
+      state.avatarCrop.zoom = Number($("zoom").value || 1);
+      state.avatarCrop.x = 0;
+      state.avatarCrop.y = 0;
+      // update badge if upload
+      if(!isDataUrl){
+        state.data.avatar.mode = "upload";
+        state.data.avatar.tag = "Upload";
+        $("avatarModeBadge").textContent = "رفع";
+      }
+      requestAnimationFrame(updateCropTransform);
+    }
+
+    function updateCropTransform(){
+      const img = $("cropImg");
+      const z = state.avatarCrop.zoom;
+      img.style.transform = `translate(${state.avatarCrop.x}px, ${state.avatarCrop.y}px) scale(${z})`;
+    }
+
+    function applyCroppedAvatar(){
+      const img = $("cropImg");
+      if(!img.src){
+        $("avatarMsg").textContent = "اختر صورة أولًا… أو اختر من الترشيحات 🧩";
+        shake($("card"));
+        return;
+      }
+
+      // create a 256x256 canvas crop from the visible circle area (approx)
+      const size = 256;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+
+      // Determine how the image is displayed in cropWrap (we use object-contain + transform)
+      // We'll draw the whole image then offset based on our translate + scale,
+      // mapping cropWrap 240x240 to canvas.
+      const wrap = $("cropWrap").getBoundingClientRect();
+      const wrapSize = 240; // fixed
+      const z = state.avatarCrop.zoom;
+
+      // Natural image size
+      const nw = img.naturalWidth || 1;
+      const nh = img.naturalHeight || 1;
+
+      // Object-contain base scale for fitting into wrap
+      const scaleContain = Math.min(wrapSize / nw, wrapSize / nh);
+      const baseW = nw * scaleContain;
+      const baseH = nh * scaleContain;
+
+      // Center position in wrap
+      const baseX = (wrapSize - baseW) / 2;
+      const baseY = (wrapSize - baseH) / 2;
+
+      // Apply user transform
+      const drawW = baseW * z;
+      const drawH = baseH * z;
+      const drawX = baseX + state.avatarCrop.x + (baseW - drawW)/2;
+      const drawY = baseY + state.avatarCrop.y + (baseH - drawH)/2;
+
+      // Map wrap coords to canvas
+      const m = size / wrapSize;
+
+      ctx.clearRect(0,0,size,size);
+      // soft background
+      ctx.fillStyle = "rgba(255,255,255,.0)";
+      ctx.fillRect(0,0,size,size);
+
+      // Clip to circle for nicer avatar output
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(size/2, size/2, size*0.44, 0, Math.PI*2);
+      ctx.closePath();
+      ctx.clip();
+
+      ctx.drawImage(img, drawX*m, drawY*m, drawW*m, drawH*m);
+
+      ctx.restore();
+
+      // store avatar
+      const out = canvas.toDataURL("image/png");
+      state.data.avatar.mode = state.data.avatar.mode === "none" ? "upload" : state.data.avatar.mode;
+      state.data.avatar.dataUrl = out;
+
+      $("avatarModeBadge").textContent = (state.data.avatar.mode === "suggested")
+        ? ("ترشيح: " + (state.data.avatar.tag || ""))
+        : "رفع (مقصوص)";
+      $("avatarMsg").textContent = "تم اعتماد الصورة ✅ مظهر لطيف جدًا 🌸";
+      computeCompleteness();
+
+      // tiny success glow pulse on cropWrap
+      const w = $("cropWrap");
+      w.classList.add("ring-2","ring-white/40");
+      setTimeout(() => w.classList.remove("ring-2","ring-white/40"), 900);
+    }
+
+    // -----------------------------
+    // Creators render
+    // -----------------------------
+    function renderCreatorFilters(){
+      const wrap = $("creatorFilters");
+      wrap.innerHTML = "";
+      CREATOR_FILTERS.forEach(f => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "btn chip rounded-full px-3 py-2 text-[11px] font-bold border border-white/18 bg-white/8 hover:bg-white/12 transition";
+        b.dataset.on = String(state.creatorFilter === f);
+        b.textContent = f;
+        b.addEventListener("click", (e) => {
+          addRipple(b, e);
+          state.creatorFilter = f;
+          renderCreatorFilters();
+          renderCreatorList();
+        });
+        wrap.appendChild(b);
+      });
+    }
+
+    function renderCreatorList(){
+      const list = $("creatorList");
+      const q = (state.creatorSearch || "").trim().toLowerCase();
+      const filtered = CREATORS.filter(c => {
+        const okCat = (state.creatorFilter === "الكل") ? true : c.cat === state.creatorFilter;
+        const okQ = !q ? true : (c.name.toLowerCase().includes(q) || c.role.toLowerCase().includes(q) || c.vibe.toLowerCase().includes(q));
+        return okCat && okQ;
+      });
+
+      list.innerHTML = "";
+      filtered.forEach((c, idx) => {
+        const following = state.data.following.has(c.id);
+        const card = document.createElement("div");
+        card.className = "glass rounded-3xl border border-white/20 p-3 hover:bg-white/10 transition";
+        card.style.animationDelay = (idx * 40) + "ms";
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3 min-w-0">
+              <div class="shrink-0 h-11 w-11 rounded-2xl bg-white/12 border border-white/20 flex items-center justify-center text-xl wiggle">${c.badge}</div>
+              <div class="min-w-0">
+                <div class="font-extrabold truncate">${escapeHtml(c.name)}</div>
+                <div class="text-xs text-slate-700/85">${escapeHtml(c.role)} • <span class="font-semibold">${escapeHtml(c.cat)}</span></div>
+                <div class="mt-1 text-[11px] text-slate-700/80 leading-relaxed">${escapeHtml(c.vibe)}</div>
+              </div>
+            </div>
+            <button type="button"
+              class="btn followBtn shrink-0 rounded-2xl px-3 py-2 text-xs font-extrabold border border-white/22 transition
+              ${following ? "bg-white/14 hover:bg-white/10" : "bg-gradient-to-r from-white/18 to-white/10 hover:to-white/18"}"
+              data-id="${c.id}">
+              ${following ? "Unfollow" : "Follow"}
+            </button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+
+      list.querySelectorAll(".followBtn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          addRipple(btn, e);
+          const id = btn.getAttribute("data-id");
+          if(state.data.following.has(id)){
+            state.data.following.delete(id);
+          } else {
+            state.data.following.add(id);
+          }
+          $("followCount").textContent = String(state.data.following.size);
+          renderCreatorList();
+          computeCompleteness();
+        });
+      });
+
+      $("followCount").textContent = String(state.data.following.size);
+
+      if(filtered.length === 0){
+        const empty = document.createElement("div");
+        empty.className = "text-sm text-slate-700/85 px-2 py-6 text-center";
+        empty.innerHTML = `<span class="wiggle">🫧</span> لا نتائج… جرّب كلمة أخرى أو فلتر مختلف`;
+        list.appendChild(empty);
+      }
+    }
+
+    // -----------------------------
+    // Chips render
+    // -----------------------------
+    function renderChips(){
+      const genreWrap = $("genreChips");
+      const typeWrap = $("typeChips");
+      genreWrap.innerHTML = "";
+      typeWrap.innerHTML = "";
+
+      GENRES.forEach((g, idx) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "btn chip rounded-full px-3 py-2 text-[12px] font-bold border border-white/18 bg-white/8 hover:bg-white/12 transition";
+        b.dataset.on = String(state.data.genres.has(g));
+        b.innerHTML = `<span class="wiggle" aria-hidden="true">${idx%5===0?"✨":idx%5===1?"🌸":idx%5===2?"⚡":idx%5===3?"🌙":"🍜"}</span> <span>${escapeHtml(g)}</span>`;
+        b.addEventListener("click", (e) => {
+          addRipple(b, e);
+          if(state.data.genres.has(g)) state.data.genres.delete(g);
+          else state.data.genres.add(g);
+          renderChips();
+          computeCompleteness();
+        });
+        genreWrap.appendChild(b);
+      });
+
+      CONTENT_TYPES.forEach((t, idx) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "btn chip rounded-full px-3 py-2 text-[12px] font-bold border border-white/18 bg-white/8 hover:bg-white/12 transition";
+        b.dataset.on = String(state.data.types.has(t));
+        b.innerHTML = `<span class="wiggle" aria-hidden="true">${idx%4===0?"📚":idx%4===1?"🎬":idx%4===2?"🎨":"🧵"}</span> <span>${escapeHtml(t)}</span>`;
+        b.addEventListener("click", (e) => {
+          addRipple(b, e);
+          if(state.data.types.has(t)) state.data.types.delete(t);
+          else state.data.types.add(t);
+          renderChips();
+          computeCompleteness();
+        });
+        typeWrap.appendChild(b);
+      });
+    }
+
+    // -----------------------------
+    // Completeness
+    // -----------------------------
+    function computeCompleteness(){
+      // Weighted: 60 base fields + 40 preferences
+      let score = 0;
+
+      // Base (60)
+      if(state.data.name.trim().length >= 2) score += 10;
+      if(validateEmail(state.data.email)) score += 10;
+      if(state.data.password.length >= 8 && state.data.confirm === state.data.password) score += 10;
+      if(state.data.country) score += 8;
+      if(state.data.city) score += 8;
+      if((state.data.bio || "").trim().length >= 20) score += 14;
+
+      // Avatar (10)
+      if(state.data.avatar.mode !== "none" && state.data.avatar.dataUrl) score += 10;
+
+      // Following (10)
+      score += clamp(state.data.following.size * 2, 0, 10);
+
+      // Interests (20)
+      score += clamp(state.data.genres.size, 0, 12);
+      score += clamp(state.data.types.size * 2, 0, 8);
+
+      const pct = clamp(Math.round((score / 100) * 100), 0, 100);
+      $("completePct").textContent = pct + "%";
+      $("completeBar").style.width = pct + "%";
+
+      // Summary
+      const avatarTxt = state.data.avatar.mode === "none" ? "بدون" : (state.data.avatar.mode === "suggested" ? ("ترشيح: " + (state.data.avatar.tag || "—")) : "رفع");
+      const followTxt = state.data.following.size ? (state.data.following.size + " حساب") : "0";
+      const gTxt = state.data.genres.size ? Array.from(state.data.genres).slice(0, 4).join("، ") + (state.data.genres.size > 4 ? "…" : "") : "—";
+      const tTxt = state.data.types.size ? Array.from(state.data.types).join("، ") : "—";
+
+      $("summary").innerHTML = `
+        <div>👤 أفاتار: <span class="font-semibold">${escapeHtml(avatarTxt)}</span></div>
+        <div>⭐ متابعة: <span class="font-semibold">${escapeHtml(followTxt)}</span></div>
+        <div>🧠 Genres: <span class="font-semibold">${escapeHtml(gTxt)}</span></div>
+        <div>📚 Content: <span class="font-semibold">${escapeHtml(tTxt)}</span></div>
+      `;
+    }
+
+    // -----------------------------
+    // Success screen + confetti
+    // -----------------------------
+    function burstConfetti(){
+      const root = $("confetti");
+      root.innerHTML = "";
+
+      const colors = [
+        "rgba(167,139,250,.95)",
+        "rgba(251,113,133,.95)",
+        "rgba(96,165,250,.95)",
+        "rgba(52,211,153,.95)",
+        "rgba(255,255,255,.95)"
+      ];
+
+      const w = root.getBoundingClientRect().width || 320;
+      const count = 70;
+
+      for(let i=0;i<count;i++){
+        const p = document.createElement("div");
+        p.className = "confetti-piece";
+        p.style.left = (Math.random() * (w - 10)) + "px";
+        p.style.top = (Math.random() * 40) + "px";
+        p.style.background = colors[Math.floor(Math.random()*colors.length)];
+        p.style.setProperty("--dx", ((Math.random()*220)-110) + "px");
+        p.style.setProperty("--r", ((Math.random()*520)-260) + "deg");
+        p.style.animationDuration = (900 + Math.random()*650) + "ms";
+        root.appendChild(p);
+      }
+    }
+
+    async function submitSuccess(){
+      // playful submit animation
+      const card = $("card");
+      card.classList.add("ring-2","ring-white/25");
+      await sleep(120);
+      card.classList.remove("ring-2","ring-white/25");
+
+      $("helloName").textContent = state.data.name ? state.data.name : "صديقنا";
+      const recap = [
+        state.data.genres.size ? `${state.data.genres.size} Genres` : "0 Genres",
+        state.data.types.size ? `${state.data.types.size} Content` : "0 Content",
+        state.data.following.size ? `${state.data.following.size} Followed` : "0 Followed",
+      ].join(" • ");
+      $("finalRecap").textContent = recap;
+
+      renderStepper(); // keep stepper consistent
+      // Hide action bar on success
+      $("prevBtn").disabled = true;
+      $("nextBtn").disabled = true;
+
+      // Transition to success
+      const current = document.querySelector(".step.active");
+      if(current){
+        current.classList.add("exit-left");
+        current.addEventListener("animationend", () => {
+          current.classList.remove("active","exit-left");
+          current.style.display = "none";
+        }, { once:true });
+      }
+
+      const s = $("step-success");
+      s.classList.add("active","enter-right");
+      s.style.display = "block";
+      s.addEventListener("animationend", () => s.classList.remove("enter-right"), { once:true });
+
+      // confetti
+      await sleep(140);
+      burstConfetti();
+      await sleep(450);
+      burstConfetti();
+
+      // status
+      $("statusLine").textContent = "تم! جاهز للانطلاق 🚀";
+      $("stepHint").textContent = "تم إنشاء الحساب بنجاح 🎉";
+      $("stepNow").textContent = "✓";
+      $("stepBar").style.width = "100%";
+    }
+
+    function resetAll(){
+      // Reset state
+      state.step = 1;
+      state.data = {
+        name:"", email:"", password:"", confirm:"",
+        country:"", city:"", bio:"", dob:"",
+        socials:{x:"", ig:"", tt:""},
+        avatar:{mode:"none", dataUrl:"", tag:""},
+        following:new Set(),
+        genres:new Set(),
+        types:new Set()
+      };
+      state.avatarCrop = { img:null, src:"", zoom:1, x:0, y:0, drag:{on:false, sx:0, sy:0, ox:0, oy:0} };
+      state.creatorFilter = "الكل";
+      state.creatorSearch = "";
+
+      // Fields
+      $("name").value = "";
+      $("email").value = "";
+      $("password").value = "";
+      $("confirm").value = "";
+      $("country").value = "";
+      $("city").innerHTML = `<option value="">اختر المدينة</option>`;
+      $("city").disabled = true;
+      $("bio").value = "";
+      $("bioCount").textContent = "0";
+      $("dob").value = "";
+      $("socialX").value = "";
+      $("socialIG").value = "";
+      $("socialTT").value = "";
+
+      $("passStrengthBar").style.width = "0%";
+      $("passStrengthTxt").textContent = "—";
+
+      $("cropImg").src = "";
+      $("zoom").value = "1";
+      $("zoomVal").textContent = "1.00×";
+      $("avatarModeBadge").textContent = "لم يتم";
+      $("avatarMsg").textContent = "اسحب الصورة داخل الإطار الدائري لتعديلها ✨";
+      $("avatarGrid").querySelectorAll("button").forEach(b => b.classList.remove("ring-2","ring-white/40"));
+
+      $("creatorSearch").value = "";
+      renderCreatorFilters();
+      renderCreatorList();
+
+      renderChips();
+      computeCompleteness();
+
+      // enable action buttons again
+      $("nextBtn").disabled = false;
+      $("prevBtn").disabled = false;
+
+      // show step 1
+      renderStepper();
+      document.querySelectorAll(".step").forEach(s => { s.classList.remove("active"); s.style.display="none"; });
+      $("step-1").classList.add("active");
+      $("step-1").style.display = "block";
+      animateStagger($("step-1"));
+    }
+
+    // -----------------------------
+    // Init: countries/cities
+    // -----------------------------
+    function initCountryCity(){
+      const c = $("country");
+      Object.keys(COUNTRY_CITY).forEach(k => {
+        const o = document.createElement("option");
+        o.value = k; o.textContent = k;
+        c.appendChild(o);
+      });
+
+      c.addEventListener("change", () => {
+        const v = c.value;
+        const city = $("city");
+        city.innerHTML = `<option value="">اختر المدينة</option>`;
+        if(v && COUNTRY_CITY[v]){
+          COUNTRY_CITY[v].forEach(ct => {
+            const o = document.createElement("option");
+            o.value = ct; o.textContent = ct;
+            city.appendChild(o);
+          });
+          city.disabled = false;
+        } else {
+          city.disabled = true;
+        }
+        validateStep2(true);
+        computeCompleteness();
+      });
+
+      $("city").addEventListener("change", () => {
+        validateStep2(true);
+        computeCompleteness();
+      });
+    }
+
+    // -----------------------------
+    // Petals generator
+    // -----------------------------
+    function initPetals(){
+      const wrap = $("petals");
+      const count = 14;
+      for(let i=0;i<count;i++){
+        const p = document.createElement("div");
+        p.className = "petal";
+        const left = Math.random()*100;
+        p.style.left = left + "vw";
+        p.style.animationDelay = (Math.random()*7) + "s";
+        p.style.animationDuration = (7 + Math.random()*7) + "s";
+        p.style.transform = `translate3d(0, -40px, 0) rotate(${Math.random()*120}deg)`;
+        p.innerHTML = `
+          <svg viewBox="0 0 64 64" width="16" height="16" aria-hidden="true">
+            <path d="M32 8c10 9 18 14 18 24S41 52 32 56C23 52 14 42 14 32S22 17 32 8z"
+              fill="rgba(251,113,133,.55)"/>
+            <path d="M32 10c8 8 14 12 14 20S39 46 32 50C25 46 18 38 18 30S24 18 32 10z"
+              fill="rgba(255,255,255,.25)"/>
+          </svg>
+        `;
+        wrap.appendChild(p);
+      }
+    }
+
+    // -----------------------------
+    // Events
+    // -----------------------------
+    function bind(){
+      // Ripple on all .btn
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest(".btn");
+        if(btn && btn.tagName === "BUTTON"){
+          addRipple(btn, e);
+        }
+      }, { capture:true });
+
+      $("nextBtn").addEventListener("click", async (e) => {
+        addRipple(e.currentTarget, e);
+        await next();
+      });
+      $("prevBtn").addEventListener("click", (e) => {
+        addRipple(e.currentTarget, e);
+        prev();
+      });
+
+      // Step 1 live validation
+      $("name").addEventListener("input", () => { validateStep1(true); computeCompleteness(); });
+      $("email").addEventListener("input", () => { validateStep1(true); computeCompleteness(); });
+      $("password").addEventListener("input", () => { validateStep1(true); computeCompleteness(); });
+      $("confirm").addEventListener("input", () => { validateStep1(true); computeCompleteness(); });
+
+      $("togglePass").addEventListener("click", (e) => {
+        addRipple(e.currentTarget, e);
+        const p = $("password");
+        const c = $("confirm");
+        const isPass = p.type === "password";
+        p.type = isPass ? "text" : "password";
+        c.type = isPass ? "text" : "password";
+        $("togglePass").textContent = isPass ? "إخفاء" : "إظهار";
+      });
+
+      // Step 2
+      $("bio").addEventListener("input", () => {
+        const v = $("bio").value;
+        if(v.length > 160) $("bio").value = v.slice(0,160);
+        validateStep2(true);
+        computeCompleteness();
+      });
+      ["dob","socialX","socialIG","socialTT"].forEach(id => {
+        $(id).addEventListener("input", () => computeCompleteness());
+      });
+
+      // Step 3 upload
+      $("avatarFile").addEventListener("change", async () => {
+        const file = $("avatarFile").files && $("avatarFile").files[0];
+        if(!file) return;
+        const url = await readFileAsDataURL(file);
+        state.data.avatar.mode = "upload";
+        state.data.avatar.tag = "Upload";
+        state.data.avatar.dataUrl = ""; // until apply crop
+        $("avatarModeBadge").textContent = "رفع";
+        setCropSource(url, false);
+        $("avatarMsg").textContent = "تمت المعاينة ✅ اسحب/كبّر ثم اضغط “اعتماد الصورة”";
+        computeCompleteness();
+      });
+
+      $("clearAvatar").addEventListener("click", (e) => {
+        addRipple(e.currentTarget, e);
+        $("avatarFile").value = "";
+        $("cropImg").src = "";
+        $("avatarModeBadge").textContent = "لم يتم";
+        state.data.avatar = { mode:"none", dataUrl:"", tag:"" };
+        state.avatarCrop.x = 0; state.avatarCrop.y = 0; state.avatarCrop.zoom = 1;
+        $("zoom").value = "1";
+        $("zoomVal").textContent = "1.00×";
+        $("avatarMsg").textContent = "تم المسح… اختر ترشيح أو ارفع صورة 🫧";
+        computeCompleteness();
+      });
+
+      $("zoom").addEventListener("input", () => {
+        state.avatarCrop.zoom = Number($("zoom").value);
+        $("zoomVal").textContent = state.avatarCrop.zoom.toFixed(2) + "×";
+        updateCropTransform();
+      });
+
+      $("applyCrop").addEventListener("click", (e) => {
+        addRipple(e.currentTarget, e);
+        applyCroppedAvatar();
+      });
+
+      // Drag to reposition image
+      const cropImg = $("cropImg");
+      cropImg.addEventListener("pointerdown", (e) => {
+        if(!cropImg.src) return;
+        cropImg.setPointerCapture(e.pointerId);
+        state.avatarCrop.drag.on = true;
+        state.avatarCrop.drag.sx = e.clientX;
+        state.avatarCrop.drag.sy = e.clientY;
+        state.avatarCrop.drag.ox = state.avatarCrop.x;
+        state.avatarCrop.drag.oy = state.avatarCrop.y;
+      });
+      cropImg.addEventListener("pointermove", (e) => {
+        if(!state.avatarCrop.drag.on) return;
+        const dx = e.clientX - state.avatarCrop.drag.sx;
+        const dy = e.clientY - state.avatarCrop.drag.sy;
+        state.avatarCrop.x = state.avatarCrop.drag.ox + dx;
+        state.avatarCrop.y = state.avatarCrop.drag.oy + dy;
+        // clamp loosely
+        state.avatarCrop.x = clamp(state.avatarCrop.x, -80, 80);
+        state.avatarCrop.y = clamp(state.avatarCrop.y, -80, 80);
+        updateCropTransform();
+      });
+      cropImg.addEventListener("pointerup", () => state.avatarCrop.drag.on = false);
+      cropImg.addEventListener("pointercancel", () => state.avatarCrop.drag.on = false);
+
+      // Step 4 search
+      $("creatorSearch").addEventListener("input", () => {
+        state.creatorSearch = $("creatorSearch").value;
+        renderCreatorList();
+      });
+
+      // Success buttons
+      $("goDash").addEventListener("click", (e) => {
+        addRipple(e.currentTarget, e);
+        alert("🚀 (Demo) الانتقال للـ Dashboard — اربطها لاحقًا بصفحتك في Next.js");
+      });
+      $("restart").addEventListener("click", (e) => {
+        addRipple(e.currentTarget, e);
+        resetAll();
+      });
+
+      // dir toggle
+      $("dirToggle").addEventListener("click", (e) => {
+        addRipple(e.currentTarget, e);
+        state.dir = (state.dir === "rtl") ? "ltr" : "rtl";
+        document.documentElement.setAttribute("dir", state.dir);
+      });
+
+      // Keyboard nav
+      window.addEventListener("keydown", (e) => {
+        if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){
+          $("nextBtn").click();
+        }
+        if(e.key === "Escape"){
+          // small convenience: back on esc
+          if(state.step > 1) prev();
+        }
+      });
+    }
+
+    function readFileAsDataURL(file){
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+    }
+
+    // -----------------------------
+    // Boot
+    // -----------------------------
+    (function init(){
+      initPetals();
+
+      // Render stepper pills
+      renderStepper();
+
+      // Stagger first step
+      animateStagger($("step-1"));
+
+      // Country/city
+      initCountryCity();
+
+      // Avatars
+      renderAvatarGrid();
+
+      // Creators
+      renderCreatorFilters();
+      renderCreatorList();
+
+      // Chips
+      renderChips();
+
+      // Compute completeness
+      computeCompleteness();
+
+      // Bind events
+      bind();
+    })();
+  </script>
+</body>
+</html>

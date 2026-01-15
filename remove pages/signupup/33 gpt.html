@@ -1,0 +1,2167 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>بدء التنفّس — إعداد حساب مجتمع الأنمي والقصص</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          boxShadow: {
+            ink: "0 18px 50px rgba(0,0,0,.55)",
+            soft: "0 10px 28px rgba(0,0,0,.35)",
+            glow: "0 0 0 1px rgba(255,255,255,.08), 0 16px 42px rgba(0,0,0,.45)",
+          },
+          borderRadius: {
+            xl2: "1.25rem",
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --ink:#070A10;
+      --paper:#0B1220;
+      --mist:rgba(255,255,255,.08);
+      --mist2:rgba(255,255,255,.04);
+      --stroke:rgba(255,255,255,.12);
+      --accent:rgba(235, 200, 120, .95);
+      --accent2:rgba(155, 210, 255, .95);
+      --ok:rgba(120,255,200,.9);
+      --danger:rgba(255,120,140,.95);
+    }
+
+    html,body{height:100%}
+    body{
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(155,210,255,.12), transparent 55%),
+        radial-gradient(900px 560px at 80% 15%, rgba(235,200,120,.10), transparent 52%),
+        radial-gradient(1100px 780px at 50% 100%, rgba(180,160,255,.08), transparent 60%),
+        linear-gradient(180deg, #05070c 0%, #070A10 40%, #060915 100%);
+      color: rgba(255,255,255,.92);
+      overflow-x:hidden;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Tahoma, Arial, "Noto Sans Arabic", "Noto Kufi Arabic", sans-serif;
+    }
+
+    /* Paper lighting + subtle grain */
+    .paper-sheen{
+      position: relative;
+      isolation: isolate;
+    }
+    .paper-sheen::before{
+      content:"";
+      position:absolute; inset:-1px;
+      background:
+        radial-gradient(900px 420px at 20% 0%, rgba(255,255,255,.10), transparent 55%),
+        radial-gradient(740px 380px at 80% 20%, rgba(255,255,255,.06), transparent 58%),
+        linear-gradient(180deg, rgba(255,255,255,.05), transparent 40%);
+      pointer-events:none;
+      mix-blend-mode: soft-light;
+      z-index:0;
+      border-radius: inherit;
+    }
+    .paper-sheen::after{
+      content:"";
+      position:absolute; inset:0;
+      background-image:
+        radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 18px 18px;
+      opacity:.35;
+      pointer-events:none;
+      z-index:0;
+      border-radius: inherit;
+      mask-image: radial-gradient(120% 120% at 50% 30%, black 35%, transparent 70%);
+    }
+    .paper-content{ position:relative; z-index:1; }
+
+    /* SVG pattern layer */
+    .pattern-layer{
+      position:absolute; inset:0;
+      pointer-events:none;
+      opacity:.7;
+      z-index:0;
+      border-radius: inherit;
+      overflow:hidden;
+    }
+
+    /* Breath wave animation */
+    @keyframes breathe {
+      0%,100%{ transform: translateY(0); opacity:.92 }
+      50%{ transform: translateY(-2px); opacity:1 }
+    }
+    @keyframes drift {
+      0%{ background-position: 0% 50%}
+      100%{ background-position: 120% 50%}
+    }
+    .breath-surface{
+      background:
+        linear-gradient(90deg, rgba(155,210,255,.12), rgba(235,200,120,.12), rgba(180,160,255,.10), rgba(155,210,255,.12));
+      background-size: 220% 100%;
+      animation: drift 7.5s linear infinite;
+    }
+
+    /* Katana slash wipe */
+    .slash-wipe{
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      opacity:0;
+      z-index: 60;
+    }
+    .slash-wipe.active{ opacity:1; }
+    .slash-wipe .slash{
+      position:absolute;
+      left:-30%;
+      top: -40%;
+      width: 170%;
+      height: 180%;
+      transform: rotate(-14deg);
+      background:
+        linear-gradient(90deg,
+          transparent 0%,
+          rgba(255,255,255,.00) 36%,
+          rgba(255,255,255,.18) 45%,
+          rgba(235,200,120,.25) 50%,
+          rgba(155,210,255,.18) 55%,
+          rgba(255,255,255,.00) 64%,
+          transparent 100%);
+      filter: blur(0.2px);
+      animation: slashPass 680ms ease-in-out forwards;
+      mask-image: linear-gradient(180deg, transparent 0%, black 18%, black 82%, transparent 100%);
+    }
+    @keyframes slashPass{
+      0%{ transform: translateX(-22%) rotate(-14deg); opacity:.0 }
+      15%{ opacity:1 }
+      60%{ opacity:1 }
+      100%{ transform: translateX(22%) rotate(-14deg); opacity:0 }
+    }
+    .slash-wipe .spark{
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(2px 2px at 40% 45%, rgba(235,200,120,.9), transparent 60%),
+        radial-gradient(2px 2px at 60% 55%, rgba(155,210,255,.9), transparent 60%),
+        radial-gradient(2px 2px at 54% 35%, rgba(255,255,255,.9), transparent 60%),
+        radial-gradient(1px 1px at 48% 58%, rgba(255,255,255,.7), transparent 60%);
+      opacity:.85;
+      animation: sparkFade 680ms ease-in-out forwards;
+      filter: blur(.15px);
+    }
+    @keyframes sparkFade{
+      0%{ opacity:0 }
+      20%{ opacity:.95 }
+      100%{ opacity:0 }
+    }
+
+    /* Ink dust particles */
+    .dust{
+      position: fixed;
+      width: 6px; height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.75);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.25);
+      pointer-events:none;
+      z-index: 70;
+      opacity:0;
+      transform: translate(-50%,-50%) scale(0.9);
+      animation: dustFly 560ms ease-out forwards;
+      filter: blur(.1px);
+    }
+    @keyframes dustFly{
+      0%{ opacity:0; transform: translate(-50%,-50%) scale(.8) }
+      15%{ opacity:.9 }
+      100%{ opacity:0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.2) }
+    }
+
+    /* Focus clarity */
+    .focus-ink:focus{
+      outline:none;
+      box-shadow:
+        0 0 0 2px rgba(0,0,0,.35),
+        0 0 0 4px rgba(155,210,255,.28),
+        0 0 0 1px rgba(255,255,255,.10) inset;
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      *{ animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; scroll-behavior:auto !important; }
+      .breath-surface{ animation: none !important; }
+    }
+
+    /* Safe area for sticky bottom bar */
+    .safe-bottom{
+      padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+    }
+
+    /* Canvas crisp */
+    canvas{ image-rendering: auto; }
+
+    /* Custom scrollbar subtle (webkit) */
+    ::-webkit-scrollbar{ width: 10px; height: 10px; }
+    ::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.10); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,.14); }
+  </style>
+</head>
+
+<body class="selection:bg-white/10 selection:text-white">
+  <!-- Global slash wipe -->
+  <div id="slashWipe" class="slash-wipe" aria-hidden="true">
+    <div class="slash"></div>
+    <div class="spark"></div>
+  </div>
+
+  <!-- Global SVG defs (patterns) -->
+  <svg width="0" height="0" class="absolute">
+    <defs>
+      <!-- Haori-inspired geometric patterns (generic) -->
+      <pattern id="p_asanoha" width="48" height="48" patternUnits="userSpaceOnUse">
+        <path d="M24 0 L36 12 L24 24 L12 12 Z" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="1"/>
+        <path d="M24 24 L36 36 L24 48 L12 36 Z" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+        <path d="M0 24 L12 12 L24 24 L12 36 Z" fill="none" stroke="rgba(155,210,255,.10)" stroke-width="1"/>
+        <path d="M48 24 L36 12 L24 24 L36 36 Z" fill="none" stroke="rgba(235,200,120,.10)" stroke-width="1"/>
+      </pattern>
+
+      <pattern id="p_seigaiha" width="56" height="56" patternUnits="userSpaceOnUse">
+        <path d="M0 28a28 28 0 0 1 56 0" fill="none" stroke="rgba(155,210,255,.14)" stroke-width="1.2"/>
+        <path d="M-28 28a28 28 0 0 1 56 0" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+        <path d="M28 28a28 28 0 0 1 56 0" fill="none" stroke="rgba(235,200,120,.10)" stroke-width="1"/>
+        <path d="M0 28a18 18 0 0 1 36 0" transform="translate(10,0)" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+      </pattern>
+
+      <pattern id="p_checker" width="26" height="26" patternUnits="userSpaceOnUse">
+        <rect width="13" height="13" fill="rgba(255,255,255,.06)"/>
+        <rect x="13" y="13" width="13" height="13" fill="rgba(255,255,255,.06)"/>
+        <rect x="13" width="13" height="13" fill="rgba(0,0,0,.0)"/>
+        <rect y="13" width="13" height="13" fill="rgba(0,0,0,.0)"/>
+        <path d="M0 0H26V26H0Z" fill="none" stroke="rgba(255,255,255,.06)" />
+      </pattern>
+
+      <pattern id="p_hex" width="44" height="38" patternUnits="userSpaceOnUse">
+        <path d="M11 2 L22 2 L33 11 L33 27 L22 36 L11 36 L0 27 L0 11 Z" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="1"/>
+        <path d="M33 11 L44 2" stroke="rgba(235,200,120,.10)" stroke-width="1"/>
+        <path d="M11 36 L0 38" stroke="rgba(155,210,255,.10)" stroke-width="1"/>
+      </pattern>
+
+      <linearGradient id="g_sheen" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="rgba(255,255,255,.10)"/>
+        <stop offset=".35" stop-color="rgba(155,210,255,.08)"/>
+        <stop offset=".7" stop-color="rgba(235,200,120,.08)"/>
+        <stop offset="1" stop-color="rgba(255,255,255,.06)"/>
+      </linearGradient>
+
+      <filter id="f_softGlow" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="3" result="b"/>
+        <feColorMatrix in="b" type="matrix" values="
+          1 0 0 0 0
+          0 1 0 0 0
+          0 0 1 0 0
+          0 0 0 .55 0" result="g"/>
+        <feMerge>
+          <feMergeNode in="g"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+  </svg>
+
+  <main class="relative">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-28 sm:pb-32">
+      <!-- Top header -->
+      <header class="flex items-center justify-between gap-3 mb-6 sm:mb-10">
+        <div class="flex items-center gap-3">
+          <div class="relative w-11 h-11 rounded-2xl bg-white/6 border border-white/10 shadow-soft paper-sheen overflow-hidden">
+            <div class="pattern-layer">
+              <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <rect width="100" height="100" fill="url(#p_asanoha)"></rect>
+                <path d="M-10 80 C 20 55, 45 100, 110 70" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="2.2" />
+                <path d="M-10 86 C 20 61, 45 106, 110 76" fill="none" stroke="rgba(155,210,255,.18)" stroke-width="2" />
+              </svg>
+            </div>
+            <div class="paper-content grid place-items-center h-full">
+              <div class="text-xs tracking-widest text-white/85">呼</div>
+            </div>
+          </div>
+          <div>
+            <div class="text-sm text-white/70">بوابة البدء</div>
+            <h1 class="text-lg sm:text-xl font-semibold">ابدأ “التنفّس” الخاص بك</h1>
+          </div>
+        </div>
+
+        <div class="hidden sm:flex items-center gap-2">
+          <span class="text-xs text-white/60">نمط مرئي مستوحى من تايشو/نقوش هندسية — بدون أي مواد محمية</span>
+        </div>
+      </header>
+
+      <!-- Layout -->
+      <div class="grid md:grid-cols-2 gap-6 lg:gap-8 items-start">
+        <!-- HERO (left on desktop because RTL: it will appear on right visually; we'll force order) -->
+        <section class="order-2 md:order-1">
+          <div class="relative rounded-3xl border border-white/10 bg-white/5 shadow-ink overflow-hidden paper-sheen">
+            <div class="pattern-layer opacity-80">
+              <svg class="w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="none">
+                <rect width="1200" height="800" fill="url(#p_seigaiha)"></rect>
+                <rect width="1200" height="800" fill="url(#p_hex)" opacity=".55"></rect>
+                <path d="M-50 520 C 220 420, 460 640, 780 520 C 980 444, 1090 470, 1280 420"
+                      fill="none" stroke="rgba(255,255,255,.14)" stroke-width="4" />
+                <path d="M-50 540 C 220 440, 460 660, 780 540 C 980 464, 1090 490, 1280 440"
+                      fill="none" stroke="rgba(155,210,255,.18)" stroke-width="3" />
+                <path d="M-50 500 C 240 390, 520 590, 820 480 C 980 420, 1110 430, 1280 380"
+                      fill="none" stroke="rgba(235,200,120,.16)" stroke-width="3" opacity=".9"/>
+              </svg>
+            </div>
+
+            <div class="paper-content p-6 sm:p-8">
+              <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/25 border border-white/10 text-xs text-white/80 shadow-soft">
+                <span class="w-2 h-2 rounded-full bg-white/70"></span>
+                هوية “هاوري” هندسية + إضاءة ورقية + ضربات سيف
+              </div>
+
+              <h2 class="mt-4 text-2xl sm:text-3xl font-semibold leading-snug">
+                واجهة إعداد حساب<br class="hidden sm:block"/>
+                بطابع “تنفّس العناصر”
+              </h2>
+
+              <p class="mt-3 text-sm sm:text-base text-white/70 leading-relaxed">
+                أربع مقاطع فقط داخل صفحة واحدة، مع مقياس تنفّس بدل الأرقام.
+                انتقال “ضربة سيف” يكشف المحتوى، ولمسات حبر/غبار خفيفة عند التفاعل.
+              </p>
+
+              <div class="mt-6 grid sm:grid-cols-2 gap-3">
+                <div class="rounded-2xl border border-white/10 bg-black/20 p-4 shadow-soft">
+                  <div class="text-xs text-white/60">سريع وواضح</div>
+                  <div class="mt-1 font-semibold">Account → Profile → Avatar → Fandom</div>
+                  <div class="mt-2 text-xs text-white/65">بدون تنقل مزعج — كل شيء أمامك.</div>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-black/20 p-4 shadow-soft">
+                  <div class="text-xs text-white/60">الـ Avatar هو القلب</div>
+                  <div class="mt-1 font-semibold">Haori Portraits + رفع مخصص</div>
+                  <div class="mt-2 text-xs text-white/65">قص/زوم/سحب + حدود نقش + Edge Ink.</div>
+                </div>
+              </div>
+
+              <div class="mt-6 rounded-2xl border border-white/10 bg-white/[.04] p-4">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-sm font-semibold">نصيحة أسلوبية</div>
+                    <div class="text-xs text-white/65 mt-1">اختر عنصرًا بصريًا، ثم التزم به عبر الهوايات والاهتمامات.</div>
+                  </div>
+                  <div class="shrink-0 w-12 h-12 rounded-2xl bg-white/5 border border-white/10 grid place-items-center">
+                    <span class="text-lg" aria-hidden="true">🗡️</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 flex flex-wrap gap-2 text-xs text-white/60">
+                <span class="px-2.5 py-1 rounded-full border border-white/10 bg-black/20">RTL</span>
+                <span class="px-2.5 py-1 rounded-full border border-white/10 bg-black/20">Sticky Bar</span>
+                <span class="px-2.5 py-1 rounded-full border border-white/10 bg-black/20">Safe-area</span>
+                <span class="px-2.5 py-1 rounded-full border border-white/10 bg-black/20">Reduced motion</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- FORM (right on desktop) -->
+        <section class="order-1 md:order-2">
+          <div class="relative rounded-3xl border border-white/10 bg-white/5 shadow-ink overflow-hidden paper-sheen">
+            <div class="pattern-layer opacity-70">
+              <svg class="w-full h-full" viewBox="0 0 1200 900" preserveAspectRatio="none">
+                <rect width="1200" height="900" fill="url(#p_checker)" opacity=".7"></rect>
+                <rect width="1200" height="900" fill="url(#g_sheen)" opacity=".28"></rect>
+                <path d="M-40 160 L1240 120" stroke="rgba(255,255,255,.10)" stroke-width="2"></path>
+                <path d="M-40 740 L1240 700" stroke="rgba(155,210,255,.10)" stroke-width="2"></path>
+              </svg>
+            </div>
+
+            <div class="paper-content p-5 sm:p-6">
+              <!-- Breath Meter + Tabs -->
+              <div class="sticky top-3 z-20">
+                <div class="rounded-2xl border border-white/10 bg-black/35 backdrop-blur-md shadow-soft overflow-hidden">
+                  <div class="p-3 sm:p-4">
+                    <div class="flex items-center justify-between gap-3">
+                      <div>
+                        <div class="text-xs text-white/65">مقياس التنفّس</div>
+                        <div class="mt-0.5 text-sm font-semibold" id="breathLabel">يتكوّن…</div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <div class="text-xs text-white/60" id="breathPct">0%</div>
+                        <span class="inline-flex items-center gap-1.5 text-[11px] text-white/55 border border-white/10 bg-white/5 px-2 py-1 rounded-full">
+                          <span class="w-1.5 h-1.5 rounded-full bg-white/60"></span>
+                          Breath Meter
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="mt-3">
+                      <div class="relative h-3 rounded-full bg-white/7 border border-white/10 overflow-hidden">
+                        <div class="absolute inset-0 breath-surface opacity-70"></div>
+                        <div id="breathBar" class="relative h-full w-[0%] rounded-full bg-white/20 border-r border-white/20 transition-[width] duration-300 ease-out"></div>
+                        <div class="absolute inset-0 pointer-events-none">
+                          <svg class="w-full h-full" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true">
+                            <path d="M0 12 C 12 8, 22 16, 34 12 C 46 8, 56 16, 68 12 C 80 8, 90 16, 100 12"
+                                  fill="none" stroke="rgba(255,255,255,.16)" stroke-width="1.8" />
+                            <path d="M0 13 C 12 9, 22 17, 34 13 C 46 9, 56 17, 68 13 C 80 9, 90 17, 100 13"
+                                  fill="none" stroke="rgba(155,210,255,.18)" stroke-width="1.2" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      <button data-nav="account" class="navPill focus-ink px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-xs text-white/75 hover:bg-white/8 transition">
+                        Account
+                      </button>
+                      <button data-nav="profile" class="navPill focus-ink px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-xs text-white/75 hover:bg-white/8 transition">
+                        Profile
+                      </button>
+                      <button data-nav="avatar" class="navPill focus-ink px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-xs text-white/75 hover:bg-white/8 transition">
+                        Avatar
+                      </button>
+                      <button data-nav="fandom" class="navPill focus-ink px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-xs text-white/75 hover:bg-white/8 transition">
+                        Fandom
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Form -->
+              <form id="setupForm" class="mt-5 space-y-5">
+                <!-- ACCOUNT -->
+                <section id="account" class="sectionCard rounded-3xl border border-white/10 bg-black/25 shadow-soft overflow-hidden">
+                  <div class="p-5 sm:p-6">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 class="text-lg font-semibold">Account</h3>
+                        <p class="mt-1 text-sm text-white/65">معلومات الدخول. بسيطة وواضحة.</p>
+                      </div>
+                      <div class="text-xs text-white/55 px-2.5 py-1 rounded-full border border-white/10 bg-white/5">
+                        <span id="badgeAccount">غير مكتمل</span>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-xs text-white/70 mb-1" for="email">البريد الإلكتروني</label>
+                        <input id="email" type="email" autocomplete="email"
+                               class="focus-ink w-full rounded-2xl border border-white/10 bg-white/5 px-3.5 py-3 text-sm text-white/90 placeholder:text-white/35"
+                               placeholder="name@domain.com">
+                        <div id="emailHint" class="mt-1 text-[11px] text-white/55">سنستخدمه لتأكيد الحساب فقط.</div>
+                      </div>
+
+                      <div>
+                        <label class="block text-xs text-white/70 mb-1" for="username">اسم المستخدم</label>
+                        <input id="username" type="text" autocomplete="username" maxlength="20"
+                               class="focus-ink w-full rounded-2xl border border-white/10 bg-white/5 px-3.5 py-3 text-sm text-white/90 placeholder:text-white/35"
+                               placeholder="devluffy_">
+                        <div class="mt-1 text-[11px] text-white/55">حروف/أرقام/_ فقط (سننظفها تلقائيًا).</div>
+                      </div>
+
+                      <div class="sm:col-span-2">
+                        <label class="block text-xs text-white/70 mb-1" for="password">كلمة المرور</label>
+                        <div class="relative">
+                          <input id="password" type="password" autocomplete="new-password"
+                                 class="focus-ink w-full rounded-2xl border border-white/10 bg-white/5 px-3.5 py-3 text-sm text-white/90 placeholder:text-white/35 pr-12"
+                                 placeholder="••••••••">
+                          <button type="button" id="togglePass"
+                                  class="focus-ink absolute left-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-xs text-white/70 hover:bg-white/10 transition">
+                            إظهار
+                          </button>
+                        </div>
+                        <div class="mt-2 flex items-center gap-2 text-[11px] text-white/60">
+                          <span id="passStrengthDot" class="w-2 h-2 rounded-full bg-white/25"></span>
+                          <span id="passStrengthText">اختر 8+ أحرف.</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 flex items-center gap-2">
+                      <input id="agree" type="checkbox" class="focus-ink w-4 h-4 rounded border border-white/20 bg-white/10">
+                      <label for="agree" class="text-sm text-white/70">أوافق على قواعد المجتمع (احترام، لا سبويلرز بدون تنبيه).</label>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- PROFILE -->
+                <section id="profile" class="sectionCard rounded-3xl border border-white/10 bg-black/25 shadow-soft overflow-hidden">
+                  <div class="p-5 sm:p-6">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 class="text-lg font-semibold">Profile</h3>
+                        <p class="mt-1 text-sm text-white/65">ملفك… “نَفَس” أولي.</p>
+                      </div>
+                      <div class="text-xs text-white/55 px-2.5 py-1 rounded-full border border-white/10 bg-white/5">
+                        <span id="badgeProfile">غير مكتمل</span>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-xs text-white/70 mb-1" for="displayName">الاسم الظاهر</label>
+                        <input id="displayName" type="text" maxlength="28"
+                               class="focus-ink w-full rounded-2xl border border-white/10 bg-white/5 px-3.5 py-3 text-sm text-white/90 placeholder:text-white/35"
+                               placeholder="مثال: لوفي">
+                      </div>
+
+                      <div>
+                        <label class="block text-xs text-white/70 mb-1" for="region">المنطقة</label>
+                        <select id="region"
+                                class="focus-ink w-full rounded-2xl border border-white/10 bg-white/5 px-3.5 py-3 text-sm text-white/90">
+                          <option value="">اختر…</option>
+                          <option>الشرق الأوسط</option>
+                          <option>شمال أفريقيا</option>
+                          <option>أوروبا</option>
+                          <option>الأمريكيتان</option>
+                          <option>آسيا</option>
+                          <option>أوقيانوسيا</option>
+                        </select>
+                      </div>
+
+                      <div class="sm:col-span-2">
+                        <label class="block text-xs text-white/70 mb-1" for="bio">نبذة قصيرة</label>
+                        <textarea id="bio" rows="3" maxlength="140"
+                                  class="focus-ink w-full rounded-2xl border border-white/10 bg-white/5 px-3.5 py-3 text-sm text-white/90 placeholder:text-white/35 resize-none"
+                                  placeholder="سطور قليلة عن ذوقك… (مثال: أحب الأكشن، العالم الواسع، والقصص التي تبني شخصياتها بهدوء)"></textarea>
+                        <div class="mt-1 flex items-center justify-between text-[11px] text-white/55">
+                          <span>قصيرة ومفيدة = أفضل.</span>
+                          <span id="bioCount">0/140</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-5">
+                      <div class="flex items-center justify-between gap-3">
+                        <div>
+                          <div class="text-sm font-semibold">توقيع “العنصر”</div>
+                          <div class="text-xs text-white/60 mt-1">اختيار بصري عام ينعكس في الهاوري واللمعات.</div>
+                        </div>
+                        <div class="text-[11px] text-white/55 border border-white/10 bg-white/5 px-2 py-1 rounded-full">
+                          Glow عند الاختيار
+                        </div>
+                      </div>
+
+                      <div id="elementChoices" class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <!-- JS creates buttons -->
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- AVATAR -->
+                <section id="avatar" class="sectionCard rounded-3xl border border-white/10 bg-black/25 shadow-soft overflow-hidden">
+                  <div class="p-5 sm:p-6">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 class="text-lg font-semibold">Avatar</h3>
+                        <p class="mt-1 text-sm text-white/65">اختر “Haori Portrait” أو ارفع صورتك وقم بضبطها.</p>
+                      </div>
+                      <div class="text-xs text-white/55 px-2.5 py-1 rounded-full border border-white/10 bg-white/5">
+                        <span id="badgeAvatar">غير مكتمل</span>
+                      </div>
+                    </div>
+
+                    <!-- Preview -->
+                    <div class="mt-4 grid lg:grid-cols-5 gap-4">
+                      <div class="lg:col-span-2">
+                        <div class="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-soft">
+                          <div class="flex items-center justify-between">
+                            <div class="text-sm font-semibold">المعاينة</div>
+                            <div class="text-[11px] text-white/55">سيظهر هكذا في البروفايل</div>
+                          </div>
+
+                          <div class="mt-3 flex items-center gap-3">
+                            <div class="relative w-20 h-20 rounded-3xl border border-white/12 bg-black/30 overflow-hidden shadow-glow">
+                              <div id="avatarPreview" class="absolute inset-0 grid place-items-center">
+                                <span class="text-xs text-white/55">لا يوجد</span>
+                              </div>
+                              <div class="absolute inset-0 pointer-events-none">
+                                <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-70"></div>
+                              </div>
+                            </div>
+                            <div class="min-w-0">
+                              <div class="text-sm font-semibold truncate" id="avatarTitle">اختر هاوري</div>
+                              <div class="text-xs text-white/60 mt-1" id="avatarMeta">24 اقتراح + رفع مخصص</div>
+                              <div class="mt-2 flex flex-wrap gap-1.5" id="avatarTagPills"></div>
+                            </div>
+                          </div>
+
+                          <div class="mt-4 flex gap-2">
+                            <button type="button" id="useSuggested"
+                                    class="focus-ink flex-1 rounded-2xl border border-white/10 bg-white/8 hover:bg-white/12 px-3 py-2.5 text-sm transition">
+                              اعتماد المقترح
+                            </button>
+                            <button type="button" id="useCustom"
+                                    class="focus-ink flex-1 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-2.5 text-sm transition">
+                              اعتماد المخصص
+                            </button>
+                          </div>
+
+                          <div class="mt-3 text-[11px] text-white/55">
+                            * “Edge Ink” تأثير تجريبي بسيط (Mock filter).
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="lg:col-span-3 space-y-4">
+                        <!-- Suggested -->
+                        <div class="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-soft">
+                          <div class="flex items-center justify-between gap-3">
+                            <div>
+                              <div class="text-sm font-semibold">Suggested “Haori Portraits”</div>
+                              <div class="text-xs text-white/60 mt-1">24 بورتريه SVG تجريدي بنقوش مختلفة + Tags.</div>
+                            </div>
+                            <div class="text-[11px] text-white/55 border border-white/10 bg-black/20 px-2 py-1 rounded-full">
+                              Glow + Ink dust
+                            </div>
+                          </div>
+
+                          <div class="mt-3 flex flex-wrap gap-2" id="portraitFilters">
+                            <!-- JS creates filter chips -->
+                          </div>
+
+                          <div class="mt-3 grid grid-cols-4 sm:grid-cols-6 gap-2" id="portraitGrid" aria-label="اقتراحات الهاوري">
+                            <!-- JS creates 24 portrait buttons -->
+                          </div>
+                        </div>
+
+                        <!-- Custom upload -->
+                        <div class="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-soft">
+                          <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <div class="text-sm font-semibold">Custom Upload</div>
+                              <div class="text-xs text-white/60 mt-1">قص/زوم/سحب على Canvas + نقش حواف + Edge Ink.</div>
+                            </div>
+                            <label class="focus-ink inline-flex items-center gap-2 px-3 py-2 rounded-2xl border border-white/10 bg-white/8 hover:bg-white/12 cursor-pointer transition text-sm">
+                              <span aria-hidden="true">⬆️</span>
+                              <span>رفع صورة</span>
+                              <input id="upload" type="file" accept="image/*" class="hidden">
+                            </label>
+                          </div>
+
+                          <div class="mt-3 grid sm:grid-cols-2 gap-3">
+                            <div class="rounded-3xl border border-white/10 bg-black/25 p-3 overflow-hidden">
+                              <div class="flex items-center justify-between">
+                                <div class="text-xs text-white/70">Canvas</div>
+                                <div class="text-[11px] text-white/55" id="canvasHint">اسحب لتحريك الصورة</div>
+                              </div>
+                              <div class="mt-2 rounded-2xl border border-white/10 bg-black/30 overflow-hidden">
+                                <canvas id="cropCanvas" width="360" height="360" class="w-full h-auto block"></canvas>
+                              </div>
+
+                              <div class="mt-3 space-y-2">
+                                <div class="flex items-center justify-between text-xs text-white/70">
+                                  <span>Zoom</span>
+                                  <span id="zoomVal" class="text-white/55">100%</span>
+                                </div>
+                                <input id="zoom" type="range" min="0.7" max="2.4" step="0.01" value="1"
+                                       class="w-full accent-white">
+                                <div class="flex flex-wrap gap-2">
+                                  <button type="button" id="toggleEdgePattern"
+                                          class="focus-ink px-3 py-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs transition">
+                                    نقش الحواف: <span id="edgePatternState">إيقاف</span>
+                                  </button>
+                                  <button type="button" id="toggleEdgeInk"
+                                          class="focus-ink px-3 py-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs transition">
+                                    Edge Ink: <span id="edgeInkState">إيقاف</span>
+                                  </button>
+                                  <button type="button" id="resetCrop"
+                                          class="focus-ink px-3 py-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs transition">
+                                    إعادة ضبط
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="rounded-3xl border border-white/10 bg-black/25 p-3">
+                              <div class="text-xs text-white/70">ملاحظات سريعة</div>
+                              <ul class="mt-2 text-sm text-white/65 space-y-2 leading-relaxed">
+                                <li class="flex gap-2"><span class="text-white/70">•</span><span>قص دائري غير مطلوب — الواجهة تستخدم مربعًا ناعم الزوايا.</span></li>
+                                <li class="flex gap-2"><span class="text-white/70">•</span><span>نقش الحواف يضيف “هاوري” خفيف دون إفساد الصورة.</span></li>
+                                <li class="flex gap-2"><span class="text-white/70">•</span><span>Edge Ink يحاكي حدود حبر بسيطة (ليس فلتر حقيقي).</span></li>
+                              </ul>
+
+                              <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
+                                <div class="text-xs text-white/70">نصيحة</div>
+                                <div class="mt-1 text-sm text-white/65">خلي الصورة “مضيئة” قليلًا؛ التصميم أصلاً ورقي/داكن.</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- FANDOM -->
+                <section id="fandom" class="sectionCard rounded-3xl border border-white/10 bg-black/25 shadow-soft overflow-hidden">
+                  <div class="p-5 sm:p-6">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 class="text-lg font-semibold">Fandom</h3>
+                        <p class="mt-1 text-sm text-white/65">تابع 2 صناع + اختر اهتماماتك ورتّب أفضل 3.</p>
+                      </div>
+                      <div class="text-xs text-white/55 px-2.5 py-1 rounded-full border border-white/10 bg-white/5">
+                        <span id="badgeFandom">غير مكتمل</span>
+                      </div>
+                    </div>
+
+                    <!-- Follow creators -->
+                    <div class="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4 shadow-soft">
+                      <div class="flex items-center justify-between gap-3">
+                        <div>
+                          <div class="text-sm font-semibold">Follow 2 creators</div>
+                          <div class="text-xs text-white/60 mt-1">اختياران فقط لتبدأ خلاصة نظيفة.</div>
+                        </div>
+                        <div class="text-xs text-white/70">
+                          <span class="text-white/55">المحدد:</span> <span id="followCount" class="font-semibold">0</span>/2
+                        </div>
+                      </div>
+
+                      <div id="creatorGrid" class="mt-3 grid sm:grid-cols-2 gap-2">
+                        <!-- JS -->
+                      </div>
+                    </div>
+
+                    <!-- Interests -->
+                    <div class="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4 shadow-soft">
+                      <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <div class="text-sm font-semibold">Interests chips</div>
+                          <div class="text-xs text-white/60 mt-1">اختر ما تشاء، ثم رتب أفضل 3.</div>
+                        </div>
+                        <div class="text-[11px] text-white/55 border border-white/10 bg-black/20 px-2 py-1 rounded-full">
+                          ترتيب ↑↓
+                        </div>
+                      </div>
+
+                      <div id="interestChips" class="mt-3 flex flex-wrap gap-2">
+                        <!-- JS -->
+                      </div>
+
+                      <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                        <div class="rounded-2xl border border-white/10 bg-black/25 p-3">
+                          <div class="text-xs text-white/70">أفضل 3 (Top 3)</div>
+                          <div class="mt-2 space-y-2" id="top3List">
+                            <!-- JS -->
+                          </div>
+                          <div class="mt-2 text-[11px] text-white/55">مطلوب 3 عناصر لإكمال التنفّس.</div>
+                        </div>
+
+                        <div class="rounded-2xl border border-white/10 bg-black/25 p-3">
+                          <div class="text-xs text-white/70">مؤشر سريع</div>
+                          <div class="mt-2 text-sm text-white/65 leading-relaxed">
+                            <div class="flex items-center justify-between">
+                              <span>Creators</span>
+                              <span id="creatorsOk" class="text-white/55">0/2</span>
+                            </div>
+                            <div class="mt-2 flex items-center justify-between">
+                              <span>Top 3</span>
+                              <span id="top3Ok" class="text-white/55">0/3</span>
+                            </div>
+                            <div class="mt-3 rounded-xl border border-white/10 bg-white/5 p-2 text-[11px] text-white/55">
+                              كل اختيار يطلق “غبار حبر” خفيف — كتلميح لمشهد ورقي.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </section>
+
+                <!-- Hidden submit (actual) -->
+                <button type="submit" class="hidden" aria-hidden="true">submit</button>
+              </form>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Sticky Bottom Bar (mobile-first) -->
+    <div class="fixed bottom-0 inset-x-0 z-50 safe-bottom">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div class="rounded-3xl border border-white/10 bg-black/55 backdrop-blur-md shadow-ink overflow-hidden">
+          <div class="p-3 sm:p-4 flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-white/60 animate-[breathe_2.8s_ease-in-out_infinite]"></div>
+                <div class="text-xs text-white/60 truncate" id="stickyHint">اختر قسمًا من الأعلى أو اضغط “التالي”.</div>
+              </div>
+              <div class="mt-2 h-2 rounded-full bg-white/7 border border-white/10 overflow-hidden">
+                <div class="absolute inset-0 opacity-70 breath-surface"></div>
+                <div id="stickyBar" class="relative h-full w-[0%] rounded-full bg-white/20 transition-[width] duration-300"></div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <button type="button" id="nextBtn"
+                      class="focus-ink rounded-2xl border border-white/10 bg-white/8 hover:bg-white/12 px-4 py-2.5 text-sm transition">
+                التالي
+              </button>
+              <button type="button" id="finishBtn"
+                      class="focus-ink rounded-2xl border border-white/10 bg-white/12 hover:bg-white/16 px-4 py-2.5 text-sm font-semibold transition">
+                إنهاء
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Overlay -->
+    <div id="successOverlay" class="fixed inset-0 z-[80] hidden">
+      <canvas id="confettiCanvas" class="absolute inset-0 w-full h-full"></canvas>
+      <div class="absolute inset-0 bg-black/65 backdrop-blur-sm"></div>
+
+      <div class="relative h-full grid place-items-center px-4">
+        <div class="w-full max-w-xl rounded-3xl border border-white/10 bg-white/6 shadow-ink paper-sheen overflow-hidden">
+          <div class="pattern-layer opacity-70">
+            <svg class="w-full h-full" viewBox="0 0 1000 700" preserveAspectRatio="none">
+              <rect width="1000" height="700" fill="url(#p_asanoha)" opacity=".9"></rect>
+              <path d="M-60 420 C 160 310, 420 520, 650 420 C 780 360, 900 360, 1060 300"
+                    fill="none" stroke="rgba(235,200,120,.22)" stroke-width="4"/>
+              <path d="M-60 440 C 160 330, 420 540, 650 440 C 780 380, 900 380, 1060 320"
+                    fill="none" stroke="rgba(155,210,255,.22)" stroke-width="3"/>
+            </svg>
+          </div>
+
+          <div class="paper-content p-6 sm:p-8">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/25 border border-white/10 text-xs text-white/75">
+                  <span class="w-2 h-2 rounded-full" style="background:var(--ok)"></span>
+                  Success
+                </div>
+                <h2 class="mt-3 text-2xl sm:text-3xl font-semibold">تنفّسك بدأ!</h2>
+                <p class="mt-2 text-sm sm:text-base text-white/70 leading-relaxed">
+                  تم تجهيز حسابك. الآن… ابدأ بجمع الأصدقاء، ومتابعة صناع المحتوى، وبناء “نَفَس” خاص بك.
+                </p>
+              </div>
+              <button type="button" id="closeSuccess"
+                      class="focus-ink rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-2 text-sm transition">
+                إغلاق
+              </button>
+            </div>
+
+            <div class="mt-6 rounded-3xl border border-white/10 bg-black/25 p-4 sm:p-5 shadow-soft">
+              <div class="flex items-center gap-3">
+                <div class="relative w-16 h-16 rounded-3xl border border-white/12 bg-black/30 overflow-hidden shadow-glow">
+                  <div id="successAvatar" class="absolute inset-0 grid place-items-center"></div>
+                  <div class="absolute inset-0 pointer-events-none bg-gradient-to-br from-white/10 to-transparent"></div>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-sm text-white/70">مرحبًا</div>
+                  <div class="text-lg font-semibold truncate" id="successName">—</div>
+                  <div class="mt-1 text-xs text-white/60" id="successLine">جاهز لتبدأ رحلتك.</div>
+                </div>
+              </div>
+
+              <div class="mt-4 flex flex-wrap gap-2 text-xs text-white/70" id="successBadges"></div>
+
+              <div class="mt-4 flex flex-wrap gap-2">
+                <button type="button" id="goDashboard"
+                        class="focus-ink rounded-2xl border border-white/10 bg-white/12 hover:bg-white/16 px-4 py-2.5 text-sm font-semibold transition">
+                  دخول للواجهة
+                </button>
+                <button type="button" id="editAgain"
+                        class="focus-ink rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2.5 text-sm transition">
+                  تعديل الإعدادات
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-4 text-[11px] text-white/55">
+              * الاحتفال: بتلات/لمعات خفيفة (Confetti) — مراعاة prefers-reduced-motion.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // -----------------------------
+    // Utilities
+    // -----------------------------
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+    function slashWipe(){
+      if (prefersReduced) return;
+      const el = $('#slashWipe');
+      el.classList.add('active');
+      setTimeout(()=> el.classList.remove('active'), 720);
+    }
+
+    function inkDust(x, y, amount=10){
+      if (prefersReduced) return;
+      for (let i=0;i<amount;i++){
+        const d = document.createElement('div');
+        d.className = 'dust';
+        const dx = (Math.random()*2-1) * (12 + Math.random()*26);
+        const dy = (Math.random()*2-1) * (10 + Math.random()*28);
+        d.style.left = x + 'px';
+        d.style.top = y + 'px';
+        d.style.setProperty('--dx', dx.toFixed(1)+'px');
+        d.style.setProperty('--dy', dy.toFixed(1)+'px');
+        d.style.background = Math.random() > 0.65 ? 'rgba(235,200,120,.85)' : (Math.random() > 0.35 ? 'rgba(155,210,255,.85)' : 'rgba(255,255,255,.75)');
+        document.body.appendChild(d);
+        setTimeout(()=> d.remove(), 700);
+      }
+    }
+
+    function setBadge(el, ok){
+      el.textContent = ok ? 'مكتمل' : 'غير مكتمل';
+      el.parentElement.style.borderColor = ok ? 'rgba(120,255,200,.28)' : 'rgba(255,255,255,.10)';
+      el.parentElement.style.background = ok ? 'rgba(120,255,200,.08)' : 'rgba(255,255,255,.04)';
+      el.parentElement.style.color = ok ? 'rgba(210,255,235,.95)' : 'rgba(255,255,255,.55)';
+    }
+
+    // -----------------------------
+    // State
+    // -----------------------------
+    const state = {
+      element: '',
+      portrait: { id: null, svg: '', tags: [] },
+      avatar: { type: 'none', data: '' }, // 'suggested' | 'custom'
+      follows: new Set(),
+      interests: new Set(),
+      top3: [],
+      filterTag: 'All'
+    };
+
+    // -----------------------------
+    // Elements (Profile)
+    // -----------------------------
+    const elementOptions = [
+      {key:'Water',  ar:'ماء',   hint:'تموّج هادئ + لمعان بارد'},
+      {key:'Flame',  ar:'لهب',   hint:'ضوء دافئ + حافة حبر أقوى'},
+      {key:'Thunder',ar:'رعد',   hint:'نبض سريع + شرر صغير'},
+      {key:'Mist',   ar:'ضباب',  hint:'نعومة + تدرج مخملي'},
+      {key:'Stone',  ar:'حجر',   hint:'صلابة + نقوش سداسية'},
+      {key:'Wind',   ar:'ريح',   hint:'خطوط انسيابية + خفة'}
+    ];
+
+    const elementWrap = $('#elementChoices');
+    elementOptions.forEach(opt=>{
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = "elementBtn focus-ink text-right rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition p-3";
+      btn.dataset.element = opt.key;
+      btn.innerHTML = `
+        <div class="flex items-center justify-between gap-2">
+          <div class="text-sm font-semibold">${opt.ar}</div>
+          <div class="w-2.5 h-2.5 rounded-full bg-white/25"></div>
+        </div>
+        <div class="mt-1 text-[11px] text-white/60">${opt.hint}</div>
+      `;
+      elementWrap.appendChild(btn);
+    });
+
+    function renderElementSelection(){
+      $$('.elementBtn').forEach(btn=>{
+        const on = btn.dataset.element === state.element;
+        btn.style.borderColor = on ? 'rgba(155,210,255,.35)' : 'rgba(255,255,255,.10)';
+        btn.style.background = on ? 'rgba(155,210,255,.10)' : 'rgba(255,255,255,.05)';
+        btn.style.boxShadow = on ? '0 0 0 1px rgba(155,210,255,.20), 0 18px 42px rgba(0,0,0,.45)' : '';
+        btn.querySelector('div > div:last-child').style.background = on ? 'rgba(155,210,255,.85)' : 'rgba(255,255,255,.25)';
+      });
+    }
+
+    elementWrap.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.elementBtn');
+      if(!btn) return;
+      state.element = btn.dataset.element;
+      slashWipe();
+      const r = btn.getBoundingClientRect();
+      inkDust(r.left + r.width*0.22, r.top + r.height*0.35, 10);
+      renderElementSelection();
+      updateProgress();
+    });
+
+    // -----------------------------
+    // Account behaviors
+    // -----------------------------
+    $('#togglePass').addEventListener('click', ()=>{
+      const p = $('#password');
+      const is = p.type === 'password';
+      p.type = is ? 'text' : 'password';
+      $('#togglePass').textContent = is ? 'إخفاء' : 'إظهار';
+    });
+
+    $('#username').addEventListener('input', (e)=>{
+      const cleaned = e.target.value
+        .toLowerCase()
+        .replace(/\s+/g,'_')
+        .replace(/[^a-z0-9_]/g,'')
+        .slice(0,20);
+      if (cleaned !== e.target.value) e.target.value = cleaned;
+      updateProgress();
+    });
+
+    $('#email').addEventListener('input', updateProgress);
+    $('#password').addEventListener('input', ()=>{
+      const v = $('#password').value;
+      const dot = $('#passStrengthDot');
+      const t = $('#passStrengthText');
+      let score = 0;
+      if (v.length >= 8) score++;
+      if (/[A-Z]/.test(v) || /[a-z]/.test(v)) score++;
+      if (/\d/.test(v)) score++;
+      if (/[^a-zA-Z0-9]/.test(v)) score++;
+      if (score <= 1){
+        dot.style.background = 'rgba(255,255,255,.25)';
+        t.textContent = 'اختر 8+ أحرف.';
+      } else if (score === 2){
+        dot.style.background = 'rgba(235,200,120,.85)';
+        t.textContent = 'جيدة… أضف رقم/رمز.';
+      } else {
+        dot.style.background = 'rgba(120,255,200,.85)';
+        t.textContent = 'قوية.';
+      }
+      updateProgress();
+    });
+    $('#agree').addEventListener('change', updateProgress);
+
+    // -----------------------------
+    // Profile behaviors
+    // -----------------------------
+    $('#displayName').addEventListener('input', updateProgress);
+    $('#region').addEventListener('change', updateProgress);
+    $('#bio').addEventListener('input', ()=>{
+      $('#bioCount').textContent = `${$('#bio').value.length}/140`;
+      updateProgress();
+    });
+
+    // -----------------------------
+    // Suggested portraits (24 SVG)
+    // -----------------------------
+    const portraitTags = ['Water','Flame','Thunder','Mist','Stone','Wind','Bloom','Shadow'];
+    const portraitTagToAr = {
+      Water:'ماء', Flame:'لهب', Thunder:'رعد', Mist:'ضباب', Stone:'حجر', Wind:'ريح', Bloom:'زهر', Shadow:'ظل'
+    };
+
+    const patternTypes = [
+      {name:'asanoha', ref:'#p_asanoha'},
+      {name:'seigaiha', ref:'#p_seigaiha'},
+      {name:'checker', ref:'#p_checker'},
+      {name:'hex', ref:'#p_hex'}
+    ];
+
+    function makePortraitSVG(i, tag){
+      const p = patternTypes[i % patternTypes.length].ref;
+      const hueA = (i*37) % 360;
+      const hueB = (i*37 + 110) % 360;
+
+      const id = `portrait_${i}`;
+      const bg = `
+        <defs>
+          <linearGradient id="g_${id}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="hsla(${hueA}, 75%, 60%, .22)"/>
+            <stop offset="1" stop-color="hsla(${hueB}, 75%, 60%, .18)"/>
+          </linearGradient>
+
+          <clipPath id="c_${id}">
+            <rect x="14" y="14" width="172" height="172" rx="28" ry="28"></rect>
+          </clipPath>
+
+          <filter id="f_${id}" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2.2" result="b"/>
+            <feColorMatrix in="b" type="matrix" values="
+              1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              0 0 0 .55 0" result="g"/>
+            <feMerge>
+              <feMergeNode in="g"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+      `;
+
+      // abstract silhouette (head+shoulders) + patterned haori body
+      const headX = 98 + ((i%3)-1)*2;
+      const headY = 74 + ((i%4)-1)*2;
+
+      const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="هاوري بورتريه ${i+1}">
+        ${bg}
+        <g clip-path="url(#c_${id})">
+          <rect width="200" height="200" fill="rgba(0,0,0,.35)"></rect>
+          <rect width="200" height="200" fill="url(#g_${id})"></rect>
+          <rect width="200" height="200" fill="url(${p})" opacity=".75"></rect>
+
+          <!-- paper sheen -->
+          <path d="M-10 30 C 60 0, 120 60, 210 20" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="6" opacity=".7"/>
+
+          <!-- katana slash accent -->
+          <path d="M-20 150 L220 80" stroke="rgba(255,255,255,.15)" stroke-width="4" opacity=".7"/>
+          <path d="M-20 154 L220 84" stroke="hsla(${hueB}, 80%, 70%, .22)" stroke-width="3" opacity=".9"/>
+
+          <!-- haori body -->
+          <path d="M40 190 C 45 140, 65 120, 100 120 C 135 120, 155 140, 160 190 Z"
+                fill="rgba(0,0,0,.40)"/>
+          <path d="M45 190 C 52 148, 72 128, 100 128 C 128 128, 148 148, 155 190 Z"
+                fill="url(${p})" opacity=".9"/>
+
+          <!-- inner collar -->
+          <path d="M92 122 C 92 140, 80 150, 70 160" stroke="rgba(255,255,255,.18)" stroke-width="2" fill="none"/>
+          <path d="M108 122 C 108 140, 120 150, 130 160" stroke="rgba(255,255,255,.18)" stroke-width="2" fill="none"/>
+
+          <!-- head -->
+          <circle cx="${headX}" cy="${headY}" r="22" fill="rgba(0,0,0,.52)" filter="url(#f_${id})"/>
+          <circle cx="${headX}" cy="${headY}" r="20" fill="rgba(255,255,255,.06)"/>
+          <path d="M78 82 C 88 70, 110 70, 120 82" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="2" opacity=".8"/>
+
+          <!-- tag glyph -->
+          <g opacity=".9">
+            <circle cx="160" cy="42" r="14" fill="rgba(0,0,0,.35)" />
+            <circle cx="160" cy="42" r="13" fill="rgba(255,255,255,.06)" />
+            <path d="M152 42 C 156 36, 164 36, 168 42 C 164 48, 156 48, 152 42Z"
+                  fill="hsla(${hueA}, 85%, 70%, .35)"/>
+          </g>
+        </g>
+
+        <!-- frame -->
+        <rect x="14" y="14" width="172" height="172" rx="28" ry="28" fill="none" stroke="rgba(255,255,255,.14)"/>
+        <rect x="18" y="18" width="164" height="164" rx="26" ry="26" fill="none" stroke="rgba(0,0,0,.35)"/>
+      </svg>`;
+      return svg;
+    }
+
+    // Filters
+    const filterWrap = $('#portraitFilters');
+    const filterTags = ['All', ...portraitTags];
+    filterTags.forEach(t=>{
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = "filterChip focus-ink px-3 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition text-xs text-white/75";
+      b.dataset.tag = t;
+      b.textContent = (t === 'All') ? 'الكل' : `${portraitTagToAr[t]}`
+      filterWrap.appendChild(b);
+    });
+
+    function renderFilter(){
+      $$('.filterChip').forEach(c=>{
+        const on = c.dataset.tag === state.filterTag;
+        c.style.borderColor = on ? 'rgba(235,200,120,.35)' : 'rgba(255,255,255,.10)';
+        c.style.background = on ? 'rgba(235,200,120,.10)' : 'rgba(255,255,255,.05)';
+        c.style.boxShadow = on ? '0 0 0 1px rgba(235,200,120,.18), 0 16px 42px rgba(0,0,0,.42)' : '';
+      });
+    }
+
+    filterWrap.addEventListener('click', (e)=>{
+      const c = e.target.closest('.filterChip');
+      if(!c) return;
+      state.filterTag = c.dataset.tag;
+      const r = c.getBoundingClientRect();
+      inkDust(r.left + r.width*0.6, r.top + r.height*0.4, 8);
+      renderFilter();
+      renderPortraitGrid();
+    });
+
+    // Portrait Grid
+    const portraitGrid = $('#portraitGrid');
+    const portraits = Array.from({length:24}).map((_,i)=>{
+      const tag = portraitTags[i % portraitTags.length];
+      const extra = portraitTags[(i*3) % portraitTags.length];
+      const tags = Array.from(new Set([tag, extra])).slice(0,2);
+      return {
+        id: i,
+        tag,
+        tags,
+        svg: makePortraitSVG(i, tag),
+        title: `Haori Portrait #${String(i+1).padStart(2,'0')}`
+      };
+    });
+
+    function renderPortraitGrid(){
+      portraitGrid.innerHTML = '';
+      const list = portraits.filter(p=>{
+        if (state.filterTag === 'All') return true;
+        return p.tags.includes(state.filterTag);
+      });
+
+      list.forEach(p=>{
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = "portraitBtn focus-ink relative rounded-2xl border border-white/10 bg-black/20 hover:bg-black/10 transition overflow-hidden aspect-square";
+        btn.dataset.pid = p.id;
+        btn.innerHTML = `
+          <div class="absolute inset-0 opacity-95">${p.svg}</div>
+          <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-70"></div>
+          </div>
+        `;
+        portraitGrid.appendChild(btn);
+      });
+
+      // highlight selection if still visible
+      $$('.portraitBtn').forEach(btn=>{
+        const on = Number(btn.dataset.pid) === state.portrait.id;
+        btn.style.borderColor = on ? 'rgba(155,210,255,.35)' : 'rgba(255,255,255,.10)';
+        btn.style.boxShadow = on ? '0 0 0 1px rgba(155,210,255,.20), 0 18px 42px rgba(0,0,0,.55)' : '';
+      });
+    }
+
+    function setPortraitById(id){
+      const p = portraits.find(x=>x.id===id);
+      if(!p) return;
+      state.portrait = { id: p.id, svg: p.svg, tags: p.tags };
+      $('#avatarTitle').textContent = p.title;
+      $('#avatarMeta').textContent = `Tags: ${p.tags.map(t=>portraitTagToAr[t]).join(' • ')}`;
+      renderAvatarTagPills(p.tags);
+      renderAvatarPreviewFromSuggested();
+      renderPortraitGrid();
+      updateProgress();
+    }
+
+    function renderAvatarTagPills(tags){
+      const wrap = $('#avatarTagPills');
+      wrap.innerHTML = '';
+      tags.forEach(t=>{
+        const s = document.createElement('span');
+        s.className = "px-2 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] text-white/70";
+        s.textContent = portraitTagToAr[t] || t;
+        wrap.appendChild(s);
+      });
+    }
+
+    portraitGrid.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.portraitBtn');
+      if(!btn) return;
+      slashWipe();
+      const r = btn.getBoundingClientRect();
+      inkDust(r.left + r.width*0.5, r.top + r.height*0.5, 14);
+      setPortraitById(Number(btn.dataset.pid));
+    });
+
+    // Default pick (preload selection for nicer first view)
+    renderFilter();
+    renderPortraitGrid();
+    setPortraitById(0);
+
+    // -----------------------------
+    // Avatar preview & actions
+    // -----------------------------
+    function renderAvatarPreviewFromSuggested(){
+      const box = $('#avatarPreview');
+      box.innerHTML = `<div class="w-full h-full">${state.portrait.svg}</div>`;
+    }
+    function renderAvatarPreviewFromCustom(dataUrl){
+      const box = $('#avatarPreview');
+      box.innerHTML = `
+        <img alt="Avatar" src="${dataUrl}" class="w-full h-full object-cover" />
+      `;
+    }
+
+    $('#useSuggested').addEventListener('click', (e)=>{
+      if (state.portrait.id == null) return;
+      state.avatar.type = 'suggested';
+      state.avatar.data = state.portrait.svg;
+      slashWipe();
+      const r = e.currentTarget.getBoundingClientRect();
+      inkDust(r.left + r.width*0.5, r.top + r.height*0.5, 14);
+      updateProgress();
+      flashSticky('تم اعتماد المقترح.');
+    });
+
+    // -----------------------------
+    // Custom Upload Canvas (crop/zoom/drag + edge pattern + edge ink)
+    // -----------------------------
+    const canvas = $('#cropCanvas');
+    const ctx = canvas.getContext('2d');
+    let img = null;
+    let dragging = false;
+    let last = {x:0,y:0};
+    let offset = {x:0, y:0};
+    let scale = 1;
+    let edgePattern = false;
+    let edgeInk = false;
+
+    function drawPatternBorder(){
+      // subtle edge pattern overlay near border
+      const w = canvas.width, h = canvas.height;
+      const pad = 14;
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+
+      // border frame
+      ctx.strokeStyle = 'rgba(255,255,255,.16)';
+      ctx.lineWidth = 2;
+      roundRect(ctx, pad, pad, w-2*pad, h-2*pad, 26);
+      ctx.stroke();
+
+      // corner motifs
+      ctx.globalAlpha = 0.70;
+      ctx.strokeStyle = 'rgba(155,210,255,.22)';
+      ctx.lineWidth = 2;
+      cornerMotif(pad+12, pad+12, 22, 22);
+      cornerMotif(w-pad-34, pad+12, 22, 22);
+      ctx.strokeStyle = 'rgba(235,200,120,.22)';
+      cornerMotif(pad+12, h-pad-34, 22, 22);
+      cornerMotif(w-pad-34, h-pad-34, 22, 22);
+
+      // inner wave line
+      ctx.globalAlpha = 0.35;
+      ctx.strokeStyle = 'rgba(255,255,255,.20)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for(let x=0; x<=w; x+=12){
+        const y = h*0.78 + Math.sin((x/60)*Math.PI*2)*3;
+        if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function roundRect(c, x,y,w,h,r){
+      const rr = Math.min(r, w/2, h/2);
+      c.beginPath();
+      c.moveTo(x+rr,y);
+      c.arcTo(x+w,y, x+w, y+h, rr);
+      c.arcTo(x+w,y+h, x, y+h, rr);
+      c.arcTo(x,y+h, x, y, rr);
+      c.arcTo(x,y, x+w, y, rr);
+      c.closePath();
+    }
+
+    function cornerMotif(x,y,w,h){
+      ctx.beginPath();
+      ctx.moveTo(x, y+h*0.2);
+      ctx.quadraticCurveTo(x+w*0.15, y+h*0.15, x+w*0.2, y);
+      ctx.lineTo(x+w*0.55, y);
+      ctx.quadraticCurveTo(x+w*0.8, y+w*0.06, x+w, y+w*0.25);
+      ctx.lineTo(x+w, y+h*0.55);
+    }
+
+    function applyEdgeInk(){
+      // mock outline by stamping black offsets (simple)
+      if(!img) return;
+      const w = canvas.width, h = canvas.height;
+      const {sx, sy, sw, sh, dx, dy, dw, dh} = computeDrawRect();
+      ctx.save();
+      ctx.globalAlpha = 0.65;
+      ctx.globalCompositeOperation = 'source-over';
+      for (const [ox,oy] of [[-2,0],[2,0],[0,-2],[0,2],[-2,-2],[2,2],[-2,2],[2,-2]]){
+        ctx.drawImage(img, sx, sy, sw, sh, dx+ox, dy+oy, dw, dh);
+      }
+      ctx.restore();
+    }
+
+    function computeDrawRect(){
+      const w = canvas.width, h = canvas.height;
+      // fit center with current scale
+      const iw = img.width, ih = img.height;
+      const base = Math.max(w/iw, h/ih); // cover
+      const s = base * scale;
+      const dw = iw*s, dh = ih*s;
+      const dx = (w - dw)/2 + offset.x;
+      const dy = (h - dh)/2 + offset.y;
+
+      // For drawImage with cropping we can simply draw full image transformed:
+      // But to keep it simple and stable, we do direct drawImage without manual crop.
+      // We'll still return a standard rect, and allow canvas to clip.
+      return { sx:0, sy:0, sw:iw, sh:ih, dx, dy, dw, dh };
+    }
+
+    function drawCanvas(){
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+
+      // background
+      ctx.fillStyle = 'rgba(0,0,0,.30)';
+      ctx.fillRect(0,0,w,h);
+
+      // subtle paper sheen
+      const grd = ctx.createLinearGradient(0,0,w,h);
+      grd.addColorStop(0, 'rgba(255,255,255,.06)');
+      grd.addColorStop(0.5, 'rgba(155,210,255,.05)');
+      grd.addColorStop(1, 'rgba(235,200,120,.05)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(0,0,w,h);
+
+      // image
+      if (img){
+        ctx.save();
+        // clip to rounded rect
+        roundRect(ctx, 18, 18, w-36, h-36, 30);
+        ctx.clip();
+
+        // edge ink under layer (outline feel)
+        if (edgeInk) applyEdgeInk();
+
+        // actual image
+        const {sx,sy,sw,sh,dx,dy,dw,dh} = computeDrawRect();
+        ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+
+        // soft vignette
+        const vg = ctx.createRadialGradient(w*0.5,h*0.42, 60, w*0.5,h*0.5, 260);
+        vg.addColorStop(0,'rgba(0,0,0,0)');
+        vg.addColorStop(1,'rgba(0,0,0,.28)');
+        ctx.fillStyle = vg;
+        ctx.fillRect(0,0,w,h);
+
+        ctx.restore();
+      } else {
+        // placeholder
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,255,255,.10)';
+        roundRect(ctx, 18, 18, w-36, h-36, 30);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,.55)';
+        ctx.font = '600 14px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ارفع صورة لبدء القص/الزوم/السحب', w/2, h/2);
+        ctx.restore();
+      }
+
+      // frame + optional edge pattern overlay
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,.14)';
+      ctx.lineWidth = 2;
+      roundRect(ctx, 18, 18, w-36, h-36, 30);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(0,0,0,.35)';
+      ctx.lineWidth = 2;
+      roundRect(ctx, 20, 20, w-40, h-40, 28);
+      ctx.stroke();
+      ctx.restore();
+
+      if (edgePattern) drawPatternBorder();
+    }
+
+    function resetCrop(){
+      offset = {x:0,y:0};
+      scale = 1;
+      $('#zoom').value = 1;
+      $('#zoomVal').textContent = '100%';
+      drawCanvas();
+    }
+
+    function exportCanvasDataUrl(){
+      return canvas.toDataURL('image/png');
+    }
+
+    // Pointer drag
+    canvas.addEventListener('pointerdown', (e)=>{
+      if (!img) return;
+      dragging = true;
+      canvas.setPointerCapture(e.pointerId);
+      last = {x:e.clientX, y:e.clientY};
+    });
+
+    canvas.addEventListener('pointermove', (e)=>{
+      if (!dragging || !img) return;
+      const dx = e.clientX - last.x;
+      const dy = e.clientY - last.y;
+      last = {x:e.clientX, y:e.clientY};
+      offset.x += dx;
+      offset.y += dy;
+
+      // constrain so image always covers (approx)
+      const w = canvas.width, h = canvas.height;
+      const iw = img.width, ih = img.height;
+      const base = Math.max(w/iw, h/ih);
+      const s = base * scale;
+      const dw = iw*s, dh = ih*s;
+      const minX = (w - dw)/2 - 60;
+      const maxX = (w - dw)/2 + 60;
+      const minY = (h - dh)/2 - 60;
+      const maxY = (h - dh)/2 + 60;
+      offset.x = clamp(offset.x, minX, maxX);
+      offset.y = clamp(offset.y, minY, maxY);
+
+      drawCanvas();
+    });
+
+    canvas.addEventListener('pointerup', (e)=>{
+      dragging = false;
+      try{ canvas.releasePointerCapture(e.pointerId); }catch(_){}
+    });
+    canvas.addEventListener('pointercancel', ()=> dragging = false);
+
+    // Zoom
+    $('#zoom').addEventListener('input', (e)=>{
+      scale = parseFloat(e.target.value);
+      $('#zoomVal').textContent = Math.round(scale*100) + '%';
+      drawCanvas();
+      updateProgress();
+    });
+
+    // Toggles
+    $('#toggleEdgePattern').addEventListener('click', (e)=>{
+      edgePattern = !edgePattern;
+      $('#edgePatternState').textContent = edgePattern ? 'تشغيل' : 'إيقاف';
+      slashWipe();
+      const r = e.currentTarget.getBoundingClientRect();
+      inkDust(r.left + r.width*0.5, r.top + r.height*0.5, 10);
+      drawCanvas();
+    });
+
+    $('#toggleEdgeInk').addEventListener('click', (e)=>{
+      edgeInk = !edgeInk;
+      $('#edgeInkState').textContent = edgeInk ? 'تشغيل' : 'إيقاف';
+      slashWipe();
+      const r = e.currentTarget.getBoundingClientRect();
+      inkDust(r.left + r.width*0.5, r.top + r.height*0.5, 10);
+      drawCanvas();
+    });
+
+    $('#resetCrop').addEventListener('click', (e)=>{
+      slashWipe();
+      const r = e.currentTarget.getBoundingClientRect();
+      inkDust(r.left + r.width*0.5, r.top + r.height*0.5, 10);
+      resetCrop();
+      updateProgress();
+    });
+
+    // Upload
+    $('#upload').addEventListener('change', (e)=>{
+      const f = e.target.files && e.target.files[0];
+      if(!f) return;
+      const url = URL.createObjectURL(f);
+      const im = new Image();
+      im.onload = ()=>{
+        img = im;
+        URL.revokeObjectURL(url);
+        resetCrop();
+        drawCanvas();
+        flashSticky('تم تحميل الصورة. اسحب/زوم ثم اعتمد.');
+      };
+      im.src = url;
+    });
+
+    // Use custom avatar
+    $('#useCustom').addEventListener('click', (e)=>{
+      if(!img){
+        flashSticky('ارفع صورة أولًا.');
+        return;
+      }
+      state.avatar.type = 'custom';
+      state.avatar.data = exportCanvasDataUrl();
+      renderAvatarPreviewFromCustom(state.avatar.data);
+      slashWipe();
+      const r = e.currentTarget.getBoundingClientRect();
+      inkDust(r.left + r.width*0.5, r.top + r.height*0.5, 14);
+      updateProgress();
+      flashSticky('تم اعتماد المخصص.');
+    });
+
+    // initial canvas draw
+    drawCanvas();
+
+    // -----------------------------
+    // Creators (Follow 2)
+    // -----------------------------
+    const creators = [
+      {id:'c1', name:'Sumi Frames',  vibe:'تحليل لقطات + مونتاج'},
+      {id:'c2', name:'InkPanel',     vibe:'قصص مصغّرة + حبكة'},
+      {id:'c3', name:'WaveCut',      vibe:'مراجعات موسمية'},
+      {id:'c4', name:'Taisho Notes', vibe:'تاريخ الأنمي + خلفيات'},
+      {id:'c5', name:'Slash Studio', vibe:'تحريك + مؤثرات'},
+      {id:'c6', name:'MangaLab',     vibe:'مانجا + توصيات'}
+    ];
+
+    function miniAvatarSvg(seed){
+      const h1 = (seed*43)%360;
+      const h2 = (seed*43+120)%360;
+      return `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+          <defs>
+            <linearGradient id="m_${seed}" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="hsla(${h1},80%,65%,.35)"/>
+              <stop offset="1" stop-color="hsla(${h2},80%,65%,.25)"/>
+            </linearGradient>
+          </defs>
+          <rect width="80" height="80" rx="18" fill="rgba(0,0,0,.35)"/>
+          <rect width="80" height="80" rx="18" fill="url(#m_${seed})"/>
+          <path d="M-10 54 L90 22" stroke="rgba(255,255,255,.18)" stroke-width="4" opacity=".75"/>
+          <circle cx="38" cy="30" r="12" fill="rgba(255,255,255,.10)"/>
+          <path d="M18 76 C 22 54, 30 48, 40 48 C 50 48, 58 54, 62 76 Z" fill="rgba(255,255,255,.08)"/>
+          <rect x="10" y="10" width="60" height="60" rx="16" fill="none" stroke="rgba(255,255,255,.14)"/>
+        </svg>
+      `;
+    }
+
+    const creatorGrid = $('#creatorGrid');
+    creators.forEach((c, idx)=>{
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = "creatorCard focus-ink w-full text-right rounded-2xl border border-white/10 bg-black/25 hover:bg-black/15 transition p-3 flex items-center gap-3";
+      card.dataset.cid = c.id;
+      card.innerHTML = `
+        <div class="w-12 h-12 rounded-2xl border border-white/10 bg-black/30 overflow-hidden shrink-0">
+          ${miniAvatarSvg(idx+1)}
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center justify-between gap-2">
+            <div class="font-semibold truncate">${c.name}</div>
+            <span class="followBadge text-[11px] px-2 py-1 rounded-full border border-white/10 bg-white/5 text-white/70">Follow</span>
+          </div>
+          <div class="mt-1 text-xs text-white/60 truncate">${c.vibe}</div>
+        </div>
+      `;
+      creatorGrid.appendChild(card);
+    });
+
+    function renderCreators(){
+      $$('.creatorCard').forEach(card=>{
+        const on = state.follows.has(card.dataset.cid);
+        card.style.borderColor = on ? 'rgba(235,200,120,.35)' : 'rgba(255,255,255,.10)';
+        card.style.background = on ? 'rgba(235,200,120,.10)' : 'rgba(0,0,0,.25)';
+        card.style.boxShadow = on ? '0 0 0 1px rgba(235,200,120,.18), 0 18px 42px rgba(0,0,0,.55)' : '';
+        const b = card.querySelector('.followBadge');
+        b.textContent = on ? 'Following' : 'Follow';
+        b.style.borderColor = on ? 'rgba(235,200,120,.28)' : 'rgba(255,255,255,.10)';
+        b.style.background = on ? 'rgba(235,200,120,.10)' : 'rgba(255,255,255,.05)';
+      });
+      $('#followCount').textContent = String(state.follows.size);
+      $('#creatorsOk').textContent = `${state.follows.size}/2`;
+    }
+
+    creatorGrid.addEventListener('click', (e)=>{
+      const card = e.target.closest('.creatorCard');
+      if(!card) return;
+      const id = card.dataset.cid;
+      if (state.follows.has(id)){
+        state.follows.delete(id);
+      } else {
+        if (state.follows.size >= 2){
+          flashSticky('اختر صانعين فقط. أزل واحدًا أولًا.');
+          return;
+        }
+        state.follows.add(id);
+      }
+      slashWipe();
+      const r = card.getBoundingClientRect();
+      inkDust(r.left + r.width*0.25, r.top + r.height*0.45, 12);
+      renderCreators();
+      updateProgress();
+    });
+
+    renderCreators();
+
+    // -----------------------------
+    // Interests + Top3 ranking
+    // -----------------------------
+    const interests = [
+      'شونين','سينين','فانتازيا','أكشن','دراما','غموض',
+      'رومانس','كوميديا','سايبربنك','ساموراي','Isekai','Slice of Life',
+      'مانهوا','تحليل نظريات','تحريك','موسيقى/OST'
+    ];
+
+    const chipsWrap = $('#interestChips');
+    interests.forEach((t)=>{
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = "interestChip focus-ink px-3 py-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition text-xs text-white/75";
+      b.dataset.label = t;
+      b.textContent = t;
+      chipsWrap.appendChild(b);
+    });
+
+    function renderTop3(){
+      const wrap = $('#top3List');
+      wrap.innerHTML = '';
+
+      for(let i=0;i<3;i++){
+        const label = state.top3[i] || '';
+        const row = document.createElement('div');
+        row.className = "rounded-2xl border border-white/10 bg-white/5 p-2 flex items-center justify-between gap-2";
+        row.innerHTML = `
+          <div class="min-w-0 flex-1">
+            <div class="text-xs text-white/55">#${i+1}</div>
+            <div class="text-sm font-semibold truncate">${label || '—'}</div>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" data-act="up" data-i="${i}" class="rankBtn focus-ink w-9 h-9 rounded-xl border border-white/10 bg-black/20 hover:bg-black/10 transition grid place-items-center" aria-label="أعلى">↑</button>
+            <button type="button" data-act="down" data-i="${i}" class="rankBtn focus-ink w-9 h-9 rounded-xl border border-white/10 bg-black/20 hover:bg-black/10 transition grid place-items-center" aria-label="أسفل">↓</button>
+            <button type="button" data-act="clear" data-i="${i}" class="rankBtn focus-ink w-9 h-9 rounded-xl border border-white/10 bg-black/20 hover:bg-black/10 transition grid place-items-center" aria-label="حذف">✕</button>
+          </div>
+        `;
+        wrap.appendChild(row);
+      }
+
+      $('#top3Ok').textContent = `${state.top3.filter(Boolean).length}/3`;
+    }
+
+    function renderInterests(){
+      $$('.interestChip').forEach(ch=>{
+        const on = state.interests.has(ch.dataset.label);
+        ch.style.borderColor = on ? 'rgba(155,210,255,.35)' : 'rgba(255,255,255,.10)';
+        ch.style.background = on ? 'rgba(155,210,255,.10)' : 'rgba(255,255,255,.05)';
+        ch.style.boxShadow = on ? '0 0 0 1px rgba(155,210,255,.18), 0 16px 40px rgba(0,0,0,.5)' : '';
+      });
+      renderTop3();
+    }
+
+    chipsWrap.addEventListener('click', (e)=>{
+      const ch = e.target.closest('.interestChip');
+      if(!ch) return;
+      const label = ch.dataset.label;
+
+      if (state.interests.has(label)){
+        state.interests.delete(label);
+        // also remove from top3 if exists
+        state.top3 = state.top3.filter(x=>x!==label);
+      } else {
+        state.interests.add(label);
+        // auto-fill top3
+        if (state.top3.length < 3) state.top3.push(label);
+      }
+
+      slashWipe();
+      const r = ch.getBoundingClientRect();
+      inkDust(r.left + r.width*0.5, r.top + r.height*0.5, 10);
+      renderInterests();
+      updateProgress();
+    });
+
+    $('#top3List').addEventListener('click', (e)=>{
+      const b = e.target.closest('.rankBtn');
+      if(!b) return;
+      const i = Number(b.dataset.i);
+      const act = b.dataset.act;
+      const filled = state.top3.filter(Boolean);
+
+      if (act === 'clear'){
+        const label = state.top3[i];
+        if (label) {
+          // keep interest selected, but remove from top3
+          state.top3 = state.top3.filter((x,idx)=> idx !== i && x);
+        }
+      } else if (act === 'up'){
+        if (i > 0 && state.top3[i] && state.top3[i-1]){
+          [state.top3[i-1], state.top3[i]] = [state.top3[i], state.top3[i-1]];
+        }
+      } else if (act === 'down'){
+        if (i < 2 && state.top3[i] && state.top3[i+1]){
+          [state.top3[i+1], state.top3[i]] = [state.top3[i], state.top3[i+1]];
+        }
+      }
+
+      // normalize: remove empties and cap 3
+      state.top3 = state.top3.filter(Boolean).slice(0,3);
+
+      slashWipe();
+      const r = b.getBoundingClientRect();
+      inkDust(r.left + r.width*0.5, r.top + r.height*0.5, 10);
+      renderInterests();
+      updateProgress();
+    });
+
+    renderInterests();
+
+    // -----------------------------
+    // Navigation + Active section
+    // -----------------------------
+    const navPills = $$('.navPill');
+    navPills.forEach(p=>{
+      p.addEventListener('click', ()=>{
+        const id = p.dataset.nav;
+        const sec = document.getElementById(id);
+        if(!sec) return;
+        slashWipe();
+        sec.scrollIntoView({behavior: prefersReduced ? 'auto' : 'smooth', block: 'start'});
+        highlightNav(id);
+      });
+    });
+
+    function highlightNav(id){
+      navPills.forEach(p=>{
+        const on = p.dataset.nav === id;
+        p.style.borderColor = on ? 'rgba(255,255,255,.22)' : 'rgba(255,255,255,.10)';
+        p.style.background = on ? 'rgba(255,255,255,.10)' : 'rgba(255,255,255,.05)';
+        p.style.boxShadow = on ? '0 0 0 1px rgba(255,255,255,.10), 0 16px 40px rgba(0,0,0,.45)' : '';
+      });
+    }
+
+    const sections = ['account','profile','avatar','fandom'].map(id=>document.getElementById(id));
+    const observer = new IntersectionObserver((entries)=>{
+      const vis = entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
+      if(vis && vis.target && vis.target.id){
+        highlightNav(vis.target.id);
+      }
+    }, {threshold:[0.2,0.35,0.5,0.65]});
+
+    sections.forEach(s=>observer.observe(s));
+    highlightNav('account');
+
+    // Next button scrolls to next incomplete
+    function nextTarget(){
+      const order = ['account','profile','avatar','fandom'];
+      const incompletes = order.filter(id=>!sectionOk[id]());
+      return incompletes[0] || 'fandom';
+    }
+
+    $('#nextBtn').addEventListener('click', ()=>{
+      const id = nextTarget();
+      const current = currentSectionId();
+      // if already at target, go to next section in order
+      if (id === current){
+        const idx = ['account','profile','avatar','fandom'].indexOf(current);
+        const nxt = ['account','profile','avatar','fandom'][Math.min(idx+1,3)];
+        document.getElementById(nxt).scrollIntoView({behavior: prefersReduced?'auto':'smooth', block:'start'});
+        slashWipe();
+        return;
+      }
+      document.getElementById(id).scrollIntoView({behavior: prefersReduced?'auto':'smooth', block:'start'});
+      slashWipe();
+    });
+
+    function currentSectionId(){
+      // pick the section whose top is closest to viewport top
+      const tops = sections.map(s=>({id:s.id, d: Math.abs(s.getBoundingClientRect().top - 90)}));
+      tops.sort((a,b)=>a.d-b.d);
+      return tops[0]?.id || 'account';
+    }
+
+    // -----------------------------
+    // Progress computation (Breath Meter)
+    // -----------------------------
+    const sectionOk = {
+      account: ()=>{
+        const email = $('#email').value.trim();
+        const username = $('#username').value.trim();
+        const pass = $('#password').value;
+        const agree = $('#agree').checked;
+        const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        return validEmail && username.length >= 3 && pass.length >= 8 && agree;
+      },
+      profile: ()=>{
+        const dn = $('#displayName').value.trim();
+        const region = $('#region').value.trim();
+        const bio = $('#bio').value.trim();
+        return dn.length >= 2 && region && bio.length >= 12 && !!state.element;
+      },
+      avatar: ()=>{
+        return (state.avatar.type === 'suggested' && !!state.avatar.data) ||
+               (state.avatar.type === 'custom' && !!state.avatar.data);
+      },
+      fandom: ()=>{
+        return state.follows.size >= 2 && state.top3.filter(Boolean).length === 3;
+      }
+    };
+
+    function sectionPartial(){
+      // fine-grained partial progress (0..1) per section
+      // Account: email, username, pass, agree (4)
+      const email = $('#email').value.trim();
+      const username = $('#username').value.trim();
+      const pass = $('#password').value;
+      const agree = $('#agree').checked;
+      const a = ( /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 1:0 )
+              + ( username.length >= 3 ? 1:0 )
+              + ( pass.length >= 8 ? 1:0 )
+              + ( agree ? 1:0 );
+      const account = a/4;
+
+      // Profile: displayName, region, bio, element (4)
+      const dn = $('#displayName').value.trim();
+      const region = $('#region').value.trim();
+      const bio = $('#bio').value.trim();
+      const p = ( dn.length >= 2 ? 1:0 )
+              + ( region ? 1:0 )
+              + ( bio.length >= 12 ? 1:0 )
+              + ( state.element ? 1:0 );
+      const profile = p/4;
+
+      // Avatar: just chosen (1)
+      const avatar = sectionOk.avatar() ? 1 : 0;
+
+      // Fandom: follows(2), top3(3) => 5 parts
+      const f = (Math.min(state.follows.size,2) / 2);
+      const t3 = (state.top3.filter(Boolean).length / 3);
+      const fandom = (f*2 + t3*3) / 5;
+
+      return {account, profile, avatar, fandom};
+    }
+
+    function updateBadges(){
+      setBadge($('#badgeAccount'), sectionOk.account());
+      setBadge($('#badgeProfile'), sectionOk.profile());
+      setBadge($('#badgeAvatar'), sectionOk.avatar());
+      setBadge($('#badgeFandom'), sectionOk.fandom());
+    }
+
+    function updateProgress(){
+      updateBadges();
+
+      // If user hasn't adopted suggested/custom yet, still show preview and allow
+      if (state.avatar.type === 'custom' && state.avatar.data){
+        renderAvatarPreviewFromCustom(state.avatar.data);
+      } else if (state.portrait.svg){
+        renderAvatarPreviewFromSuggested();
+      }
+
+      const parts = sectionPartial();
+      const pct = Math.round((parts.account + parts.profile + parts.avatar + parts.fandom) * 25);
+      $('#breathBar').style.width = pct + '%';
+      $('#stickyBar').style.width = pct + '%';
+      $('#breathPct').textContent = pct + '%';
+
+      let label = 'يتكوّن…';
+      if (pct < 25) label = 'شهيق أول…';
+      else if (pct < 50) label = 'ثبات الإيقاع…';
+      else if (pct < 75) label = 'نَفَس واضح…';
+      else if (pct < 100) label = 'قريب…';
+      else label = 'مكتمل!';
+      $('#breathLabel').textContent = label;
+
+      // Sticky hint
+      const nxt = nextTarget();
+      const hints = {
+        account: 'أكمل Account لتثبيت النَفَس.',
+        profile: 'اكمل Profile واختر عنصرًا.',
+        avatar: 'اختر/اعتمد Avatar.',
+        fandom: 'تابع 2 صناع ورتّب أفضل 3.'
+      };
+      $('#stickyHint').textContent = pct === 100 ? 'جاهز — اضغط “إنهاء”.' : (hints[nxt] || 'تابع…');
+    }
+
+    updateProgress();
+
+    // -----------------------------
+    // Finish + Success
+    // -----------------------------
+    function flashSticky(msg){
+      const el = $('#stickyHint');
+      el.textContent = msg;
+      el.style.color = 'rgba(255,255,255,.85)';
+      setTimeout(()=>{ el.style.color = 'rgba(255,255,255,.6)'; updateProgress(); }, 950);
+    }
+
+    $('#finishBtn').addEventListener('click', ()=>{
+      $('#setupForm').requestSubmit();
+    });
+
+    $('#setupForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+
+      const allOk = sectionOk.account() && sectionOk.profile() && sectionOk.avatar() && sectionOk.fandom();
+      if(!allOk){
+        slashWipe();
+        const id = nextTarget();
+        document.getElementById(id).scrollIntoView({behavior: prefersReduced?'auto':'smooth', block:'start'});
+        flashSticky('لا يزال هناك جزء غير مكتمل.');
+        return;
+      }
+
+      // Build success view
+      showSuccess();
+    });
+
+    function showSuccess(){
+      // avatar for success card
+      const av = $('#successAvatar');
+      av.innerHTML = '';
+      if (state.avatar.type === 'custom'){
+        av.innerHTML = `<img alt="Avatar" src="${state.avatar.data}" class="w-full h-full object-cover" />`;
+      } else {
+        av.innerHTML = `<div class="w-full h-full">${state.avatar.data}</div>`;
+      }
+
+      const name = ($('#displayName').value.trim() || 'مستخدم جديد');
+      $('#successName').textContent = name;
+
+      const badges = $('#successBadges');
+      badges.innerHTML = '';
+      const b1 = document.createElement('span');
+      b1.className = "px-2.5 py-1 rounded-full border border-white/10 bg-white/5";
+      b1.textContent = 'Account Ready';
+      badges.appendChild(b1);
+
+      const b2 = document.createElement('span');
+      b2.className = "px-2.5 py-1 rounded-full border border-white/10 bg-white/5";
+      b2.textContent = `Element: ${state.element}`;
+      badges.appendChild(b2);
+
+      const b3 = document.createElement('span');
+      b3.className = "px-2.5 py-1 rounded-full border border-white/10 bg-white/5";
+      b3.textContent = `Creators: ${state.follows.size}/2`;
+      badges.appendChild(b3);
+
+      const b4 = document.createElement('span');
+      b4.className = "px-2.5 py-1 rounded-full border border-white/10 bg-white/5";
+      b4.textContent = `Top3: ${state.top3.join(' • ')}`;
+      badges.appendChild(b4);
+
+      $('#successOverlay').classList.remove('hidden');
+      slashWipe();
+      startConfetti();
+    }
+
+    function hideSuccess(){
+      $('#successOverlay').classList.add('hidden');
+      stopConfetti();
+    }
+
+    $('#closeSuccess').addEventListener('click', hideSuccess);
+    $('#editAgain').addEventListener('click', hideSuccess);
+    $('#goDashboard').addEventListener('click', ()=>{
+      slashWipe();
+      flashSticky('تم (Mock) — هنا تروح للـ Dashboard.');
+      hideSuccess();
+      window.scrollTo({top:0, behavior: prefersReduced?'auto':'smooth'});
+    });
+
+    // -----------------------------
+    // Confetti (petals/sparkles) - light
+    // -----------------------------
+    const confettiCanvas = $('#confettiCanvas');
+    const cctx = confettiCanvas.getContext('2d');
+    let confettiRAF = null;
+    let confettiParticles = [];
+    let confettiStart = 0;
+
+    function resizeConfetti(){
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      confettiCanvas.width = Math.floor(window.innerWidth * dpr);
+      confettiCanvas.height = Math.floor(window.innerHeight * dpr);
+      confettiCanvas.style.width = window.innerWidth + 'px';
+      confettiCanvas.style.height = window.innerHeight + 'px';
+      cctx.setTransform(dpr,0,0,dpr,0,0);
+    }
+    window.addEventListener('resize', ()=>{ if(!$('#successOverlay').classList.contains('hidden')) resizeConfetti(); });
+
+    function spawnConfetti(){
+      const W = window.innerWidth, H = window.innerHeight;
+      const count = prefersReduced ? 0 : 80;
+      confettiParticles = Array.from({length:count}).map((_,i)=>{
+        const kind = Math.random() > 0.55 ? 'petal' : 'spark';
+        return {
+          x: Math.random()*W,
+          y: -20 - Math.random()*H*0.2,
+          vx: (Math.random()*2-1) * (0.6 + Math.random()*0.9),
+          vy: 1.2 + Math.random()*2.2,
+          r: 2 + Math.random()*5,
+          rot: Math.random()*Math.PI*2,
+          vr: (Math.random()*2-1) * 0.06,
+          a: 0.65 + Math.random()*0.35,
+          kind,
+          tint: Math.random() > 0.66 ? 'gold' : (Math.random()>0.5 ? 'blue' : 'white')
+        };
+      });
+    }
+
+    function colorFor(tint, alpha){
+      if (tint === 'gold') return `rgba(235,200,120,${alpha})`;
+      if (tint === 'blue') return `rgba(155,210,255,${alpha})`;
+      return `rgba(255,255,255,${alpha})`;
+    }
+
+    function drawPetal(p){
+      cctx.save();
+      cctx.translate(p.x, p.y);
+      cctx.rotate(p.rot);
+      cctx.fillStyle = colorFor(p.tint, p.a);
+      cctx.beginPath();
+      cctx.ellipse(0,0, p.r*0.8, p.r*1.25, 0, 0, Math.PI*2);
+      cctx.fill();
+      cctx.restore();
+    }
+
+    function drawSpark(p){
+      cctx.save();
+      cctx.translate(p.x, p.y);
+      cctx.rotate(p.rot);
+      cctx.strokeStyle = colorFor(p.tint, p.a);
+      cctx.lineWidth = 1.3;
+      cctx.beginPath();
+      cctx.moveTo(-p.r, 0);
+      cctx.lineTo(p.r, 0);
+      cctx.moveTo(0, -p.r);
+      cctx.lineTo(0, p.r);
+      cctx.stroke();
+      cctx.restore();
+    }
+
+    function tickConfetti(t){
+      const W = window.innerWidth, H = window.innerHeight;
+      if(!confettiStart) confettiStart = t;
+      const elapsed = t - confettiStart;
+
+      cctx.clearRect(0,0,W,H);
+      cctx.fillStyle = 'rgba(0,0,0,.0)';
+      cctx.fillRect(0,0,W,H);
+
+      confettiParticles.forEach(p=>{
+        p.x += p.vx + Math.sin((elapsed/600) + p.y/120)*0.2;
+        p.y += p.vy;
+        p.rot += p.vr;
+
+        // fade near bottom
+        if (p.y > H*0.75) p.a = Math.max(0, p.a - 0.006);
+
+        if (p.kind === 'petal') drawPetal(p);
+        else drawSpark(p);
+
+        // respawn
+        if (p.y > H + 40 || p.a <= 0){
+          p.x = Math.random()*W;
+          p.y = -30;
+          p.a = 0.65 + Math.random()*0.35;
+          p.vy = 1.2 + Math.random()*2.2;
+          p.vx = (Math.random()*2-1) * (0.6 + Math.random()*0.9);
+          p.rot = Math.random()*Math.PI*2;
+        }
+      });
+
+      // stop after a bit (keep subtle)
+      if (elapsed > 5200){
+        // gently fade out
+        confettiParticles.forEach(p=> p.a *= 0.985);
+        if (confettiParticles.every(p=>p.a < 0.03)){
+          stopConfetti();
+          return;
+        }
+      }
+
+      confettiRAF = requestAnimationFrame(tickConfetti);
+    }
+
+    function startConfetti(){
+      resizeConfetti();
+      confettiStart = 0;
+      spawnConfetti();
+      if (confettiRAF) cancelAnimationFrame(confettiRAF);
+      if (!prefersReduced) confettiRAF = requestAnimationFrame(tickConfetti);
+    }
+
+    function stopConfetti(){
+      if (confettiRAF) cancelAnimationFrame(confettiRAF);
+      confettiRAF = null;
+      confettiParticles = [];
+      cctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+    }
+
+    // -----------------------------
+    // Small UX: keep avatar preview in sync before adopting
+    // -----------------------------
+    // If user selects suggested but hasn't adopted, preview still shows it.
+    // If user uploads image, preview remains suggested until "اعتماد المخصص".
+    // -----------------------------
+
+    // -----------------------------
+    // Initial UI polish
+    // -----------------------------
+    // default element highlight none
+    renderElementSelection();
+    updateProgress();
+  </script>
+</body>
+</html>

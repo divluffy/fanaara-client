@@ -1,0 +1,1347 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Anime Lobby — بوابات الدخول</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          boxShadow: {
+            neon: "0 0 0 1px rgba(255,255,255,.08), 0 0 24px rgba(124,58,237,.35), 0 0 60px rgba(34,211,238,.20)",
+          },
+          keyframes: {
+            floaty: { "0%,100%": { transform: "translateY(0)" }, "50%": { transform: "translateY(-6px)" } },
+            pulseGlow: {
+              "0%,100%": { filter: "drop-shadow(0 0 8px rgba(34,211,238,.28)) drop-shadow(0 0 22px rgba(124,58,237,.35))" },
+              "50%": { filter: "drop-shadow(0 0 12px rgba(34,211,238,.55)) drop-shadow(0 0 40px rgba(124,58,237,.55))" }
+            },
+            gateIn: { "0%": { opacity: 0, transform: "translateY(16px) scale(.98)" }, "100%": { opacity: 1, transform: "translateY(0) scale(1)" } },
+            shimmer: { "0%": { backgroundPosition: "0% 50%" }, "100%": { backgroundPosition: "200% 50%" } },
+            speed: { "0%": { opacity: 0, transform: "translateX(12px)" }, "25%": { opacity: 1 }, "100%": { opacity: 0, transform: "translateX(-24px)" } },
+            pop: { "0%": { transform: "scale(.98)", opacity: 0 }, "100%": { transform: "scale(1)", opacity: 1 } },
+            glowRing: {
+              "0%": { boxShadow: "0 0 0 0 rgba(34,211,238,.0), 0 0 0 1px rgba(255,255,255,.06)" },
+              "50%": { boxShadow: "0 0 0 10px rgba(34,211,238,.08), 0 0 0 1px rgba(255,255,255,.10)" },
+              "100%": { boxShadow: "0 0 0 0 rgba(34,211,238,.0), 0 0 0 1px rgba(255,255,255,.06)" }
+            }
+          },
+          animation: {
+            floaty: "floaty 4.2s ease-in-out infinite",
+            pulseGlow: "pulseGlow 2.6s ease-in-out infinite",
+            gateIn: "gateIn .55s ease-out both",
+            shimmer: "shimmer 2.2s linear infinite",
+            speed: "speed .55s ease-out both",
+            pop: "pop .22s ease-out both",
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --bg0:#070716;
+      --bg1:#0b1029;
+      --neonA: rgba(34,211,238,.55);
+      --neonB: rgba(124,58,237,.60);
+      --neonC: rgba(244,114,182,.45);
+      --glass: rgba(255,255,255,.06);
+      --glass2: rgba(255,255,255,.10);
+    }
+
+    /* Background: anime city + neon + "Anime Hub" signage */
+    body{
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(124,58,237,.20), transparent 55%),
+        radial-gradient(900px 500px at 80% 30%, rgba(34,211,238,.18), transparent 55%),
+        radial-gradient(700px 450px at 50% 90%, rgba(244,114,182,.12), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+      overflow-x: hidden;
+    }
+    .noise::before{
+      content:"";
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+      opacity: .06;
+      mix-blend-mode: overlay;
+    }
+    .scanlines::after{
+      content:"";
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.035) 0px,
+        rgba(255,255,255,.035) 1px,
+        transparent 2px,
+        transparent 7px
+      );
+      opacity:.10;
+      mix-blend-mode: overlay;
+    }
+    .city{
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      opacity: .95;
+    }
+    .city svg{
+      position:absolute;
+      inset:auto 0 0 0;
+      width: 100%;
+      height: 42vh;
+      min-height: 280px;
+      filter: drop-shadow(0 0 18px rgba(124,58,237,.18));
+    }
+    .sign{
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      right: 18px;
+      pointer-events:none;
+      display:flex;
+      justify-content: center;
+      z-index: 10;
+    }
+    .signBadge{
+      pointer-events:none;
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(90deg, rgba(34,211,238,.08), rgba(124,58,237,.10), rgba(244,114,182,.08));
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 10px 30px rgba(0,0,0,.35);
+      border-radius: 999px;
+      padding: 10px 14px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+    .neonText{
+      background: linear-gradient(90deg, rgba(34,211,238,.9), rgba(124,58,237,.9), rgba(244,114,182,.85), rgba(34,211,238,.9));
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip:text;
+      color: transparent;
+      text-shadow: 0 0 18px rgba(34,211,238,.22);
+    }
+
+    /* Gate portal FX */
+    .portal{
+      position: relative;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+    .portal::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      border-radius: 24px;
+      background: radial-gradient(520px 180px at 50% 0%, rgba(34,211,238,.18), transparent 60%),
+                  radial-gradient(520px 220px at 20% 20%, rgba(124,58,237,.18), transparent 65%),
+                  radial-gradient(520px 240px at 80% 35%, rgba(244,114,182,.12), transparent 70%);
+      opacity: .85;
+      pointer-events:none;
+    }
+    .portal::after{
+      content:"";
+      position:absolute;
+      inset: 0;
+      pointer-events:none;
+      background: radial-gradient(900px 240px at 50% 0%, rgba(34,211,238,.10), transparent 62%);
+      mix-blend-mode: screen;
+      opacity: .7;
+    }
+
+    .portalGlow{
+      position:absolute;
+      inset: 10px;
+      border-radius: 18px;
+      pointer-events:none;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06),
+                  0 0 22px rgba(34,211,238,.18),
+                  0 0 62px rgba(124,58,237,.16);
+      animation: glowRing 2.4s ease-in-out infinite;
+      opacity: .9;
+    }
+
+    .speedLines{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      opacity: 0;
+    }
+    .speedLines.on{
+      opacity: 1;
+    }
+    .speedLines i{
+      position:absolute;
+      top: 10%;
+      width: 44%;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+      filter: drop-shadow(0 0 10px rgba(34,211,238,.25));
+      animation: speed .55s ease-out both;
+    }
+    .speedLines i:nth-child(1){ top: 18%; left: 6%; animation-delay: 0ms;}
+    .speedLines i:nth-child(2){ top: 30%; left: 14%; animation-delay: 55ms;}
+    .speedLines i:nth-child(3){ top: 44%; left: 8%; animation-delay: 90ms;}
+    .speedLines i:nth-child(4){ top: 58%; left: 18%; animation-delay: 130ms;}
+    .speedLines i:nth-child(5){ top: 72%; left: 10%; animation-delay: 170ms;}
+
+    /* Particles */
+    .particle{
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      pointer-events:none;
+      background: radial-gradient(circle, rgba(255,255,255,.95), rgba(34,211,238,.55), rgba(124,58,237,.25));
+      filter: drop-shadow(0 0 10px rgba(34,211,238,.35));
+      opacity: 0;
+      transform: translate(0,0) scale(.9);
+      animation: particle 760ms ease-out forwards;
+    }
+    @keyframes particle{
+      0%{ opacity:0; transform: translate(0,0) scale(.85); }
+      18%{ opacity:1; }
+      100%{ opacity:0; transform: translate(var(--dx), var(--dy)) scale(.15); }
+    }
+
+    /* Chips */
+    .chip{
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.90);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 13px;
+      line-height: 1;
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      user-select:none;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+    }
+    .chip:active{ transform: scale(.98); }
+    .chip[data-on="true"]{
+      background: linear-gradient(90deg, rgba(34,211,238,.16), rgba(124,58,237,.16));
+      border-color: rgba(255,255,255,.22);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.05), 0 0 26px rgba(34,211,238,.12);
+    }
+
+    /* Form field glow on error */
+    .fieldErr{
+      outline: 2px solid rgba(244,114,182,.65);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 1px rgba(244,114,182,.22), 0 0 22px rgba(244,114,182,.16);
+    }
+
+    /* Modal overlay */
+    .overlay{
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(900px 600px at 50% 15%, rgba(34,211,238,.10), rgba(0,0,0,.72));
+      backdrop-filter: blur(10px);
+      display:none;
+      z-index: 60;
+    }
+    .overlay.on{ display:flex; }
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      .animate-floaty, .animate-pulseGlow, .animate-gateIn, .animate-shimmer{ animation: none !important; }
+      .portalGlow{ animation: none !important; }
+      .speedLines i{ animation: none !important; }
+    }
+  </style>
+</head>
+
+<body class="noise scanlines text-white">
+  <!-- Neon Sign -->
+  <div class="sign">
+    <div class="signBadge">
+      <svg width="22" height="22" viewBox="0 0 24 24" class="animate-pulseGlow" aria-hidden="true">
+        <path fill="rgba(255,255,255,.9)" d="M12 2l2.2 5.6 6 .5-4.6 3.8 1.4 5.8L12 14.9 7 17.7l1.4-5.8L3.8 8.1l6-.5L12 2z"/>
+      </svg>
+      <div class="text-sm font-semibold tracking-wide">
+        <span class="neonText animate-shimmer">Anime Hub</span>
+        <span class="text-white/70">— لوبي المجتمع</span>
+      </div>
+      <span class="text-xs text-white/55">RTL • Mobile-first</span>
+    </div>
+  </div>
+
+  <!-- City Background (SVG) -->
+  <div class="city" aria-hidden="true">
+    <svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMax slice">
+      <defs>
+        <linearGradient id="g0" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stop-color="rgba(124,58,237,.30)"/>
+          <stop offset="1" stop-color="rgba(7,7,22,0)"/>
+        </linearGradient>
+        <linearGradient id="g1" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="rgba(34,211,238,.0)"/>
+          <stop offset=".5" stop-color="rgba(34,211,238,.35)"/>
+          <stop offset="1" stop-color="rgba(244,114,182,.0)"/>
+        </linearGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge>
+            <feMergeNode in="b"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- Neon haze -->
+      <rect x="0" y="0" width="1200" height="420" fill="url(#g0)" opacity=".55"/>
+
+      <!-- Distant skyline -->
+      <g opacity=".70">
+        <path fill="rgba(255,255,255,.05)" d="M0 310h90v-70h40v50h55v-90h60v110h70v-60h45v60h80v-140h75v80h55v-55h45v125h70v-85h45v85h115v-95h60v95h50v-45h45v45h120v110H0z"/>
+        <path fill="rgba(255,255,255,.04)" d="M0 340h140v-90h50v30h70v-60h50v80h95v-120h80v140h90v-70h55v70h110v-90h80v60h70v-110h70v180H0z"/>
+      </g>
+
+      <!-- Neon lines -->
+      <g filter="url(#glow)" opacity=".75">
+        <path d="M120 300h240" stroke="url(#g1)" stroke-width="3" />
+        <path d="M740 260h320" stroke="url(#g1)" stroke-width="3" />
+        <path d="M520 330h180" stroke="url(#g1)" stroke-width="2" opacity=".7" />
+      </g>
+
+      <!-- Foreground silhouettes -->
+      <path fill="rgba(0,0,0,.45)" d="M0 360h110v-80h60v40h70v-120h90v160h110v-100h70v100h90v-140h90v140h120v-90h70v90h120v-160h90v160h90v-110h70v110h60v60H0z"/>
+
+      <!-- Tiny signage -->
+      <g filter="url(#glow)">
+        <rect x="170" y="245" width="92" height="20" rx="10" fill="rgba(34,211,238,.14)" stroke="rgba(255,255,255,.12)"/>
+        <text x="216" y="259" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="11" fill="rgba(255,255,255,.78)">HUB</text>
+
+        <rect x="860" y="212" width="128" height="24" rx="12" fill="rgba(124,58,237,.14)" stroke="rgba(255,255,255,.12)"/>
+        <text x="924" y="228" text-anchor="middle" font-family="ui-sans-serif, system-ui" font-size="11" fill="rgba(255,255,255,.78)">ANIME</text>
+      </g>
+    </svg>
+  </div>
+
+  <main class="relative z-20 min-h-screen pt-24 pb-28 px-4">
+    <!-- Opening style message -->
+    <section class="max-w-md mx-auto mb-5">
+      <div class="portal shadow-neon p-4">
+        <div class="portalGlow"></div>
+        <div class="speedLines" id="openingSpeed">
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <div class="relative">
+          <div class="flex items-start gap-3">
+            <div class="shrink-0 mt-1">
+              <div class="h-10 w-10 rounded-2xl grid place-items-center bg-white/5 border border-white/10 animate-floaty">
+                <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="rgba(255,255,255,.9)" d="M12 2a7 7 0 0 1 7 7c0 3.7-2.7 6.7-6.2 7v1.6h2.2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2.2V16c-3.5-.3-6.2-3.3-6.2-7a7 7 0 0 1 7-7Zm0 2a5 5 0 0 0-5 5c0 2.4 1.7 4.4 4 4.9V12a1 1 0 1 1 2 0v1.9c2.3-.5 4-2.5 4-4.9a5 5 0 0 0-5-5Z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h1 class="text-lg font-bold leading-snug">
+                <span class="neonText animate-shimmer">Opening…</span>
+                <span class="text-white/80">بوابات اللوبي جاهزة!</span>
+              </h1>
+              <p class="text-sm text-white/65 mt-1">
+                ادخل بالترتيب اللي يعجبك—كل بوابة قصيرة… وعند الإكمال تصير <span class="text-white/90 font-semibold">بوابة مكتملة ✓</span>.
+              </p>
+              <div class="mt-3 flex flex-wrap gap-2 text-xs">
+                <span class="chip" data-on="true">
+                  <span class="inline-block h-2 w-2 rounded-full bg-white/70"></span>
+                  FX: Portal Glow
+                </span>
+                <span class="chip" data-on="true">
+                  <span class="inline-block h-2 w-2 rounded-full bg-white/70"></span>
+                  FX: Speed Lines
+                </span>
+                <span class="chip" data-on="true">
+                  <span class="inline-block h-2 w-2 rounded-full bg-white/70"></span>
+                  FX: Particles
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between gap-3">
+            <div class="text-xs text-white/55">
+              الحالة: <span id="progressText" class="text-white/85 font-semibold">0/3</span>
+            </div>
+            <button id="pulseNow" class="text-xs px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 active:scale-[.99] transition">
+              جرّب تأثير العبور ✦
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gates -->
+    <section class="max-w-md mx-auto space-y-4">
+
+      <!-- Gate A: Profile -->
+      <article id="gateA" class="portal shadow-neon p-4 animate-gateIn" style="animation-delay: 0ms;">
+        <div class="portalGlow"></div>
+        <div class="speedLines" data-speed>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <header class="relative flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="h-11 w-11 rounded-2xl border border-white/10 bg-white/5 grid place-items-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="rgba(255,255,255,.9)" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5Z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-base font-extrabold">
+                <span class="neonText">Profile Gate</span>
+                <span class="text-white/60 text-sm">— مطلوب</span>
+              </h2>
+              <p class="text-xs text-white/60 mt-0.5">
+                اسم + إيميل + كلمة مرور + Avatar/Aura
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span id="badgeA" class="hidden text-xs px-2.5 py-1 rounded-full border border-white/15 bg-white/5">
+              بوابة مكتملة ✓
+            </span>
+            <button class="text-xs px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 active:scale-[.99] transition"
+                    data-toggle="#panelA" aria-expanded="false">
+              فتح البوابة
+            </button>
+          </div>
+        </header>
+
+        <div id="panelA" class="relative mt-4 hidden">
+          <div class="grid gap-3">
+            <!-- Compact fields -->
+            <div class="grid grid-cols-1 gap-2">
+              <label class="text-xs text-white/70">الاسم</label>
+              <input id="name" class="w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2 text-sm outline-none focus:border-white/25"
+                     placeholder="مثال: Luffy" autocomplete="name" />
+            </div>
+
+            <div class="grid grid-cols-1 gap-2">
+              <label class="text-xs text-white/70">الإيميل</label>
+              <input id="email" class="w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2 text-sm outline-none focus:border-white/25"
+                     placeholder="you@animehub.com" autocomplete="email" inputmode="email" />
+            </div>
+
+            <div class="grid grid-cols-1 gap-2">
+              <label class="text-xs text-white/70">كلمة المرور</label>
+              <input id="password" type="password" class="w-full rounded-xl bg-black/30 border border-white/10 px-3 py-2 text-sm outline-none focus:border-white/25"
+                     placeholder="8+ أحرف (حرف + رقم)" autocomplete="new-password" />
+              <div class="text-[11px] text-white/55">
+                مؤشر: <span id="pwHint" class="text-white/75">—</span>
+              </div>
+            </div>
+
+            <!-- Avatar -->
+            <div class="mt-1 border border-white/10 rounded-2xl bg-white/5 p-3">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="text-sm font-bold">
+                    Avatar — <span class="neonText">Aura</span>
+                  </div>
+                  <div class="text-xs text-white/60 mt-0.5">اختيار سريع + Grid + رفع صورة</div>
+                </div>
+                <div class="relative">
+                  <div class="h-12 w-12 rounded-2xl border border-white/15 bg-black/30 overflow-hidden grid place-items-center" id="avatarPreviewWrap">
+                    <img id="avatarPreviewImg" alt="Avatar" class="hidden h-full w-full object-cover" />
+                    <div id="avatarPreviewSvg" class="h-full w-full grid place-items-center">
+                      <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="rgba(255,255,255,.75)" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5Z"/>
+                      </svg>
+                    </div>
+                    <div id="auraRing" class="pointer-events-none absolute inset-[-4px] rounded-[22px] opacity-0"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <div class="text-xs text-white/70 mb-2">Aura</div>
+                <div class="flex flex-wrap gap-2" id="auraChips">
+                  <button type="button" class="chip" data-aura="neon">نيون ✦</button>
+                  <button type="button" class="chip" data-aura="shadow">ظل ☾</button>
+                  <button type="button" class="chip" data-aura="fire">نار ♨</button>
+                  <button type="button" class="chip" data-aura="ice">جليد ❄</button>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <div class="text-xs text-white/70 mb-2">Avatar Grid</div>
+                <div id="avatarGrid" class="grid grid-cols-6 gap-2"></div>
+                <div class="mt-3 flex items-center justify-between gap-3">
+                  <label class="text-xs px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 active:scale-[.99] transition cursor-pointer">
+                    رفع صورة
+                    <input id="avatarUpload" type="file" accept="image/*" class="hidden" />
+                  </label>
+                  <button id="clearAvatar" type="button"
+                          class="text-xs px-3 py-2 rounded-xl border border-white/10 bg-black/30 hover:bg-white/10 active:scale-[.99] transition">
+                    مسح
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 mt-1">
+              <div id="msgA" class="text-xs text-white/60"></div>
+              <button id="completeA"
+                      class="px-4 py-2.5 rounded-2xl font-bold text-sm bg-white text-black hover:bg-white/90 active:scale-[.99] transition">
+                إكمال البوابة ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Gate B: Friends -->
+      <article id="gateB" class="portal shadow-neon p-4 animate-gateIn" style="animation-delay: 90ms;">
+        <div class="portalGlow"></div>
+        <div class="speedLines" data-speed>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <header class="relative flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="h-11 w-11 rounded-2xl border border-white/10 bg-white/5 grid place-items-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="rgba(255,255,255,.9)" d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-8 0a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.3 0-6 1.7-6 4v1h8.3a6.5 6.5 0 0 1-.3-2c0-1.1.3-2.2.9-3Zm8 0c-3.3 0-6 1.7-6 4v1h12v-1c0-2.3-2.7-4-6-4Z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-base font-extrabold">
+                <span class="neonText">Friends Gate</span>
+              </h2>
+              <p class="text-xs text-white/60 mt-0.5">تابع 3 مشاهير (Mock) + بحث سريع</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span id="badgeB" class="hidden text-xs px-2.5 py-1 rounded-full border border-white/15 bg-white/5">
+              بوابة مكتملة ✓
+            </span>
+            <button class="text-xs px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 active:scale-[.99] transition"
+                    data-toggle="#panelB" aria-expanded="false">
+              فتح البوابة
+            </button>
+          </div>
+        </header>
+
+        <div id="panelB" class="relative mt-4 hidden">
+          <div class="grid gap-3">
+            <div class="flex items-center gap-2">
+              <input id="friendsSearch" class="flex-1 rounded-xl bg-black/30 border border-white/10 px-3 py-2 text-sm outline-none focus:border-white/25"
+                     placeholder="ابحث: Naruto / One Piece / …" />
+              <div class="text-xs text-white/60 whitespace-nowrap">
+                المتابعة: <span id="followCount" class="text-white/85 font-bold">0</span>/3
+              </div>
+            </div>
+
+            <div id="friendsList" class="grid gap-2"></div>
+
+            <div class="flex items-center justify-between gap-3 mt-1">
+              <div id="msgB" class="text-xs text-white/60"></div>
+              <button id="completeB"
+                      class="px-4 py-2.5 rounded-2xl font-bold text-sm bg-white text-black hover:bg-white/90 active:scale-[.99] transition">
+                إكمال البوابة ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Gate C: Fandom -->
+      <article id="gateC" class="portal shadow-neon p-4 animate-gateIn" style="animation-delay: 180ms;">
+        <div class="portalGlow"></div>
+        <div class="speedLines" data-speed>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <header class="relative flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="h-11 w-11 rounded-2xl border border-white/10 bg-white/5 grid place-items-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="rgba(255,255,255,.9)" d="M4 4h16v16H4V4Zm2 2v12h12V6H6Zm2 2h8v2H8V8Zm0 4h8v2H8v-2Z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-base font-extrabold">
+                <span class="neonText">Fandom Gate</span>
+              </h2>
+              <p class="text-xs text-white/60 mt-0.5">نوع محتوى + 5 اهتمامات + 3 Genres</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span id="badgeC" class="hidden text-xs px-2.5 py-1 rounded-full border border-white/15 bg-white/5">
+              بوابة مكتملة ✓
+            </span>
+            <button class="text-xs px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 active:scale-[.99] transition"
+                    data-toggle="#panelC" aria-expanded="false">
+              فتح البوابة
+            </button>
+          </div>
+        </header>
+
+        <div id="panelC" class="relative mt-4 hidden">
+          <div class="grid gap-3">
+
+            <!-- Content type -->
+            <div class="border border-white/10 rounded-2xl bg-white/5 p-3">
+              <div class="text-xs text-white/70 mb-2">نوع المحتوى</div>
+              <div class="grid grid-cols-2 gap-2" id="contentTypes">
+                <button type="button" class="chip justify-center" data-type="anime">Anime</button>
+                <button type="button" class="chip justify-center" data-type="manga">Manga</button>
+                <button type="button" class="chip justify-center" data-type="manhwa">Manhwa</button>
+                <button type="button" class="chip justify-center" data-type="comics">Comics</button>
+              </div>
+              <div class="text-[11px] text-white/55 mt-2">المختار: <span id="typePicked" class="text-white/80">—</span></div>
+            </div>
+
+            <!-- Interests (5) -->
+            <div class="border border-white/10 rounded-2xl bg-white/5 p-3">
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <div class="text-xs text-white/70">اهتمامات (اختر 5)</div>
+                <div class="text-xs text-white/60"><span id="interestCount" class="text-white/85 font-bold">0</span>/5</div>
+              </div>
+              <div class="flex flex-wrap gap-2" id="interestChips"></div>
+            </div>
+
+            <!-- Genres (3) -->
+            <div class="border border-white/10 rounded-2xl bg-white/5 p-3">
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <div class="text-xs text-white/70">Genres (اختر 3)</div>
+                <div class="text-xs text-white/60"><span id="genreCount" class="text-white/85 font-bold">0</span>/3</div>
+              </div>
+              <div class="flex flex-wrap gap-2" id="genreChips"></div>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 mt-1">
+              <div id="msgC" class="text-xs text-white/60"></div>
+              <button id="completeC"
+                      class="px-4 py-2.5 rounded-2xl font-bold text-sm bg-white text-black hover:bg-white/90 active:scale-[.99] transition">
+                إكمال البوابة ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+    </section>
+  </main>
+
+  <!-- Sticky CTA -->
+  <footer class="fixed bottom-0 left-0 right-0 z-50">
+    <div class="mx-auto max-w-md px-4 pb-4">
+      <div class="portal shadow-neon p-3">
+        <div class="portalGlow"></div>
+        <div class="relative flex items-center gap-3">
+          <div class="flex-1">
+            <div class="text-xs text-white/60">جاهز للدخول؟</div>
+            <div class="text-sm font-bold leading-tight">
+              <span class="neonText">Enter the Hub</span>
+              <span class="text-white/65">—</span>
+              <span class="text-white/85"><span id="ctaProgress">0</span>/3</span>
+            </div>
+          </div>
+          <button id="enterBtn"
+                  class="px-4 py-3 rounded-2xl font-extrabold text-sm bg-white text-black hover:bg-white/90 active:scale-[.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled>
+            دخول ✦
+          </button>
+        </div>
+        <div id="ctaHint" class="relative mt-2 text-[11px] text-white/55">
+          ملاحظة: <span class="text-white/80">Profile Gate</span> لازم تكتمل أولاً.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Success Overlay -->
+  <div id="successOverlay" class="overlay items-center justify-center px-4">
+    <div class="max-w-md w-full portal shadow-neon p-5 animate-pop">
+      <div class="portalGlow"></div>
+
+      <div class="flex items-start gap-3">
+        <div class="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 grid place-items-center animate-floaty">
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="rgba(255,255,255,.95)" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/>
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-extrabold leading-tight">
+            <span class="neonText animate-shimmer">Success!</span>
+            <span class="text-white/80">تم فتح اللوبي</span>
+          </h3>
+          <p class="text-sm text-white/65 mt-1">
+            أهلًا <span id="finalName" class="text-white/90 font-bold">—</span> ✦
+            أنت الآن داخل <span class="text-white/90 font-semibold">Anime Hub</span>.
+          </p>
+
+          <div class="mt-3 grid gap-2 text-xs text-white/70">
+            <div class="flex items-center justify-between">
+              <span>Profile Gate</span>
+              <span id="sumA" class="text-white/90 font-semibold">✓</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Friends Gate</span>
+              <span id="sumB" class="text-white/80">—</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Fandom Gate</span>
+              <span id="sumC" class="text-white/80">—</span>
+            </div>
+          </div>
+
+          <div class="mt-4 flex gap-2">
+            <button id="closeSuccess" class="flex-1 px-4 py-3 rounded-2xl font-bold bg-white text-black hover:bg-white/90 active:scale-[.99] transition">
+              تابع
+            </button>
+            <button id="resetAll" class="px-4 py-3 rounded-2xl font-bold border border-white/10 bg-white/5 hover:bg-white/10 active:scale-[.99] transition">
+              إعادة
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- State ----------
+    const state = {
+      gates: { A:false, B:false, C:false },
+      aura: null,
+      avatar: { kind: "none", value: null }, // grid/svg or upload/dataURL
+      follows: new Set(),
+      contentType: null,
+      interests: new Set(),
+      genres: new Set(),
+      data: { name:"", email:"", password:"" }
+    };
+
+    // ---------- Helpers ----------
+    const $ = (q, el=document) => el.querySelector(q);
+    const $$ = (q, el=document) => Array.from(el.querySelectorAll(q));
+    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+    function setChipOn(btn, on){
+      btn.dataset.on = on ? "true" : "false";
+    }
+
+    function flashSpeed(gateEl){
+      const lines = $('[data-speed]', gateEl);
+      if(!lines) return;
+      lines.classList.add('on');
+      // reflow to restart animations
+      $$('.speedLines i', gateEl).forEach(i => { i.style.animation = 'none'; i.offsetHeight; i.style.animation = ''; });
+      setTimeout(() => lines.classList.remove('on'), 650);
+    }
+
+    function spawnParticles(gateEl){
+      const rect = gateEl.getBoundingClientRect();
+      const x = rect.width * (0.22 + Math.random() * 0.56);
+      const y = rect.height * (0.20 + Math.random() * 0.55);
+
+      for(let i=0;i<18;i++){
+        const p = document.createElement('span');
+        p.className = 'particle';
+        const dx = (Math.random()*2-1) * 110;
+        const dy = (Math.random()*2-1) * 90 - 20;
+        p.style.setProperty('--dx', dx.toFixed(1)+'px');
+        p.style.setProperty('--dy', dy.toFixed(1)+'px');
+        p.style.left = x + 'px';
+        p.style.top = y + 'px';
+        gateEl.appendChild(p);
+        setTimeout(()=>p.remove(), 900);
+      }
+    }
+
+    function markComplete(gateKey, gateEl){
+      state.gates[gateKey] = true;
+      const badge = $('#badge' + gateKey);
+      badge.classList.remove('hidden');
+      flashSpeed(gateEl);
+      spawnParticles(gateEl);
+      updateProgress();
+      // collapse
+      const panel = $('#panel' + gateKey);
+      if(panel && !panel.classList.contains('hidden')){
+        panel.classList.add('hidden');
+        const t = gateEl.querySelector('[data-toggle="#panel'+gateKey+'"]');
+        if(t){ t.setAttribute('aria-expanded','false'); t.textContent = 'فتح البوابة'; }
+      }
+    }
+
+    function updateProgress(){
+      const done = Object.values(state.gates).filter(Boolean).length;
+      $('#progressText').textContent = `${done}/3`;
+      $('#ctaProgress').textContent = done;
+      const canEnter = state.gates.A === true;
+      $('#enterBtn').disabled = !canEnter;
+      $('#ctaHint').innerHTML = canEnter
+        ? `جاهز ✦ تقدر تدخل الآن. (اختياري: كمل البوابات الثانية للـ vibe)`
+        : `ملاحظة: <span class="text-white/80">Profile Gate</span> لازم تكتمل أولاً.`;
+    }
+
+    function shake(el){
+      el.animate([
+        { transform:'translateX(0)' },
+        { transform:'translateX(-6px)' },
+        { transform:'translateX(6px)' },
+        { transform:'translateX(-4px)' },
+        { transform:'translateX(4px)' },
+        { transform:'translateX(0)' }
+      ], { duration: 360, easing: 'ease-out' });
+    }
+
+    function setAuraRing(aura){
+      const ring = $('#auraRing');
+      const map = {
+        neon: 'radial-gradient(circle at 30% 30%, rgba(34,211,238,.55), rgba(124,58,237,.35), rgba(0,0,0,0))',
+        shadow: 'radial-gradient(circle at 40% 30%, rgba(124,58,237,.55), rgba(0,0,0,0))',
+        fire: 'radial-gradient(circle at 35% 35%, rgba(251,146,60,.55), rgba(244,114,182,.25), rgba(0,0,0,0))',
+        ice: 'radial-gradient(circle at 35% 35%, rgba(125,211,252,.55), rgba(34,211,238,.25), rgba(0,0,0,0))'
+      };
+      ring.style.background = map[aura] || 'transparent';
+      ring.style.opacity = aura ? '1' : '0';
+      ring.style.filter = 'blur(.5px)';
+      ring.style.boxShadow = aura ? '0 0 18px rgba(34,211,238,.15), 0 0 46px rgba(124,58,237,.14)' : 'none';
+    }
+
+    function setAvatarPreviewFromSvg(svgStr){
+      $('#avatarPreviewImg').classList.add('hidden');
+      $('#avatarPreviewSvg').classList.remove('hidden');
+      $('#avatarPreviewSvg').innerHTML = svgStr;
+    }
+
+    function setAvatarPreviewFromDataURL(url){
+      $('#avatarPreviewSvg').classList.add('hidden');
+      const img = $('#avatarPreviewImg');
+      img.src = url;
+      img.classList.remove('hidden');
+    }
+
+    function fieldError(el, on){
+      el.classList.toggle('fieldErr', !!on);
+    }
+
+    function validateProfile(){
+      const nameEl = $('#name');
+      const emailEl = $('#email');
+      const pwEl = $('#password');
+
+      const name = (nameEl.value || '').trim();
+      const email = (emailEl.value || '').trim();
+      const pw = (pwEl.value || '');
+
+      state.data.name = name;
+      state.data.email = email;
+      state.data.password = pw;
+
+      let ok = true;
+
+      // name
+      if(name.length < 2){ ok=false; fieldError(nameEl, true); }
+      else fieldError(nameEl, false);
+
+      // email
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      if(!emailOk){ ok=false; fieldError(emailEl, true); }
+      else fieldError(emailEl, false);
+
+      // password
+      const pwOk = pw.length >= 8 && /[A-Za-z]/.test(pw) && /\d/.test(pw);
+      if(!pwOk){ ok=false; fieldError(pwEl, true); }
+      else fieldError(pwEl, false);
+
+      // avatar/aura (soft requirement: at least aura or avatar)
+      const hasAvatar = state.avatar.kind !== "none";
+      const hasAura = !!state.aura;
+
+      if(!hasAvatar && !hasAura){
+        $('#msgA').textContent = 'اختيار Aura أو Avatar يخلي دخولك أسطوري ✦ (مطلوب واحد على الأقل)';
+        ok = false;
+      } else {
+        $('#msgA').textContent = '';
+      }
+
+      return ok;
+    }
+
+    function validateFriends(){
+      const ok = state.follows.size >= 3;
+      $('#msgB').textContent = ok ? '' : 'لازم تتابع 3 مشاهير ✦';
+      return ok;
+    }
+
+    function validateFandom(){
+      const okType = !!state.contentType;
+      const okInterests = state.interests.size >= 5;
+      const okGenres = state.genres.size >= 3;
+
+      if(!okType) $('#msgC').textContent = 'اختر نوع محتوى أولاً ✦';
+      else if(!okInterests) $('#msgC').textContent = 'اختر 5 اهتمامات ✦';
+      else if(!okGenres) $('#msgC').textContent = 'اختر 3 Genres ✦';
+      else $('#msgC').textContent = '';
+
+      return okType && okInterests && okGenres;
+    }
+
+    // ---------- Toggle panels ----------
+    document.addEventListener('click', (e)=>{
+      const btn = e.target.closest('[data-toggle]');
+      if(!btn) return;
+      const sel = btn.getAttribute('data-toggle');
+      const panel = $(sel);
+      if(!panel) return;
+
+      const gateEl = btn.closest('article');
+      flashSpeed(gateEl);
+
+      const isOpen = !panel.classList.contains('hidden');
+      $$('#panelA, #panelB, #panelC').forEach(p => {
+        if(p !== panel) p.classList.add('hidden');
+      });
+      $$('[data-toggle]').forEach(b => {
+        if(b !== btn){ b.setAttribute('aria-expanded','false'); b.textContent = 'فتح البوابة'; }
+      });
+
+      panel.classList.toggle('hidden', isOpen);
+      btn.setAttribute('aria-expanded', String(!isOpen));
+      btn.textContent = isOpen ? 'فتح البوابة' : 'إغلاق';
+    });
+
+    // ---------- Opening FX button ----------
+    $('#pulseNow').addEventListener('click', ()=>{
+      const sp = $('#openingSpeed');
+      sp.classList.add('on');
+      $$('#openingSpeed i').forEach(i => { i.style.animation='none'; i.offsetHeight; i.style.animation=''; });
+      setTimeout(()=>sp.classList.remove('on'), 650);
+    });
+
+    // ---------- Password hint ----------
+    $('#password').addEventListener('input', (e)=>{
+      const v = e.target.value || '';
+      let score = 0;
+      if(v.length >= 8) score++;
+      if(/[A-Za-z]/.test(v)) score++;
+      if(/\d/.test(v)) score++;
+      if(/[^A-Za-z0-9]/.test(v)) score++;
+      const label = ['ضعيف', 'جيد', 'قوي', 'أسطوري'][clamp(score-1,0,3)];
+      $('#pwHint').textContent = v.length ? label : '—';
+    });
+
+    // ---------- Avatar Grid ----------
+    const avatarSvgs = [
+      (accentA, accentB)=>`
+        <svg viewBox="0 0 64 64" class="w-full h-full">
+          <defs>
+            <linearGradient id="a" x1="0" x2="1">
+              <stop offset="0" stop-color="${accentA}"/>
+              <stop offset="1" stop-color="${accentB}"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="64" height="64" rx="14" fill="rgba(0,0,0,.25)"/>
+          <circle cx="32" cy="28" r="14" fill="url(#a)" opacity=".9"/>
+          <path d="M14 54c2-12 32-12 36 0" fill="rgba(255,255,255,.10)"/>
+          <circle cx="26" cy="28" r="2.2" fill="rgba(0,0,0,.55)"/>
+          <circle cx="38" cy="28" r="2.2" fill="rgba(0,0,0,.55)"/>
+          <path d="M26 35c3 3 9 3 12 0" stroke="rgba(0,0,0,.55)" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>`,
+      (accentA, accentB)=>`
+        <svg viewBox="0 0 64 64" class="w-full h-full">
+          <defs>
+            <linearGradient id="b" x1="0" x2="1">
+              <stop offset="0" stop-color="${accentA}"/>
+              <stop offset="1" stop-color="${accentB}"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="64" height="64" rx="14" fill="rgba(0,0,0,.25)"/>
+          <path d="M12 28c10-20 30-20 40 0" fill="url(#b)" opacity=".85"/>
+          <circle cx="32" cy="32" r="12" fill="rgba(255,255,255,.10)"/>
+          <path d="M22 34c2-3 6-3 8 0M34 34c2-3 6-3 8 0" stroke="rgba(0,0,0,.55)" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M26 42c4 3 8 3 12 0" stroke="rgba(0,0,0,.55)" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>`,
+      (accentA, accentB)=>`
+        <svg viewBox="0 0 64 64" class="w-full h-full">
+          <defs>
+            <linearGradient id="c" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="${accentA}"/>
+              <stop offset="1" stop-color="${accentB}"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="64" height="64" rx="14" fill="rgba(0,0,0,.25)"/>
+          <circle cx="32" cy="30" r="14" fill="url(#c)" opacity=".9"/>
+          <path d="M18 56c4-10 24-10 28 0" fill="rgba(255,255,255,.10)"/>
+          <path d="M22 27l8 2M42 27l-8 2" stroke="rgba(0,0,0,.55)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M28 36c2 2 6 2 8 0" stroke="rgba(0,0,0,.55)" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>`
+    ];
+
+    function buildAvatarGrid(){
+      const grid = $('#avatarGrid');
+      grid.innerHTML = '';
+      const accents = [
+        ['#22d3ee', '#7c3aed'],
+        ['#f472b6', '#22d3ee'],
+        ['#a78bfa', '#f472b6'],
+        ['#60a5fa', '#22d3ee'],
+        ['#fb7185', '#a78bfa'],
+        ['#34d399', '#22d3ee'],
+      ];
+
+      for(let i=0;i<6;i++){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'aspect-square rounded-2xl border border-white/10 bg-black/30 overflow-hidden hover:bg-white/5 active:scale-[.99] transition grid place-items-center';
+        btn.setAttribute('aria-label', 'اختيار Avatar ' + (i+1));
+
+        const maker = avatarSvgs[i%avatarSvgs.length];
+        const svg = maker(accents[i][0], accents[i][1]);
+
+        btn.innerHTML = svg;
+        btn.addEventListener('click', ()=>{
+          state.avatar.kind = 'grid';
+          state.avatar.value = svg;
+          setAvatarPreviewFromSvg(svg);
+          flashSpeed($('#gateA'));
+          $('#msgA').textContent = '';
+          // highlight selection
+          $$('#avatarGrid button').forEach(b => b.classList.remove('ring-2','ring-white/40'));
+          btn.classList.add('ring-2','ring-white/40');
+        });
+        grid.appendChild(btn);
+      }
+    }
+
+    // ---------- Aura selection ----------
+    $('#auraChips').addEventListener('click', (e)=>{
+      const btn = e.target.closest('[data-aura]');
+      if(!btn) return;
+      const aura = btn.dataset.aura;
+
+      // toggle exclusive
+      state.aura = (state.aura === aura) ? null : aura;
+      $$('#auraChips [data-aura]').forEach(b => setChipOn(b, state.aura === b.dataset.aura));
+      setAuraRing(state.aura);
+      flashSpeed($('#gateA'));
+      $('#msgA').textContent = '';
+    });
+
+    // ---------- Upload ----------
+    $('#avatarUpload').addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.avatar.kind = 'upload';
+        state.avatar.value = reader.result;
+        setAvatarPreviewFromDataURL(reader.result);
+        flashSpeed($('#gateA'));
+        $('#msgA').textContent = '';
+        // clear grid highlight
+        $$('#avatarGrid button').forEach(b => b.classList.remove('ring-2','ring-white/40'));
+      };
+      reader.readAsDataURL(file);
+    });
+
+    $('#clearAvatar').addEventListener('click', ()=>{
+      state.avatar = { kind:'none', value:null };
+      $('#avatarUpload').value = '';
+      $('#avatarPreviewImg').classList.add('hidden');
+      $('#avatarPreviewSvg').classList.remove('hidden');
+      $('#avatarPreviewSvg').innerHTML = `
+        <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="rgba(255,255,255,.75)" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5Z"/>
+        </svg>`;
+      $$('#avatarGrid button').forEach(b => b.classList.remove('ring-2','ring-white/40'));
+      flashSpeed($('#gateA'));
+    });
+
+    // ---------- Gate A complete ----------
+    $('#completeA').addEventListener('click', ()=>{
+      const gateEl = $('#gateA');
+      const ok = validateProfile();
+      if(!ok){
+        shake(gateEl);
+        flashSpeed(gateEl);
+        return;
+      }
+      markComplete('A', gateEl);
+    });
+
+    // ---------- Friends Gate ----------
+    const friendsMock = [
+      { id:'naruto', name:'Naruto Uzumaki', tag:'#HokageEnergy', series:'Naruto' },
+      { id:'luffy', name:'Monkey D. Luffy', tag:'#PirateKing', series:'One Piece' },
+      { id:'goku', name:'Son Goku', tag:'#SaiyanVibes', series:'Dragon Ball' },
+      { id:'mikasa', name:'Mikasa Ackerman', tag:'#Scout', series:'Attack on Titan' },
+      { id:'gojo', name:'Satoru Gojo', tag:'#Limitless', series:'Jujutsu Kaisen' },
+      { id:'levi', name:'Levi Ackerman', tag:'#CleanFreak', series:'Attack on Titan' },
+      { id:'tanjiro', name:'Tanjiro Kamado', tag:'#KindBlade', series:'Demon Slayer' },
+      { id:'itadori', name:'Yuji Itadori', tag:'#Cursed', series:'Jujutsu Kaisen' }
+    ];
+
+    function renderFriends(){
+      const q = ($('#friendsSearch').value || '').trim().toLowerCase();
+      const list = $('#friendsList');
+      list.innerHTML = '';
+
+      const filtered = friendsMock.filter(x =>
+        !q ||
+        x.name.toLowerCase().includes(q) ||
+        x.series.toLowerCase().includes(q) ||
+        x.tag.toLowerCase().includes(q)
+      );
+
+      filtered.forEach(x=>{
+        const on = state.follows.has(x.id);
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/30 px-3 py-2';
+        row.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="h-10 w-10 rounded-2xl bg-white/5 border border-white/10 grid place-items-center shrink-0">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="rgba(255,255,255,.85)" d="M12 2l2.2 5.6 6 .5-4.6 3.8 1.4 5.8L12 14.9 7 17.7l1.4-5.8L3.8 8.1l6-.5L12 2z"/>
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <div class="text-sm font-bold truncate">${x.name}</div>
+              <div class="text-[11px] text-white/55 truncate">${x.series} • <span class="text-white/70">${x.tag}</span></div>
+            </div>
+          </div>
+          <button type="button" class="chip justify-center shrink-0" data-follow="${x.id}">
+            ${on ? 'متابعة ✓' : 'تابع'}
+          </button>
+        `;
+        const btn = row.querySelector('[data-follow]');
+        setChipOn(btn, on);
+        btn.addEventListener('click', ()=>{
+          if(state.follows.has(x.id)){
+            state.follows.delete(x.id);
+          } else {
+            // cap to 3? (allow more, but require at least 3)
+            state.follows.add(x.id);
+          }
+          $('#followCount').textContent = state.follows.size;
+          renderFriends();
+          $('#msgB').textContent = '';
+          flashSpeed($('#gateB'));
+        });
+
+        list.appendChild(row);
+      });
+
+      $('#followCount').textContent = state.follows.size;
+    }
+
+    $('#friendsSearch').addEventListener('input', renderFriends);
+
+    $('#completeB').addEventListener('click', ()=>{
+      const gateEl = $('#gateB');
+      if(!validateFriends()){
+        shake(gateEl);
+        flashSpeed(gateEl);
+        return;
+      }
+      markComplete('B', gateEl);
+    });
+
+    // ---------- Fandom Gate ----------
+    const interestList = [
+      'شخصيات ثانوية تسرق الشاشة', 'تحليل حلقات', 'AMV', 'Cosplay', 'رسم', 'نقاشات سبويلر آمنة',
+      'نظريات', 'موسيقى Opening', 'مراجعات مانجا', 'لوحات/Art', 'شونين', 'سلايس أوف لايف',
+      'سيزونال', 'كوميديا', 'دراما', 'معارك', 'مستقبلات/Mecha'
+    ];
+    const genreList = ['Action','Adventure','Fantasy','Sci-Fi','Horror','Romance','Mystery','Sports','Comedy','Drama','Isekai','Supernatural'];
+
+    function wireChipGroup(containerEl, setRef, maxCount, countEl){
+      containerEl.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button[data-value]');
+        if(!btn) return;
+        const v = btn.dataset.value;
+
+        if(setRef.has(v)){
+          setRef.delete(v);
+          setChipOn(btn, false);
+        } else {
+          if(setRef.size >= maxCount){
+            // soft block
+            flashSpeed($('#gateC'));
+            shake(containerEl);
+            return;
+          }
+          setRef.add(v);
+          setChipOn(btn, true);
+        }
+        if(countEl) countEl.textContent = setRef.size;
+        $('#msgC').textContent = '';
+        flashSpeed($('#gateC'));
+      });
+    }
+
+    // content type
+    $('#contentTypes').addEventListener('click', (e)=>{
+      const btn = e.target.closest('button[data-type]');
+      if(!btn) return;
+      const type = btn.dataset.type;
+      state.contentType = (state.contentType === type) ? null : type;
+      $$('#contentTypes [data-type]').forEach(b => setChipOn(b, state.contentType === b.dataset.type));
+      $('#typePicked').textContent = state.contentType ? state.contentType.toUpperCase() : '—';
+      $('#msgC').textContent = '';
+      flashSpeed($('#gateC'));
+    });
+
+    function buildFandom(){
+      const interestWrap = $('#interestChips');
+      interestWrap.innerHTML = '';
+      interestList.forEach(v=>{
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip';
+        b.dataset.value = v;
+        b.textContent = v;
+        setChipOn(b, state.interests.has(v));
+        interestWrap.appendChild(b);
+      });
+
+      const genreWrap = $('#genreChips');
+      genreWrap.innerHTML = '';
+      genreList.forEach(v=>{
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip';
+        b.dataset.value = v;
+        b.textContent = v;
+        setChipOn(b, state.genres.has(v));
+        genreWrap.appendChild(b);
+      });
+
+      $('#interestCount').textContent = state.interests.size;
+      $('#genreCount').textContent = state.genres.size;
+
+      wireChipGroup(interestWrap, state.interests, 5, $('#interestCount'));
+      wireChipGroup(genreWrap, state.genres, 3, $('#genreCount'));
+    }
+
+    $('#completeC').addEventListener('click', ()=>{
+      const gateEl = $('#gateC');
+      if(!validateFandom()){
+        shake(gateEl);
+        flashSpeed(gateEl);
+        return;
+      }
+      markComplete('C', gateEl);
+    });
+
+    // ---------- Enter CTA ----------
+    $('#enterBtn').addEventListener('click', ()=>{
+      if(!state.gates.A){
+        const g = $('#gateA');
+        g.scrollIntoView({ behavior:'smooth', block:'center' });
+        shake(g);
+        flashSpeed(g);
+        return;
+      }
+
+      // Open success
+      $('#finalName').textContent = state.data.name || 'صديقنا';
+      $('#sumA').textContent = state.gates.A ? '✓' : '—';
+      $('#sumB').textContent = state.gates.B ? '✓' : '—';
+      $('#sumC').textContent = state.gates.C ? '✓' : '—';
+      $('#successOverlay').classList.add('on');
+
+      // Celebration particles from footer
+      const foot = document.querySelector('footer .portal');
+      spawnParticles(foot);
+      flashSpeed(foot);
+    });
+
+    $('#closeSuccess').addEventListener('click', ()=>{
+      $('#successOverlay').classList.remove('on');
+    });
+
+    $('#successOverlay').addEventListener('click', (e)=>{
+      if(e.target.id === 'successOverlay') $('#successOverlay').classList.remove('on');
+    });
+
+    $('#resetAll').addEventListener('click', ()=>{
+      // reset state
+      state.gates = { A:false, B:false, C:false };
+      state.aura = null;
+      state.avatar = { kind:'none', value:null };
+      state.follows = new Set();
+      state.contentType = null;
+      state.interests = new Set();
+      state.genres = new Set();
+      state.data = { name:"", email:"", password:"" };
+
+      // UI reset
+      ['A','B','C'].forEach(k => $('#badge'+k).classList.add('hidden'));
+      $('#name').value = '';
+      $('#email').value = '';
+      $('#password').value = '';
+      $('#pwHint').textContent = '—';
+      $('#friendsSearch').value = '';
+      $('#followCount').textContent = '0';
+      $('#typePicked').textContent = '—';
+      $('#msgA').textContent = '';
+      $('#msgB').textContent = '';
+      $('#msgC').textContent = '';
+
+      // chips
+      $$('#auraChips [data-aura]').forEach(b => setChipOn(b,false));
+      setAuraRing(null);
+
+      // avatar
+      $('#avatarUpload').value = '';
+      $('#avatarPreviewImg').classList.add('hidden');
+      $('#avatarPreviewSvg').classList.remove('hidden');
+      $('#avatarPreviewSvg').innerHTML = `
+        <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="rgba(255,255,255,.75)" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5Z"/>
+        </svg>`;
+      $$('#avatarGrid button').forEach(b => b.classList.remove('ring-2','ring-white/40'));
+
+      // fandom chips rebuilt
+      buildFandom();
+      // friends rerender
+      renderFriends();
+      // content type reset
+      $$('#contentTypes [data-type]').forEach(b => setChipOn(b,false));
+
+      updateProgress();
+      $('#successOverlay').classList.remove('on');
+
+      // scroll to top a bit
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // ---------- Init ----------
+    buildAvatarGrid();
+    buildFandom();
+    renderFriends();
+    updateProgress();
+
+    // subtle entry: enable gateIn delays already set; also run opening speed once
+    setTimeout(()=> $('#pulseNow').click(), 400);
+  </script>
+</body>
+</html>

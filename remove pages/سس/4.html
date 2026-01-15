@@ -1,0 +1,505 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>4</title>
+  <style>
+    :root{
+      --bg:#fff6fb;
+      --bg2:#f2fbff;
+      --card:#ffffffcc;
+      --stroke:#ffd1e6;
+      --ink:#1f2430;
+      --muted:#5a6172;
+      --a:#ff6fb1;
+      --b:#7be7ff;
+      --c:#c8a8ff;
+      --r:22px;
+      --shadow: 0 18px 60px #2a1d3a1c;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--ink);
+      background:
+        radial-gradient(800px 500px at 15% 15%, #ff6fb133, transparent 62%),
+        radial-gradient(900px 600px at 85% 25%, #7be7ff33, transparent 60%),
+        radial-gradient(700px 500px at 50% 85%, #c8a8ff2e, transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      overflow:hidden;
+    }
+    .wrap{
+      height:100%;
+      display:grid;
+      place-items:center;
+      padding:26px;
+      position:relative;
+    }
+
+    /* floating stickers */
+    .sticker{
+      position:absolute; width:120px; height:120px; border-radius:28px;
+      background: linear-gradient(135deg, #fff, #ffffff66);
+      border: 1px solid #ffffff;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+      opacity:.85;
+      animation: floaty 6s ease-in-out infinite;
+      pointer-events:none;
+    }
+    .sticker:before{
+      content:"";
+      position:absolute; inset:14px;
+      border-radius:22px;
+      background:
+        radial-gradient(circle at 30% 30%, #ff6fb144, transparent 55%),
+        radial-gradient(circle at 70% 40%, #7be7ff44, transparent 55%),
+        radial-gradient(circle at 50% 70%, #c8a8ff44, transparent 55%);
+      filter: blur(0.2px);
+    }
+    .s1{left:4%; top:8%}
+    .s2{right:6%; top:14%; animation-delay:-2s}
+    .s3{left:10%; bottom:10%; animation-delay:-3.2s}
+    @keyframes floaty{
+      0%,100%{transform:translateY(0) rotate(-2deg)}
+      50%{transform:translateY(-14px) rotate(2deg)}
+    }
+
+    .card{
+      width:min(900px, 100%);
+      border-radius: var(--r);
+      border: 1px solid var(--stroke);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding:18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .left{
+      display:flex; gap:12px; align-items:center;
+    }
+    .badge{
+      width:52px; height:52px; border-radius:18px;
+      background: conic-gradient(from 180deg, var(--a), var(--b), var(--c), var(--a));
+      box-shadow: 0 10px 30px #ff6fb12a;
+      position:relative;
+    }
+    .badge:after{
+      content:"";
+      position:absolute; inset:8px; border-radius:14px;
+      background: #fff;
+      box-shadow: inset 0 0 0 1px #ffd1e680;
+    }
+    h1{margin:0; font-size:20px}
+    p{margin:4px 0 0; color:var(--muted); font-size:13px; max-width:62ch; line-height:1.35}
+
+    .btn{
+      border:1px solid var(--stroke);
+      background: #ffffff;
+      padding:10px 14px;
+      border-radius: 16px;
+      cursor:pointer;
+      transition: transform .12s ease, box-shadow .18s ease;
+      box-shadow: 0 10px 22px #2a1d3a12;
+      font-weight:700;
+    }
+    .btn:hover{ transform: translateY(-2px) scale(1.01); box-shadow: 0 16px 34px #2a1d3a1c; }
+    .btn:active{ transform: translateY(0) scale(.98); }
+    .btn.primary{
+      background: linear-gradient(180deg, #ffeff7, #fff);
+      border-color:#ff6fb166;
+    }
+
+    /* Modal */
+    .backdrop{
+      position:fixed; inset:0;
+      display:grid; place-items:center;
+      padding:24px;
+      background: #0e0b1452;
+      backdrop-filter: blur(8px);
+      opacity:0; pointer-events:none;
+      transition: opacity .2s ease;
+    }
+    .backdrop.open{ opacity:1; pointer-events:auto; }
+
+    .modal{
+      width:min(880px, 100%);
+      border-radius: 26px;
+      border: 1px solid #ffffff;
+      background: #ffffffee;
+      box-shadow: 0 30px 90px #00000033;
+      transform: translateY(18px) scale(.94);
+      opacity:0;
+      transition: transform .34s cubic-bezier(.2,1.2,.2,1), opacity .18s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .backdrop.open .modal{
+      transform: translateY(0) scale(1);
+      opacity:1;
+      animation: pop 520ms cubic-bezier(.2,1.3,.2,1) both;
+    }
+    @keyframes pop{
+      0%{transform:translateY(18px) scale(.94)}
+      60%{transform:translateY(-2px) scale(1.02)}
+      100%{transform:translateY(0) scale(1)}
+    }
+
+    /* sparkles */
+    .spark{
+      position:absolute; inset:-40%;
+      background:
+        radial-gradient(circle at 20% 20%, #ff6fb133 0 8px, transparent 10px),
+        radial-gradient(circle at 60% 30%, #7be7ff33 0 7px, transparent 9px),
+        radial-gradient(circle at 35% 60%, #c8a8ff33 0 6px, transparent 8px),
+        radial-gradient(circle at 75% 70%, #ff6fb133 0 7px, transparent 9px);
+      opacity:.9;
+      filter: blur(.2px);
+      animation: twinkle 3.8s ease-in-out infinite;
+      pointer-events:none;
+    }
+    @keyframes twinkle{ 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(6deg)} }
+
+    .inner{ position:relative; padding:16px; display:grid; gap:12px; }
+    .head{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+      padding-bottom:10px;
+      border-bottom:1px dashed #ffd1e6;
+    }
+    .head h2{margin:0; font-size:18px}
+    .head small{display:block; margin-top:4px; color:var(--muted); font-size:12px; line-height:1.35}
+    .x{
+      width:40px; height:40px;
+      border-radius:16px;
+      border:1px solid #ffd1e6;
+      background:#fff;
+      cursor:pointer;
+      transition: transform .12s ease, box-shadow .18s ease;
+      box-shadow: 0 12px 22px #2a1d3a12;
+      font-weight:900;
+    }
+    .x:hover{ transform: rotate(8deg) scale(1.03); box-shadow: 0 16px 32px #2a1d3a1c; }
+    .x:active{ transform: scale(.98); }
+
+    .cols{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 820px){ .cols{grid-template-columns:1fr} }
+
+    .box{
+      border:1px solid #ffd1e6;
+      border-radius:22px;
+      background:#fff;
+      padding:12px;
+    }
+    .box h3{
+      margin:0 0 10px;
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      color:#2b2f3a;
+    }
+    .count{
+      font-size:12px;
+      color:var(--muted);
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid #ffd1e6;
+      background:#ffeff7;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:10px;
+    }
+    .chip{
+      border:1px solid #ffd1e6;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff, #fffbfd);
+      padding:10px 10px;
+      cursor:pointer;
+      user-select:none;
+      display:flex;
+      gap:10px;
+      transition: transform .12s ease, box-shadow .18s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .chip:hover{
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 16px 28px #2a1d3a14;
+    }
+    .chip:active{ transform: translateY(0) scale(.98); }
+    .chip input{ position:absolute; opacity:0; pointer-events:none; }
+    .dot{
+      width:16px; height:16px; border-radius:999px;
+      border:2px solid #ffd1e6;
+      background:#fff;
+      flex:0 0 auto;
+      margin-top:2px;
+      box-shadow: inset 0 0 0 3px #fff;
+      transition: transform .15s ease;
+    }
+    .chip:hover .dot{ transform: scale(1.06); }
+    .chip b{font-size:13px}
+    .chip em{display:block; font-style:normal; font-size:12px; color:var(--muted); margin-top:2px}
+
+    .chip[data-on="true"]{
+      box-shadow: 0 0 0 3px #ff6fb133, 0 18px 34px #2a1d3a18;
+      border-color:#ff6fb1aa;
+      background: linear-gradient(180deg, #ffeff7, #ffffff);
+    }
+    .chip[data-on="true"] .dot{
+      border-color:#ff6fb1aa;
+      background: conic-gradient(from 180deg, var(--a), var(--b), var(--c), var(--a));
+    }
+
+    .foot{
+      border-top:1px dashed #ffd1e6;
+      padding-top:10px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .tags{display:flex; gap:8px; flex-wrap:wrap; align-items:center; color:var(--muted); font-size:12px}
+    .tag{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid #ffd1e6;
+      background:#fff;
+      transition: transform .12s ease, box-shadow .18s ease;
+    }
+    .tag:hover{transform: translateY(-1px); box-shadow: 0 10px 18px #2a1d3a12}
+
+    @media (prefers-reduced-motion: reduce){
+      .sticker,.spark{animation:none}
+      .btn,.chip,.modal,.backdrop{transition:none}
+      .backdrop.open .modal{animation:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="sticker s1"></div>
+    <div class="sticker s2"></div>
+    <div class="sticker s3"></div>
+
+    <section class="card">
+      <div class="left">
+        <div class="badge" aria-hidden="true"></div>
+        <div>
+          <h1>Your favorites (anime style)</h1>
+          <p>Select your <b>purpose to join</b> and your <b>favorite categories</b> to personalize follow suggestions.</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn primary" id="open">Open modal</button>
+        <button class="btn" id="open2">Edit</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="backdrop" id="backdrop" role="dialog" aria-modal="true" aria-labelledby="ttl" aria-describedby="desc">
+    <div class="modal" role="document">
+      <div class="spark" aria-hidden="true"></div>
+
+      <div class="inner">
+        <div class="head">
+          <div>
+            <h2 id="ttl">Favorites check ✨</h2>
+            <small id="desc">Pick at least 1 purpose + 1 category. Press ESC to close.</small>
+          </div>
+          <button class="x" id="close" aria-label="Close">✕</button>
+        </div>
+
+        <div class="cols">
+          <div class="box">
+            <h3>Purpose to join <span class="count" id="pCount">0</span></h3>
+            <div class="grid" id="purpose"></div>
+          </div>
+
+          <div class="box">
+            <h3>Favorite categories <span class="count" id="cCount">0</span></h3>
+            <div class="grid" id="cats"></div>
+          </div>
+        </div>
+
+        <div class="foot">
+          <div class="tags" id="tags"><span>Selected:</span></div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="reset">Reset</button>
+            <button class="btn primary" id="save">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const items = {
+      purpose: [
+        ["friends","Find friends","Follow similar fans"],
+        ["talks","Discussions","Theories + spoilers"],
+        ["art","Fan art","Draw + share"],
+        ["cosplay","Cosplay","Build + tips"],
+        ["events","Events","Meetups + streams"],
+        ["collection","Collection","Track manga/anime"]
+      ],
+      cats: [
+        ["shonen","Shōnen","Power-ups"],
+        ["isekai","Isekai","New worlds"],
+        ["romance","Romance","Ships"],
+        ["slice","Slice of Life","Cozy"],
+        ["mecha","Mecha","Robots"],
+        ["mystery","Mystery","Plot twists"],
+        ["fantasy","Fantasy","Magic"],
+        ["sports","Sports","Training arcs"]
+      ]
+    };
+
+    const backdrop = document.getElementById('backdrop');
+    const openBtns = [document.getElementById('open'), document.getElementById('open2')];
+    const closeBtn = document.getElementById('close');
+    const resetBtn = document.getElementById('reset');
+    const saveBtn = document.getElementById('save');
+    const purposeEl = document.getElementById('purpose');
+    const catsEl = document.getElementById('cats');
+    const pCount = document.getElementById('pCount');
+    const cCount = document.getElementById('cCount');
+    const tags = document.getElementById('tags');
+
+    const state = { purpose: new Set(), cats: new Set() };
+    let lastFocus = null;
+
+    function makeChip([key,title,desc], group){
+      const el = document.createElement('label');
+      el.className = 'chip';
+      el.dataset.on = "false";
+      el.tabIndex = 0;
+      el.innerHTML = `
+        <input type="checkbox" />
+        <div class="dot" aria-hidden="true"></div>
+        <div><b>${title}</b><em>${desc}</em></div>
+      `;
+      const input = el.querySelector('input');
+
+      function toggle(){
+        const set = group === 'purpose' ? state.purpose : state.cats;
+        set.has(key) ? set.delete(key) : set.add(key);
+        el.dataset.on = set.has(key) ? "true" : "false";
+        input.checked = set.has(key);
+        sync();
+      }
+
+      el.addEventListener('click', (e)=>{ if(e.target.tagName !== 'INPUT') toggle(); });
+      el.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggle(); }
+      });
+      return el;
+    }
+
+    function sync(){
+      pCount.textContent = state.purpose.size;
+      cCount.textContent = state.cats.size;
+
+      tags.innerHTML = `<span>Selected:</span>`;
+      const all = [...state.purpose, ...state.cats];
+      if(all.length === 0){
+        const s = document.createElement('span');
+        s.textContent = "none yet";
+        s.style.color = "var(--muted)";
+        tags.appendChild(s);
+        return;
+      }
+      all.slice(0, 10).forEach(k=>{
+        const t = document.createElement('span');
+        t.className = 'tag';
+        t.textContent = k;
+        tags.appendChild(t);
+      });
+      if(all.length > 10){
+        const t = document.createElement('span');
+        t.className = 'tag';
+        t.textContent = `+${all.length-10}`;
+        tags.appendChild(t);
+      }
+    }
+
+    items.purpose.forEach(i => purposeEl.appendChild(makeChip(i,'purpose')));
+    items.cats.forEach(i => catsEl.appendChild(makeChip(i,'cats')));
+    sync();
+
+    function focusables(){
+      return [...backdrop.querySelectorAll('button,[tabindex]:not([tabindex="-1"]),input')]
+        .filter(el => !el.disabled && el.offsetParent !== null);
+    }
+    function openModal(){
+      lastFocus = document.activeElement;
+      backdrop.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      const f = focusables();
+      (f[0] || closeBtn).focus();
+    }
+    function closeModal(){
+      backdrop.classList.remove('open');
+      document.body.style.overflow = '';
+      if(lastFocus) lastFocus.focus();
+    }
+
+    openBtns.forEach(b=>b.addEventListener('click', openModal));
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', (e)=>{ if(e.target === backdrop) closeModal(); });
+
+    window.addEventListener('keydown', (e)=>{
+      if(!backdrop.classList.contains('open')) return;
+      if(e.key === 'Escape') closeModal();
+      if(e.key === 'Tab'){
+        const f = focusables();
+        if(!f.length) return;
+        const first = f[0], last = f[f.length-1];
+        if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+        else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+      }
+    });
+
+    resetBtn.addEventListener('click', ()=>{
+      state.purpose.clear(); state.cats.clear();
+      document.querySelectorAll('.chip').forEach(ch=>{
+        ch.dataset.on="false";
+        ch.querySelector('input').checked=false;
+      });
+      sync();
+    });
+
+    saveBtn.addEventListener('click', ()=>{
+      if(state.purpose.size < 1 || state.cats.size < 1){
+        saveBtn.textContent = "Pick 1 + 1 💖";
+        saveBtn.animate([{transform:"scale(1)"},{transform:"scale(1.04)"},{transform:"scale(1)"}],{duration:240});
+        setTimeout(()=>saveBtn.textContent="Save", 900);
+        return;
+      }
+      saveBtn.textContent = "Saved ✓";
+      console.log("Saved:", {purpose:[...state.purpose], cats:[...state.cats]});
+      setTimeout(()=>saveBtn.textContent="Save", 900);
+      closeModal();
+    });
+
+    // auto-open (optional)
+    openModal();
+  </script>
+</body>
+</html>

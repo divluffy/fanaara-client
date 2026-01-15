@@ -1,0 +1,1281 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Retro 90s Anime Signup Wizard</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root{
+      --paper:#fff4dc;
+      --cream:#ffe8b7;
+      --peach:#ffb38a;
+      --sun:#ffcf5a;
+      --ink:#2a1f1a;
+      --brown:#6b3f2a;
+      --teal:#1f7a7a;
+      --tape:#1b1a16;
+      --tape2:#2a281f;
+      --mag:#ff3aa8;
+      --cyan:#1fe4ff;
+    }
+
+    /* Retro base */
+    html,body{ height:100%; }
+    body{
+      background:
+        radial-gradient(1200px 700px at 80% 10%, rgba(255,179,138,.45), transparent 55%),
+        radial-gradient(900px 600px at 20% 20%, rgba(31,122,122,.25), transparent 60%),
+        linear-gradient(180deg, var(--paper), var(--cream));
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans Arabic", Arial, sans-serif;
+    }
+
+    /* Chunky UI feel */
+    .chunky{
+      border: 3px solid rgba(42,31,26,.9);
+      box-shadow: 0 4px 0 rgba(42,31,26,.45);
+      border-radius: 14px;
+    }
+    .chunky:active{ transform: translateY(2px); box-shadow: 0 2px 0 rgba(42,31,26,.45); }
+
+    .chunky-soft{
+      border: 2px solid rgba(42,31,26,.85);
+      box-shadow: 0 3px 0 rgba(42,31,26,.35);
+      border-radius: 14px;
+    }
+
+    .label{
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    /* VHS Mode overlays (CSS only) */
+    body.vhs::before{
+      content:"";
+      position: fixed; inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(0,0,0,.12) 0px,
+          rgba(0,0,0,.12) 1px,
+          rgba(255,255,255,.04) 2px,
+          rgba(0,0,0,0) 4px
+        );
+      opacity: .35;
+      mix-blend-mode: multiply;
+      z-index: 60;
+    }
+    body.vhs::after{
+      content:"";
+      position: fixed; inset: 0;
+      pointer-events: none;
+      /* tiny SVG noise as background image (CSS only) */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+      background-size: 220px 220px;
+      opacity: .10;
+      mix-blend-mode: overlay;
+      animation: vhsNoise .18s steps(2) infinite;
+      z-index: 61;
+    }
+    @keyframes vhsNoise{
+      0%{ transform: translate(0,0); }
+      25%{ transform: translate(-6px,2px); }
+      50%{ transform: translate(4px,-3px); }
+      75%{ transform: translate(-2px,-5px); }
+      100%{ transform: translate(0,0); }
+    }
+    /* Chromatic bleed vibe */
+    body.vhs .vhs-bleed{
+      text-shadow:
+        -1px 0 rgba(31,228,255,.55),
+        1px 0 rgba(255,58,168,.40);
+    }
+    body.vhs .vhs-jitter{
+      animation: jitter 1.4s infinite;
+    }
+    @keyframes jitter{
+      0%,100%{ transform: translate(0,0); }
+      92%{ transform: translate(0,0); }
+      93%{ transform: translate(1px,0); }
+      94%{ transform: translate(-1px,0); }
+      95%{ transform: translate(2px,1px); }
+      96%{ transform: translate(-2px,-1px); }
+      97%{ transform: translate(1px,-1px); }
+      98%{ transform: translate(0,1px); }
+      99%{ transform: translate(-1px,0); }
+    }
+
+    /* Inputs */
+    .retro-input{
+      background: rgba(255,255,255,.75);
+      border: 2px solid rgba(42,31,26,.75);
+      border-radius: 14px;
+      padding: 10px 12px;
+      outline: none;
+      box-shadow: inset 0 2px 0 rgba(42,31,26,.08);
+    }
+    .retro-input:focus{
+      border-color: rgba(31,122,122,.9);
+      box-shadow: 0 0 0 4px rgba(31,122,122,.15), inset 0 2px 0 rgba(42,31,26,.08);
+    }
+    .retro-input.error{
+      border-color: rgba(255,58,168,.95);
+      box-shadow: 0 0 0 4px rgba(255,58,168,.12), inset 0 2px 0 rgba(42,31,26,.08);
+    }
+
+    /* Chips */
+    .chip{
+      border: 2px solid rgba(42,31,26,.85);
+      background: rgba(255,255,255,.6);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 800;
+      user-select: none;
+      transition: transform .08s ease, box-shadow .08s ease, background .12s ease;
+      box-shadow: 0 2px 0 rgba(42,31,26,.25);
+    }
+    .chip:hover{ transform: translateY(-1px); }
+    .chip.on{
+      background: linear-gradient(180deg, rgba(255,207,90,.95), rgba(255,179,138,.7));
+      border-color: rgba(42,31,26,.95);
+      box-shadow: 0 3px 0 rgba(42,31,26,.35);
+    }
+
+    /* Cassette progress bar */
+    .cassette{
+      background: linear-gradient(180deg, var(--tape2), var(--tape));
+      border: 3px solid rgba(42,31,26,.9);
+      border-radius: 16px;
+      box-shadow: 0 6px 0 rgba(42,31,26,.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .cassette::before{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(200px 120px at 20% 45%, rgba(255,255,255,.08), transparent 60%),
+        radial-gradient(220px 140px at 80% 55%, rgba(255,255,255,.06), transparent 60%);
+      opacity: .9;
+      pointer-events:none;
+    }
+    .spool{
+      width: 54px; height: 54px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.2), rgba(255,255,255,.06) 35%, rgba(0,0,0,.25) 70%);
+      border: 2px solid rgba(255,255,255,.15);
+      position: relative;
+      box-shadow: inset 0 2px 0 rgba(0,0,0,.35);
+    }
+    .spool::after{
+      content:"";
+      position:absolute; inset: 14px;
+      border-radius: 999px;
+      border: 2px dashed rgba(255,255,255,.28);
+      opacity: .8;
+      animation: spin 3s linear infinite;
+    }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+
+    .tape-window{
+      background: rgba(255,255,255,.08);
+      border: 2px solid rgba(255,255,255,.15);
+      border-radius: 999px;
+      height: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .tape-fill{
+      position:absolute; inset-block: 0;
+      right: 0;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(31,228,255,.45), rgba(255,58,168,.35), rgba(255,207,90,.45));
+      opacity: .95;
+      transition: width .25s ease;
+    }
+
+    /* Avatar grid */
+    .avatar-btn{
+      border: 2px solid rgba(42,31,26,.85);
+      border-radius: 16px;
+      background: rgba(255,255,255,.55);
+      box-shadow: 0 3px 0 rgba(42,31,26,.25);
+      transition: transform .08s ease;
+    }
+    .avatar-btn:hover{ transform: translateY(-1px); }
+    .avatar-btn.on{
+      background: linear-gradient(180deg, rgba(255,207,90,.95), rgba(255,179,138,.65));
+      box-shadow: 0 4px 0 rgba(42,31,26,.35);
+    }
+
+    /* Subtle hover for cards/buttons (retro-friendly) */
+    .hover-lift:hover{ transform: translateY(-1px); }
+    .transition-tiny{ transition: transform .08s ease, box-shadow .12s ease; }
+
+    /* Loading overlay "Opening..." */
+    .opening{
+      background:
+        radial-gradient(1000px 600px at 50% 0%, rgba(255,207,90,.35), transparent 60%),
+        linear-gradient(180deg, rgba(27,26,22,.92), rgba(27,26,22,.92));
+      color: #fff7e5;
+    }
+    .opening-bar{
+      height: 16px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,.25);
+      overflow: hidden;
+      background: rgba(255,255,255,.08);
+      position: relative;
+    }
+    .opening-bar > span{
+      position:absolute; inset-block:0; right:0;
+      width: 35%;
+      background: linear-gradient(90deg, rgba(31,228,255,.55), rgba(255,58,168,.45), rgba(255,207,90,.55));
+      animation: opening 1.1s ease-in-out infinite;
+    }
+    @keyframes opening{
+      0%{ transform: translateX(130%); }
+      50%{ transform: translateX(-30%); }
+      100%{ transform: translateX(-160%); }
+    }
+
+    /* Small helper */
+    .hint{
+      background: rgba(31,122,122,.10);
+      border: 2px dashed rgba(31,122,122,.45);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <div class="max-w-5xl mx-auto px-4 py-6 sm:py-10">
+
+    <!-- Header -->
+    <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="chunky-soft px-4 py-3 bg-white/60 vhs-jitter">
+        <div class="flex items-baseline gap-2">
+          <h1 class="text-2xl sm:text-3xl font-extrabold vhs-bleed">NeoOtaku Club</h1>
+          <span class="text-xs font-black px-2 py-1 rounded-full border-2 border-[rgba(42,31,26,.8)] bg-[rgba(255,207,90,.65)]">
+            90s UI
+          </span>
+        </div>
+        <p class="text-sm opacity-80 font-semibold">Wizard تسجيل — لمسّة رجعية دافئة + أزرار Chunky + VHS Texture</p>
+      </div>
+
+      <div class="flex gap-2 items-center justify-between sm:justify-end">
+        <button id="vhsToggle" class="chunky px-4 py-2 bg-[rgba(255,207,90,.9)] transition-tiny hover-lift font-extrabold">
+          VHS Mode: <span id="vhsState">OFF</span>
+        </button>
+        <div class="chunky-soft px-3 py-2 bg-white/55 text-xs font-bold">
+          <span class="opacity-75">Step</span> <span id="stepCounter" class="text-base">1</span><span class="opacity-75">/8</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Cassette progress -->
+    <section class="mt-5 cassette p-4">
+      <div class="relative z-10 flex items-center gap-3">
+        <div class="spool"></div>
+
+        <div class="flex-1">
+          <div class="flex items-center justify-between text-[11px] sm:text-xs font-black text-white/80">
+            <span id="stepTitle">اختيار الاسم + جيل الأنمي</span>
+            <span id="stepTag" class="px-2 py-1 rounded-full border border-white/25 bg-white/10">Tape Track</span>
+          </div>
+          <div class="mt-2 tape-window">
+            <div id="tapeFill" class="tape-fill"></div>
+          </div>
+          <div class="mt-2 flex flex-wrap gap-2 text-[10px] sm:text-xs font-extrabold text-white/75">
+            <span class="px-2 py-1 rounded-full bg-white/10 border border-white/15">Warm gradients</span>
+            <span class="px-2 py-1 rounded-full bg-white/10 border border-white/15">Chunky buttons</span>
+            <span class="px-2 py-1 rounded-full bg-white/10 border border-white/15">Hover بسيط</span>
+            <span class="px-2 py-1 rounded-full bg-white/10 border border-white/15">CSS VHS</span>
+          </div>
+        </div>
+
+        <div class="spool"></div>
+      </div>
+    </section>
+
+    <!-- Main card -->
+    <main class="mt-5 chunky bg-white/60 p-4 sm:p-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+        <!-- Left: wizard content -->
+        <section class="lg:col-span-8">
+          <!-- Steps -->
+          <div id="stepsWrap" class="space-y-5">
+
+            <!-- Step 1 -->
+            <section class="step" data-step="1">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-xl font-extrabold vhs-bleed">1) اختيار الاسم + “جيل الأنمي”</h2>
+                <span class="text-xs font-black px-3 py-1 rounded-full border-2 border-[rgba(42,31,26,.8)] bg-[rgba(255,179,138,.55)]">
+                  Player Select
+                </span>
+              </div>
+
+              <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="label text-sm">اسم المستخدم</label>
+                  <input id="username" class="retro-input w-full mt-1" placeholder="مثال: luffy_senpai" maxlength="20" />
+                  <p class="text-xs font-semibold opacity-75 mt-1">قصير، واضح، ويبين طاقتك 🤝</p>
+                </div>
+
+                <div>
+                  <label class="label text-sm">جيل الأنمي</label>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <button class="chip gen" data-value="80s">80s</button>
+                    <button class="chip gen on" data-value="90s">90s</button>
+                    <button class="chip gen" data-value="2000s">2000s</button>
+                    <button class="chip gen" data-value="modern">modern</button>
+                  </div>
+                  <p class="text-xs font-semibold opacity-75 mt-2">اختيارك يضبط الجو العام والاقتراحات.</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 2 -->
+            <section class="step hidden" data-step="2">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-xl font-extrabold vhs-bleed">2) Email / Password + Tips</h2>
+                <span class="text-xs font-black px-3 py-1 rounded-full border-2 border-[rgba(42,31,26,.8)] bg-[rgba(255,207,90,.55)]">
+                  Save Point
+                </span>
+              </div>
+
+              <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="label text-sm">Email</label>
+                  <input id="email" class="retro-input w-full mt-1" placeholder="you@domain.com" inputmode="email" />
+                </div>
+                <div>
+                  <label class="label text-sm">Password</label>
+                  <input id="password" class="retro-input w-full mt-1" placeholder="••••••••" type="password" />
+                </div>
+              </div>
+
+              <div class="mt-4 hint">
+                <p class="font-extrabold">نصائح سريعة (Retro Safe):</p>
+                <ul class="mt-2 space-y-1 text-sm font-semibold">
+                  <li>• خليه 8+ أحرف (أفضل 12+)</li>
+                  <li>• امزج أحرف + أرقام + رمز واحد على الأقل</li>
+                  <li>• لا تستخدم نفس كلمة المرور في كل مكان</li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- Step 3 -->
+            <section class="step hidden" data-step="3">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-xl font-extrabold vhs-bleed">3) معلومات إضافية</h2>
+                <span class="text-xs font-black px-3 py-1 rounded-full border-2 border-[rgba(42,31,26,.8)] bg-[rgba(31,122,122,.18)]">
+                  Character Sheet
+                </span>
+              </div>
+
+              <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="label text-sm">المنطقة الزمنية</label>
+                  <select id="timezone" class="retro-input w-full mt-1">
+                    <option value="">اختر…</option>
+                    <option value="Asia/Jerusalem">Asia/Jerusalem</option>
+                    <option value="Asia/Riyadh">Asia/Riyadh</option>
+                    <option value="Africa/Cairo">Africa/Cairo</option>
+                    <option value="Europe/Istanbul">Europe/Istanbul</option>
+                    <option value="Europe/London">Europe/London</option>
+                    <option value="Europe/Paris">Europe/Paris</option>
+                    <option value="America/New_York">America/New_York</option>
+                    <option value="America/Los_Angeles">America/Los_Angeles</option>
+                    <option value="Asia/Tokyo">Asia/Tokyo</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="label text-sm">وقت المشاهدة المفضل</label>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <button class="chip watch on" data-value="Late Night">Late Night</button>
+                    <button class="chip watch" data-value="After School">After School</button>
+                    <button class="chip watch" data-value="Weekend Binge">Weekend Binge</button>
+                    <button class="chip watch" data-value="Lunch Break">Lunch Break</button>
+                  </div>
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label class="label text-sm">Bio (قصير ولطيف)</label>
+                  <textarea id="bio" class="retro-input w-full mt-1 min-h-[110px]" placeholder="قولنا مين انت… محب ميكا؟ رومانسي؟ كلاسيكيات التسعينات؟"></textarea>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 4 -->
+            <section class="step hidden" data-step="4">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-xl font-extrabold vhs-bleed">4) أفاتار Retro (12 اختيار) + رفع</h2>
+                <span class="text-xs font-black px-3 py-1 rounded-full border-2 border-[rgba(42,31,26,.8)] bg-[rgba(255,179,138,.55)]">
+                  Portrait
+                </span>
+              </div>
+
+              <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" id="avatarGrid">
+                <!-- injected by JS -->
+              </div>
+
+              <div class="mt-4 flex flex-col sm:flex-row gap-3 sm:items-center">
+                <div class="chunky-soft bg-white/55 px-4 py-3 flex-1">
+                  <p class="font-extrabold">أو ارفع صورة…</p>
+                  <p class="text-sm font-semibold opacity-80">هيطلع Preview هنا، ويغلب اختيار الشبكة.</p>
+                </div>
+
+                <input id="avatarUpload" type="file" accept="image/*" class="hidden"/>
+                <button id="uploadBtn" class="chunky px-4 py-3 bg-[rgba(31,122,122,.18)] font-extrabold transition-tiny hover-lift">
+                  Upload Avatar
+                </button>
+                <button id="clearUploadBtn" class="chunky px-4 py-3 bg-white/40 font-extrabold transition-tiny hover-lift">
+                  Clear
+                </button>
+              </div>
+
+              <div class="mt-4 chunky-soft bg-white/55 p-3 flex items-center gap-3">
+                <div class="w-14 h-14 rounded-2xl border-2 border-[rgba(42,31,26,.75)] bg-white/70 overflow-hidden grid place-items-center">
+                  <img id="avatarPreviewImg" alt="avatar preview" class="hidden w-full h-full object-cover"/>
+                  <div id="avatarPreviewSvg" class="w-12 h-12"></div>
+                </div>
+                <div>
+                  <p class="font-extrabold">Preview</p>
+                  <p class="text-sm font-semibold opacity-80" id="avatarPreviewLabel">اختر أفاتار…</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 5 -->
+            <section class="step hidden" data-step="5">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-xl font-extrabold vhs-bleed">5) الاهتمامات: منصات + Genres</h2>
+                <span class="text-xs font-black px-3 py-1 rounded-full border-2 border-[rgba(42,31,26,.8)] bg-[rgba(255,207,90,.55)]">
+                  Load Library
+                </span>
+              </div>
+
+              <div class="mt-4">
+                <p class="label text-sm">منصات</p>
+                <div class="mt-2 flex flex-wrap gap-2" id="platformChips">
+                  <button class="chip platform on" data-value="Anime">Anime</button>
+                  <button class="chip platform" data-value="Manga">Manga</button>
+                  <button class="chip platform" data-value="Comics">Comics</button>
+                  <button class="chip platform" data-value="Fanart">Fanart</button>
+                  <button class="chip platform" data-value="AMV">AMV</button>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <p class="label text-sm">Genres</p>
+                <div class="mt-2 flex flex-wrap gap-2" id="genreChips">
+                  <button class="chip genre on" data-value="Action">Action</button>
+                  <button class="chip genre" data-value="Romance">Romance</button>
+                  <button class="chip genre" data-value="Mecha">Mecha</button>
+                  <button class="chip genre" data-value="Slice of Life">Slice of Life</button>
+                  <button class="chip genre" data-value="Shonen">Shonen</button>
+                  <button class="chip genre" data-value="Shojo">Shojo</button>
+                  <button class="chip genre" data-value="Seinen">Seinen</button>
+                  <button class="chip genre" data-value="Isekai">Isekai</button>
+                  <button class="chip genre" data-value="Cyberpunk">Cyberpunk</button>
+                  <button class="chip genre" data-value="Magical Girl">Magical Girl</button>
+                  <button class="chip genre" data-value="Horror">Horror</button>
+                  <button class="chip genre" data-value="Comedy">Comedy</button>
+                </div>
+                <p class="text-xs font-semibold opacity-80 mt-2">اختياراتك تظبط الـ feed والاقتراحات.</p>
+              </div>
+            </section>
+
+            <!-- Step 6 -->
+            <section class="step hidden" data-step="6">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-xl font-extrabold vhs-bleed">6) متابعة: “نجوم التسعينات”</h2>
+                <span class="text-xs font-black px-3 py-1 rounded-full border-2 border-[rgba(42,31,26,.8)] bg-[rgba(31,228,255,.18)]">
+                  Follow Pack
+                </span>
+              </div>
+
+              <p class="mt-3 text-sm font-semibold opacity-85">
+                شوية اقتراحات جاهزة—اختار اللي تحبه. (تقدر تغير لاحقًا)
+              </p>
+
+              <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3" id="starList">
+                <!-- injected -->
+              </div>
+            </section>
+
+            <!-- Step 7 -->
+            <section class="step hidden" data-step="7">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-xl font-extrabold vhs-bleed">7) الخصوصية + الإشعارات + مستوى السبويلر</h2>
+                <span class="text-xs font-black px-3 py-1 rounded-full border-2 border-[rgba(42,31,26,.8)] bg-[rgba(255,179,138,.55)]">
+                  Settings
+                </span>
+              </div>
+
+              <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="chunky-soft bg-white/55 p-4">
+                  <p class="font-extrabold">الخصوصية</p>
+                  <label class="mt-3 flex items-center gap-3 font-semibold">
+                    <input id="profilePublic" type="checkbox" class="w-5 h-5" checked />
+                    الملف عام (Public profile)
+                  </label>
+                  <label class="mt-2 flex items-center gap-3 font-semibold">
+                    <input id="showActivity" type="checkbox" class="w-5 h-5" checked />
+                    عرض النشاط (مشاهدة/قراءة)
+                  </label>
+                </div>
+
+                <div class="chunky-soft bg-white/55 p-4">
+                  <p class="font-extrabold">الإشعارات</p>
+                  <label class="mt-3 flex items-center gap-3 font-semibold">
+                    <input id="notifEmail" type="checkbox" class="w-5 h-5" checked />
+                    Email
+                  </label>
+                  <label class="mt-2 flex items-center gap-3 font-semibold">
+                    <input id="notifPush" type="checkbox" class="w-5 h-5" />
+                    Push
+                  </label>
+                </div>
+
+                <div class="sm:col-span-2 chunky-soft bg-white/55 p-4">
+                  <p class="font-extrabold">مستوى السبويلر</p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <button class="chip spoiler on" data-value="Hide spoilers">Hide spoilers</button>
+                    <button class="chip spoiler" data-value="Blur spoilers">Blur spoilers</button>
+                    <button class="chip spoiler" data-value="Show spoilers">Show spoilers</button>
+                  </div>
+                  <p class="text-xs font-semibold opacity-80 mt-2">“Hide spoilers” يخفي المحتوى الحساس تلقائيًا.</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Step 8 -->
+            <section class="step hidden" data-step="8">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-xl font-extrabold vhs-bleed">8) Review + Create Account</h2>
+                <span class="text-xs font-black px-3 py-1 rounded-full border-2 border-[rgba(42,31,26,.8)] bg-[rgba(255,207,90,.55)]">
+                  Final Cut
+                </span>
+              </div>
+
+              <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="chunky-soft bg-white/55 p-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 rounded-2xl border-2 border-[rgba(42,31,26,.75)] bg-white/70 overflow-hidden grid place-items-center">
+                      <img id="reviewAvatarImg" alt="review avatar" class="hidden w-full h-full object-cover"/>
+                      <div id="reviewAvatarSvg" class="w-12 h-12"></div>
+                    </div>
+                    <div>
+                      <p class="font-extrabold text-lg" id="reviewUsername">—</p>
+                      <p class="text-sm font-semibold opacity-80" id="reviewGen">—</p>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 space-y-2 text-sm font-semibold">
+                    <div><span class="opacity-70">Email:</span> <span id="reviewEmail">—</span></div>
+                    <div><span class="opacity-70">Timezone:</span> <span id="reviewTZ">—</span></div>
+                    <div><span class="opacity-70">Watch Time:</span> <span id="reviewWatch">—</span></div>
+                  </div>
+
+                  <div class="mt-4">
+                    <p class="font-extrabold">Bio</p>
+                    <p id="reviewBio" class="text-sm font-semibold opacity-90 mt-1 whitespace-pre-wrap">—</p>
+                  </div>
+                </div>
+
+                <div class="chunky-soft bg-white/55 p-4">
+                  <p class="font-extrabold">اختياراتك</p>
+
+                  <div class="mt-3">
+                    <p class="text-sm font-black opacity-80">Platforms</p>
+                    <div id="reviewPlatforms" class="mt-2 flex flex-wrap gap-2"></div>
+                  </div>
+
+                  <div class="mt-3">
+                    <p class="text-sm font-black opacity-80">Genres</p>
+                    <div id="reviewGenres" class="mt-2 flex flex-wrap gap-2"></div>
+                  </div>
+
+                  <div class="mt-3">
+                    <p class="text-sm font-black opacity-80">90s Stars Followed</p>
+                    <div id="reviewStars" class="mt-2 flex flex-wrap gap-2"></div>
+                  </div>
+
+                  <div class="mt-3">
+                    <p class="text-sm font-black opacity-80">Settings</p>
+                    <div class="mt-2 text-sm font-semibold space-y-1">
+                      <div id="reviewPrivacy">—</div>
+                      <div id="reviewNotif">—</div>
+                      <div id="reviewSpoiler">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 chunky-soft bg-white/55 p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                <div>
+                  <p class="font-extrabold">جاهز؟</p>
+                  <p class="text-sm font-semibold opacity-80">هنعمل Create Account مع شاشة “Opening…”</p>
+                </div>
+                <button id="createBtn" class="chunky px-5 py-3 bg-[rgba(255,207,90,.95)] font-extrabold transition-tiny hover-lift">
+                  Create Account
+                </button>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- Nav buttons -->
+          <div class="mt-6 flex items-center justify-between gap-2">
+            <button id="backBtn" class="chunky px-4 py-3 bg-white/40 font-extrabold transition-tiny hover-lift">
+              ← Back
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button id="skipBtn" class="chunky px-4 py-3 bg-[rgba(31,122,122,.14)] font-extrabold transition-tiny hover-lift">
+                Skip (اختياري)
+              </button>
+              <button id="nextBtn" class="chunky px-4 py-3 bg-[rgba(255,179,138,.85)] font-extrabold transition-tiny hover-lift">
+                Next →
+              </button>
+            </div>
+          </div>
+
+          <p class="mt-3 text-xs font-semibold opacity-70">
+            * كل شي هنا Demo UI — التحقق بسيط (للواجهة).
+          </p>
+        </section>
+
+        <!-- Right: mini guide / vibes -->
+        <aside class="lg:col-span-4">
+          <div class="chunky-soft bg-white/55 p-4 sticky top-4">
+            <div class="flex items-center justify-between">
+              <p class="font-extrabold text-lg vhs-bleed">Retro Deck</p>
+              <span class="text-[11px] font-black px-2 py-1 rounded-full border-2 border-[rgba(42,31,26,.75)] bg-[rgba(255,207,90,.55)]">
+                UI Tips
+              </span>
+            </div>
+
+            <div class="mt-3 space-y-3">
+              <div class="chunky-soft bg-white/55 p-3">
+                <p class="font-extrabold">Hover بسيط</p>
+                <p class="text-sm font-semibold opacity-80">رفع خفيف + ظل بسيط. بدون حركات حديثة زيادة.</p>
+              </div>
+
+              <div class="chunky-soft bg-white/55 p-3">
+                <p class="font-extrabold">VHS Mode</p>
+                <p class="text-sm font-semibold opacity-80">Scanlines + Noise + Bleed للنصوص.</p>
+              </div>
+
+              <div class="chunky-soft bg-white/55 p-3">
+                <p class="font-extrabold">Checklist</p>
+                <ul class="mt-2 text-sm font-semibold opacity-90 space-y-1" id="checklist">
+                  <li>• Username + Generation</li>
+                  <li>• Email + Password</li>
+                  <li>• Timezone + Bio + Watch Time</li>
+                  <li>• Avatar select/upload</li>
+                  <li>• Platforms + Genres</li>
+                  <li>• 90s Stars follow</li>
+                  <li>• Privacy + Notifications + Spoilers</li>
+                  <li>• Review + Create</li>
+                </ul>
+              </div>
+
+              <div class="chunky-soft bg-white/55 p-3">
+                <p class="font-extrabold">Tiny Easter</p>
+                <p class="text-sm font-semibold opacity-80">جرب تشغل VHS Mode وبعدين اعمل Create 😄</p>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <!-- Opening overlay -->
+  <div id="openingOverlay" class="hidden fixed inset-0 z-[80] opening">
+    <div class="min-h-full grid place-items-center px-4">
+      <div class="chunky bg-white/10 border-white/20 p-5 sm:p-7 max-w-lg w-full">
+        <div class="flex items-center justify-between gap-3">
+          <p class="text-2xl font-extrabold vhs-bleed">Opening…</p>
+          <span class="text-xs font-black px-3 py-1 rounded-full border border-white/25 bg-white/10">EP-01</span>
+        </div>
+        <p class="mt-2 text-sm font-semibold opacity-90">
+          تجهيز الحساب… تحميل الـ vibes… مزامنة النجوم…
+        </p>
+
+        <div class="mt-5 opening-bar">
+          <span></span>
+        </div>
+
+        <div class="mt-5 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full border-2 border-white/25 grid place-items-center">
+            <div class="w-4 h-4 rotate-45 border-2 border-white/70"></div>
+          </div>
+          <div class="text-sm font-semibold opacity-90">
+            <p id="openingLine">Please don’t skip the intro 😌</p>
+            <p class="text-xs opacity-80">* محاكاة Loading فقط</p>
+          </div>
+        </div>
+
+        <div id="openingDone" class="hidden mt-6 chunky-soft bg-white/10 border-white/20 p-4">
+          <p class="font-extrabold text-lg">✅ Account Created!</p>
+          <p class="text-sm font-semibold opacity-90 mt-1">أهلًا! انطلق للـ feed الرجعي.</p>
+          <button id="closeOpeningBtn" class="mt-4 chunky px-4 py-3 bg-white/15 border-white/30 font-extrabold transition-tiny hover-lift w-full">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- State ----------
+    const state = {
+      step: 1,
+      username: "",
+      generation: "90s",
+      email: "",
+      password: "",
+      timezone: "",
+      bio: "",
+      watchTime: "Late Night",
+      avatarId: "a1",
+      avatarUploadDataURL: "",
+      platforms: new Set(["Anime"]),
+      genres: new Set(["Action"]),
+      stars: new Set(),
+      privacy: { profilePublic: true, showActivity: true },
+      notifications: { email: true, push: false },
+      spoilerLevel: "Hide spoilers",
+      vhs: false,
+    };
+
+    const STEP_TITLES = {
+      1: "اختيار الاسم + جيل الأنمي",
+      2: "Email / Password + Tips",
+      3: "معلومات إضافية",
+      4: "أفاتار Retro + رفع",
+      5: "الاهتمامات: منصات + Genres",
+      6: "متابعة: نجوم التسعينات",
+      7: "الخصوصية والإشعارات + السبويلر",
+      8: "Review + Create Account",
+    };
+
+    // ---------- Helpers ----------
+    const $ = (id) => document.getElementById(id);
+    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+    function setHidden(el, hidden){
+      el.classList.toggle("hidden", !!hidden);
+    }
+
+    function setOnChip(btn, on){
+      btn.classList.toggle("on", !!on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    }
+
+    function pill(text){
+      const span = document.createElement("span");
+      span.className = "px-3 py-1 rounded-full border-2 border-[rgba(42,31,26,.75)] bg-[rgba(255,255,255,.55)] text-xs font-black";
+      span.textContent = text;
+      return span;
+    }
+
+    function pillHot(text){
+      const span = document.createElement("span");
+      span.className = "px-3 py-1 rounded-full border-2 border-[rgba(42,31,26,.85)] bg-[rgba(255,207,90,.75)] text-xs font-black";
+      span.textContent = text;
+      return span;
+    }
+
+    // ---------- VHS Toggle ----------
+    $("vhsToggle").addEventListener("click", () => {
+      state.vhs = !state.vhs;
+      document.body.classList.toggle("vhs", state.vhs);
+      $("vhsState").textContent = state.vhs ? "ON" : "OFF";
+    });
+
+    // ---------- Step rendering ----------
+    function renderStep(){
+      // show current step section
+      document.querySelectorAll(".step").forEach(sec => {
+        const s = Number(sec.dataset.step);
+        setHidden(sec, s !== state.step);
+      });
+
+      // cassette progress
+      const pct = ((state.step - 1) / 7) * 100;
+      $("tapeFill").style.width = `${pct.toFixed(0)}%`;
+      $("stepCounter").textContent = String(state.step);
+      $("stepTitle").textContent = STEP_TITLES[state.step] || "—";
+
+      // nav buttons
+      $("backBtn").disabled = state.step === 1;
+      $("backBtn").classList.toggle("opacity-50", state.step === 1);
+      $("backBtn").classList.toggle("pointer-events-none", state.step === 1);
+
+      $("nextBtn").classList.toggle("hidden", state.step === 8);
+      $("skipBtn").classList.toggle("hidden", state.step === 8);
+
+      // step tag vibe
+      const tagMap = {
+        1: "Boot",
+        2: "Save",
+        3: "Profile",
+        4: "Avatar",
+        5: "Interests",
+        6: "Stars",
+        7: "Prefs",
+        8: "Final",
+      };
+      $("stepTag").textContent = tagMap[state.step] || "Tape Track";
+
+      // update review if on step 8
+      if (state.step === 8) renderReview();
+    }
+
+    function go(step){
+      state.step = clamp(step, 1, 8);
+      renderStep();
+    }
+
+    // ---------- Validation (light) ----------
+    function markError(inputEl, isError){
+      inputEl.classList.toggle("error", !!isError);
+    }
+
+    function validateStep(step){
+      // clear errors first
+      markError($("username"), false);
+      markError($("email"), false);
+      markError($("password"), false);
+      markError($("timezone"), false);
+
+      if (step === 1){
+        const u = $("username").value.trim();
+        if (u.length < 3) { markError($("username"), true); return false; }
+        return true;
+      }
+      if (step === 2){
+        const e = $("email").value.trim();
+        const p = $("password").value;
+        const okE = e.includes("@") && e.includes(".");
+        const okP = p.length >= 8;
+        if (!okE) markError($("email"), true);
+        if (!okP) markError($("password"), true);
+        return okE && okP;
+      }
+      if (step === 3){
+        const tz = $("timezone").value;
+        if (!tz) { markError($("timezone"), true); return false; }
+        return true;
+      }
+      return true; // others optional-ish in UI
+    }
+
+    // ---------- Step 1 bindings ----------
+    $("username").addEventListener("input", (e) => {
+      state.username = e.target.value.trim();
+    });
+
+    document.querySelectorAll(".gen").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".gen").forEach(b => setOnChip(b, false));
+        setOnChip(btn, true);
+        state.generation = btn.dataset.value;
+      });
+    });
+
+    // ---------- Step 2 bindings ----------
+    $("email").addEventListener("input", (e) => state.email = e.target.value.trim());
+    $("password").addEventListener("input", (e) => state.password = e.target.value);
+
+    // ---------- Step 3 bindings ----------
+    $("timezone").addEventListener("change", (e) => state.timezone = e.target.value);
+    $("bio").addEventListener("input", (e) => state.bio = e.target.value);
+
+    document.querySelectorAll(".watch").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".watch").forEach(b => setOnChip(b, false));
+        setOnChip(btn, true);
+        state.watchTime = btn.dataset.value;
+      });
+    });
+
+    // ---------- Avatar SVGs ----------
+    function avatarSvg(id, accent1, accent2, mode){
+      // mode: "pixel" or "orb"
+      const common = `viewBox="0 0 64 64" width="48" height="48"`;
+      if (mode === "pixel"){
+        return `
+          <svg ${common} shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+            <rect width="64" height="64" rx="14" fill="rgba(255,255,255,.55)"/>
+            <rect x="6" y="6" width="52" height="52" rx="12" fill="${accent1}" opacity=".85"/>
+            <g opacity=".95">
+              <rect x="16" y="18" width="10" height="10" fill="${accent2}"/>
+              <rect x="38" y="18" width="10" height="10" fill="${accent2}"/>
+              <rect x="20" y="40" width="24" height="6" fill="rgba(42,31,26,.55)"/>
+              <rect x="22" y="42" width="20" height="2" fill="rgba(255,255,255,.45)"/>
+            </g>
+            <rect x="10" y="10" width="8" height="8" fill="rgba(255,255,255,.22)"/>
+          </svg>
+        `;
+      }
+      // orb
+      return `
+        <svg ${common} xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g${id}" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="${accent1}" stop-opacity=".95"/>
+              <stop offset="1" stop-color="${accent2}" stop-opacity=".85"/>
+            </linearGradient>
+          </defs>
+          <rect width="64" height="64" rx="14" fill="rgba(255,255,255,.55)"/>
+          <circle cx="32" cy="32" r="22" fill="url(#g${id})"/>
+          <circle cx="24" cy="26" r="7" fill="rgba(255,255,255,.25)"/>
+          <path d="M18 41c5 7 23 7 28 0" stroke="rgba(42,31,26,.55)" stroke-width="4" stroke-linecap="round" fill="none"/>
+          <circle cx="24" cy="30" r="3" fill="rgba(42,31,26,.55)"/>
+          <circle cx="40" cy="30" r="3" fill="rgba(42,31,26,.55)"/>
+        </svg>
+      `;
+    }
+
+    const AVATARS = [
+      { id:"a1", name:"Peach Orb", a:"#ffb38a", b:"#ffcf5a", mode:"orb" },
+      { id:"a2", name:"Teal Orb", a:"#1fe4ff", b:"#1f7a7a", mode:"orb" },
+      { id:"a3", name:"Magenta Orb", a:"#ff3aa8", b:"#ffcf5a", mode:"orb" },
+      { id:"a4", name:"Sunrise Pixel", a:"#ffcf5a", b:"#ff3aa8", mode:"pixel" },
+      { id:"a5", name:"Sea Pixel", a:"#1f7a7a", b:"#1fe4ff", mode:"pixel" },
+      { id:"a6", name:"Caramel Pixel", a:"#ffb38a", b:"#6b3f2a", mode:"pixel" },
+      { id:"a7", name:"Bubble Orb", a:"#ffe8b7", b:"#ff3aa8", mode:"orb" },
+      { id:"a8", name:"Sky Orb", a:"#1fe4ff", b:"#ffe8b7", mode:"orb" },
+      { id:"a9", name:"Retro Pixel", a:"#2a281f", b:"#ffcf5a", mode:"pixel" },
+      { id:"a10", name:"Mint Pixel", a:"#c8ffe7", b:"#1f7a7a", mode:"pixel" },
+      { id:"a11", name:"Pop Orb", a:"#ff3aa8", b:"#1fe4ff", mode:"orb" },
+      { id:"a12", name:"Classic Pixel", a:"#6b3f2a", b:"#ffe8b7", mode:"pixel" },
+    ];
+
+    function renderAvatarGrid(){
+      const grid = $("avatarGrid");
+      grid.innerHTML = "";
+      AVATARS.forEach(av => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "avatar-btn p-3 grid place-items-center gap-2";
+        btn.dataset.id = av.id;
+        btn.innerHTML = `
+          <div class="w-12 h-12">${avatarSvg(av.id, av.a, av.b, av.mode)}</div>
+          <div class="text-[11px] font-black opacity-90">${av.name}</div>
+        `;
+        btn.addEventListener("click", () => {
+          state.avatarId = av.id;
+          state.avatarUploadDataURL = ""; // grid selection wins unless upload exists; clicking clears upload
+          $("avatarPreviewImg").classList.add("hidden");
+          $("avatarPreviewImg").src = "";
+          $("avatarUpload").value = "";
+          updateAvatarSelection();
+        });
+        grid.appendChild(btn);
+      });
+      updateAvatarSelection();
+    }
+
+    function updateAvatarSelection(){
+      document.querySelectorAll(".avatar-btn").forEach(b => {
+        setOnChip(b, b.dataset.id === state.avatarId && !state.avatarUploadDataURL);
+      });
+
+      // preview
+      const picked = AVATARS.find(a => a.id === state.avatarId) || AVATARS[0];
+      const svgHTML = avatarSvg(picked.id, picked.a, picked.b, picked.mode);
+
+      if (state.avatarUploadDataURL){
+        $("avatarPreviewSvg").innerHTML = "";
+        $("avatarPreviewImg").src = state.avatarUploadDataURL;
+        $("avatarPreviewImg").classList.remove("hidden");
+        $("avatarPreviewLabel").textContent = "Uploaded Avatar";
+      } else {
+        $("avatarPreviewImg").classList.add("hidden");
+        $("avatarPreviewImg").src = "";
+        $("avatarPreviewSvg").innerHTML = svgHTML;
+        $("avatarPreviewLabel").textContent = picked.name;
+      }
+    }
+
+    $("uploadBtn").addEventListener("click", () => $("avatarUpload").click());
+    $("clearUploadBtn").addEventListener("click", () => {
+      state.avatarUploadDataURL = "";
+      $("avatarUpload").value = "";
+      updateAvatarSelection();
+    });
+
+    $("avatarUpload").addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.avatarUploadDataURL = String(reader.result || "");
+        updateAvatarSelection();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // ---------- Step 5 chips ----------
+    function bindToggleGroup(selector, setRef){
+      document.querySelectorAll(selector).forEach(btn => {
+        btn.addEventListener("click", () => {
+          const val = btn.dataset.value;
+          if (setRef.has(val)) setRef.delete(val);
+          else setRef.add(val);
+          setOnChip(btn, setRef.has(val));
+        });
+        // init visual
+        setOnChip(btn, setRef.has(btn.dataset.value));
+      });
+    }
+
+    // ---------- Step 6 stars ----------
+    const STARS = [
+      { id:"kira", name:"Kira Kazama", badge:"Critic" },
+      { id:"mika", name:"Mika Inkline", badge:"Artist" },
+      { id:"ryu",  name:"Ryu TapeDeck", badge:"Collector" },
+      { id:"hana", name:"Hana Storyboard", badge:"Artist" },
+      { id:"zen",  name:"Zen VHS", badge:"Critic" },
+      { id:"cola", name:"Cola Panelist", badge:"Collector" },
+    ];
+
+    function badgeStyle(b){
+      if (b === "Critic") return "bg-[rgba(31,228,255,.18)]";
+      if (b === "Artist") return "bg-[rgba(255,58,168,.16)]";
+      return "bg-[rgba(255,207,90,.22)]";
+    }
+
+    function renderStars(){
+      const wrap = $("starList");
+      wrap.innerHTML = "";
+      STARS.forEach((s, idx) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "chunky-soft bg-white/55 p-4 text-right transition-tiny hover-lift";
+        row.dataset.id = s.id;
+
+        const mini = AVATARS[(idx + 2) % AVATARS.length];
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl border-2 border-[rgba(42,31,26,.65)] bg-white/70 grid place-items-center overflow-hidden">
+              <div class="w-10 h-10">${avatarSvg("star"+idx, mini.a, mini.b, mini.mode)}</div>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <p class="font-extrabold">${s.name}</p>
+                <span class="text-[11px] font-black px-2 py-1 rounded-full border-2 border-[rgba(42,31,26,.75)] ${badgeStyle(s.badge)}">
+                  ${s.badge}
+                </span>
+              </div>
+              <p class="text-sm font-semibold opacity-80 mt-1">Retro vibes • توصيات قوية • نشاط منتظم</p>
+            </div>
+            <div class="w-6 h-6 rounded-full border-2 border-[rgba(42,31,26,.75)] bg-white/60 grid place-items-center">
+              <span class="text-xs font-black" data-check>+</span>
+            </div>
+          </div>
+        `;
+
+        row.addEventListener("click", () => {
+          const id = row.dataset.id;
+          if (state.stars.has(id)) state.stars.delete(id);
+          else state.stars.add(id);
+          updateStarsUI();
+        });
+
+        wrap.appendChild(row);
+      });
+
+      updateStarsUI();
+    }
+
+    function updateStarsUI(){
+      document.querySelectorAll("#starList > button").forEach(btn => {
+        const on = state.stars.has(btn.dataset.id);
+        btn.classList.toggle("ring-4", on);
+        btn.classList.toggle("ring-[rgba(31,122,122,.25)]", on);
+        const check = btn.querySelector("[data-check]");
+        if (check) check.textContent = on ? "✓" : "+";
+      });
+    }
+
+    // ---------- Step 7 bindings ----------
+    $("profilePublic").addEventListener("change", e => state.privacy.profilePublic = e.target.checked);
+    $("showActivity").addEventListener("change", e => state.privacy.showActivity = e.target.checked);
+    $("notifEmail").addEventListener("change", e => state.notifications.email = e.target.checked);
+    $("notifPush").addEventListener("change", e => state.notifications.push = e.target.checked);
+
+    document.querySelectorAll(".spoiler").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".spoiler").forEach(b => setOnChip(b, false));
+        setOnChip(btn, true);
+        state.spoilerLevel = btn.dataset.value;
+      });
+    });
+
+    // ---------- Review ----------
+    function renderReview(){
+      // base fields
+      $("reviewUsername").textContent = state.username || "—";
+      $("reviewGen").textContent = `Generation: ${state.generation || "—"}`;
+      $("reviewEmail").textContent = state.email || "—";
+      $("reviewTZ").textContent = state.timezone || "—";
+      $("reviewWatch").textContent = state.watchTime || "—";
+      $("reviewBio").textContent = (state.bio || "").trim() || "—";
+
+      // avatar
+      const picked = AVATARS.find(a => a.id === state.avatarId) || AVATARS[0];
+      const svgHTML = avatarSvg(picked.id, picked.a, picked.b, picked.mode);
+
+      if (state.avatarUploadDataURL){
+        $("reviewAvatarSvg").innerHTML = "";
+        $("reviewAvatarImg").src = state.avatarUploadDataURL;
+        $("reviewAvatarImg").classList.remove("hidden");
+      } else {
+        $("reviewAvatarImg").classList.add("hidden");
+        $("reviewAvatarImg").src = "";
+        $("reviewAvatarSvg").innerHTML = svgHTML;
+      }
+
+      // sets -> pills
+      const plat = $("reviewPlatforms");
+      const gen = $("reviewGenres");
+      const stars = $("reviewStars");
+      plat.innerHTML = ""; gen.innerHTML = ""; stars.innerHTML = "";
+
+      [...state.platforms].sort().forEach(v => plat.appendChild(pill(v)));
+      [...state.genres].sort().forEach(v => gen.appendChild(pill(v)));
+
+      if (state.stars.size === 0){
+        stars.appendChild(pill("No follows"));
+      } else {
+        [...state.stars].forEach(id => {
+          const s = STARS.find(x => x.id === id);
+          stars.appendChild(pillHot(s ? s.name : id));
+        });
+      }
+
+      // settings text
+      $("reviewPrivacy").textContent =
+        `Privacy: ${state.privacy.profilePublic ? "Public" : "Private"} • Activity: ${state.privacy.showActivity ? "Shown" : "Hidden"}`;
+      $("reviewNotif").textContent =
+        `Notifications: Email ${state.notifications.email ? "ON" : "OFF"} • Push ${state.notifications.push ? "ON" : "OFF"}`;
+      $("reviewSpoiler").textContent =
+        `Spoiler Level: ${state.spoilerLevel}`;
+    }
+
+    // ---------- Nav ----------
+    $("backBtn").addEventListener("click", () => go(state.step - 1));
+
+    $("nextBtn").addEventListener("click", () => {
+      // sync inputs for current step
+      syncInputs();
+      if (!validateStep(state.step)) return;
+      go(state.step + 1);
+    });
+
+    $("skipBtn").addEventListener("click", () => {
+      // skip: no validation, but still sync
+      syncInputs();
+      go(state.step + 1);
+    });
+
+    function syncInputs(){
+      // pull from DOM (safe)
+      state.username = $("username").value.trim();
+      state.email = $("email").value.trim();
+      state.password = $("password").value;
+      state.timezone = $("timezone").value;
+      state.bio = $("bio").value;
+
+      // platforms/genres sets already handled by chip binding (but keep visuals in sync)
+    }
+
+    // ---------- Create Account (Opening...) ----------
+    const openingLines = [
+      "Please don’t skip the intro 😌",
+      "Buffering VHS tape…",
+      "Syncing your watchlist…",
+      "Fetching 90s star power…",
+      "Calibrating scanlines…",
+      "Opening sequence unlocked ✨"
+    ];
+
+    $("createBtn").addEventListener("click", () => {
+      // final sync + minimal checks
+      syncInputs();
+      if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
+        // jump to first failing step quickly
+        if (!validateStep(1)) return go(1);
+        if (!validateStep(2)) return go(2);
+        if (!validateStep(3)) return go(3);
+        return;
+      }
+      renderReview();
+
+      setHidden($("openingOverlay"), false);
+      setHidden($("openingDone"), true);
+
+      let idx = 0;
+      $("openingLine").textContent = openingLines[idx];
+
+      const interval = setInterval(() => {
+        idx = (idx + 1) % openingLines.length;
+        $("openingLine").textContent = openingLines[idx];
+      }, 650);
+
+      // simulate loading end
+      setTimeout(() => {
+        clearInterval(interval);
+        $("openingLine").textContent = "✅ Ready.";
+        setHidden($("openingDone"), false);
+        // small VHS punch if enabled
+        if (state.vhs) document.querySelector("#openingOverlay .chunky")?.classList.add("vhs-jitter");
+      }, 2200);
+    });
+
+    $("closeOpeningBtn").addEventListener("click", () => {
+      setHidden($("openingOverlay"), true);
+    });
+
+    // ---------- Init ----------
+    function init(){
+      // default selections visuals
+      renderAvatarGrid();
+      renderStars();
+      bindToggleGroup(".platform", state.platforms);
+      bindToggleGroup(".genre", state.genres);
+
+      // default avatar preview
+      updateAvatarSelection();
+
+      // default checkbox states already set in DOM, ensure state matches
+      state.privacy.profilePublic = $("profilePublic").checked;
+      state.privacy.showActivity = $("showActivity").checked;
+      state.notifications.email = $("notifEmail").checked;
+      state.notifications.push = $("notifPush").checked;
+
+      // default
+      $("username").value = "";
+      state.username = "";
+
+      renderStep();
+    }
+    init();
+  </script>
+</body>
+</html>

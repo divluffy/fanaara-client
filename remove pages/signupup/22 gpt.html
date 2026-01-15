@@ -1,0 +1,2288 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>تسجيل النقابة — Guild Registration</title>
+
+  <!-- Fonts (safe) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Cinzel', 'ui-serif', 'serif'],
+            body: ['Inter', 'ui-sans-serif', 'system-ui'],
+          },
+          colors: {
+            ink: {
+              950: '#06060a',
+              900: '#0b0b12',
+              850: '#0f0f18',
+              800: '#141424',
+              700: '#1b1b33',
+            },
+            wax: {
+              500: '#7f2030',
+              600: '#6b1726',
+              700: '#56111e',
+            },
+            rune: {
+              200: '#d3fbff',
+              300: '#8ef0ff',
+              400: '#57d7ff',
+              500: '#1abfff',
+            },
+            ember: {
+              300: '#ffd79a',
+              400: '#ffb457',
+              500: '#ff8a3d',
+            }
+          },
+          boxShadow: {
+            soft: '0 20px 60px rgba(0,0,0,.55)',
+            glow: '0 0 0 1px rgba(88,215,255,.12), 0 0 30px rgba(26,191,255,.22)',
+            card: '0 0 0 1px rgba(255,255,255,.06), 0 25px 80px rgba(0,0,0,.55)',
+          },
+          keyframes: {
+            drift: {
+              '0%': { transform: 'translate3d(0,0,0) scale(1)' },
+              '50%': { transform: 'translate3d(-3%,2%,0) scale(1.03)' },
+              '100%': { transform: 'translate3d(0,0,0) scale(1)' },
+            },
+            floaty: {
+              '0%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-8px)' },
+              '100%': { transform: 'translateY(0)' },
+            },
+            rotateSlow: {
+              '0%': { transform: 'rotate(0deg)' },
+              '100%': { transform: 'rotate(360deg)' },
+            },
+            pulseRune: {
+              '0%,100%': { opacity: .35, filter: 'blur(.2px)' },
+              '50%': { opacity: .7, filter: 'blur(0px)' },
+            },
+            sealClose: {
+              '0%': { opacity: 0, transform: 'scale(1.08)' },
+              '20%': { opacity: 1, transform: 'scale(1)' },
+              '55%': { opacity: 1, transform: 'scale(1)' },
+              '100%': { opacity: 0, transform: 'scale(.92)' }
+            },
+            sealRing: {
+              '0%': { strokeDashoffset: 620, opacity: .0 },
+              '20%': { opacity: 1 },
+              '60%': { strokeDashoffset: 0, opacity: 1 },
+              '100%': { opacity: 0 }
+            },
+            spark: {
+              '0%': { transform: 'translate3d(0,0,0) scale(.8)', opacity: 0 },
+              '15%': { opacity: .8 },
+              '60%': { opacity: .7 },
+              '100%': { transform: 'translate3d(var(--dx), var(--dy), 0) scale(1.25)', opacity: 0 }
+            }
+          },
+          animation: {
+            drift: 'drift 14s ease-in-out infinite',
+            floaty: 'floaty 6.5s ease-in-out infinite',
+            rotateSlow: 'rotateSlow 22s linear infinite',
+            pulseRune: 'pulseRune 3.4s ease-in-out infinite',
+            sealClose: 'sealClose .62s ease-in-out both',
+            sealRing: 'sealRing .62s ease-in-out both',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --hue: 0deg;
+      --glow: .55;
+      --grain: .22;
+      --sceneFog: .65;
+      --cardRune: .18;
+      --ring: rgba(88,215,255,.24);
+      --ok: rgba(88,255,191,.55);
+      --bad: rgba(255,99,132,.55);
+    }
+
+    /* Ambient background */
+    body{
+      background: radial-gradient(1200px 800px at 70% 10%, rgba(26,191,255,.11), transparent 55%),
+                  radial-gradient(900px 600px at 20% 35%, rgba(255,180,87,.07), transparent 55%),
+                  radial-gradient(700px 700px at 85% 70%, rgba(127,32,48,.14), transparent 60%),
+                  linear-gradient(180deg, #06060a 0%, #0b0b12 55%, #06060a 100%);
+      overflow-x: hidden;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans Arabic", "Noto Sans", sans-serif;
+    }
+
+    /* Decorative grain overlay */
+    .grain::before{
+      content:"";
+      position:absolute; inset:0;
+      pointer-events:none;
+      background-image:
+        radial-gradient(circle at 20% 10%, rgba(255,255,255,.06) 0 1px, transparent 1px),
+        radial-gradient(circle at 70% 30%, rgba(255,255,255,.05) 0 1px, transparent 1px),
+        radial-gradient(circle at 40% 80%, rgba(255,255,255,.04) 0 1px, transparent 1px),
+        radial-gradient(circle at 85% 65%, rgba(255,255,255,.03) 0 1px, transparent 1px);
+      background-size: 180px 180px, 210px 210px, 260px 260px, 190px 190px;
+      mix-blend-mode: overlay;
+      opacity: var(--grain);
+      filter: contrast(120%) saturate(120%);
+    }
+
+    /* Scene: moonlight + runes + fog */
+    .scene{
+      position: relative;
+      isolation: isolate;
+      border-left: 1px solid rgba(255,255,255,.06);
+      background:
+        radial-gradient(950px 520px at 60% 20%, rgba(88,215,255,.14), transparent 58%),
+        radial-gradient(520px 520px at 70% 18%, rgba(255,255,255,.08), transparent 52%),
+        radial-gradient(420px 340px at 70% 24%, rgba(255,255,255,.05), transparent 55%),
+        linear-gradient(140deg, rgba(255,255,255,.03), transparent 45%),
+        linear-gradient(180deg, rgba(6,6,10,.20), rgba(6,6,10,.78));
+      overflow:hidden;
+    }
+
+    /* Moon */
+    .moon{
+      position:absolute; top: 10%; left: 18%;
+      width: 220px; height: 220px;
+      border-radius: 9999px;
+      background:
+        radial-gradient(circle at 30% 35%, rgba(255,255,255,.85), rgba(255,255,255,.22) 55%, rgba(255,255,255,.08) 70%, transparent 74%),
+        radial-gradient(circle at 60% 70%, rgba(26,191,255,.12), transparent 60%);
+      filter: blur(.2px);
+      opacity: .9;
+      box-shadow: 0 0 90px rgba(88,215,255,.18);
+    }
+    .moon::after{
+      content:"";
+      position:absolute; inset:-18%;
+      border-radius:9999px;
+      background: radial-gradient(circle at 50% 50%, rgba(88,215,255,.10), transparent 60%);
+      filter: blur(8px);
+      opacity:.85;
+    }
+
+    /* Fog layers */
+    .fog{
+      position:absolute; inset:-20%;
+      opacity: var(--sceneFog);
+      pointer-events:none;
+      mix-blend-mode: screen;
+      filter: blur(2px);
+    }
+    .fog.f1{ background:
+        radial-gradient(closest-side at 20% 40%, rgba(255,255,255,.08), transparent 70%),
+        radial-gradient(closest-side at 65% 65%, rgba(88,215,255,.10), transparent 72%),
+        radial-gradient(closest-side at 55% 25%, rgba(255,180,87,.06), transparent 70%);
+      animation: drift 18s ease-in-out infinite;
+    }
+    .fog.f2{ background:
+        radial-gradient(closest-side at 30% 70%, rgba(255,255,255,.06), transparent 72%),
+        radial-gradient(closest-side at 80% 30%, rgba(88,215,255,.09), transparent 70%),
+        radial-gradient(closest-side at 55% 55%, rgba(127,32,48,.08), transparent 75%);
+      animation: drift 24s ease-in-out infinite reverse;
+      opacity: calc(var(--sceneFog) * .85);
+    }
+
+    /* Rune circle SVG container */
+    .rune-circles{
+      position:absolute; inset: -40px -40px auto auto;
+      width: 520px; height: 520px;
+      opacity:.75;
+      filter: drop-shadow(0 0 14px rgba(26,191,255,.12));
+      transform-origin: center;
+      pointer-events:none;
+    }
+    .rune-circles .outer{ animation: rotateSlow 24s linear infinite; transform-origin: 50% 50%; }
+    .rune-circles .mid{ animation: rotateSlow 16s linear infinite reverse; transform-origin: 50% 50%; opacity:.8;}
+    .rune-circles .inner{ animation: rotateSlow 10s linear infinite; transform-origin: 50% 50%; opacity:.55;}
+
+    /* Fireflies */
+    .firefly{
+      position:absolute;
+      width: 6px; height: 6px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255,255,255,.95), rgba(255,215,154,.35) 35%, rgba(26,191,255,.12) 70%, transparent 75%);
+      filter: blur(.2px);
+      opacity: .0;
+      animation: spark var(--t) ease-in-out infinite;
+      box-shadow: 0 0 14px rgba(255,215,154,.22);
+      mix-blend-mode: screen;
+      pointer-events:none;
+    }
+
+    /* Card "dark paper" */
+    .card{
+      background:
+        radial-gradient(900px 500px at 20% 0%, rgba(255,255,255,.05), transparent 60%),
+        radial-gradient(500px 300px at 90% 30%, rgba(26,191,255,.06), transparent 55%),
+        linear-gradient(180deg, rgba(20,20,36,.88), rgba(11,11,18,.92));
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.25) inset, 0 30px 90px rgba(0,0,0,.55);
+      position: relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute; inset:-1px;
+      background:
+        radial-gradient(closest-side at 25% 35%, rgba(88,215,255,var(--cardRune)), transparent 60%),
+        radial-gradient(closest-side at 80% 65%, rgba(255,180,87, calc(var(--cardRune) * .65)), transparent 62%),
+        repeating-radial-gradient(circle at 30% 45%, rgba(255,255,255,.05) 0 1px, transparent 1px 9px);
+      opacity:.55;
+      mix-blend-mode: overlay;
+      pointer-events:none;
+      filter: blur(0.2px);
+    }
+
+    /* Ornamental corner */
+    .corner{
+      position:absolute; width: 120px; height: 120px;
+      opacity:.8;
+      pointer-events:none;
+      filter: drop-shadow(0 0 12px rgba(26,191,255,.10));
+    }
+    .corner.tl{ top:-10px; right:-10px; transform: scaleX(-1); }
+    .corner.tr{ top:-10px; left:-10px; }
+    .corner.bl{ bottom:-10px; right:-10px; transform: rotate(180deg) scaleX(-1); }
+    .corner.br{ bottom:-10px; left:-10px; transform: rotate(180deg); }
+
+    /* Inputs */
+    .field{
+      background: rgba(6,6,10,.35);
+      border: 1px solid rgba(255,255,255,.10);
+      outline: none;
+      transition: box-shadow .2s ease, border-color .2s ease, transform .2s ease;
+    }
+    .field:focus{
+      border-color: rgba(26,191,255,.35);
+      box-shadow: 0 0 0 4px rgba(26,191,255,.12);
+    }
+    .hint{
+      color: rgba(255,255,255,.62);
+      font-size: .82rem;
+    }
+    .err{
+      color: rgba(255,160,185,.92);
+      font-size: .82rem;
+    }
+    .ok{
+      color: rgba(140,255,210,.88);
+      font-size: .82rem;
+    }
+
+    /* Chips */
+    .chip{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(6,6,10,.35);
+      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+      user-select:none;
+    }
+    .chip:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.18); }
+    .chip[aria-pressed="true"]{
+      border-color: rgba(26,191,255,.42);
+      box-shadow: 0 0 0 4px rgba(26,191,255,.10);
+    }
+
+    /* Avatar preview container */
+    .avatar-box{
+      position: relative;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: radial-gradient(300px 220px at 40% 30%, rgba(255,255,255,.06), transparent 60%),
+                  linear-gradient(180deg, rgba(6,6,10,.35), rgba(6,6,10,.65));
+      box-shadow: 0 0 0 1px rgba(0,0,0,.25) inset;
+      overflow:hidden;
+    }
+    .avatar-box::after{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(circle at 50% 55%, rgba(88,215,255, calc(.16 * var(--glow))), transparent 55%),
+        radial-gradient(circle at 20% 20%, rgba(255,180,87, calc(.10 * var(--glow))), transparent 60%),
+        repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.06) 0 1px, transparent 1px 10px);
+      opacity: .75;
+      mix-blend-mode: overlay;
+      pointer-events:none;
+      filter: blur(.2px);
+    }
+
+    .avatar-live{
+      filter: hue-rotate(var(--hue)) saturate(1.05) contrast(1.06);
+      transform: translateZ(0);
+    }
+
+    .rune-mask{
+      position:absolute; inset:0;
+      pointer-events:none;
+      mix-blend-mode: screen;
+      opacity: calc(.18 + (var(--glow) * .28));
+      filter: drop-shadow(0 0 18px rgba(26,191,255, calc(.22 + var(--glow) * .22)));
+    }
+
+    .outline-glow{
+      box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset,
+                  0 0 0 1px rgba(26,191,255, calc(.18 + var(--glow) * .22)),
+                  0 0 26px rgba(26,191,255, calc(.14 + var(--glow) * .22));
+    }
+
+    /* Step transition (Rune Seal) */
+    #sealOverlay{
+      position: fixed; inset:0;
+      display:none;
+      align-items:center; justify-content:center;
+      background: radial-gradient(900px 600px at 50% 50%, rgba(6,6,10,.68), rgba(6,6,10,.92));
+      z-index: 60;
+      pointer-events:none;
+      backdrop-filter: blur(2px);
+    }
+    #sealOverlay.show{ display:flex; }
+    .sealWrap{
+      width: min(520px, 86vw);
+      aspect-ratio: 1/1;
+      position: relative;
+      filter: drop-shadow(0 0 20px rgba(26,191,255,.16));
+    }
+    .sealGlyph{
+      position:absolute; inset:0;
+      opacity:.0;
+      animation: sealClose .62s ease-in-out both;
+    }
+    .sealGlyph svg{
+      width:100%; height:100%;
+    }
+    .sealGlyph .ring{
+      stroke-dasharray: 620;
+      stroke-dashoffset: 620;
+      animation: sealRing .62s ease-in-out both;
+    }
+
+    /* Wax seal (success) */
+    .wax{
+      position: relative;
+      width: 150px; height: 150px;
+      border-radius: 9999px;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,.18), transparent 42%),
+        radial-gradient(circle at 65% 75%, rgba(0,0,0,.28), transparent 58%),
+        radial-gradient(circle at 55% 45%, rgba(255,180,87,.10), transparent 60%),
+        linear-gradient(180deg, rgba(127,32,48,.95), rgba(86,17,30,.96));
+      box-shadow: 0 18px 40px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.10) inset;
+    }
+    .wax::before{
+      content:"";
+      position:absolute; inset: -10px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(26,191,255,.12), transparent 65%);
+      filter: blur(10px);
+      opacity: .7;
+    }
+    .wax::after{
+      content:"";
+      position:absolute; inset: 14px;
+      border-radius: 9999px;
+      background:
+        radial-gradient(circle at 40% 35%, rgba(255,255,255,.10), transparent 50%),
+        repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.05) 0 1px, transparent 1px 9px);
+      opacity: .6;
+      mix-blend-mode: overlay;
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .fog, .rune-circles .outer, .rune-circles .mid, .rune-circles .inner, .firefly{
+        animation: none !important;
+      }
+      #sealOverlay .sealGlyph, #sealOverlay .ring{ animation:none !important; opacity: 1 !important; }
+    }
+
+    /* Make desktop split feel natural */
+    @media (min-width: 1024px){
+      .scene{
+        border-left: 1px solid rgba(255,255,255,.06);
+      }
+    }
+
+    /* Range styling */
+    input[type="range"]{ accent-color: rgba(26,191,255,.85); }
+
+    /* Tiny scrollbar */
+    ::-webkit-scrollbar{ width: 10px; height: 10px; }
+    ::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.10); border-radius: 9999px; }
+    ::-webkit-scrollbar-track{ background: rgba(0,0,0,.15); }
+  </style>
+</head>
+
+<body class="text-white/90">
+  <div id="app" class="min-h-screen relative overflow-hidden">
+    <!-- Global grain -->
+    <div class="absolute inset-0 grain pointer-events-none"></div>
+
+    <!-- Rune Seal Transition Overlay -->
+    <div id="sealOverlay" aria-hidden="true">
+      <div class="sealWrap">
+        <div class="sealGlyph">
+          <svg viewBox="0 0 300 300" fill="none" aria-hidden="true">
+            <defs>
+              <radialGradient id="sealG" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(150 150) rotate(90) scale(150)">
+                <stop stop-color="rgba(26,191,255,.22)"/>
+                <stop offset="0.55" stop-color="rgba(26,191,255,.08)"/>
+                <stop offset="1" stop-color="rgba(0,0,0,0)"/>
+              </radialGradient>
+            </defs>
+            <circle cx="150" cy="150" r="140" fill="url(#sealG)"/>
+            <circle class="ring" cx="150" cy="150" r="118" stroke="rgba(88,240,255,.55)" stroke-width="2.2"/>
+            <circle class="ring" cx="150" cy="150" r="86" stroke="rgba(255,180,87,.30)" stroke-width="1.6" style="animation-delay:.06s"/>
+            <g opacity=".9">
+              <path d="M150 52 L162 90 L202 90 L170 112 L182 150 L150 128 L118 150 L130 112 L98 90 L138 90 Z"
+                    fill="rgba(255,255,255,.06)" stroke="rgba(88,215,255,.38)" stroke-width="1.2"/>
+              <path d="M150 248 L138 210 L98 210 L130 188 L118 150 L150 172 L182 150 L170 188 L202 210 L162 210 Z"
+                    fill="rgba(255,255,255,.05)" stroke="rgba(255,180,87,.26)" stroke-width="1.1"/>
+              <path d="M55 150 L90 138 L90 98 L112 130 L150 118 L128 150 L150 182 L112 170 L90 202 L90 162 Z"
+                    fill="rgba(255,255,255,.04)" stroke="rgba(88,215,255,.24)" stroke-width="1.1"/>
+              <path d="M245 150 L210 162 L210 202 L188 170 L150 182 L172 150 L150 118 L188 130 L210 98 L210 138 Z"
+                    fill="rgba(255,255,255,.04)" stroke="rgba(88,215,255,.24)" stroke-width="1.1"/>
+            </g>
+            <g opacity=".75">
+              <text x="150" y="154" text-anchor="middle" font-family="Cinzel, serif" font-size="18" fill="rgba(255,255,255,.72)">SEAL</text>
+              <text x="150" y="178" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="rgba(88,240,255,.70)">✦ ᚱ ᚢ ᚾ ᛖ ✦</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="relative lg:grid lg:grid-cols-12 min-h-screen">
+      <!-- Scene (Left on Desktop / Top on Mobile) -->
+      <aside class="scene lg:col-span-5 min-h-[44vh] lg:min-h-screen px-5 sm:px-8 py-8 sm:py-10">
+        <!-- Moon + circles -->
+        <div class="moon animate-floaty"></div>
+
+        <div class="rune-circles">
+          <svg viewBox="0 0 520 520" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="runeStroke" x1="0" y1="0" x2="520" y2="520" gradientUnits="userSpaceOnUse">
+                <stop stop-color="rgba(88,240,255,.62)"/>
+                <stop offset="1" stop-color="rgba(255,180,87,.28)"/>
+              </linearGradient>
+            </defs>
+            <g class="outer">
+              <circle cx="260" cy="260" r="215" stroke="url(#runeStroke)" stroke-width="1.4" opacity=".75"/>
+              <circle cx="260" cy="260" r="198" stroke="rgba(255,255,255,.10)" stroke-width="1" stroke-dasharray="2 8"/>
+              <!-- Glyph ticks -->
+              <g opacity=".75" stroke="rgba(88,240,255,.35)" stroke-width="1">
+                <path d="M260 34 v18"/><path d="M260 468 v18"/>
+                <path d="M34 260 h18"/><path d="M468 260 h18"/>
+                <path d="M105 105 l13 13"/><path d="M402 402 l13 13"/>
+                <path d="M105 415 l13 -13"/><path d="M402 118 l13 -13"/>
+              </g>
+              <!-- Rune text path vibe -->
+              <g opacity=".65" fill="rgba(255,255,255,.18)" font-family="Cinzel, serif" font-size="13">
+                <text x="260" y="58" text-anchor="middle">ᚱᚢᚾᛖ • ᛊᛖᚨᛚ • ᚷᛁᛚᛞ</text>
+                <text x="260" y="486" text-anchor="middle">OATH • VEIL • MOON</text>
+              </g>
+            </g>
+            <g class="mid">
+              <circle cx="260" cy="260" r="150" stroke="rgba(88,240,255,.38)" stroke-width="1.2"/>
+              <circle cx="260" cy="260" r="128" stroke="rgba(255,180,87,.22)" stroke-width="1" stroke-dasharray="7 9"/>
+              <path d="M260 110 L300 180 L380 190 L320 245 L340 325 L260 285 L180 325 L200 245 L140 190 L220 180 Z"
+                    fill="rgba(255,255,255,.04)" stroke="rgba(88,240,255,.26)" stroke-width="1.1"/>
+            </g>
+            <g class="inner">
+              <circle cx="260" cy="260" r="86" stroke="rgba(255,255,255,.10)" stroke-width="1"/>
+              <circle cx="260" cy="260" r="68" stroke="rgba(88,240,255,.30)" stroke-width="1" stroke-dasharray="1 7"/>
+              <g opacity=".75" stroke="rgba(255,180,87,.22)" stroke-width="1">
+                <path d="M260 174 v14"/><path d="M260 332 v14"/>
+                <path d="M174 260 h14"/><path d="M332 260 h14"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Fog -->
+        <div class="fog f1"></div>
+        <div class="fog f2"></div>
+
+        <!-- Fireflies container -->
+        <div id="fireflies" class="absolute inset-0"></div>
+
+        <!-- Scene content -->
+        <div class="relative z-10 max-w-xl mt-6 lg:mt-10">
+          <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/70">
+            <span class="w-1.5 h-1.5 rounded-full bg-rune-400 shadow-[0_0_18px_rgba(26,191,255,.55)]"></span>
+            <span>طقس التسجيل — Guild Registration</span>
+          </div>
+
+          <h1 class="font-display text-3xl sm:text-4xl mt-4 leading-tight">
+            ادخل تحت ضوء القمر…<br class="hidden sm:block" />
+            <span class="text-rune-300/90">وسجّل اسمك في النقابة</span>
+          </h1>
+
+          <p class="mt-3 text-white/65 leading-relaxed">
+            أربع مراحل فقط—لكن الطقوس الصغيرة تظهر عند الحاجة. تخطَّ الإضافات عبر
+            <span class="text-white/80">Skip rituals</span>
+            إن أردت سرعةً أكثر.
+          </p>
+
+          <!-- Progress -->
+          <div class="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4 shadow-glow">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="text-xs text-white/55">التقدّم</div>
+                <div id="sceneStepTitle" class="font-display text-lg">Summon Account</div>
+              </div>
+              <div class="text-sm text-white/70">
+                <span id="sceneStepNum">1</span>/<span id="sceneStepTotal">4</span>
+              </div>
+            </div>
+
+            <div class="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
+              <div id="sceneProgressBar" class="h-full rounded-full bg-gradient-to-l from-rune-400/80 to-ember-400/40 w-[10%] transition-[width] duration-500"></div>
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-2 text-xs text-white/60">
+              <span id="pip0" class="px-2 py-1 rounded-full bg-white/5 border border-white/10">1</span>
+              <span id="pip1" class="px-2 py-1 rounded-full bg-white/5 border border-white/10">2</span>
+              <span id="pip2" class="px-2 py-1 rounded-full bg-white/5 border border-white/10">3</span>
+              <span id="pip3" class="px-2 py-1 rounded-full bg-white/5 border border-white/10">4</span>
+            </div>
+          </div>
+
+          <div class="mt-6 hidden lg:block text-xs text-white/45">
+            تلميح: اسحب يمين/يسار على الهاتف للتنقل (اختياري).
+          </div>
+        </div>
+      </aside>
+
+      <!-- Form (Right on Desktop / Bottom on Mobile) -->
+      <main class="lg:col-span-7 relative px-4 sm:px-8 py-6 sm:py-10">
+        <div class="max-w-2xl mx-auto lg:mx-0 lg:max-w-2xl lg:pr-4">
+          <div class="card rounded-3xl p-5 sm:p-7">
+            <!-- Corners -->
+            <svg class="corner tl" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+              <path d="M12 28 C36 10, 62 12, 92 10" stroke="rgba(88,240,255,.25)" stroke-width="1.3"/>
+              <path d="M10 14 C22 22, 30 36, 28 58" stroke="rgba(255,180,87,.20)" stroke-width="1.1"/>
+              <path d="M18 42 C38 24, 62 26, 86 24" stroke="rgba(255,255,255,.10)" stroke-width="1"/>
+              <path d="M14 10 h30 v2 h-18 v18 h-2 z" fill="rgba(255,255,255,.07)"/>
+            </svg>
+            <svg class="corner tr" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+              <path d="M12 28 C36 10, 62 12, 92 10" stroke="rgba(88,240,255,.25)" stroke-width="1.3"/>
+              <path d="M10 14 C22 22, 30 36, 28 58" stroke="rgba(255,180,87,.20)" stroke-width="1.1"/>
+              <path d="M18 42 C38 24, 62 26, 86 24" stroke="rgba(255,255,255,.10)" stroke-width="1"/>
+              <path d="M14 10 h30 v2 h-18 v18 h-2 z" fill="rgba(255,255,255,.07)"/>
+            </svg>
+            <svg class="corner bl" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+              <path d="M12 28 C36 10, 62 12, 92 10" stroke="rgba(88,240,255,.25)" stroke-width="1.3"/>
+              <path d="M10 14 C22 22, 30 36, 28 58" stroke="rgba(255,180,87,.20)" stroke-width="1.1"/>
+              <path d="M18 42 C38 24, 62 26, 86 24" stroke="rgba(255,255,255,.10)" stroke-width="1"/>
+              <path d="M14 10 h30 v2 h-18 v18 h-2 z" fill="rgba(255,255,255,.07)"/>
+            </svg>
+            <svg class="corner br" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+              <path d="M12 28 C36 10, 62 12, 92 10" stroke="rgba(88,240,255,.25)" stroke-width="1.3"/>
+              <path d="M10 14 C22 22, 30 36, 28 58" stroke="rgba(255,180,87,.20)" stroke-width="1.1"/>
+              <path d="M18 42 C38 24, 62 26, 86 24" stroke="rgba(255,255,255,.10)" stroke-width="1"/>
+              <path d="M14 10 h30 v2 h-18 v18 h-2 z" fill="rgba(255,255,255,.07)"/>
+            </svg>
+
+            <!-- Header -->
+            <div class="relative z-10 flex items-start justify-between gap-4">
+              <div>
+                <div class="text-xs text-white/55">نقابة الظلال</div>
+                <h2 id="stepHeading" class="font-display text-2xl mt-1">Summon Account</h2>
+                <p id="stepSub" class="text-white/65 mt-1 leading-relaxed">
+                  اربط روحك ببريدٍ وكلمةِ سر، ثم دع الختم يتحقق من قوتها.
+                </p>
+              </div>
+
+              <button id="skipBtn" type="button"
+                      class="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70 hover:bg-white/10 transition">
+                Skip rituals
+              </button>
+            </div>
+
+            <!-- Content -->
+            <div class="relative z-10 mt-5">
+              <div id="stepBody"></div>
+            </div>
+
+            <!-- Desktop actions -->
+            <div class="relative z-10 mt-6 hidden lg:flex items-center justify-between gap-3">
+              <button id="backBtn" type="button"
+                      class="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/75 hover:bg-white/10 transition disabled:opacity-40 disabled:hover:bg-white/5">
+                رجوع
+              </button>
+
+              <div class="flex items-center gap-2">
+                <div id="inlineStatus" class="text-xs text-white/55 hidden sm:block"></div>
+                <button id="nextBtn" type="button"
+                        class="rounded-xl bg-gradient-to-l from-rune-400/80 to-ember-400/40 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_34px_rgba(26,191,255,.18)] hover:brightness-110 transition">
+                  التالي
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Mobile sticky actions -->
+          <div class="lg:hidden fixed bottom-0 inset-x-0 z-40">
+            <div class="mx-auto max-w-2xl px-4 pb-4">
+              <div class="rounded-2xl border border-white/10 bg-black/50 backdrop-blur-md shadow-soft px-3 py-3 flex items-center justify-between gap-3">
+                <button id="mBackBtn" type="button"
+                        class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/75 hover:bg-white/10 transition disabled:opacity-40 disabled:hover:bg-white/5">
+                  رجوع
+                </button>
+
+                <div class="text-xs text-white/60">
+                  <span id="mStepNum">1</span>/<span id="mStepTotal">4</span>
+                </div>
+
+                <button id="mNextBtn" type="button"
+                        class="rounded-xl bg-gradient-to-l from-rune-400/80 to-ember-400/40 px-5 py-2 text-sm font-semibold text-white hover:brightness-110 transition">
+                  التالي
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spacer for sticky bar -->
+          <div class="lg:hidden h-24"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Utilities ----------
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+    function debounce(fn, wait=250){
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), wait);
+      };
+    }
+
+    function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+    // ---------- Fireflies ----------
+    (function spawnFireflies(){
+      const wrap = $("#fireflies");
+      const N = 26;
+      for(let i=0;i<N;i++){
+        const d = document.createElement("div");
+        d.className = "firefly";
+        const x = Math.random()*100;
+        const y = Math.random()*100;
+        const dx = (Math.random() < .5 ? -1 : 1) * (20 + Math.random()*90);
+        const dy = (Math.random() < .5 ? -1 : 1) * (20 + Math.random()*90);
+        const t = (5.2 + Math.random()*6.8).toFixed(2) + "s";
+        d.style.left = x + "%";
+        d.style.top = y + "%";
+        d.style.setProperty("--dx", dx + "px");
+        d.style.setProperty("--dy", dy + "px");
+        d.style.setProperty("--t", t);
+        d.style.animationDelay = (-Math.random()*6).toFixed(2) + "s";
+        wrap.appendChild(d);
+      }
+    })();
+
+    // ---------- State ----------
+    const steps = [
+      { key: "account", title: "Summon Account", sub: "اربط روحك ببريدٍ وكلمةِ سر، ثم دع الختم يتحقق من قوتها." },
+      { key: "title", title: "Choose a Title", sub: "اسمٌ يُنادى به في الساحات… ولقبٌ لا يتكرر بين النقابيين." },
+      { key: "avatar", title: "Sigil Avatar", sub: "ميزة المنصة: اصنع سيجيلك (Sigil) أو ارفع صورة واطبع عليها قناع الرونز." },
+      { key: "bonds", title: "Guild Bonds + Interests", sub: "اتبع 1–3 قادة، واختر ميولك… (تستطيع تخطي الإضافات)." },
+    ];
+
+    const mockLeaders = [
+      { id:"l1", name:"Lady Nocturne", role:"Shadow Strategist", vibe:"Moon Tactician" },
+      { id:"l2", name:"Ashen Smith", role:"Cursed Blacksmith", vibe:"Forge Oaths" },
+      { id:"l3", name:"Seraph Vale", role:"Lightbreaker", vibe:"Grace & Ruin" },
+      { id:"l4", name:"Kuro Scribe", role:"Rune Archivist", vibe:"Forbidden Lore" },
+      { id:"l5", name:"Mara Warden", role:"Night Sentinel", vibe:"Silent Guard" },
+    ];
+
+    const genres = ["Shounen", "Seinen", "Dark Fantasy", "Mystery", "Action", "Romance", "Horror", "Sci-Fi"];
+    const contentTypes = ["Manga", "Manhwa", "Anime", "Comics", "Novels", "Fan-Art", "Cosplay", "Lore Threads"];
+
+    const state = {
+      step: 0,
+      ritualsSkipped: false,
+      data: {
+        email: "",
+        password: "",
+        confirm: "",
+        strength: 0,
+        displayName: "",
+        username: "",
+        motto: "",
+        extras: {
+          newsletter: true,
+          twofa: "later",
+        },
+        avatar: {
+          mode: "sigil", // "sigil" | "upload"
+          sigilId: "sigil_moon",
+          svg: "",
+          upload: {
+            hasImage: false,
+            crop: { x: 0, y: 0, scale: 1 },
+            dataUrl: ""
+          },
+          tuning: { hue: 0, glow: 0.55, grain: 0.22 }
+        },
+        bonds: {
+          leaders: [],
+          genres: [],
+          types: [],
+          darkLight: 60
+        }
+      },
+      ui: {
+        usernameStatus: "idle", // idle | checking | ok | taken
+        usernameMsg: "",
+        allowSwipe: true
+      }
+    };
+
+    // ---------- Rune Seal Transition ----------
+    async function runSeal(){
+      const overlay = $("#sealOverlay");
+      overlay.classList.add("show");
+      await sleep(650);
+      overlay.classList.remove("show");
+      await sleep(40);
+    }
+
+    // ---------- Password strength (simple heuristic) ----------
+    function strengthScore(pw){
+      if(!pw) return 0;
+      let s = 0;
+      const len = pw.length;
+      s += Math.min(40, len * 4);
+      if(/[A-Z]/.test(pw)) s += 12;
+      if(/[a-z]/.test(pw)) s += 10;
+      if(/[0-9]/.test(pw)) s += 12;
+      if(/[^A-Za-z0-9]/.test(pw)) s += 14;
+      if(len >= 12) s += 10;
+      // penalties
+      if(/(.)\1\1/.test(pw)) s -= 10;
+      if(/password|1234|qwer|admin|love|anime/i.test(pw)) s -= 18;
+      return clamp(s, 0, 100);
+    }
+    function strengthLabel(s){
+      if(s < 35) return { text: "ضعيفة", cls: "text-rose-300" };
+      if(s < 65) return { text: "متوسطة", cls: "text-amber-200" };
+      if(s < 85) return { text: "قوية", cls: "text-emerald-200" };
+      return { text: "أسطورية", cls: "text-cyan-200" };
+    }
+
+    // ---------- Mock username check ----------
+    const reserved = new Set(["admin","root","support","moderator","guildmaster","dev","luffy","test","anime","manga"]);
+    function normalizeUsername(u){
+      return (u || "").trim().toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,"");
+    }
+
+    const checkUsername = debounce(async () => {
+      const u = normalizeUsername(state.data.username);
+      const el = $("#usernameStatus");
+      if(!el) return;
+      if(u.length < 3){
+        state.ui.usernameStatus = "idle";
+        state.ui.usernameMsg = "٣ أحرف على الأقل.";
+        renderStepBody(); // quick refresh of status line only
+        return;
+      }
+      state.ui.usernameStatus = "checking";
+      state.ui.usernameMsg = "جاري فحص الختم…";
+      renderStepBody(true);
+      await sleep(450 + Math.random()*500);
+
+      const taken = reserved.has(u) || Math.random() < 0.22;
+      if(taken){
+        state.ui.usernameStatus = "taken";
+        state.ui.usernameMsg = "هذا اللقب محجوز. جرّب اقتراحاً.";
+      }else{
+        state.ui.usernameStatus = "ok";
+        state.ui.usernameMsg = "متاح ✔";
+      }
+      renderStepBody(true);
+    }, 260);
+
+    // ---------- Avatar (Sigil SVG generator) ----------
+    const sigils = [
+      { id: "sigil_moon", name: "Moon Oath", desc: "قسمٌ تحت القمر" },
+      { id: "sigil_ember", name: "Ember Rune", desc: "رونز الجمر" },
+      { id: "sigil_veil", name: "Veil Spiral", desc: "دوّامة الحجاب" },
+      { id: "sigil_thorn", name: "Thorn Halo", desc: "هالة الشوك" },
+    ];
+
+    const avatarParts = {
+      hair: [
+        // simple silhouettes
+        `M92 92 C98 62, 132 52, 160 64 C178 46, 210 48, 224 70 C246 80, 252 110, 238 130 C232 104, 206 102, 196 118 C184 100, 154 96, 140 112 C126 96, 98 104, 92 130 C78 116, 74 102, 92 92 Z`,
+        `M92 100 C100 62, 132 50, 162 64 C190 44, 226 56, 238 86 C246 104, 242 126, 232 140 C230 118, 206 116, 196 130 C182 108, 152 106, 138 126 C126 108, 104 112, 96 132 C88 122, 84 112, 92 100 Z`,
+        `M98 100 C112 58, 150 52, 170 62 C196 48, 228 64, 236 90 C242 116, 230 138, 220 148 C212 126, 196 124, 184 138 C172 120, 150 120, 136 138 C124 124, 106 128, 98 148 C90 130, 88 116, 98 100 Z`,
+      ],
+      cloak: [
+        `M78 230 C98 190, 130 168, 160 168 C190 168, 222 190, 242 230 C226 246, 206 256, 184 262 C176 290, 166 312, 160 330 C154 312, 144 290, 136 262 C114 256, 94 246, 78 230 Z`,
+        `M76 228 C98 186, 132 166, 160 166 C188 166, 224 186, 244 228 C224 250, 202 262, 180 266 C172 292, 164 312, 160 330 C156 312, 148 292, 140 266 C118 262, 96 250, 76 228 Z`,
+        `M78 232 C100 190, 132 170, 160 170 C188 170, 220 190, 242 232 C224 246, 206 254, 190 260 C178 296, 168 316, 160 334 C152 316, 142 296, 130 260 C114 254, 96 246, 78 232 Z`,
+      ],
+      eyes: [
+        { a: {x: 138, y: 150}, b: {x: 182, y: 150}, style: "sharp" },
+        { a: {x: 140, y: 150}, b: {x: 180, y: 150}, style: "soft" },
+        { a: {x: 138, y: 152}, b: {x: 182, y: 152}, style: "myst" },
+      ],
+    };
+
+    function buildAvatarSVG(seed = 0){
+      // deterministic-ish with seed
+      const h = avatarParts.hair[seed % avatarParts.hair.length];
+      const c = avatarParts.cloak[(seed * 7) % avatarParts.cloak.length];
+      const e = avatarParts.eyes[(seed * 11) % avatarParts.eyes.length];
+
+      const eyeMarkup = (() => {
+        const iris = `<circle cx="0" cy="0" r="5.2" fill="rgba(88,240,255,.75)"/><circle cx="1.2" cy="-1.2" r="2.2" fill="rgba(255,255,255,.75)"/>`;
+        if(e.style === "sharp"){
+          return `
+            <g>
+              <path d="M${e.a.x-10} ${e.a.y} Q ${e.a.x} ${e.a.y-7} ${e.a.x+10} ${e.a.y}" stroke="rgba(255,255,255,.50)" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <g transform="translate(${e.a.x},${e.a.y+1})">${iris}</g>
+              <path d="M${e.b.x-10} ${e.b.y} Q ${e.b.x} ${e.b.y-7} ${e.b.x+10} ${e.b.y}" stroke="rgba(255,255,255,.50)" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <g transform="translate(${e.b.x},${e.b.y+1})">${iris}</g>
+            </g>
+          `;
+        }
+        if(e.style === "soft"){
+          return `
+            <g opacity=".95">
+              <path d="M${e.a.x-12} ${e.a.y} Q ${e.a.x} ${e.a.y-5} ${e.a.x+12} ${e.a.y}" stroke="rgba(255,255,255,.45)" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <g transform="translate(${e.a.x},${e.a.y+1})">${iris}</g>
+              <path d="M${e.b.x-12} ${e.b.y} Q ${e.b.x} ${e.b.y-5} ${e.b.x+12} ${e.b.y}" stroke="rgba(255,255,255,.45)" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <g transform="translate(${e.b.x},${e.b.y+1})">${iris}</g>
+            </g>
+          `;
+        }
+        return `
+          <g opacity=".92">
+            <path d="M${e.a.x-12} ${e.a.y} Q ${e.a.x} ${e.a.y-6} ${e.a.x+12} ${e.a.y}" stroke="rgba(88,240,255,.40)" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="${e.a.x}" cy="${e.a.y+2}" r="5.4" fill="rgba(26,191,255,.35)"/>
+            <circle cx="${e.a.x+1}" cy="${e.a.y+1}" r="2.2" fill="rgba(255,255,255,.60)"/>
+            <path d="M${e.b.x-12} ${e.b.y} Q ${e.b.x} ${e.b.y-6} ${e.b.x+12} ${e.b.y}" stroke="rgba(88,240,255,.40)" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="${e.b.x}" cy="${e.b.y+2}" r="5.4" fill="rgba(26,191,255,.35)"/>
+            <circle cx="${e.b.x+1}" cy="${e.b.y+1}" r="2.2" fill="rgba(255,255,255,.60)"/>
+          </g>
+        `;
+      })();
+
+      const svg = `
+      <svg class="avatar-live w-full h-full" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-label="Sigil Avatar">
+        <defs>
+          <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="rgba(255,220,198,.92)"/>
+            <stop offset="1" stop-color="rgba(212,170,154,.86)"/>
+          </linearGradient>
+          <linearGradient id="cloak" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="rgba(14,14,24,.92)"/>
+            <stop offset="1" stop-color="rgba(6,6,10,.98)"/>
+          </linearGradient>
+          <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="rgba(18,18,40,.95)"/>
+            <stop offset="1" stop-color="rgba(6,6,12,.98)"/>
+          </linearGradient>
+          <radialGradient id="aura" cx="50%" cy="40%" r="70%">
+            <stop offset="0" stop-color="rgba(88,240,255,.18)"/>
+            <stop offset="0.65" stop-color="rgba(26,191,255,.08)"/>
+            <stop offset="1" stop-color="rgba(0,0,0,0)"/>
+          </radialGradient>
+        </defs>
+
+        <rect width="320" height="320" fill="transparent"/>
+        <circle cx="160" cy="160" r="140" fill="url(#aura)" opacity=".95"/>
+
+        <!-- cloak -->
+        <path d="${c}" fill="url(#cloak)" stroke="rgba(255,255,255,.08)" stroke-width="1.2" opacity=".98"/>
+
+        <!-- face -->
+        <path d="M160 88 C128 88, 108 116, 112 152 C116 196, 136 222, 160 222 C184 222, 204 196, 208 152 C212 116, 192 88, 160 88 Z"
+              fill="url(#skin)" stroke="rgba(255,255,255,.10)" stroke-width="1.2"/>
+
+        <!-- hair -->
+        <path d="${h}" fill="url(#hair)" stroke="rgba(255,255,255,.08)" stroke-width="1.2"/>
+
+        <!-- eyes -->
+        ${eyeMarkup}
+
+        <!-- small mouth -->
+        <path d="M145 202 Q 160 210 175 202" stroke="rgba(255,255,255,.25)" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+        <!-- pendant rune -->
+        <g opacity=".9">
+          <circle cx="160" cy="248" r="12" fill="rgba(6,6,10,.55)" stroke="rgba(88,240,255,.35)" stroke-width="1.5"/>
+          <path d="M160 238 v20 M152 248 h16" stroke="rgba(88,240,255,.55)" stroke-width="1.6" stroke-linecap="round"/>
+        </g>
+
+        <!-- rune overlay -->
+        <g opacity=".65">
+          <circle cx="160" cy="160" r="118" stroke="rgba(88,240,255,.22)" stroke-width="1.2" stroke-dasharray="2 10"/>
+          <circle cx="160" cy="160" r="96" stroke="rgba(255,180,87,.18)" stroke-width="1" stroke-dasharray="8 10"/>
+          <g font-family="Cinzel, serif" font-size="12" fill="rgba(255,255,255,.18)">
+            <text x="160" y="44" text-anchor="middle">ᚱᚢᚾᛖ • VEIL • OATH</text>
+            <text x="160" y="288" text-anchor="middle">GUILD • NIGHT • SEAL</text>
+          </g>
+        </g>
+      </svg>
+      `.trim();
+
+      return svg;
+    }
+
+    function buildRuneMaskSVG(){
+      return `
+      <svg class="rune-mask w-full h-full" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <radialGradient id="rm" cx="50%" cy="45%" r="70%">
+            <stop offset="0" stop-color="rgba(88,240,255,.35)"/>
+            <stop offset="0.6" stop-color="rgba(26,191,255,.14)"/>
+            <stop offset="1" stop-color="rgba(0,0,0,0)"/>
+          </radialGradient>
+          <linearGradient id="rs" x1="0" y1="0" x2="1" y2="1">
+            <stop stop-color="rgba(88,240,255,.55)"/>
+            <stop offset="1" stop-color="rgba(255,180,87,.22)"/>
+          </linearGradient>
+        </defs>
+        <circle cx="160" cy="160" r="150" fill="url(#rm)" opacity=".85"/>
+        <g opacity=".9">
+          <circle cx="160" cy="160" r="126" stroke="url(#rs)" stroke-width="1.2" stroke-dasharray="2 10"/>
+          <circle cx="160" cy="160" r="104" stroke="rgba(255,255,255,.14)" stroke-width="1" stroke-dasharray="8 10"/>
+          <circle cx="160" cy="160" r="76" stroke="rgba(88,240,255,.22)" stroke-width="1" stroke-dasharray="1 7"/>
+          <path d="M160 64 L176 104 L220 108 L186 134 L196 176 L160 152 L124 176 L134 134 L100 108 L144 104 Z"
+                fill="rgba(255,255,255,.05)" stroke="rgba(88,240,255,.28)" stroke-width="1.1"/>
+          <g font-family="Inter, sans-serif" font-size="10" fill="rgba(255,255,255,.20)">
+            <text x="160" y="36" text-anchor="middle">SIGIL • MASK • GLOW</text>
+            <text x="160" y="300" text-anchor="middle">ᚱ ᚢ ᚾ ᛖ • ᛊ ᛖ ᚨ ᛚ</text>
+          </g>
+        </g>
+      </svg>
+      `.trim();
+    }
+
+    // ---------- Rendering ----------
+    function setSceneProgress(){
+      const total = steps.length;
+      $("#sceneStepTotal").textContent = total;
+      $("#sceneStepNum").textContent = (state.step + 1);
+      $("#mStepTotal").textContent = total;
+      $("#mStepNum").textContent = (state.step + 1);
+
+      $("#sceneStepTitle").textContent = steps[state.step].title;
+
+      const pct = ((state.step + 1) / total) * 100;
+      $("#sceneProgressBar").style.width = pct + "%";
+
+      for(let i=0;i<total;i++){
+        const pip = $("#pip"+i);
+        const active = i <= state.step;
+        pip.style.background = active ? "rgba(26,191,255,.12)" : "rgba(255,255,255,.05)";
+        pip.style.borderColor = active ? "rgba(26,191,255,.28)" : "rgba(255,255,255,.10)";
+        pip.style.color = active ? "rgba(210,253,255,.92)" : "rgba(255,255,255,.60)";
+      }
+    }
+
+    function setHeader(){
+      $("#stepHeading").textContent = steps[state.step].title;
+      $("#stepSub").textContent = steps[state.step].sub;
+      $("#inlineStatus").textContent = state.ritualsSkipped ? "تم تخطي الإضافات (يمكن العودة لها لاحقًا)" : "إرشاد لطيف: اختصر أو توسّع حسب رغبتك";
+    }
+
+    function setButtons(){
+      const isFirst = state.step === 0;
+      const isLast = state.step === steps.length - 1;
+      const backDisabled = isFirst;
+      $("#backBtn").disabled = backDisabled;
+      $("#mBackBtn").disabled = backDisabled;
+
+      const nextLabel = isLast ? "إنهاء الطقس" : "التالي";
+      $("#nextBtn").textContent = nextLabel;
+      $("#mNextBtn").textContent = nextLabel;
+
+      // Skip rituals behavior changes: show on every step but adjust label
+      const labels = [
+        "Skip rituals",
+        "Skip rituals",
+        "Skip rituals",
+        "Skip rituals"
+      ];
+      $("#skipBtn").textContent = labels[state.step];
+    }
+
+    function render(){
+      setSceneProgress();
+      setHeader();
+      setButtons();
+      renderStepBody();
+    }
+
+    function renderStepBody(keepFocus=false){
+      const body = $("#stepBody");
+      const prevActive = document.activeElement && document.activeElement.id ? document.activeElement.id : null;
+
+      if(state.step === 0){
+        body.innerHTML = stepAccountHTML();
+        bindAccount();
+      }else if(state.step === 1){
+        body.innerHTML = stepTitleHTML();
+        bindTitle();
+      }else if(state.step === 2){
+        body.innerHTML = stepAvatarHTML();
+        bindAvatar();
+      }else if(state.step === 3){
+        body.innerHTML = stepBondsHTML();
+        bindBonds();
+      }else{
+        body.innerHTML = "";
+      }
+
+      if(keepFocus && prevActive){
+        const el = document.getElementById(prevActive);
+        if(el) el.focus();
+      }
+    }
+
+    // ---------- Step 1: Account ----------
+    function stepAccountHTML(){
+      const s = state.data.strength || strengthScore(state.data.password);
+      const lbl = strengthLabel(s);
+
+      const extras = state.ritualsSkipped ? "" : `
+        <div class="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="text-sm font-semibold text-white/85">طقوس إضافية (Micro)</div>
+              <div class="hint mt-1">اختيار سريع—لا يطيل التسجيل.</div>
+            </div>
+            <span class="text-xs text-white/55">اختياري</span>
+          </div>
+
+          <div class="mt-3 grid sm:grid-cols-2 gap-3">
+            <label class="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+              <input id="newsletter" type="checkbox" class="w-4 h-4" ${state.data.extras.newsletter ? "checked": ""}>
+              <div>
+                <div class="text-sm">رسائل الطقوس (Newsletter)</div>
+                <div class="hint">تنبيهات الميزات + أحداث المجتمع.</div>
+              </div>
+            </label>
+
+            <label class="rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+              <div class="text-sm">حماية إضافية (2FA)</div>
+              <div class="hint mt-1">متى تريد تفعيلها؟</div>
+              <select id="twofa" class="mt-2 w-full field rounded-lg px-3 py-2 text-sm">
+                <option value="later" ${state.data.extras.twofa==="later"?"selected":""}>لاحقًا</option>
+                <option value="now" ${state.data.extras.twofa==="now"?"selected":""}>الآن</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      `;
+
+      return `
+        <div class="grid gap-4">
+          <div>
+            <label class="text-sm text-white/75">البريد الإلكتروني</label>
+            <input id="email" dir="ltr" inputmode="email" autocomplete="email"
+                   class="mt-2 w-full field rounded-xl px-4 py-3 text-sm"
+                   placeholder="you@domain.com" value="${escapeHtml(state.data.email)}" />
+            <div id="emailErr" class="err mt-1 hidden"></div>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm text-white/75">كلمة السر</label>
+              <input id="password" dir="ltr" type="password" autocomplete="new-password"
+                     class="mt-2 w-full field rounded-xl px-4 py-3 text-sm"
+                     placeholder="••••••••" value="${escapeHtml(state.data.password)}" />
+              <div class="mt-2 flex items-center justify-between gap-3">
+                <div class="hint">قوة الختم</div>
+                <div class="text-xs ${lbl.cls}">${lbl.text}</div>
+              </div>
+              <div class="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
+                <div id="strengthBar" class="h-full rounded-full transition-[width] duration-300"
+                     style="width:${s}%; background: linear-gradient(90deg, rgba(255,99,132,.55), rgba(255,180,87,.45), rgba(26,191,255,.55));"></div>
+              </div>
+              <div id="pwHint" class="hint mt-2">نصيحة: 12+ حرف مع أرقام/رموز.</div>
+            </div>
+
+            <div>
+              <label class="text-sm text-white/75">تأكيد كلمة السر</label>
+              <input id="confirm" dir="ltr" type="password" autocomplete="new-password"
+                     class="mt-2 w-full field rounded-xl px-4 py-3 text-sm"
+                     placeholder="••••••••" value="${escapeHtml(state.data.confirm)}" />
+              <div id="confirmErr" class="err mt-1 hidden"></div>
+
+              <button id="forgePw" type="button"
+                      class="mt-3 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/75 hover:bg-white/10 transition">
+                توليد كلمة سر أسطورية
+              </button>
+              <div class="hint mt-2">اختياري—يزرع كلمة قوية تلقائيًا.</div>
+            </div>
+          </div>
+
+          ${extras}
+
+          <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div class="text-sm font-semibold text-white/85">التحقق اللطيف</div>
+            <ul class="mt-2 space-y-1 text-sm text-white/65">
+              <li class="flex gap-2"><span class="text-rune-300">✦</span><span>سنرسل ختم تأكيد للبريد لاحقًا (Mock).</span></li>
+              <li class="flex gap-2"><span class="text-ember-300">✦</span><span>لن نعرض كلمة السر أبدًا—حتى على القادة.</span></li>
+            </ul>
+          </div>
+        </div>
+      `;
+    }
+
+    function bindAccount(){
+      const email = $("#email"), pw = $("#password"), cf = $("#confirm");
+      const newsletter = $("#newsletter"), twofa = $("#twofa");
+
+      email?.addEventListener("input", () => state.data.email = email.value);
+      pw?.addEventListener("input", () => {
+        state.data.password = pw.value;
+        state.data.strength = strengthScore(pw.value);
+        renderStepBody(true);
+      });
+      cf?.addEventListener("input", () => state.data.confirm = cf.value);
+
+      newsletter?.addEventListener("change", () => state.data.extras.newsletter = newsletter.checked);
+      twofa?.addEventListener("change", () => state.data.extras.twofa = twofa.value);
+
+      $("#forgePw")?.addEventListener("click", () => {
+        const gen = makePassword(14 + Math.floor(Math.random()*4));
+        state.data.password = gen;
+        state.data.confirm = gen;
+        state.data.strength = strengthScore(gen);
+        renderStepBody();
+      });
+    }
+
+    function makePassword(len=16){
+      const A="ABCDEFGHJKLMNPQRSTUVWXYZ";
+      const a="abcdefghijkmnpqrstuvwxyz";
+      const n="23456789";
+      const s="!@#$%^&*_-+=?";
+      const all=A+a+n+s;
+      let out = "";
+      out += A[Math.floor(Math.random()*A.length)];
+      out += a[Math.floor(Math.random()*a.length)];
+      out += n[Math.floor(Math.random()*n.length)];
+      out += s[Math.floor(Math.random()*s.length)];
+      for(let i=4;i<len;i++) out += all[Math.floor(Math.random()*all.length)];
+      return out.split("").sort(()=>Math.random()-.5).join("");
+    }
+
+    // ---------- Step 2: Title ----------
+    function stepTitleHTML(){
+      const u = normalizeUsername(state.data.username);
+      const status = state.ui.usernameStatus;
+      let statusLine = "";
+      if(status === "checking"){
+        statusLine = `<div class="hint mt-1">⏳ ${escapeHtml(state.ui.usernameMsg || "جاري…")}</div>`;
+      }else if(status === "ok"){
+        statusLine = `<div class="ok mt-1">✔ ${escapeHtml(state.ui.usernameMsg || "متاح")}</div>`;
+      }else if(status === "taken"){
+        statusLine = `<div class="err mt-1">✖ ${escapeHtml(state.ui.usernameMsg || "محجوز")}</div>`;
+      }else{
+        statusLine = `<div class="hint mt-1">${escapeHtml(state.ui.usernameMsg || "اختر لقباً فريداً.")}</div>`;
+      }
+
+      const suggestions = (() => {
+        const base = normalizeUsername(state.data.displayName) || "moon";
+        const pool = [
+          `${base}_rune`,
+          `${base}_veil`,
+          `${base}_oath`,
+          `${base}${Math.floor(10+Math.random()*89)}`,
+          `noct_${base}`,
+          `ashen_${base}`,
+        ].map(normalizeUsername).filter(x => x.length >= 3);
+        return [...new Set(pool)].slice(0,5);
+      })();
+
+      const sugHTML = suggestions.map(s => `
+        <button type="button" class="chip rounded-full px-3 py-1 text-xs text-white/70 hover:text-white"
+                data-sug="${s}">
+          @${s}
+        </button>
+      `).join("");
+
+      const micro = state.ritualsSkipped ? "" : `
+        <div class="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="text-sm font-semibold text-white/85">Micro-tasks</div>
+              <div class="hint mt-1">أسرع من الكتابة—بنقرة واحدة.</div>
+            </div>
+            <span class="text-xs text-white/55">اختياري</span>
+          </div>
+
+          <div class="mt-3 grid sm:grid-cols-2 gap-3">
+            <button id="summonName" type="button"
+                    class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 hover:bg-white/10 transition">
+              Summon Display Name
+              <div class="hint mt-1">اقتراح اسم عرض أنميّ.</div>
+            </button>
+
+            <button id="summonMotto" type="button"
+                    class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 hover:bg-white/10 transition">
+              Summon Motto
+              <div class="hint mt-1">جملة قصيرة قاتمة/ملحمية.</div>
+            </button>
+          </div>
+        </div>
+      `;
+
+      return `
+        <div class="grid gap-4">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm text-white/75">اسم العرض (Display Name)</label>
+              <input id="displayName" class="mt-2 w-full field rounded-xl px-4 py-3 text-sm"
+                     placeholder="مثال: Shadow Lancer" value="${escapeHtml(state.data.displayName)}" />
+              <div id="dnErr" class="err mt-1 hidden"></div>
+            </div>
+
+            <div>
+              <label class="text-sm text-white/75">اللقب (Username)</label>
+              <div class="mt-2 flex items-center gap-2">
+                <span class="px-3 py-3 rounded-xl border border-white/10 bg-white/5 text-white/60 text-sm">@</span>
+                <input id="username" dir="ltr" autocapitalize="none" autocomplete="username"
+                       class="w-full field rounded-xl px-4 py-3 text-sm"
+                       placeholder="noct_veil" value="${escapeHtml(u)}" />
+              </div>
+              <div id="usernameStatus">${statusLine}</div>
+
+              <div class="mt-2 flex flex-wrap gap-2">
+                ${sugHTML}
+              </div>
+              <div id="unErr" class="err mt-2 hidden"></div>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-sm text-white/75">شِعار قصير (Motto)</label>
+            <textarea id="motto" rows="3"
+                      class="mt-2 w-full field rounded-xl px-4 py-3 text-sm leading-relaxed"
+                      placeholder="مثال: تحت القمر… لا نعترف إلا بالختم."
+            >${escapeHtml(state.data.motto)}</textarea>
+            <div class="mt-2 flex items-center justify-between gap-3">
+              <div class="hint">حد أقصى 70 حرف (لجمالية البطاقة).</div>
+              <div class="text-xs text-white/55"><span id="mottoCount">${(state.data.motto||"").length}</span>/70</div>
+            </div>
+            <div id="mottoErr" class="err mt-1 hidden"></div>
+          </div>
+
+          ${micro}
+
+          <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div class="text-sm font-semibold text-white/85">Preview</div>
+            <div class="mt-2 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="font-display text-xl">${escapeHtml(state.data.displayName || "— اسم العرض —")}</div>
+              <div class="text-white/60 text-sm mt-1">@${escapeHtml(u || "—")}</div>
+              <div class="text-white/70 text-sm mt-2 leading-relaxed">
+                “${escapeHtml(state.data.motto || "— الشعار القصير —")}”
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function bindTitle(){
+      const dn = $("#displayName");
+      const un = $("#username");
+      const motto = $("#motto");
+
+      dn?.addEventListener("input", () => {
+        state.data.displayName = dn.value;
+        // auto-suggest username if empty-ish
+        if(!state.data.username || normalizeUsername(state.data.username).length < 3){
+          state.data.username = normalizeUsername(dn.value).slice(0,18);
+          checkUsername();
+        }
+        renderStepBody(true);
+      });
+
+      un?.addEventListener("input", () => {
+        state.data.username = normalizeUsername(un.value).slice(0,18);
+        checkUsername();
+        renderStepBody(true);
+      });
+
+      motto?.addEventListener("input", () => {
+        state.data.motto = (motto.value || "").slice(0, 70);
+        renderStepBody(true);
+      });
+
+      $$('.chip[data-sug]').forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.data.username = btn.getAttribute("data-sug");
+          state.ui.usernameStatus = "checking";
+          state.ui.usernameMsg = "جاري فحص الختم…";
+          renderStepBody();
+          checkUsername();
+        });
+      });
+
+      $("#summonName")?.addEventListener("click", () => {
+        const a = ["Noct", "Ashen", "Veil", "Moon", "Ruin", "Cinder", "Grim", "Abyss"];
+        const b = ["Warden", "Scribe", "Lancer", "Oracle", "Stalker", "Harbinger", "Sealer", "Mender"];
+        const name = `${a[Math.floor(Math.random()*a.length)]} ${b[Math.floor(Math.random()*b.length)]}`;
+        state.data.displayName = name;
+        if(!state.data.username || normalizeUsername(state.data.username).length < 3){
+          state.data.username = normalizeUsername(name);
+          checkUsername();
+        }
+        renderStepBody();
+      });
+
+      $("#summonMotto")?.addEventListener("click", () => {
+        const pool = [
+          "تحت القمر… لا ينجو إلا من يحمل ختمه.",
+          "الرونز لا تكذب، لكنها تختبر.",
+          "خطوةٌ في الظل… وصوتٌ في الأسطورة.",
+          "أكتب قدري بحبرٍ من ليل.",
+          "نحن لا نخشى الظلام—نصنعه.",
+          "إذا اشتعل الجمر… تذكّر القسم."
+        ];
+        state.data.motto = pool[Math.floor(Math.random()*pool.length)];
+        renderStepBody();
+      });
+
+      // initial status check if needed
+      if(normalizeUsername(state.data.username).length >= 3 && state.ui.usernameStatus === "idle"){
+        checkUsername();
+      }
+    }
+
+    // ---------- Step 3: Avatar ----------
+    function stepAvatarHTML(){
+      const a = state.data.avatar;
+      const tuning = a.tuning;
+
+      const sigilCards = sigils.map(s => {
+        const active = a.sigilId === s.id;
+        return `
+          <button type="button"
+                  class="chip rounded-2xl p-3 text-right"
+                  aria-pressed="${active ? "true":"false"}"
+                  data-sigil="${s.id}">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="text-sm font-semibold text-white/85">${escapeHtml(s.name)}</div>
+                <div class="hint mt-1">${escapeHtml(s.desc)}</div>
+              </div>
+              <div class="w-10 h-10 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center">
+                <span class="text-rune-300/80">ᚱ</span>
+              </div>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      const modeBtn = (id, label, sub) => `
+        <button type="button" class="chip rounded-2xl p-4 text-right"
+                aria-pressed="${a.mode === id ? "true":"false"}" data-mode="${id}">
+          <div class="text-sm font-semibold text-white/85">${label}</div>
+          <div class="hint mt-1">${sub}</div>
+        </button>
+      `;
+
+      const preview = `
+        <div class="avatar-box outline-glow w-full aspect-square">
+          <div id="avatarStage" class="absolute inset-0"></div>
+          ${buildRuneMaskSVG()}
+        </div>
+      `;
+
+      const genHint = a.mode === "sigil"
+        ? `<div class="hint mt-2">توليد طبقي: شعر/عيون/عباءة + رونز. (SVG)</div>`
+        : `<div class="hint mt-2">رفع + قص + ختم رونز/Glow. (Canvas)</div>`;
+
+      const advanced = state.ritualsSkipped ? "" : `
+        <div class="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="text-sm font-semibold text-white/85">لوحة تعديل بسيطة</div>
+              <div class="hint mt-1">Hue + Glow + Grain (UI فقط—لكن مؤثر).</div>
+            </div>
+            <span class="text-xs text-white/55">Micro</span>
+          </div>
+
+          <div class="mt-4 grid sm:grid-cols-3 gap-3">
+            <label class="rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+              <div class="text-xs text-white/60">Hue</div>
+              <input id="hue" type="range" min="-180" max="180" value="${Math.round(tuning.hue)}" class="w-full mt-2">
+              <div class="text-xs text-white/55 mt-1"><span id="hueVal">${Math.round(tuning.hue)}</span>°</div>
+            </label>
+
+            <label class="rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+              <div class="text-xs text-white/60">Glow</div>
+              <input id="glow" type="range" min="0" max="1" step="0.01" value="${tuning.glow}" class="w-full mt-2">
+              <div class="text-xs text-white/55 mt-1"><span id="glowVal">${Math.round(tuning.glow*100)}</span>%</div>
+            </label>
+
+            <label class="rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+              <div class="text-xs text-white/60">Grain</div>
+              <input id="grain" type="range" min="0" max="0.45" step="0.01" value="${tuning.grain}" class="w-full mt-2">
+              <div class="text-xs text-white/55 mt-1"><span id="grainVal">${Math.round(tuning.grain*100)}</span>%</div>
+            </label>
+          </div>
+
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button id="presetMoon" type="button" class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 transition">Moonlight</button>
+            <button id="presetEmber" type="button" class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 transition">Ember</button>
+            <button id="presetVoid" type="button" class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 transition">Void</button>
+          </div>
+        </div>
+      `;
+
+      const uploadPanel = `
+        <div class="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="text-sm font-semibold text-white/85">Upload + Crop</div>
+              <div class="hint mt-1">اسحب داخل المربع + زوم. ثم نضيف Rune Mask/Glow.</div>
+            </div>
+            <span class="text-xs text-white/55">اختياري</span>
+          </div>
+
+          <div class="mt-3 grid sm:grid-cols-2 gap-3">
+            <div>
+              <input id="file" type="file" accept="image/*"
+                     class="w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-white/80 hover:file:bg-white/15"/>
+              <div class="hint mt-2">لن نرفعها هنا—كل شيء محلي (Mock).</div>
+            </div>
+
+            <div class="rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+              <div class="text-xs text-white/60">Zoom</div>
+              <input id="zoom" type="range" min="0.6" max="2.2" step="0.01" value="${a.upload.crop.scale}" class="w-full mt-2">
+              <div class="text-xs text-white/55 mt-1"><span id="zoomVal">${Math.round(a.upload.crop.scale*100)}</span>%</div>
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-2xl border border-white/10 bg-black/20 p-3">
+            <div class="flex items-center justify-between">
+              <div class="text-sm text-white/80">Crop Canvas</div>
+              <button id="resetCrop" type="button" class="text-xs text-white/70 hover:text-white underline underline-offset-4">Reset</button>
+            </div>
+            <div class="mt-2 rounded-xl overflow-hidden border border-white/10 bg-black/30">
+              <canvas id="cropCanvas" width="320" height="320" class="w-full h-auto block"></canvas>
+            </div>
+            <div class="hint mt-2">اسحب بإصبعك/الماوس لتحريك الصورة داخل الإطار.</div>
+          </div>
+        </div>
+      `;
+
+      return `
+        <div class="grid gap-4">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div class="text-sm font-semibold text-white/85">الطريقة</div>
+              <div class="mt-3 grid gap-3">
+                ${modeBtn("sigil", "توليد Avatar طبقي (SVG)", "Hair / Eyes / Cloak + Rune Overlay")}
+                ${modeBtn("upload", "Upload + Crop (Canvas)", "Rune Mask / Glow outline")}
+              </div>
+
+              <div class="mt-4 flex items-center justify-between">
+                <div class="text-sm font-semibold text-white/85">Suggested Sigils</div>
+                <button id="reroll" type="button"
+                        class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70 hover:bg-white/10 transition">
+                  Reroll
+                </button>
+              </div>
+
+              <div class="mt-3 grid gap-3">
+                ${sigilCards}
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <div class="text-sm font-semibold text-white/85">Preview</div>
+                  <div class="hint mt-1">مع قناع الرونز ولمعة خفيفة.</div>
+                </div>
+                <span class="text-xs text-white/55">${a.mode === "sigil" ? "SVG" : "Canvas"}</span>
+              </div>
+
+              <div id="previewWrap" class="mt-3">
+                ${preview}
+              </div>
+
+              ${genHint}
+
+              <div class="mt-3 flex flex-wrap gap-2">
+                <button id="useAsIs" type="button"
+                        class="rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/80 hover:bg-white/15 transition">
+                  قبول كما هو
+                </button>
+                <button id="randomizeParts" type="button"
+                        class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 transition">
+                  Randomize layers
+                </button>
+              </div>
+            </div>
+          </div>
+
+          ${a.mode === "upload" ? uploadPanel : ""}
+
+          ${advanced}
+
+          <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div class="text-sm font-semibold text-white/85">Anime Portrait Abstract</div>
+            <div class="hint mt-1">هذا أسلوب مجرد (بدون أصول محمية)، يلمّح للأنمي عبر الأشكال واللمعان.</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function bindAvatar(){
+      const a = state.data.avatar;
+
+      // apply CSS vars for tuning
+      document.documentElement.style.setProperty("--hue", a.tuning.hue + "deg");
+      document.documentElement.style.setProperty("--glow", a.tuning.glow);
+      document.documentElement.style.setProperty("--grain", a.tuning.grain);
+
+      // modes
+      $$('[data-mode]').forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if(a.mode === btn.dataset.mode) return;
+          await runSeal();
+          a.mode = btn.dataset.mode;
+          render();
+        });
+      });
+
+      // sigil select
+      $$('[data-sigil]').forEach(btn => {
+        btn.addEventListener("click", () => {
+          a.sigilId = btn.dataset.sigil;
+          // Also influence generated seed
+          a.svg = ""; // regenerate
+          mountAvatarPreview();
+        });
+      });
+
+      $("#reroll")?.addEventListener("click", () => {
+        // shift seed
+        a.svg = ""; // regenerate
+        a._seed = (a._seed || 0) + 1 + Math.floor(Math.random()*4);
+        mountAvatarPreview();
+      });
+
+      $("#randomizeParts")?.addEventListener("click", () => {
+        a.svg = "";
+        a._seed = (a._seed || 0) + 3 + Math.floor(Math.random()*9);
+        mountAvatarPreview();
+      });
+
+      $("#useAsIs")?.addEventListener("click", () => {
+        // Just a tiny feedback
+        flashInline("تم قبول السيجيل.", "ok");
+      });
+
+      // tuning panel
+      $("#hue")?.addEventListener("input", (e) => {
+        a.tuning.hue = Number(e.target.value);
+        $("#hueVal").textContent = Math.round(a.tuning.hue);
+        document.documentElement.style.setProperty("--hue", a.tuning.hue + "deg");
+      });
+      $("#glow")?.addEventListener("input", (e) => {
+        a.tuning.glow = Number(e.target.value);
+        $("#glowVal").textContent = Math.round(a.tuning.glow * 100);
+        document.documentElement.style.setProperty("--glow", a.tuning.glow);
+      });
+      $("#grain")?.addEventListener("input", (e) => {
+        a.tuning.grain = Number(e.target.value);
+        $("#grainVal").textContent = Math.round(a.tuning.grain * 100);
+        document.documentElement.style.setProperty("--grain", a.tuning.grain);
+      });
+
+      $("#presetMoon")?.addEventListener("click", () => {
+        a.tuning.hue = -10; a.tuning.glow = .72; a.tuning.grain = .22;
+        renderStepBody();
+      });
+      $("#presetEmber")?.addEventListener("click", () => {
+        a.tuning.hue = 42; a.tuning.glow = .58; a.tuning.grain = .18;
+        renderStepBody();
+      });
+      $("#presetVoid")?.addEventListener("click", () => {
+        a.tuning.hue = -90; a.tuning.glow = .45; a.tuning.grain = .28;
+        renderStepBody();
+      });
+
+      // upload + crop
+      if(a.mode === "upload"){
+        const file = $("#file");
+        const zoom = $("#zoom");
+        const reset = $("#resetCrop");
+        const canvas = $("#cropCanvas");
+        const ctx = canvas?.getContext("2d");
+
+        let img = null;
+        let dragging = false;
+        let last = { x: 0, y: 0 };
+
+        function draw(){
+          if(!canvas || !ctx) return;
+          ctx.clearRect(0,0,canvas.width,canvas.height);
+
+          // background
+          ctx.fillStyle = "rgba(0,0,0,.22)";
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+
+          // If no image, placeholder sigil
+          if(!img){
+            ctx.save();
+            ctx.translate(160,160);
+            ctx.strokeStyle = "rgba(88,240,255,.35)";
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(0,0,110,0,Math.PI*2); ctx.stroke();
+            ctx.setLineDash([3,10]);
+            ctx.strokeStyle = "rgba(255,255,255,.16)";
+            ctx.beginPath(); ctx.arc(0,0,86,0,Math.PI*2); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = "rgba(255,255,255,.28)";
+            ctx.font = "16px Inter";
+            ctx.textAlign = "center";
+            ctx.fillText("Upload an image", 0, 6);
+            ctx.restore();
+            return;
+          }
+
+          const scale = a.upload.crop.scale;
+          const iw = img.width, ih = img.height;
+
+          // base fit
+          const base = Math.max(canvas.width / iw, canvas.height / ih);
+          const s = base * scale;
+          const dw = iw * s, dh = ih * s;
+
+          const cx = canvas.width/2 + a.upload.crop.x;
+          const cy = canvas.height/2 + a.upload.crop.y;
+
+          ctx.save();
+          // draw image centered with offsets
+          ctx.drawImage(img, cx - dw/2, cy - dh/2, dw, dh);
+          ctx.restore();
+
+          // guide
+          ctx.save();
+          ctx.strokeStyle = "rgba(88,240,255,.22)";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(12,12,296,296);
+          ctx.restore();
+
+          // store dataUrl for summary
+          try{
+            a.upload.dataUrl = canvas.toDataURL("image/png");
+            a.upload.hasImage = true;
+          }catch(_){}
+        }
+
+        function setZoom(v){
+          a.upload.crop.scale = Number(v);
+          $("#zoomVal").textContent = Math.round(a.upload.crop.scale*100);
+          draw();
+        }
+
+        file?.addEventListener("change", () => {
+          const f = file.files && file.files[0];
+          if(!f) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            img = new Image();
+            img.onload = () => {
+              a.upload.crop.x = 0;
+              a.upload.crop.y = 0;
+              a.upload.crop.scale = 1;
+              if(zoom) zoom.value = 1;
+              draw();
+              mountAvatarPreview(); // show canvas in preview too
+            };
+            img.src = reader.result;
+          };
+          reader.readAsDataURL(f);
+        });
+
+        zoom?.addEventListener("input", (e)=> setZoom(e.target.value));
+
+        reset?.addEventListener("click", () => {
+          a.upload.crop = { x: 0, y: 0, scale: 1 };
+          if(zoom) zoom.value = 1;
+          draw();
+        });
+
+        const toLocal = (evt) => {
+          const rect = canvas.getBoundingClientRect();
+          const x = (evt.clientX - rect.left) * (canvas.width/rect.width);
+          const y = (evt.clientY - rect.top) * (canvas.height/rect.height);
+          return { x, y };
+        };
+
+        canvas?.addEventListener("pointerdown", (e) => {
+          dragging = true;
+          canvas.setPointerCapture(e.pointerId);
+          last = toLocal(e);
+        });
+        canvas?.addEventListener("pointermove", (e) => {
+          if(!dragging) return;
+          const now = toLocal(e);
+          a.upload.crop.x += (now.x - last.x);
+          a.upload.crop.y += (now.y - last.y);
+          last = now;
+          draw();
+        });
+        canvas?.addEventListener("pointerup", () => dragging = false);
+        canvas?.addEventListener("pointercancel", () => dragging = false);
+
+        draw();
+      }
+
+      // Mount preview content
+      mountAvatarPreview();
+    }
+
+    function mountAvatarPreview(){
+      const a = state.data.avatar;
+      const stage = $("#avatarStage");
+      if(!stage) return;
+
+      stage.innerHTML = "";
+
+      if(a.mode === "sigil"){
+        // seed influenced by sigil choice
+        const baseSeed = sigils.findIndex(s => s.id === a.sigilId);
+        const seed = (baseSeed < 0 ? 0 : baseSeed) + (a._seed || 0);
+        const svg = buildAvatarSVG(seed);
+        a.svg = svg;
+        stage.innerHTML = svg;
+      }else{
+        // Show canvas output if available
+        const canvas = document.createElement("canvas");
+        canvas.width = 320; canvas.height = 320;
+        canvas.className = "w-full h-full avatar-live";
+        stage.appendChild(canvas);
+
+        // Draw from cropCanvas if exists
+        const crop = $("#cropCanvas");
+        const ctx = canvas.getContext("2d");
+        if(ctx){
+          ctx.clearRect(0,0,320,320);
+          if(crop){
+            ctx.drawImage(crop, 0, 0, 320, 320);
+          }else{
+            // placeholder
+            ctx.fillStyle = "rgba(0,0,0,.22)";
+            ctx.fillRect(0,0,320,320);
+            ctx.strokeStyle = "rgba(88,240,255,.28)";
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(160,160,110,0,Math.PI*2); ctx.stroke();
+            ctx.fillStyle = "rgba(255,255,255,.25)";
+            ctx.font = "16px Inter";
+            ctx.textAlign = "center";
+            ctx.fillText("Upload + Crop", 160, 166);
+          }
+        }
+      }
+    }
+
+    // ---------- Step 4: Bonds ----------
+    function stepBondsHTML(){
+      const b = state.data.bonds;
+      const picked = new Set(b.leaders);
+
+      const leadersHTML = mockLeaders.map(l => {
+        const on = picked.has(l.id);
+        return `
+          <button type="button"
+                  class="chip rounded-2xl p-4 text-right"
+                  aria-pressed="${on ? "true":"false"}"
+                  data-leader="${l.id}">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="text-sm font-semibold text-white/85">${escapeHtml(l.name)}</div>
+                <div class="hint mt-1">${escapeHtml(l.role)} • <span class="text-white/70">${escapeHtml(l.vibe)}</span></div>
+              </div>
+              <div class="w-9 h-9 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center">
+                <span class="text-ember-300/80">✦</span>
+              </div>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      const chipGroup = (items, selected, attr) => {
+        const set = new Set(selected);
+        return items.map(it => {
+          const on = set.has(it);
+          return `
+            <button type="button" class="chip rounded-full px-3 py-1.5 text-xs"
+                    aria-pressed="${on ? "true":"false"}"
+                    data-${attr}="${escapeHtml(it)}">
+              ${escapeHtml(it)}
+            </button>
+          `;
+        }).join("");
+      };
+
+      const interestsPanel = state.ritualsSkipped ? `
+        <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+          <div class="text-sm font-semibold text-white/85">Interests</div>
+          <div class="hint mt-1">تم تخطي الإضافات. يمكنك تعديلها لاحقًا داخل الإعدادات.</div>
+        </div>
+      ` : `
+        <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="text-sm font-semibold text-white/85">Interests</div>
+              <div class="hint mt-1">اختر ما تحب—سيؤثر على الاقتراحات (Mock).</div>
+            </div>
+            <span class="text-xs text-white/55">اختياري</span>
+          </div>
+
+          <div class="mt-3">
+            <div class="text-xs text-white/60">Genres</div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              ${chipGroup(genres, b.genres, "genre")}
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <div class="text-xs text-white/60">Content Types</div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              ${chipGroup(contentTypes, b.types, "type")}
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+            <div class="flex items-center justify-between">
+              <div class="text-xs text-white/60">Dark / Light</div>
+              <div class="text-xs text-white/55"><span id="dlVal">${b.darkLight}</span>% Dark</div>
+            </div>
+            <input id="darkLight" type="range" min="0" max="100" value="${b.darkLight}" class="w-full mt-2">
+            <div class="hint mt-2">UI فقط—لكن يعطي إحساس “مزاج” ملفك.</div>
+          </div>
+        </div>
+      `;
+
+      return `
+        <div class="grid gap-4">
+          <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="text-sm font-semibold text-white/85">Follow 1–3 قادة</div>
+                <div class="hint mt-1">مطلوب: اختر قائدًا واحدًا على الأقل.</div>
+              </div>
+              <div class="text-xs text-white/55">
+                <span id="leaderCount">${b.leaders.length}</span>/3
+              </div>
+            </div>
+
+            <div class="mt-3 grid sm:grid-cols-2 gap-3">
+              ${leadersHTML}
+            </div>
+            <div id="leadersErr" class="err mt-2 hidden"></div>
+          </div>
+
+          ${interestsPanel}
+
+          <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div class="text-sm font-semibold text-white/85">قبل الختم النهائي…</div>
+            <div class="hint mt-1">سنُظهر بطاقة ملخّص ثم “Guild Accepted”.</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function bindBonds(){
+      const b = state.data.bonds;
+
+      $$('[data-leader]').forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.leader;
+          const set = new Set(b.leaders);
+          if(set.has(id)){
+            set.delete(id);
+          }else{
+            if(set.size >= 3){
+              flashInline("أقصى حد 3 قادة.", "err");
+              return;
+            }
+            set.add(id);
+          }
+          b.leaders = Array.from(set);
+          renderStepBody();
+        });
+      });
+
+      $$('[data-genre]').forEach(btn => {
+        btn.addEventListener("click", () => {
+          if(state.ritualsSkipped) return;
+          const g = btn.dataset.genre;
+          const set = new Set(b.genres);
+          set.has(g) ? set.delete(g) : set.add(g);
+          b.genres = Array.from(set);
+          renderStepBody();
+        });
+      });
+
+      $$('[data-type]').forEach(btn => {
+        btn.addEventListener("click", () => {
+          if(state.ritualsSkipped) return;
+          const t = btn.dataset.type;
+          const set = new Set(b.types);
+          set.has(t) ? set.delete(t) : set.add(t);
+          b.types = Array.from(set);
+          renderStepBody();
+        });
+      });
+
+      $("#darkLight")?.addEventListener("input", (e) => {
+        if(state.ritualsSkipped) return;
+        b.darkLight = Number(e.target.value);
+        $("#dlVal").textContent = b.darkLight;
+      });
+    }
+
+    // ---------- Validation ----------
+    function validateStep(){
+      if(state.step === 0){
+        let ok = true;
+        const email = (state.data.email || "").trim();
+        const pw = state.data.password || "";
+        const cf = state.data.confirm || "";
+
+        // reset
+        hideErr("#emailErr"); hideErr("#confirmErr");
+
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+          showErr("#emailErr", "أدخل بريدًا صحيحًا.");
+          ok = false;
+        }
+        const s = strengthScore(pw);
+        state.data.strength = s;
+        if(pw.length < 8 || s < 35){
+          // gentle hint only
+          const hint = $("#pwHint");
+          if(hint) hint.textContent = "ضعيفة… جرّب طولاً أكبر مع رمز/رقم.";
+          ok = false;
+        }
+        if(cf !== pw){
+          showErr("#confirmErr", "التأكيد لا يطابق كلمة السر.");
+          ok = false;
+        }
+        return ok;
+      }
+
+      if(state.step === 1){
+        let ok = true;
+        hideErr("#dnErr"); hideErr("#unErr"); hideErr("#mottoErr");
+
+        const dn = (state.data.displayName || "").trim();
+        const un = normalizeUsername(state.data.username);
+        const motto = (state.data.motto || "").trim();
+
+        if(dn.length < 2){
+          showErr("#dnErr", "اسم العرض قصير جدًا.");
+          ok = false;
+        }
+        if(un.length < 3){
+          showErr("#unErr", "اللقب يحتاج ٣ أحرف على الأقل.");
+          ok = false;
+        }
+        if(state.ui.usernameStatus === "taken"){
+          showErr("#unErr", "اختر لقباً غير محجوز.");
+          ok = false;
+        }
+        if(motto.length < 6){
+          showErr("#mottoErr", "الشعار قصير جدًا—اكتب 6 أحرف على الأقل.");
+          ok = false;
+        }
+        return ok;
+      }
+
+      if(state.step === 2){
+        // Always ok; avatar can be auto accepted (still has defaults)
+        return true;
+      }
+
+      if(state.step === 3){
+        hideErr("#leadersErr");
+        const cnt = state.data.bonds.leaders.length;
+        if(cnt < 1){
+          showErr("#leadersErr", "اختر قائدًا واحدًا على الأقل.");
+          return false;
+        }
+        return true;
+      }
+
+      return true;
+    }
+
+    function showErr(sel, msg){
+      const el = $(sel);
+      if(!el) return;
+      el.classList.remove("hidden");
+      el.textContent = msg;
+    }
+    function hideErr(sel){
+      const el = $(sel);
+      if(!el) return;
+      el.classList.add("hidden");
+      el.textContent = "";
+    }
+
+    function flashInline(text, kind="ok"){
+      const el = $("#inlineStatus");
+      if(!el) return;
+      el.classList.remove("hidden");
+      el.textContent = text;
+      el.style.color = kind === "err" ? "rgba(255,160,185,.92)" : "rgba(140,255,210,.88)";
+      clearTimeout(flashInline._t);
+      flashInline._t = setTimeout(() => {
+        el.textContent = state.ritualsSkipped ? "تم تخطي الإضافات (يمكن العودة لها لاحقًا)" : "إرشاد لطيف: اختصر أو توسّع حسب رغبتك";
+        el.style.color = "";
+      }, 1400);
+    }
+
+    // ---------- Success Screen ----------
+    function renderSuccess(){
+      const d = state.data;
+      const leaders = d.bonds.leaders.map(id => mockLeaders.find(x => x.id===id)?.name).filter(Boolean);
+      const avatarHTML = (() => {
+        if(d.avatar.mode === "sigil"){
+          return `<div class="w-32 h-32 rounded-2xl overflow-hidden border border-white/10 bg-white/5 outline-glow">${d.avatar.svg || buildAvatarSVG(0)}</div>`;
+        }
+        // upload
+        if(d.avatar.upload.dataUrl){
+          return `
+            <div class="w-32 h-32 rounded-2xl overflow-hidden border border-white/10 bg-white/5 outline-glow relative">
+              <img src="${d.avatar.upload.dataUrl}" alt="Avatar" class="w-full h-full object-cover avatar-live"/>
+              ${buildRuneMaskSVG()}
+            </div>
+          `;
+        }
+        return `<div class="w-32 h-32 rounded-2xl overflow-hidden border border-white/10 bg-white/5 outline-glow flex items-center justify-center text-white/40">—</div>`;
+      })();
+
+      $("#stepHeading").textContent = "Guild Accepted";
+      $("#stepSub").textContent = "تم قبولك. الختم يشتعل… وتُفتح لك أبواب النقابة.";
+      $("#skipBtn").classList.add("hidden");
+      $("#backBtn").classList.add("hidden");
+      $("#nextBtn").classList.add("hidden");
+      $("#mBackBtn").classList.add("hidden");
+      $("#mNextBtn").classList.add("hidden");
+
+      $("#stepBody").innerHTML = `
+        <div class="grid gap-4">
+          <div class="rounded-3xl border border-white/10 bg-black/20 p-5 sm:p-6">
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6">
+              <div class="shrink-0">
+                <div class="wax mx-auto"></div>
+                <div class="text-center mt-2">
+                  <div class="font-display text-lg">Seal of Entry</div>
+                  <div class="text-xs text-white/55">ᚷᛁᛚᛞ • ᚱᚢᚾᛖ • ᛊᛖᚨᛚ</div>
+                </div>
+              </div>
+
+              <div class="flex-1 w-full">
+                <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-300/70 shadow-[0_0_18px_rgba(140,255,210,.45)]"></span>
+                  <span>تم القبول — لا رجعة الآن</span>
+                </div>
+
+                <h3 class="font-display text-2xl mt-3">مرحبًا، ${escapeHtml(d.displayName || "Adventurer")}</h3>
+                <div class="text-white/60 mt-1">@${escapeHtml(normalizeUsername(d.username) || "—")}</div>
+
+                <div class="mt-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-sm text-white/75">“${escapeHtml(d.motto || "—") }”</div>
+                </div>
+
+                <div class="mt-4 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+                  <div class="flex items-center gap-4">
+                    ${avatarHTML}
+                    <div>
+                      <div class="text-sm font-semibold text-white/85">Profile Summary</div>
+                      <div class="hint mt-1">Email: <span class="text-white/70" dir="ltr">${escapeHtml(d.email)}</span></div>
+                      <div class="hint mt-1">Leaders: <span class="text-white/70">${leaders.length ? escapeHtml(leaders.join(" • ")) : "—"}</span></div>
+                    </div>
+                  </div>
+
+                  <button id="restart" type="button"
+                          class="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/75 hover:bg-white/10 transition">
+                    بدء طقس جديد
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div class="text-sm font-semibold text-white/85">بعد قليل (Mock)</div>
+            <ul class="mt-2 space-y-1 text-sm text-white/65">
+              <li class="flex gap-2"><span class="text-rune-300">✦</span><span>إنشاء صفحة ملفك الشخصي مع شارة السيجيل.</span></li>
+              <li class="flex gap-2"><span class="text-ember-300">✦</span><span>اقتراح سلاسل/مناقشات حسب اهتماماتك.</span></li>
+              <li class="flex gap-2"><span class="text-white/60">✦</span><span>تفعيل 2FA من الإعدادات إن رغبت.</span></li>
+            </ul>
+          </div>
+        </div>
+      `;
+
+      $("#restart")?.addEventListener("click", async () => {
+        await runSeal();
+        // reset quickly
+        state.step = 0;
+        state.ritualsSkipped = false;
+        state.ui.usernameStatus = "idle";
+        state.ui.usernameMsg = "";
+        // Keep some fields empty
+        state.data = {
+          email: "",
+          password: "",
+          confirm: "",
+          strength: 0,
+          displayName: "",
+          username: "",
+          motto: "",
+          extras: { newsletter: true, twofa: "later" },
+          avatar: {
+            mode: "sigil",
+            sigilId: "sigil_moon",
+            svg: "",
+            upload: { hasImage:false, crop:{x:0,y:0,scale:1}, dataUrl:"" },
+            tuning: { hue: 0, glow: 0.55, grain: 0.22 }
+          },
+          bonds: { leaders: [], genres: [], types: [], darkLight: 60 }
+        };
+
+        // restore buttons
+        $("#skipBtn").classList.remove("hidden");
+        $("#backBtn").classList.remove("hidden");
+        $("#nextBtn").classList.remove("hidden");
+        $("#mBackBtn").classList.remove("hidden");
+        $("#mNextBtn").classList.remove("hidden");
+
+        render();
+      });
+    }
+
+    // ---------- Navigation ----------
+    async function next(){
+      if(!validateStep()){
+        flashInline("تحقق من الحقول قبل المتابعة.", "err");
+        return;
+      }
+
+      if(state.step === steps.length - 1){
+        await runSeal();
+        renderSuccess();
+        return;
+      }
+
+      await runSeal();
+      state.step++;
+      render();
+    }
+
+    async function back(){
+      if(state.step <= 0) return;
+      await runSeal();
+      state.step--;
+      render();
+    }
+
+    function toggleSkip(){
+      state.ritualsSkipped = !state.ritualsSkipped;
+      render();
+      flashInline(state.ritualsSkipped ? "تم تخطي الطقوس الإضافية." : "تم إظهار الطقوس الإضافية.", "ok");
+    }
+
+    // ---------- Swipe (optional) ----------
+    (function swipeNav(){
+      let startX = 0, startY = 0, active = false;
+
+      function isInteractive(el){
+        if(!el) return false;
+        const tag = (el.tagName || "").toLowerCase();
+        return ["input","textarea","select","button","a","label"].includes(tag) || el.closest("input,textarea,select,button,a,label");
+      }
+
+      document.addEventListener("touchstart", (e) => {
+        if(!state.ui.allowSwipe) return;
+        if(isInteractive(e.target)) return;
+        active = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }, { passive:true });
+
+      document.addEventListener("touchend", async (e) => {
+        if(!active) return;
+        active = false;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - startX;
+        const dy = t.clientY - startY;
+        if(Math.abs(dy) > 60) return; // avoid vertical scroll conflict
+        if(Math.abs(dx) < 70) return;
+
+        // RTL: swipe right should go NEXT visually? We'll keep intuitive:
+        // swipe left => next, swipe right => back (still feels common)
+        if(dx < 0){
+          await next();
+        }else{
+          await back();
+        }
+      }, { passive:true });
+    })();
+
+    // ---------- Bind global buttons ----------
+    $("#nextBtn").addEventListener("click", next);
+    $("#mNextBtn").addEventListener("click", next);
+    $("#backBtn").addEventListener("click", back);
+    $("#mBackBtn").addEventListener("click", back);
+    $("#skipBtn").addEventListener("click", toggleSkip);
+
+    // ---------- Initial ----------
+    function escapeHtml(str){
+      return String(str ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // Initialize default avatar SVG for summary later
+    state.data.avatar.svg = buildAvatarSVG(0);
+
+    render();
+  </script>
+</body>
+</html>

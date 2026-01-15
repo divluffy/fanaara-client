@@ -1,0 +1,1413 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title> 3 gpt</title>
+
+  <!-- Tailwind CDN (ملف واحد) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { arabic: ["Tajawal", "system-ui", "Segoe UI", "Arial"] },
+          colors: {
+            ink: "#070815",
+            night: "#0b0f2b",
+            neon: {
+              v: "#7c3aed",
+              c: "#22d3ee",
+              p: "#fb7185",
+              e: "#34d399",
+              a: "#fbbf24",
+            }
+          },
+          keyframes: {
+            floaty: { "0%,100%": { transform:"translateY(0px)" }, "50%": { transform:"translateY(-10px)" } },
+            shimmer: {
+              "0%": { transform:"translateX(-120%) skewX(-18deg)", opacity: "0" },
+              "18%": { opacity: ".55" },
+              "55%": { opacity: ".55" },
+              "100%": { transform:"translateX(160%) skewX(-18deg)", opacity:"0" },
+            },
+            pop: { "0%": { opacity: "0", transform: "translateY(14px) scale(.985)", filter:"blur(8px)" }, "100%": { opacity:"1", transform:"translateY(0) scale(1)", filter:"blur(0)" } },
+            wipeIn: {
+              "0%": { clipPath: "polygon(0 0, 0 0, 0 100%, 0 100%)", opacity: ".0" },
+              "100%": { clipPath:"polygon(0 0, 100% 0, 100% 100%, 0 100%)", opacity:"1" }
+            },
+            wipeOut: {
+              "0%": { clipPath:"polygon(0 0, 100% 0, 100% 100%, 0 100%)", opacity:"1" },
+              "100%": { clipPath:"polygon(100% 0, 100% 0, 100% 100%, 100% 100%)", opacity:".0" }
+            },
+            flicker: {
+              "0%,100%": { opacity: ".24" },
+              "12%": { opacity: ".08" },
+              "28%": { opacity: ".32" },
+              "55%": { opacity: ".12" },
+              "70%": { opacity: ".28" },
+            },
+            aura: {
+              "0%": { transform: "translate(-50%,-50%) scale(1)", opacity: ".35" },
+              "50%": { transform: "translate(-50%,-50%) scale(1.15)", opacity: ".22" },
+              "100%": { transform: "translate(-50%,-50%) scale(1)", opacity: ".35" }
+            },
+            confetti: { "0%": { transform:"translateY(-30px) rotate(0deg)", opacity:"1" }, "100%": { transform:"translateY(650px) rotate(720deg)", opacity:".95" } }
+          },
+          animation: {
+            floaty: "floaty 5s ease-in-out infinite",
+            shimmer: "shimmer 3.2s ease-in-out infinite",
+            pop: "pop .45s ease both",
+            wipeIn: "wipeIn .5s ease both",
+            wipeOut: "wipeOut .34s ease both",
+            flicker: "flicker 2.6s ease-in-out infinite",
+            aura: "aura 2.8s ease-in-out infinite",
+            confetti: "confetti 1.35s linear forwards",
+          },
+          boxShadow: {
+            glow: "0 0 0 1px rgba(255,255,255,.10), 0 22px 90px rgba(124,58,237,.22)",
+            glow2:"0 0 0 1px rgba(255,255,255,.10), 0 22px 90px rgba(34,211,238,.18)",
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- خط عربي -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --accent1: 124 58 237; /* violet */
+      --accent2: 34 211 238; /* cyan */
+      --accent3: 251 113 133; /* pink */
+      --paper: 255 255 255;
+    }
+    [data-theme="manga"]{
+      --accent1: 245 245 245;
+      --accent2: 245 245 245;
+      --accent3: 245 245 245;
+    }
+
+    /* خلفية: خطوط سرعة + هاف تون + سكاني لاين */
+    .speedlines{
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(900px 500px at 18% 15%, rgba(124,58,237,.23), transparent 60%),
+        radial-gradient(900px 520px at 92% 18%, rgba(34,211,238,.18), transparent 58%),
+        radial-gradient(1000px 520px at 60% 110%, rgba(251,113,133,.14), transparent 62%),
+        repeating-linear-gradient(115deg, rgba(255,255,255,.045) 0px, rgba(255,255,255,.045) 1px, transparent 2px, transparent 9px);
+      opacity: .85;
+      mix-blend-mode: screen;
+      filter: saturate(1.1);
+    }
+    .halftone{
+      position: fixed; inset: -40px; pointer-events:none; z-index:0;
+      background-image: radial-gradient(rgba(255,255,255,.11) 1px, transparent 1px);
+      background-size: 10px 10px;
+      opacity: .07;
+      transform: rotate(-9deg) scale(1.1);
+    }
+    .scanlines{
+      position: fixed; inset: 0; pointer-events:none; z-index:0;
+      background: repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0px, rgba(255,255,255,.05) 1px, transparent 2px, transparent 7px);
+      opacity: .18;
+      mix-blend-mode: overlay;
+      animation: flicker 2.6s ease-in-out infinite;
+    }
+
+    /* لمعة */
+    .shimmerWrap{ position: relative; overflow: hidden; }
+    .shimmerWrap::after{
+      content:"";
+      position:absolute; inset:-40% -60%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+      transform: translateX(-120%) skewX(-18deg);
+      opacity: 0;
+      animation: shimmer 3.2s ease-in-out infinite;
+      pointer-events:none;
+    }
+
+    /* كارد بأسلوب "صفحة مانجا" */
+    .mangaCard{
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.18), 0 24px 110px rgba(0,0,0,.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .mangaCard::before{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(900px 380px at 20% 0%, rgba(var(--accent1), .22), transparent 60%),
+        radial-gradient(700px 360px at 110% 55%, rgba(var(--accent2), .18), transparent 60%),
+        radial-gradient(700px 360px at 50% 120%, rgba(var(--accent3), .14), transparent 65%);
+      z-index:0;
+    }
+    .mangaCard > *{ position: relative; z-index: 1; }
+
+    /* تلاعب 3D خفيف */
+    .tilt{
+      transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+      transition: transform .18s ease;
+    }
+
+    /* الانتقال بين المراحل */
+    .step{ display:none; }
+    .step.active{ display:block; }
+    .step.enter{ animation: wipeIn .5s ease both; }
+    .step.leave{ animation: wipeOut .34s ease both; }
+
+    /* المؤشر اللامع يتبع الماوس */
+    .cursorAura{
+      position: fixed;
+      left: var(--cx, 50%);
+      top: var(--cy, 50%);
+      width: 320px; height: 320px;
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: 1;
+      background: radial-gradient(circle at 30% 30%,
+        rgba(var(--accent2), .20),
+        rgba(var(--accent1), .10) 45%,
+        rgba(0,0,0,0) 70%);
+      filter: blur(8px);
+      animation: aura 2.8s ease-in-out infinite;
+      opacity: .35;
+      transform: translate(-50%,-50%);
+    }
+
+    /* لمن يفضل تقليل الحركة */
+    @media (prefers-reduced-motion: reduce){
+      .scanlines, .cursorAura, .shimmerWrap::after{ animation: none !important; }
+      .tilt{ transition: none !important; }
+    }
+  </style>
+</head>
+
+<body class="font-arabic min-h-screen bg-gradient-to-b from-ink to-night text-white/90 overflow-x-hidden" data-theme="neon">
+  <!-- خلفيات -->
+  <div class="speedlines"></div>
+  <div class="halftone"></div>
+  <div class="scanlines"></div>
+  <div class="cursorAura hidden md:block"></div>
+
+  <!--
+    ✅ صور "أنمي/مانجا" مرخّصة (ليست لقطات من أعمال تجارية محمية):
+    - OpenGameArt (CC0/CC-BY): https://opengameart.org
+    - Wikimedia Commons (CC BY-SA): https://commons.wikimedia.org
+    بإمكانك تبديل الروابط بصورك/أصولك الرسمية داخل مشروعك.
+  -->
+
+  <main class="relative z-10 px-4 py-7 sm:py-10">
+    <div class="mx-auto w-full max-w-6xl grid lg:grid-cols-[1.05fr_.95fr] gap-4 lg:gap-6">
+
+      <!-- HERO / مشهد أنمي متحرك -->
+      <aside class="mangaCard tilt">
+        <div class="p-5 sm:p-7">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-neon-v to-neon-c shadow-[0_22px_70px_rgba(124,58,237,.22)] shimmerWrap"></div>
+              <div>
+                <div class="font-black tracking-wide text-white">مجتمع الأنمي والقصص المصورة</div>
+                <div class="text-xs text-white/65">هوية • اهتمامات • أصدقاء • ذوقك الخاص ✨</div>
+              </div>
+            </div>
+
+            <button id="themeBtn"
+              class="text-[11px] px-3 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition shimmerWrap">
+              تبديل الثيم 🎭
+            </button>
+          </div>
+
+          <h1 class="mt-5 text-2xl sm:text-3xl font-black leading-tight">
+            ابنِ حسابك كأنه <span class="text-transparent bg-clip-text bg-gradient-to-l from-neon-c via-white/90 to-neon-p">مشهد افتتاحي</span>
+          </h1>
+
+          <p class="mt-3 text-sm leading-relaxed text-white/70">
+            تصميم جديد كليًا: كروت بأسلوب مانجا + صور مرخّصة + انتقالات “wipe” + تأثيرات hover وأنيميشن أكثر.
+          </p>
+
+          <!-- لوحة صور (تتغير حسب المرحلة) -->
+          <div class="mt-5 grid grid-cols-3 gap-3">
+            <div class="col-span-2 rounded-2xl border border-white/10 bg-black/25 overflow-hidden relative">
+              <img id="heroImgA"
+                class="w-full h-[170px] sm:h-[210px] object-cover opacity-90 scale-[1.02] transition duration-700"
+                alt="خلفية أنمي مرخّصة"
+                src="https://opengameart.org/sites/default/files/styles/medium/public/school.png">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"></div>
+              <div class="absolute bottom-3 right-3 flex items-center gap-2">
+                <span id="heroBadge"
+                  class="text-[11px] px-3 py-1.5 rounded-full border border-white/10 bg-white/10 backdrop-blur shimmerWrap">
+                  ✦ لقطة: المدرسة
+                </span>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-black/25 overflow-hidden relative">
+              <img id="heroImgB"
+                class="w-full h-[170px] sm:h-[210px] object-cover opacity-90 transition duration-700"
+                alt="صورة مانجا مرخصة"
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Figure_in_Manga_style.png/1024px-Figure_in_Manga_style.png">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+              <div class="absolute bottom-3 right-3 text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-white/10 backdrop-blur">
+                مانجا
+              </div>
+            </div>
+          </div>
+
+          <!-- سطر SFX -->
+          <div class="mt-5 flex flex-wrap gap-2">
+            <span class="px-3 py-2 rounded-full text-xs border border-white/10 bg-white/5 hover:bg-white/10 transition shimmerWrap">ドキドキ</span>
+            <span class="px-3 py-2 rounded-full text-xs border border-white/10 bg-white/5 hover:bg-white/10 transition shimmerWrap">فلاش ✦</span>
+            <span class="px-3 py-2 rounded-full text-xs border border-white/10 bg-white/5 hover:bg-white/10 transition shimmerWrap">تغذية مخصصة</span>
+          </div>
+
+          <!-- ملاحظات ترخيص -->
+          <details class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <summary class="cursor-pointer text-sm font-bold">حقوق/مصادر الصور المستخدمة</summary>
+            <div class="mt-2 text-xs text-white/70 leading-relaxed">
+              <ul class="list-disc pr-5 space-y-1">
+                <li>OpenGameArt: خلفية “Anime school background” (CC-BY 3.0) + أصول إضافية (CC0).</li>
+                <li>Wikimedia Commons: “Figure in Manga style” (CC BY-SA) (يمكنك استبدالها بصورك).</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+      </aside>
+
+      <!-- WIZARD -->
+      <section class="mangaCard tilt">
+        <div class="p-5 sm:p-7">
+          <!-- Progress / Timeline -->
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div id="stepTitle" class="text-sm font-black">المرحلة 1: الأساسيات</div>
+              <div id="stepSub" class="text-xs text-white/65 mt-1">بريد + اسم مستخدم + كلمة مرور.</div>
+            </div>
+
+            <div class="w-[210px] sm:w-[260px]">
+              <div class="h-2.5 rounded-full bg-white/10 border border-white/10 overflow-hidden">
+                <div id="bar" class="h-full w-0 rounded-full bg-gradient-to-l from-neon-v via-neon-c to-neon-p transition-[width] duration-500"></div>
+              </div>
+              <div class="mt-2 flex items-center justify-between text-[11px] text-white/55">
+                <span id="counter">1 / 6</span>
+                <span class="px-2.5 py-1 rounded-full border border-white/10 bg-white/5">حفظ تلقائي</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live mini profile -->
+          <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div id="miniAvatar" class="w-12 h-12 rounded-2xl border border-white/10 bg-black/30 overflow-hidden"></div>
+              <div>
+                <div id="miniName" class="font-black text-sm">اسم العرض…</div>
+                <div id="miniUser" class="text-xs text-white/60">@username</div>
+              </div>
+            </div>
+            <div class="text-left">
+              <div id="miniTags" class="text-[11px] text-white/60">اختر اهتماماتك…</div>
+              <div id="miniFollow" class="text-[11px] text-white/50 mt-1">لا أحد بعد</div>
+            </div>
+          </div>
+
+          <form id="form" class="mt-5" novalidate>
+            <!-- STEP 1 -->
+            <section class="step active enter" data-step="0">
+              <div class="grid sm:grid-cols-2 gap-3">
+                <div class="sm:col-span-2">
+                  <label class="text-xs text-white/75">البريد الإلكتروني</label>
+                  <input id="email" type="email" required placeholder="name@domain.com"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-c/50 focus:ring-4 focus:ring-neon-c/10 transition hover:border-white/20"/>
+                </div>
+
+                <div>
+                  <label class="text-xs text-white/75">اسم المستخدم</label>
+                  <div class="mt-1 relative">
+                    <input id="username" type="text" minlength="3" maxlength="20" required placeholder="otaku_hero"
+                      class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                             focus:border-neon-c/50 focus:ring-4 focus:ring-neon-c/10 transition hover:border-white/20"/>
+                    <span id="userBadge"
+                      class="absolute top-1/2 -translate-y-1/2 right-3 text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-white/5 text-white/70">
+                      —
+                    </span>
+                  </div>
+                  <p class="mt-1 text-[11px] text-white/55">مسموح: حروف/أرقام/underscore.</p>
+                </div>
+
+                <div>
+                  <label class="text-xs text-white/75">كلمة المرور</label>
+                  <input id="password" type="password" minlength="8" required placeholder="••••••••"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-v/50 focus:ring-4 focus:ring-neon-v/10 transition hover:border-white/20"/>
+                  <div class="mt-2 flex items-center gap-2">
+                    <div class="h-2 rounded-full bg-white/10 border border-white/10 overflow-hidden flex-1">
+                      <div id="pwBar" class="h-full w-0 rounded-full bg-gradient-to-l from-neon-p via-neon-a to-neon-e transition-[width] duration-300"></div>
+                    </div>
+                    <span id="pwLabel" class="text-[11px] px-2.5 py-1 rounded-full border border-neon-p/30 bg-neon-p/10 text-neon-p">ضعيفة</span>
+                  </div>
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label class="text-xs text-white/75">تأكيد كلمة المرور</label>
+                  <input id="confirm" type="password" required placeholder="••••••••"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-v/50 focus:ring-4 focus:ring-neon-v/10 transition hover:border-white/20"/>
+                  <p id="matchHint" class="mt-1 text-[11px] text-white/55">طابق كلمة المرور.</p>
+                </div>
+              </div>
+
+              <div id="err0" class="hidden mt-4 rounded-2xl border border-neon-p/40 bg-neon-p/10 px-4 py-3 text-sm"></div>
+            </section>
+
+            <!-- STEP 2 -->
+            <section class="step" data-step="1">
+              <div class="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="text-xs text-white/75">اسم العرض</label>
+                  <input id="display" type="text" maxlength="30" required placeholder="مثال: رورونوا / نايت / …"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-c/50 focus:ring-4 focus:ring-neon-c/10 transition hover:border-white/20"/>
+                </div>
+
+                <div>
+                  <label class="text-xs text-white/75">بلد/مدينة (اختياري)</label>
+                  <input id="loc" type="text" maxlength="40" placeholder="Tokyo • Riyadh • Cairo"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-c/50 focus:ring-4 focus:ring-neon-c/10 transition hover:border-white/20"/>
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label class="text-xs text-white/75">نبذة قصيرة</label>
+                  <textarea id="bio" rows="4" maxlength="160" placeholder="قل لنا: ما الذي يجعلك تحب الأنمي/المانجا؟"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-v/50 focus:ring-4 focus:ring-neon-v/10 transition hover:border-white/20"></textarea>
+                  <div class="mt-1 text-[11px] text-white/55"><span id="bioCount">0</span>/160</div>
+                </div>
+
+                <div>
+                  <label class="text-xs text-white/75">مستوى الفاندوم</label>
+                  <select id="level"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-c/50 focus:ring-4 focus:ring-neon-c/10 transition hover:border-white/20">
+                    <option>جديد 👶</option>
+                    <option>متابع 🔥</option>
+                    <option>أوتاكو 👑</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="text-xs text-white/75">نوع التوصيات</label>
+                  <select id="reco"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-c/50 focus:ring-4 focus:ring-neon-c/10 transition hover:border-white/20">
+                    <option>موازن</option>
+                    <option>جريء + نادر</option>
+                    <option>خفيف ومرح</option>
+                    <option>ثقيل ودرامي</option>
+                  </select>
+                </div>
+              </div>
+              <div id="err1" class="hidden mt-4 rounded-2xl border border-neon-p/40 bg-neon-p/10 px-4 py-3 text-sm"></div>
+            </section>
+
+            <!-- STEP 3 -->
+            <section class="step" data-step="2">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <div class="font-black text-sm">اهتماماتك</div>
+                  <div class="text-xs text-white/60 mt-0.5">اختر 3 على الأقل (أنواع + تصنيفات).</div>
+                </div>
+                <div class="text-[11px] px-3 py-1.5 rounded-full border border-white/10 bg-white/5">
+                  المحدد: <span id="pickCount" class="font-black">0</span>
+                </div>
+              </div>
+
+              <div class="mt-4 grid gap-3">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs text-white/70 mb-2">أنواع المحتوى</div>
+                  <div id="types" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs text-white/70 mb-2">التصنيفات</div>
+                  <div id="genres" class="flex flex-wrap gap-2"></div>
+                </div>
+              </div>
+
+              <div id="err2" class="hidden mt-4 rounded-2xl border border-neon-p/40 bg-neon-p/10 px-4 py-3 text-sm"></div>
+            </section>
+
+            <!-- STEP 4 -->
+            <section class="step" data-step="3">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="font-black text-sm">اختر أفاتار “أنمي”</div>
+                  <div class="text-xs text-white/60 mt-0.5">صور مرخّصة + يمكنك رفع صورتك.</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <label class="text-[11px] px-3 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition cursor-pointer">
+                    رفع صورة
+                    <input id="upload" type="file" accept="image/*" class="hidden">
+                  </label>
+                </div>
+              </div>
+
+              <div class="mt-4 grid sm:grid-cols-2 gap-3">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs text-white/70 mb-3">أفاتارات جاهزة</div>
+                  <div id="avatarGrid" class="grid grid-cols-3 gap-3"></div>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs text-white/70 mb-3">المعاينة</div>
+                  <div class="flex items-center gap-3">
+                    <div id="avatarPreview" class="w-16 h-16 rounded-2xl border border-white/10 bg-black/35 overflow-hidden"></div>
+                    <div>
+                      <div class="font-black" id="previewName">—</div>
+                      <div class="text-xs text-white/60" id="previewUser">—</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 rounded-2xl border border-white/10 bg-gradient-to-l from-white/5 to-white/0 p-4">
+                    <div class="text-xs text-white/70 leading-relaxed">
+                      تلميح: جرّب “ثيم مانجا” من زر تبديل الثيم بالأعلى لستايل أبيض/أسود جذري.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="err3" class="hidden mt-4 rounded-2xl border border-neon-p/40 bg-neon-p/10 px-4 py-3 text-sm"></div>
+            </section>
+
+            <!-- STEP 5 -->
+            <section class="step" data-step="4">
+              <div class="flex items-end justify-between gap-3">
+                <div>
+                  <div class="font-black text-sm">تابع أشخاصًا لتحصل على تغذية قوية</div>
+                  <div class="text-xs text-white/60 mt-0.5">اختر 2 على الأقل.</div>
+                </div>
+                <div class="text-[11px] px-3 py-1.5 rounded-full border border-white/10 bg-white/5">
+                  المتابعة: <span id="followCount" class="font-black">0</span>
+                </div>
+              </div>
+
+              <div id="followGrid" class="mt-4 grid sm:grid-cols-2 gap-3"></div>
+
+              <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="text-xs text-white/60 mb-2">مختصر المتابعة</div>
+                <div id="followChips" class="flex flex-wrap gap-2"></div>
+              </div>
+
+              <div id="err4" class="hidden mt-4 rounded-2xl border border-neon-p/40 bg-neon-p/10 px-4 py-3 text-sm"></div>
+            </section>
+
+            <!-- STEP 6 -->
+            <section class="step" data-step="5">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="font-black text-sm">مراجعة وإنهاء</div>
+                  <div class="text-xs text-white/60 mt-0.5">تأكد من التفاصيل قبل الإنشاء.</div>
+                </div>
+                <label class="flex items-center gap-2 text-xs text-white/75 cursor-pointer select-none">
+                  <input id="tos" type="checkbox" class="w-4 h-4 accent-neon-c">
+                  أوافق على الشروط (تجريبية)
+                </label>
+              </div>
+
+              <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="text-xs text-white/70">ملخص</div>
+                <div id="summary" class="mt-3 text-sm text-white/85 leading-relaxed"></div>
+              </div>
+
+              <div id="err5" class="hidden mt-4 rounded-2xl border border-neon-p/40 bg-neon-p/10 px-4 py-3 text-sm"></div>
+            </section>
+
+            <!-- Buttons -->
+            <div class="mt-6 flex items-center justify-between gap-3">
+              <button type="button" id="prev"
+                class="px-4 py-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition
+                       active:translate-y-[1px] disabled:opacity-50 disabled:cursor-not-allowed">
+                السابق ←
+              </button>
+
+              <button type="button" id="next"
+                class="group px-5 py-3 rounded-2xl border border-white/10 bg-gradient-to-l from-neon-v to-neon-c
+                       hover:from-neon-v hover:via-neon-c hover:to-neon-p transition
+                       shadow-[0_22px_70px_rgba(124,58,237,.18),0_22px_70px_rgba(34,211,238,.12)]
+                       active:translate-y-[1px] shimmerWrap">
+                <span id="nextTxt" class="font-black">التالي →</span>
+                <span class="mr-2 inline-block opacity-80 group-hover:opacity-100 transition">✨</span>
+              </button>
+            </div>
+
+            <p class="mt-3 text-[11px] text-white/55">
+              Demo: يتم حفظ البيانات في <b>localStorage</b> تحت المفتاح: <b>anime_signup_ar_v3</b>
+            </p>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- SUCCESS MODAL -->
+  <div id="overlay" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-xl">
+    <div class="mangaCard w-full max-w-xl overflow-hidden">
+      <div id="confetti" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+
+      <div class="p-6 sm:p-7">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-neon-v to-neon-c shimmerWrap"></div>
+          <div>
+            <div class="font-black">تم إنشاء الحساب ✅</div>
+            <div class="text-xs text-white/65">أهلاً بك في الفاندوم!</div>
+          </div>
+        </div>
+
+        <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center gap-3">
+          <div id="okAvatar" class="w-14 h-14 rounded-2xl border border-white/10 bg-black/30 overflow-hidden"></div>
+          <div>
+            <div id="okName" class="font-black text-lg">—</div>
+            <div id="okUser" class="text-sm text-white/65">—</div>
+            <div id="okMeta" class="mt-1 text-xs text-white/60">—</div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex items-center justify-between gap-3">
+          <button id="close"
+            class="px-4 py-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition active:translate-y-[1px]">
+            إغلاق
+          </button>
+          <button id="reset"
+            class="px-5 py-3 rounded-2xl border border-white/10 bg-gradient-to-l from-neon-v to-neon-c hover:to-neon-p transition shimmerWrap">
+            إنشاء حساب جديد ✨
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -----------------------------
+    // صور مرخّصة (استبدلها براحتك)
+    // -----------------------------
+    const IMAGES = {
+      school: "https://opengameart.org/sites/default/files/styles/medium/public/school.png", // CC-BY 3.0
+      mangaA:  "https://opengameart.org/sites/default/files/styles/medium/public/manga_bg_01.png", // CC0
+      mangaB:  "https://opengameart.org/sites/default/files/styles/medium/public/manga_bg_08.png", // CC0
+      vn:      "https://opengameart.org/sites/default/files/styles/medium/public/VN_tutorial_assets_preview.png", // CC0
+      mangaGirl:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Figure_in_Manga_style.png/1024px-Figure_in_Manga_style.png", // CC BY-SA
+      animeChars:"https://opengameart.org/sites/default/files/styles/medium/public/Anime-Characters-Edited_0.png" // CC0
+    };
+
+    // -----------------------------
+    // عناصر أساسية
+    // -----------------------------
+    const steps = [...document.querySelectorAll(".step")];
+    const stepTitle = document.getElementById("stepTitle");
+    const stepSub   = document.getElementById("stepSub");
+    const bar       = document.getElementById("bar");
+    const counter   = document.getElementById("counter");
+    const prevBtn   = document.getElementById("prev");
+    const nextBtn   = document.getElementById("next");
+    const nextTxt   = document.getElementById("nextTxt");
+
+    const heroImgA  = document.getElementById("heroImgA");
+    const heroImgB  = document.getElementById("heroImgB");
+    const heroBadge = document.getElementById("heroBadge");
+
+    const themeBtn  = document.getElementById("themeBtn");
+
+    let idx = 0;
+
+    const titles = [
+      ["المرحلة 1: الأساسيات", "بريد + اسم مستخدم + كلمة مرور."],
+      ["المرحلة 2: ملفك", "اسم العرض + نبذة + تفضيلات."],
+      ["المرحلة 3: اهتماماتك", "حدد ذوقك لصنع تغذية قوية."],
+      ["المرحلة 4: الأفاتار", "اختيار صورة أنمي مرخّصة أو رفع صورة."],
+      ["المرحلة 5: المتابعة", "ابدأ بمن تتابعهم."],
+      ["المرحلة 6: المراجعة", "ملخص + إنهاء."]
+    ];
+
+    function setHero(step){
+      // تغييرات “جذرية” بصرياً: كل مرحلة تغيّر المشهد
+      const map = [
+        { a: IMAGES.school, b: IMAGES.mangaGirl, badge: "✦ لقطة: المدرسة" },
+        { a: IMAGES.vn,     b: IMAGES.mangaGirl, badge: "✦ لقطة: Visual Novel" },
+        { a: IMAGES.mangaA, b: IMAGES.mangaB,    badge: "✦ لقطة: مانجا صناعية" },
+        { a: IMAGES.school, b: IMAGES.animeChars, badge:"✦ لقطة: شخصيات أنمي (CC0)" },
+        { a: IMAGES.vn,     b: IMAGES.mangaA,     badge:"✦ لقطة: متابعة + شخصيات" },
+        { a: IMAGES.mangaB, b: IMAGES.mangaGirl,  badge:"✦ لقطة: النهاية" },
+      ];
+      const m = map[step];
+      heroImgA.style.opacity = "0";
+      heroImgB.style.opacity = "0";
+      setTimeout(()=>{
+        heroImgA.src = m.a;
+        heroImgB.src = m.b;
+        heroBadge.textContent = m.badge;
+        heroImgA.style.opacity = "1";
+        heroImgB.style.opacity = "1";
+      }, 160);
+    }
+
+    function setStep(n, direction = "next"){
+      const old = idx;
+      idx = n;
+
+      // leave old
+      steps[old].classList.remove("enter");
+      steps[old].classList.add("leave");
+      setTimeout(()=>{
+        steps[old].classList.remove("active","leave");
+      }, 320);
+
+      // enter new
+      steps[idx].classList.add("active","enter");
+      setTimeout(()=> steps[idx].classList.remove("enter"), 520);
+
+      const pct = Math.round((idx/(steps.length-1))*100);
+      bar.style.width = pct + "%";
+      counter.textContent = `${idx+1} / ${steps.length}`;
+      stepTitle.textContent = titles[idx][0];
+      stepSub.textContent = titles[idx][1];
+
+      prevBtn.disabled = (idx===0);
+      nextTxt.textContent = (idx === steps.length-1) ? "إنشاء الحساب" : "التالي →";
+
+      clearErr(old);
+      clearErr(idx);
+
+      setHero(idx);
+      syncMini();
+      if(idx === 5) renderSummary();
+    }
+
+    function errBox(i){ return document.getElementById("err"+i); }
+    function showErr(i, msg){
+      const b = errBox(i);
+      b.textContent = msg;
+      b.classList.remove("hidden");
+    }
+    function clearErr(i){
+      const b = errBox(i);
+      if(!b) return;
+      b.classList.add("hidden");
+      b.textContent = "";
+    }
+
+    prevBtn.addEventListener("click", ()=> {
+      if(idx>0) setStep(idx-1, "prev");
+    });
+
+    nextBtn.addEventListener("click", async ()=> {
+      const ok = await validate(idx);
+      if(!ok) return;
+      if(idx < steps.length-1) setStep(idx+1, "next");
+      else submit();
+    });
+
+    // -----------------------------
+    // Step 1: تحقق اسم المستخدم + قوة كلمة المرور
+    // -----------------------------
+    const email = document.getElementById("email");
+    const username = document.getElementById("username");
+    const userBadge = document.getElementById("userBadge");
+    const pw = document.getElementById("password");
+    const cf = document.getElementById("confirm");
+    const pwBar = document.getElementById("pwBar");
+    const pwLabel = document.getElementById("pwLabel");
+    const matchHint = document.getElementById("matchHint");
+
+    let userPending = false;
+    let userOK = false;
+    let t = null;
+    const reserved = new Set(["admin","root","support","moderator","owner","anime","manga","manhwa","comics","otaku","luffy","naruto"]);
+
+    function setUserBadge(text, tone){
+      const base = "absolute top-1/2 -translate-y-1/2 right-3 text-[11px] px-2.5 py-1 rounded-full border bg-white/5";
+      if(tone==="ok") userBadge.className = base + " border-neon-e/35 text-neon-e";
+      else if(tone==="bad") userBadge.className = base + " border-neon-p/35 text-neon-p";
+      else if(tone==="warn") userBadge.className = base + " border-neon-a/35 text-neon-a";
+      else userBadge.className = base + " border-white/10 text-white/70";
+      userBadge.textContent = text;
+    }
+
+    function validUser(v){
+      if(v.length < 3) return "قصير جدًا";
+      if(v.length > 20) return "طويل جدًا";
+      if(!/^[a-zA-Z0-9_]+$/.test(v)) return "غير صالح";
+      return null;
+    }
+
+    function checkUser(){
+      const v = username.value.trim();
+      userOK = false;
+      if(!v){ setUserBadge("—",""); return; }
+      const fmt = validUser(v);
+      if(fmt){ setUserBadge(fmt, "bad"); return; }
+
+      userPending = true;
+      setUserBadge("يفحص…", "warn");
+
+      clearTimeout(t);
+      t = setTimeout(()=>{
+        userPending = false;
+        const low = v.toLowerCase();
+        const taken = reserved.has(low) || low.endsWith("_official") || low.endsWith("0");
+        userOK = !taken;
+        setUserBadge(userOK ? "متاح ✓" : "محجوز ✕", userOK ? "ok" : "bad");
+      }, 420 + Math.random()*520);
+    }
+
+    username.addEventListener("input", ()=> { checkUser(); syncMini(); });
+
+    function scorePw(v){
+      let s = 0;
+      if(v.length >= 8) s += 25;
+      if(v.length >= 12) s += 15;
+      if(/[A-Z]/.test(v)) s += 15;
+      if(/[a-z]/.test(v)) s += 15;
+      if(/[0-9]/.test(v)) s += 15;
+      if(/[^A-Za-z0-9]/.test(v)) s += 15;
+      return Math.min(100, s);
+    }
+
+    function updatePw(){
+      const s = scorePw(pw.value);
+      pwBar.style.width = s + "%";
+      let label = "ضعيفة", cls = "border-neon-p/30 bg-neon-p/10 text-neon-p";
+      if(s >= 70){ label="قوية"; cls="border-neon-e/30 bg-neon-e/10 text-neon-e"; }
+      else if(s >= 45){ label="متوسطة"; cls="border-neon-a/30 bg-neon-a/10 text-neon-a"; }
+      pwLabel.textContent = label;
+      pwLabel.className = "text-[11px] px-2.5 py-1 rounded-full border " + cls;
+
+      const m = (cf.value.length===0) ? null : (pw.value === cf.value);
+      if(m === null){
+        matchHint.textContent = "طابق كلمة المرور.";
+        matchHint.className = "mt-1 text-[11px] text-white/55";
+      }else if(m){
+        matchHint.textContent = "مطابقة ✓";
+        matchHint.className = "mt-1 text-[11px] text-neon-e";
+      }else{
+        matchHint.textContent = "غير متطابقة ✕";
+        matchHint.className = "mt-1 text-[11px] text-neon-p";
+      }
+    }
+    pw.addEventListener("input", updatePw);
+    cf.addEventListener("input", updatePw);
+
+    // -----------------------------
+    // Step 2
+    // -----------------------------
+    const display = document.getElementById("display");
+    const bio = document.getElementById("bio");
+    const bioCount = document.getElementById("bioCount");
+    bio.addEventListener("input", ()=> bioCount.textContent = String(bio.value.length));
+    display.addEventListener("input", syncMini);
+
+    // -----------------------------
+    // Step 3: Chips
+    // -----------------------------
+    const typesRoot = document.getElementById("types");
+    const genresRoot = document.getElementById("genres");
+    const pickCount = document.getElementById("pickCount");
+
+    const TYPES = ["Anime", "Manga", "Manhwa", "Comics", "Webtoon", "Light Novel", "Fan Art", "Cosplay"];
+    const GENRES = ["شونين", "سينين", "إيسيكاي", "رعب", "غموض", "رومانسي", "خيال", "خيال علمي", "سوبرهيرو", "رياضة", "دراما", "سلايس أوف لايف"];
+
+    const picks = { types: new Set(), genres: new Set() };
+
+    function chip(text, on, toggle){
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = text;
+      btn.className =
+        "px-3 py-2 rounded-full text-xs border transition select-none " +
+        (on
+          ? "border-neon-c/45 bg-gradient-to-l from-neon-c/15 to-neon-v/15 shadow-[0_0_0_4px_rgba(34,211,238,.08)]"
+          : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20");
+      btn.addEventListener("click", toggle);
+      return btn;
+    }
+
+    function renderPicks(){
+      typesRoot.innerHTML = "";
+      genresRoot.innerHTML = "";
+
+      for(const t of TYPES){
+        typesRoot.appendChild(chip(t, picks.types.has(t), ()=>{
+          picks.types.has(t) ? picks.types.delete(t) : picks.types.add(t);
+          renderPicks(); syncMini();
+        }));
+      }
+      for(const g of GENRES){
+        genresRoot.appendChild(chip(g, picks.genres.has(g), ()=>{
+          picks.genres.has(g) ? picks.genres.delete(g) : picks.genres.add(g);
+          renderPicks(); syncMini();
+        }));
+      }
+
+      pickCount.textContent = String(picks.types.size + picks.genres.size);
+    }
+
+    // -----------------------------
+    // Step 4: Avatars (قصّ من صور مرخصة)
+    // -----------------------------
+    const avatarGrid = document.getElementById("avatarGrid");
+    const avatarPreview = document.getElementById("avatarPreview");
+    const upload = document.getElementById("upload");
+
+    // قصّ صور متعددة من نفس المصدر (بدون تحميل ملفات إضافية)
+    const avatarOptions = [
+      { id:"a1", label:"مانجا",    img: IMAGES.mangaGirl, pos:"center 20%", size:"cover" },
+      { id:"a2", label:"مانجا 2",  img: IMAGES.mangaGirl, pos:"center 45%", size:"cover" },
+      { id:"a3", label:"شخصية",    img: IMAGES.vn, pos:"20% 35%", size:"cover" },
+      { id:"a4", label:"شخصية 2",  img: IMAGES.vn, pos:"78% 35%", size:"cover" },
+      { id:"a5", label:"بيكسل",    img: IMAGES.animeChars, pos:"28% 50%", size:"220%"},
+      { id:"a6", label:"بيكسل 2",  img: IMAGES.animeChars, pos:"72% 50%", size:"220%"},
+    ];
+
+    let avatarSel = avatarOptions[0];
+    let uploadedDataURL = null;
+
+    function buildAvatars(){
+      avatarGrid.innerHTML = "";
+      avatarOptions.forEach((a)=>{
+        const btn = document.createElement("button");
+        btn.type = "button";
+        const on = (avatarSel && avatarSel.id === a.id && !uploadedDataURL);
+        btn.className =
+          "rounded-2xl border overflow-hidden bg-black/30 aspect-square transition " +
+          (on ? "border-neon-p/45 shadow-[0_0_0_4px_rgba(251,113,133,.08)]" : "border-white/10 hover:border-white/20 hover:-translate-y-1 active:translate-y-0");
+        btn.style.backgroundImage = `url('${a.img}')`;
+        btn.style.backgroundPosition = a.pos;
+        btn.style.backgroundRepeat = "no-repeat";
+        btn.style.backgroundSize = a.size;
+
+        const tag = document.createElement("div");
+        tag.className = "absolute bottom-2 right-2 text-[10px] px-2 py-1 rounded-full border border-white/10 bg-white/10 backdrop-blur";
+        tag.textContent = a.label;
+
+        btn.style.position = "relative";
+        btn.appendChild(tag);
+
+        btn.addEventListener("click", ()=>{
+          uploadedDataURL = null;
+          avatarSel = a;
+          updateAvatarPreview();
+          syncMini();
+          buildAvatars();
+        });
+
+        avatarGrid.appendChild(btn);
+      });
+    }
+
+    function updateAvatarPreview(){
+      avatarPreview.innerHTML = "";
+      const box = document.createElement("div");
+      box.className = "w-full h-full";
+      box.style.backgroundRepeat = "no-repeat";
+      box.style.backgroundPosition = uploadedDataURL ? "center" : avatarSel.pos;
+      box.style.backgroundSize = uploadedDataURL ? "cover" : avatarSel.size;
+      box.style.backgroundImage = `url('${uploadedDataURL || avatarSel.img}')`;
+      avatarPreview.appendChild(box);
+
+      // mini avatar too
+      miniAvatar.innerHTML = "";
+      const m = box.cloneNode();
+      m.style.width = "100%"; m.style.height = "100%";
+      miniAvatar.appendChild(m);
+
+      // success avatar later
+    }
+
+    upload.addEventListener("change", ()=>{
+      const file = upload.files && upload.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        uploadedDataURL = reader.result;
+        updateAvatarPreview();
+        syncMini();
+        buildAvatars();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // -----------------------------
+    // Step 5: Follow cards
+    // -----------------------------
+    const followGrid = document.getElementById("followGrid");
+    const followCount = document.getElementById("followCount");
+    const followChips = document.getElementById("followChips");
+
+    const suggestions = [
+      { handle:"sakuga_lab", name:"مختبر ساكوغا", bio:"لقطات أنيميشن + تقدير الحركة", tag:"Anime", img: IMAGES.vn, pos:"20% 35%" },
+      { handle:"manga_arch", name:"أرشيف مانجا", bio:"ترشيحات + قراءات سريعة", tag:"Manga", img: IMAGES.mangaA, pos:"center" },
+      { handle:"webtoon_wave", name:"موجة ويب تون", bio:"مانهوا/ويب تون يوميًا", tag:"Webtoon", img: IMAGES.school, pos:"center" },
+      { handle:"panel_sensei", name:"سنسي البانلز", bio:"تحليل صفحات القصص المصورة", tag:"Comics", img: IMAGES.mangaB, pos:"center" },
+      { handle:"lore_mage", name:"ساحر اللور", bio:"نظريات + تفكيك العالم", tag:"Lore", img: IMAGES.mangaGirl, pos:"center 25%" },
+      { handle:"cosplay_kun", name:"كوسبلاي-كن", bio:"إلهام وملابس وDIY", tag:"Cosplay", img: IMAGES.animeChars, pos:"72% 50%" },
+    ];
+    const following = new Set();
+
+    function renderFollow(){
+      followGrid.innerHTML = "";
+      suggestions.forEach((u)=>{
+        const on = following.has(u.handle);
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className =
+          "text-right rounded-2xl border p-4 transition active:translate-y-[1px] " +
+          (on ? "border-neon-e/40 bg-neon-e/10 hover:bg-neon-e/15" : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20");
+
+        const avatar = `
+          <div class="w-10 h-10 rounded-2xl border border-white/10 bg-black/30 overflow-hidden" style="
+            background-image:url('${u.img}');
+            background-position:${u.pos};
+            background-size:cover;
+            background-repeat:no-repeat;
+          "></div>`;
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              ${avatar}
+              <div>
+                <div class="font-black text-sm">${u.name}</div>
+                <div class="text-xs text-white/60">@${u.handle}</div>
+              </div>
+            </div>
+
+            <span class="text-[11px] px-2.5 py-1 rounded-full border ${
+              on ? "border-neon-e/40 bg-neon-e/10 text-neon-e" : "border-white/10 bg-white/5 text-white/70"
+            }">
+              ${on ? "تتابعه" : "تابع"}
+            </span>
+          </div>
+
+          <div class="mt-2 text-xs text-white/65 leading-relaxed">${u.bio}</div>
+          <div class="mt-3 inline-flex text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-white/5 text-white/70">${u.tag}</div>
+        `;
+
+        card.addEventListener("click", ()=>{
+          on ? following.delete(u.handle) : following.add(u.handle);
+          renderFollow();
+          syncMini();
+        });
+
+        followGrid.appendChild(card);
+      });
+
+      followCount.textContent = String(following.size);
+      followChips.innerHTML = "";
+      if(following.size === 0){
+        followChips.innerHTML = `<span class="text-[11px] text-white/55">لا أحد محدد</span>`;
+      } else {
+        [...following].slice(0, 8).forEach(h=>{
+          const chip = document.createElement("span");
+          chip.className = "text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition";
+          chip.textContent = "@"+h;
+          followChips.appendChild(chip);
+        });
+      }
+    }
+
+    // -----------------------------
+    // Mini profile
+    // -----------------------------
+    const miniAvatar = document.getElementById("miniAvatar");
+    const miniName = document.getElementById("miniName");
+    const miniUser = document.getElementById("miniUser");
+    const miniTags = document.getElementById("miniTags");
+    const miniFollow = document.getElementById("miniFollow");
+
+    const previewName = document.getElementById("previewName");
+    const previewUser = document.getElementById("previewUser");
+
+    function syncMini(){
+      const dn = (display.value || "").trim();
+      const un = (username.value || "").trim();
+      miniName.textContent = dn || "اسم العرض…";
+      miniUser.textContent = un ? ("@" + un) : "@username";
+
+      previewName.textContent = dn || "—";
+      previewUser.textContent = un ? ("@" + un) : "—";
+
+      const all = [...picks.types, ...picks.genres];
+      miniTags.textContent = all.length ? all.slice(0, 3).join(" • ") + (all.length>3 ? " …" : "") : "اختر اهتماماتك…";
+      miniFollow.textContent = following.size ? (`تتابع: ${[...following].slice(0,2).map(x=>"@"+x).join("، ")}${following.size>2?"…":""}`) : "لا أحد بعد";
+      autosave();
+    }
+
+    // -----------------------------
+    // Step 6: Summary
+    // -----------------------------
+    const summary = document.getElementById("summary");
+    function renderSummary(){
+      const payload = collect();
+      const lines = [
+        `• البريد: <b>${escapeHtml(payload.email || "—")}</b>`,
+        `• المستخدم: <b>@${escapeHtml(payload.username || "—")}</b>`,
+        `• اسم العرض: <b>${escapeHtml(payload.displayName || "—")}</b>`,
+        `• المستوى: <b>${escapeHtml(payload.level || "—")}</b>`,
+        `• الاهتمامات: <b>${escapeHtml(payload.picks.join(" • ") || "—")}</b>`,
+        `• المتابعة: <b>${escapeHtml(payload.follow.map(x=>"@"+x).join("، ") || "—")}</b>`,
+      ];
+      summary.innerHTML = lines.join("<br>");
+    }
+
+    function escapeHtml(s){
+      return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+    }
+
+    // -----------------------------
+    // Theme toggle (Neon / Manga BW) + تبديل جذري
+    // -----------------------------
+    let theme = "neon";
+    themeBtn.addEventListener("click", ()=>{
+      theme = (theme === "neon") ? "manga" : "neon";
+      document.body.setAttribute("data-theme", theme);
+
+      // تغييرات شكلية واضحة جدًا
+      if(theme === "manga"){
+        document.body.classList.remove("from-ink","to-night");
+        document.body.classList.add("bg-black");
+        document.querySelector(".speedlines").style.mixBlendMode = "normal";
+        document.querySelector(".speedlines").style.opacity = ".35";
+      }else{
+        document.body.classList.remove("bg-black");
+        document.body.classList.add("bg-gradient-to-b","from-ink","to-night");
+        document.querySelector(".speedlines").style.mixBlendMode = "screen";
+        document.querySelector(".speedlines").style.opacity = ".85";
+      }
+    });
+
+    // -----------------------------
+    // Validation
+    // -----------------------------
+    async function validate(i){
+      if(i === 0){
+        if(!email.checkValidity()){
+          showErr(0, "اكتب بريدًا إلكترونيًا صحيحًا.");
+          email.focus(); return false;
+        }
+        const u = username.value.trim();
+        const fmt = validUser(u);
+        if(!u || fmt){
+          showErr(0, "اسم المستخدم غير صالح (3-20، حروف/أرقام/_).");
+          username.focus(); return false;
+        }
+        if(userPending){
+          showErr(0, "انتظر… يتم فحص اسم المستخدم.");
+          return false;
+        }
+        if(userBadge.textContent === "—"){
+          checkUser();
+          showErr(0, "انتظر فحص اسم المستخدم ثم تابع.");
+          return false;
+        }
+        if(!userOK){
+          showErr(0, "هذا الاسم محجوز. جرّب اسمًا آخر.");
+          username.focus(); return false;
+        }
+        if(!pw.checkValidity()){
+          showErr(0, "كلمة المرور يجب أن تكون 8 أحرف على الأقل.");
+          pw.focus(); return false;
+        }
+        if(pw.value !== cf.value){
+          showErr(0, "كلمتا المرور غير متطابقتين.");
+          cf.focus(); return false;
+        }
+        return true;
+      }
+
+      if(i === 1){
+        if(!display.value.trim()){
+          showErr(1, "اسم العرض مطلوب.");
+          display.focus(); return false;
+        }
+        return true;
+      }
+
+      if(i === 2){
+        const count = picks.types.size + picks.genres.size;
+        if(count < 3){
+          showErr(2, "اختر 3 عناصر على الأقل (أنواع + تصنيفات).");
+          return false;
+        }
+        return true;
+      }
+
+      if(i === 3){
+        // أفاتار: لدينا افتراضي دائمًا
+        return true;
+      }
+
+      if(i === 4){
+        if(following.size < 2){
+          showErr(4, "اختر شخصين على الأقل للمتابعة.");
+          return false;
+        }
+        return true;
+      }
+
+      if(i === 5){
+        if(!document.getElementById("tos").checked){
+          showErr(5, "يجب الموافقة على الشروط (تجريبية) لإكمال الإنشاء.");
+          return false;
+        }
+        return true;
+      }
+      return true;
+    }
+
+    // -----------------------------
+    // Collect + autosave
+    // -----------------------------
+    function collect(){
+      return {
+        email: email.value.trim(),
+        username: username.value.trim(),
+        displayName: display.value.trim(),
+        bio: bio.value.trim(),
+        loc: document.getElementById("loc").value.trim() || null,
+        level: document.getElementById("level").value,
+        reco: document.getElementById("reco").value,
+        picks: [...picks.types, ...picks.genres],
+        follow: [...following],
+        avatar: uploadedDataURL ? { type:"upload", data: uploadedDataURL } : { type:"preset", ...avatarSel },
+        theme,
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    function autosave(){
+      try{
+        localStorage.setItem("anime_signup_ar_v3", JSON.stringify(collect()));
+      }catch(e){}
+    }
+
+    // -----------------------------
+    // Submit + Confetti
+    // -----------------------------
+    const overlay = document.getElementById("overlay");
+    const closeBtn = document.getElementById("close");
+    const resetBtn = document.getElementById("reset");
+    const okAvatar = document.getElementById("okAvatar");
+    const okName = document.getElementById("okName");
+    const okUser = document.getElementById("okUser");
+    const okMeta = document.getElementById("okMeta");
+
+    function confettiBurst(){
+      const root = document.getElementById("confetti");
+      root.innerHTML = "";
+      const colors = [
+        "rgba(124,58,237,.95)", "rgba(34,211,238,.95)",
+        "rgba(251,113,133,.95)", "rgba(52,211,153,.95)",
+        "rgba(251,191,36,.95)", "rgba(245,245,245,.95)"
+      ];
+      for(let i=0;i<46;i++){
+        const c = document.createElement("div");
+        c.style.position="absolute";
+        c.style.left=(Math.random()*100)+"%";
+        c.style.top=(-30 - Math.random()*60)+"px";
+        c.style.width=(8 + Math.random()*7)+"px";
+        c.style.height=(12 + Math.random()*12)+"px";
+        c.style.borderRadius="3px";
+        c.style.background=colors[(Math.random()*colors.length)|0];
+        c.style.animation=`confetti ${1.05 + Math.random()*1.1}s linear forwards`;
+        c.style.transform=`rotate(${Math.random()*180}deg)`;
+        root.appendChild(c);
+      }
+    }
+
+    function submit(){
+      const payload = collect();
+      autosave();
+
+      okName.textContent = payload.displayName || "—";
+      okUser.textContent = payload.username ? ("@" + payload.username) : "—";
+      okMeta.textContent = `اهتمامات: ${payload.picks.slice(0,6).join(" • ") || "—"} • متابعة: ${payload.follow.slice(0,3).map(x=>"@"+x).join("، ") || "—"}`;
+
+      // avatar in modal
+      okAvatar.innerHTML = "";
+      const d = document.createElement("div");
+      d.style.width="100%"; d.style.height="100%";
+      d.style.backgroundRepeat="no-repeat";
+      if(payload.avatar.type==="upload"){
+        d.style.backgroundImage = `url('${payload.avatar.data}')`;
+        d.style.backgroundSize = "cover";
+        d.style.backgroundPosition = "center";
+      }else{
+        d.style.backgroundImage = `url('${payload.avatar.img}')`;
+        d.style.backgroundSize = payload.avatar.size;
+        d.style.backgroundPosition = payload.avatar.pos;
+      }
+      okAvatar.appendChild(d);
+
+      overlay.classList.remove("hidden");
+      overlay.classList.add("flex");
+      confettiBurst();
+
+      console.log("payload (demo):", payload);
+    }
+
+    closeBtn.addEventListener("click", ()=>{
+      overlay.classList.add("hidden");
+      overlay.classList.remove("flex");
+    });
+
+    resetBtn.addEventListener("click", ()=>{
+      overlay.classList.add("hidden");
+      overlay.classList.remove("flex");
+
+      document.getElementById("form").reset();
+
+      // reset state
+      setUserBadge("—","");
+      userPending = false; userOK = false;
+      picks.types.clear(); picks.genres.clear();
+      following.clear();
+      avatarSel = avatarOptions[0];
+      uploadedDataURL = null;
+
+      bioCount.textContent = "0";
+      pwBar.style.width = "0%";
+      pwLabel.textContent = "ضعيفة";
+      pwLabel.className = "text-[11px] px-2.5 py-1 rounded-full border border-neon-p/30 bg-neon-p/10 text-neon-p";
+      matchHint.textContent = "طابق كلمة المرور.";
+      matchHint.className = "mt-1 text-[11px] text-white/55";
+
+      renderPicks();
+      buildAvatars();
+      renderFollow();
+      updateAvatarPreview();
+      syncMini();
+
+      setStep(0);
+    });
+
+    // -----------------------------
+    // Cursor aura follow + tilt/parallax
+    // -----------------------------
+    const aura = document.querySelector(".cursorAura");
+    let mouseX = 0, mouseY = 0;
+
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+    window.addEventListener("mousemove", (e)=>{
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      document.documentElement.style.setProperty("--cx", mouseX + "px");
+      document.documentElement.style.setProperty("--cy", mouseY + "px");
+
+      // tilt cards
+      document.querySelectorAll(".tilt").forEach(card=>{
+        const r = card.getBoundingClientRect();
+        const px = (mouseX - (r.left + r.width/2)) / r.width;
+        const py = (mouseY - (r.top + r.height/2)) / r.height;
+        const ry = clamp(px * -8, -10, 10);
+        const rx = clamp(py *  6, -8, 8);
+        card.style.setProperty("--rx", rx + "deg");
+        card.style.setProperty("--ry", ry + "deg");
+      });
+
+      // parallax images
+      const dx = (mouseX / window.innerWidth - 0.5) * 2;
+      heroImgA.style.transform = `translateX(${dx * -6}px) translateY(${dx * 2}px) scale(1.03)`;
+      heroImgB.style.transform = `translateX(${dx * 5}px) translateY(${dx * -2}px) scale(1.02)`;
+    }, { passive:true });
+
+    // -----------------------------
+    // Mini preview init avatar content
+    // -----------------------------
+    function initMiniAvatar(){
+      miniAvatar.innerHTML = "";
+      const d = document.createElement("div");
+      d.style.width="100%"; d.style.height="100%";
+      d.style.backgroundImage = `url('${IMAGES.mangaGirl}')`;
+      d.style.backgroundSize = "cover";
+      d.style.backgroundPosition = "center 25%";
+      d.style.backgroundRepeat = "no-repeat";
+      miniAvatar.appendChild(d);
+    }
+
+    // -----------------------------
+    // Init
+    // -----------------------------
+    function init(){
+      setUserBadge("—","");
+      renderPicks();
+      buildAvatars();
+      renderFollow();
+      initMiniAvatar();
+      updateAvatarPreview();
+      updatePw();
+      syncMini();
+      setHero(0);
+
+      // أول تحميل: إذا كان هناك autosave
+      try{
+        const saved = localStorage.getItem("anime_signup_ar_v3");
+        if(saved){
+          const p = JSON.parse(saved);
+          if(p.email) email.value = p.email;
+          if(p.username) username.value = p.username;
+          if(p.displayName) display.value = p.displayName;
+          if(p.bio) bio.value = p.bio, bioCount.textContent = String(p.bio.length);
+          if(p.loc) document.getElementById("loc").value = p.loc;
+          if(p.level) document.getElementById("level").value = p.level;
+          if(p.reco) document.getElementById("reco").value = p.reco;
+
+          if(Array.isArray(p.picks)){
+            p.picks.forEach(x=>{
+              if(TYPES.includes(x)) picks.types.add(x);
+              if(GENRES.includes(x)) picks.genres.add(x);
+            });
+            renderPicks();
+          }
+          if(Array.isArray(p.follow)){
+            p.follow.forEach(x=> following.add(x));
+            renderFollow();
+          }
+          if(p.avatar && p.avatar.type === "upload" && p.avatar.data){
+            uploadedDataURL = p.avatar.data;
+          } else if(p.avatar && p.avatar.type === "preset"){
+            const found = avatarOptions.find(a=>a.id === p.avatar.id);
+            if(found) avatarSel = found;
+          }
+          if(p.theme){
+            theme = p.theme;
+            document.body.setAttribute("data-theme", theme);
+          }
+
+          checkUser();
+          updateAvatarPreview();
+          syncMini();
+        }
+      }catch(e){}
+    }
+    init();
+
+    // -----------------------------
+    // Keyboard UX
+    // -----------------------------
+    window.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape" && !overlay.classList.contains("hidden")){
+        overlay.classList.add("hidden");
+        overlay.classList.remove("flex");
+      }
+    });
+  </script>
+</body>
+</html>

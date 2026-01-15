@@ -1,0 +1,1774 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chibi Kawaii Cards — خطوة بخطوة</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root{
+      --bg1:#fff7fb;
+      --bg2:#f0fbff;
+      --ink:#1f2937;
+      --pink:#ff5ca8;
+      --lav:#b9a7ff;
+      --mint:#6ee7d8;
+      --sun:#ffd166;
+      --soft:#ffffffcc;
+      --shadow: 0 18px 45px rgba(31,41,55,.10);
+      --shadow2: 0 10px 22px rgba(31,41,55,.08);
+    }
+
+    /* Soft gradient background + cute dots */
+    body{
+      background:
+        radial-gradient(24px 24px at 15% 20%, rgba(255,92,168,.18), transparent 65%),
+        radial-gradient(28px 28px at 80% 25%, rgba(185,167,255,.20), transparent 62%),
+        radial-gradient(22px 22px at 35% 75%, rgba(110,231,216,.16), transparent 60%),
+        radial-gradient(34px 34px at 75% 80%, rgba(255,209,102,.18), transparent 62%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--ink);
+    }
+
+    .card{
+      background: rgba(255,255,255,.75);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.65);
+      box-shadow: var(--shadow);
+      border-radius: 22px;
+    }
+
+    .mini-card{
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(255,255,255,.75);
+      box-shadow: var(--shadow2);
+      border-radius: 18px;
+    }
+
+    /* Cute bounce for selected items */
+    @keyframes kawaii-bounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-6px) scale(1.02); }
+    }
+    .bounce-on{
+      animation: kawaii-bounce .7s ease-in-out;
+    }
+
+    /* Floating sticker wobble */
+    @keyframes sticker-float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50%      { transform: translateY(-8px) rotate(-1.5deg); }
+    }
+    .floaty { animation: sticker-float 4.2s ease-in-out infinite; }
+
+    /* Toast animations */
+    @keyframes toast-in {
+      0% { transform: translateY(14px) scale(.98); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    @keyframes toast-out {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(12px) scale(.98); opacity: 0; }
+    }
+    .toast-in { animation: toast-in .22s ease-out both; }
+    .toast-out { animation: toast-out .18s ease-in both; }
+
+    /* Confetti */
+    .confetti-layer{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 50;
+    }
+    .confetti{
+      position: absolute;
+      top: -12px;
+      width: 10px;
+      height: 14px;
+      opacity: .95;
+      border-radius: 3px;
+      transform: rotate(12deg);
+      animation: fall var(--dur) linear forwards;
+      filter: drop-shadow(0 6px 6px rgba(0,0,0,.10));
+    }
+    @keyframes fall{
+      to{
+        transform: translateY(110vh) rotate(780deg);
+        opacity: 1;
+      }
+    }
+
+    /* Slider: hide scrollbar (best-effort) */
+    .no-scrollbar::-webkit-scrollbar{ display:none; }
+    .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+
+    /* Focus ring cute */
+    .k-focus:focus{
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(255,92,168,.18), 0 0 0 2px rgba(185,167,255,.20);
+      border-color: rgba(255,92,168,.40);
+    }
+
+    /* Small shimmer */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .shimmer{
+      background: linear-gradient(90deg, rgba(255,255,255,.45), rgba(255,255,255,.85), rgba(255,255,255,.45));
+      background-size: 200% 100%;
+      animation: shimmer 2.2s ease-in-out infinite;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <!-- Toasts -->
+  <div id="toasts" class="fixed bottom-4 left-4 z-50 flex flex-col gap-2 w-[min(420px,90vw)]"></div>
+
+  <!-- Confetti -->
+  <div id="confettiLayer" class="confetti-layer hidden"></div>
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <section class="card p-5 md:p-7 mb-6">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-3">
+          <!-- Cute logo -->
+          <div class="mini-card p-3 floaty">
+            <svg width="44" height="44" viewBox="0 0 64 64" aria-hidden="true">
+              <defs>
+                <linearGradient id="g1" x1="0" x2="1">
+                  <stop offset="0" stop-color="#ff5ca8"/>
+                  <stop offset="1" stop-color="#b9a7ff"/>
+                </linearGradient>
+              </defs>
+              <circle cx="32" cy="32" r="22" fill="url(#g1)" opacity=".18"/>
+              <circle cx="32" cy="34" r="18" fill="#fff"/>
+              <circle cx="25" cy="32" r="2.6" fill="#111827"/>
+              <circle cx="39" cy="32" r="2.6" fill="#111827"/>
+              <path d="M28 38c2.5 2.8 5.5 2.8 8 0" fill="none" stroke="#ff5ca8" stroke-width="3" stroke-linecap="round"/>
+              <path d="M20 25c4-7 20-9 26 1" fill="none" stroke="#1f2937" stroke-width="4" stroke-linecap="round"/>
+              <circle cx="20" cy="37" r="3.2" fill="#ff5ca8" opacity=".35"/>
+              <circle cx="44" cy="37" r="3.2" fill="#ff5ca8" opacity=".35"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl md:text-2xl font-extrabold">
+              Chibi Kawaii Cards — تسجيل خطوة-بخطوة
+            </h1>
+            <p class="text-sm text-gray-600 mt-1">
+              بطاقات صغيرة، أيقونات مبتسمة، وحركات خفيفة ✨
+            </p>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="mini-card p-3 md:p-4 w-full md:w-auto">
+          <div class="flex items-center justify-between gap-3 mb-2">
+            <div class="text-sm font-bold">التقدّم</div>
+            <div class="text-xs text-gray-600"><span id="stepLabel">1</span> / <span id="stepTotal">8</span></div>
+          </div>
+          <div class="w-full md:w-[320px] h-3 rounded-full bg-white/70 border border-white/70 overflow-hidden">
+            <div id="progressBar" class="h-full rounded-full bg-gradient-to-l from-pink-400 to-violet-400 w-[12%]"></div>
+          </div>
+          <div class="mt-2 flex items-center justify-between text-[11px] text-gray-600">
+            <span>Start</span>
+            <span>Chibi</span>
+            <span>Go!</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid lg:grid-cols-3 gap-6 items-start">
+      <!-- Steps -->
+      <section class="lg:col-span-2 card p-5 md:p-7">
+        <div class="flex items-center justify-between gap-3 mb-5">
+          <div class="flex items-center gap-2">
+            <span class="mini-card px-3 py-1 text-sm font-bold">
+              <span id="stepTitle">مرحبًا!</span>
+            </span>
+            <span class="text-sm text-gray-600" id="stepSub">لنبدأ بخطوات لطيفة 🐾</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="btnBackTop" class="hidden mini-card px-3 py-2 text-sm font-bold hover:scale-[1.02] active:scale-[.98] transition" type="button">
+              ← رجوع
+            </button>
+            <button id="btnSkipTop" class="mini-card px-3 py-2 text-sm font-bold hover:scale-[1.02] active:scale-[.98] transition" type="button">
+              تخطّي
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="step" data-step="1">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="mini-card p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <KIconSmile class="hidden"></KIconSmile>
+                <div class="font-extrabold">مرحبًا! ✨</div>
+              </div>
+
+              <label class="block text-sm font-bold mb-2">اختر اسمك</label>
+              <input id="nameInput" class="k-focus w-full rounded-xl border border-white/70 bg-white/70 px-4 py-3 text-sm" placeholder="مثال: Luffy" />
+
+              <div class="mt-4">
+                <div class="flex items-center justify-between">
+                  <label class="block text-sm font-bold mb-2">Mood اليوم</label>
+                  <span class="text-xs text-gray-600" id="moodHint">اختر واحدًا</span>
+                </div>
+
+                <div id="moodChips" class="flex flex-wrap gap-2">
+                  <!-- chips injected -->
+                </div>
+              </div>
+            </div>
+
+            <div class="mini-card p-4">
+              <div class="flex items-center gap-2 mb-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 21s-7-4.6-9.5-8.4C.6 9.6 2 6.5 5.2 6.1c1.7-.2 3.2.7 4 2 0 0 1.2-2.2 4-2 3.2.4 4.6 3.5 2.7 6.5C19 16.4 12 21 12 21Z"
+                        fill="#ff5ca8" opacity=".85"/>
+                </svg>
+                <div class="font-extrabold">بطاقتك الصغيرة</div>
+              </div>
+
+              <div class="rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="flex items-center gap-3">
+                  <div class="mini-card p-3">
+                    <div id="tinyAvatar1"></div>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-sm text-gray-600">مرحبًا يا</div>
+                    <div class="text-lg font-extrabold truncate" id="previewName">…</div>
+                    <div class="mt-2 inline-flex items-center gap-2">
+                      <span class="text-xs text-gray-600">Mood:</span>
+                      <span id="previewMood" class="px-2 py-1 rounded-full text-xs font-bold bg-pink-50 text-pink-600 border border-pink-100">—</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-4 text-xs text-gray-600">
+                  تلميح: كل خطوة تعطيك “ملصق” لطيف 👀
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step hidden" data-step="2">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="mini-card p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 12c3.3 0 6-2.7 6-6S15.3 0 12 0 6 2.7 6 6s2.7 6 6 6Z" fill="#b9a7ff" opacity=".35"/>
+                  <path d="M2 24c0-5.5 4.5-10 10-10s10 4.5 10 10" fill="#6ee7d8" opacity=".25"/>
+                  <path d="M7.5 6.4h9" stroke="#1f2937" stroke-width="2.4" stroke-linecap="round"/>
+                  <path d="M9 9.2h6" stroke="#1f2937" stroke-width="2.4" stroke-linecap="round"/>
+                </svg>
+                <div class="font-extrabold">Email / Password</div>
+              </div>
+
+              <label class="block text-sm font-bold mb-2">البريد الإلكتروني</label>
+              <input id="emailInput" type="email" class="k-focus w-full rounded-xl border border-white/70 bg-white/70 px-4 py-3 text-sm" placeholder="you@domain.com" />
+
+              <label class="block text-sm font-bold mb-2 mt-4">كلمة المرور</label>
+              <input id="passwordInput" type="password" class="k-focus w-full rounded-xl border border-white/70 bg-white/70 px-4 py-3 text-sm" placeholder="••••••••" />
+
+              <div class="mt-3 flex items-center justify-between gap-3">
+                <div class="text-xs text-gray-600">قوة كلمة المرور</div>
+                <div id="heartsMeter" class="flex items-center gap-1"></div>
+              </div>
+
+              <div class="mt-2 text-xs text-gray-600" id="pwHint">
+                اجعلها أطول + رموز + أرقام ❤️
+              </div>
+            </div>
+
+            <div class="mini-card p-4">
+              <div class="font-extrabold mb-3">ملصقات الأمان 🛡️</div>
+              <div class="grid gap-3">
+                <div class="rounded-2xl border border-white/70 bg-white/60 p-4 flex items-start gap-3">
+                  <div class="mini-card p-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 2 20 6v6c0 6-4.2 9.8-8 10-3.8-.2-8-4-8-10V6l8-4Z" fill="#6ee7d8" opacity=".45"/>
+                      <path d="M9.5 12.3 11 14l3.8-4.2" fill="none" stroke="#1f2937" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-bold text-sm">نصيحة سريعة</div>
+                    <div class="text-xs text-gray-600 mt-1">لا تستخدم كلمة مرور قديمة.</div>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl border border-white/70 bg-white/60 p-4 flex items-start gap-3">
+                  <div class="mini-card p-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 10V8a5 5 0 0 1 10 0v2" fill="none" stroke="#1f2937" stroke-width="2.5" stroke-linecap="round"/>
+                      <rect x="6" y="10" width="12" height="11" rx="3" fill="#ff5ca8" opacity=".18" stroke="#1f2937" stroke-width="2"/>
+                      <path d="M12 14v3" stroke="#1f2937" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-bold text-sm">قفل لطيف</div>
+                    <div class="text-xs text-gray-600 mt-1">كلما زادت القلوب، صار أفضل.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="text-sm font-extrabold">Preview</div>
+                <div class="text-xs text-gray-600 mt-1">
+                  سنستخدم الإيميل لتأكيد حسابك (بدون إزعاج).
+                </div>
+                <div class="mt-3 inline-flex items-center gap-2 mini-card px-3 py-2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 6h16v12H4z" fill="#b9a7ff" opacity=".25" stroke="#1f2937" stroke-width="2"/>
+                    <path d="m4 7 8 6 8-6" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="text-sm font-bold truncate max-w-[240px]" id="previewEmail">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step hidden" data-step="3">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="mini-card p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 22c4.4 0 8-3.6 8-8S16.4 6 12 2 4 9.6 4 14s3.6 8 8 8Z" fill="#ffd166" opacity=".28"/>
+                  <path d="M12 22c-2.5-2.7-4-5.3-4-8 0-2.4 1.4-5.3 4-8 2.6 2.7 4 5.6 4 8 0 2.7-1.5 5.3-4 8Z" fill="#6ee7d8" opacity=".22"/>
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#1f2937" stroke-width="2"/>
+                </svg>
+                <div class="font-extrabold">تفاصيلك</div>
+              </div>
+
+              <label class="block text-sm font-bold mb-2">البلد</label>
+              <select id="countrySelect" class="k-focus w-full rounded-xl border border-white/70 bg-white/70 px-4 py-3 text-sm">
+                <option value="">اختر بلدك…</option>
+                <option>Palestine</option>
+                <option>Israel</option>
+                <option>Jordan</option>
+                <option>Egypt</option>
+                <option>Saudi Arabia</option>
+                <option>UAE</option>
+                <option>Morocco</option>
+                <option>Tunisia</option>
+                <option>Algeria</option>
+                <option>Lebanon</option>
+                <option>Qatar</option>
+                <option>Kuwait</option>
+                <option>Turkey</option>
+                <option>France</option>
+                <option>USA</option>
+                <option>Japan</option>
+              </select>
+
+              <label class="block text-sm font-bold mb-2 mt-4">تاريخ الميلاد</label>
+              <input id="birthInput" type="date" class="k-focus w-full rounded-xl border border-white/70 bg-white/70 px-4 py-3 text-sm"/>
+
+              <div class="mt-4 rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="text-sm font-extrabold mb-2">شخصيتك</div>
+                <div class="grid sm:grid-cols-2 gap-2" id="personaGroup">
+                  <!-- radios injected -->
+                </div>
+              </div>
+            </div>
+
+            <div class="mini-card p-4">
+              <div class="font-extrabold mb-3">بطاقة تعريفك</div>
+
+              <div class="rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="flex items-start gap-3">
+                  <div class="mini-card p-3">
+                    <div id="tinyAvatar2"></div>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-lg font-extrabold truncate" id="previewName2">—</div>
+                    <div class="mt-1 text-xs text-gray-600">
+                      <span id="previewCountry">بلد؟</span> • <span id="previewBirth">تاريخ؟</span>
+                    </div>
+
+                    <div class="mt-3 inline-flex items-center gap-2">
+                      <span class="text-xs text-gray-600">You are:</span>
+                      <span id="previewPersona" class="px-2 py-1 rounded-full text-xs font-bold bg-violet-50 text-violet-700 border border-violet-100">—</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="text-sm font-extrabold">Tip</div>
+                <div class="text-xs text-gray-600 mt-1">نختار لك اقتراحات متابعة حسب شخصيتك 😉</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step hidden" data-step="4">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="mini-card p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2c3.5 0 6 2.4 6 6v2c0 6-3 10-6 10s-6-4-6-10V8c0-3.6 2.5-6 6-6Z" fill="#ff5ca8" opacity=".20"/>
+                  <path d="M7 9c2-2 8-3 10 0" stroke="#1f2937" stroke-width="2.5" stroke-linecap="round"/>
+                  <circle cx="10" cy="12" r="1.2" fill="#1f2937"/>
+                  <circle cx="14" cy="12" r="1.2" fill="#1f2937"/>
+                  <path d="M10.5 15c1.1 1.1 1.9 1.1 3 0" fill="none" stroke="#ff5ca8" stroke-width="2.3" stroke-linecap="round"/>
+                </svg>
+                <div class="font-extrabold">أفاتار: Chibi Maker</div>
+              </div>
+
+              <div class="grid gap-3">
+                <div>
+                  <label class="block text-sm font-bold mb-2">الوجه</label>
+                  <select id="faceSelect" class="k-focus w-full rounded-xl border border-white/70 bg-white/70 px-4 py-3 text-sm">
+                    <option value="round">Round</option>
+                    <option value="soft">Soft</option>
+                    <option value="chubby">Chubby</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-bold mb-2">الشعر</label>
+                  <select id="hairSelect" class="k-focus w-full rounded-xl border border-white/70 bg-white/70 px-4 py-3 text-sm">
+                    <option value="bob">Bob</option>
+                    <option value="spiky">Spiky</option>
+                    <option value="curly">Curly</option>
+                    <option value="long">Long</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-bold mb-2">اللون</label>
+                  <select id="colorSelect" class="k-focus w-full rounded-xl border border-white/70 bg-white/70 px-4 py-3 text-sm">
+                    <option value="pink">Pink</option>
+                    <option value="violet">Violet</option>
+                    <option value="mint">Mint</option>
+                    <option value="sun">Sun</option>
+                    <option value="ink">Ink</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mt-4 rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="text-sm font-extrabold">ملاحظة</div>
+                  <button id="randomizeAvatar" type="button" class="mini-card px-3 py-2 text-xs font-extrabold hover:scale-[1.02] active:scale-[.98] transition">
+                    Random 🎲
+                  </button>
+                </div>
+                <div class="text-xs text-gray-600 mt-1">
+                  هذا Preview SVG بسيط — لكن كيوووت.
+                </div>
+              </div>
+            </div>
+
+            <div class="mini-card p-4">
+              <div class="font-extrabold mb-3">Preview</div>
+
+              <div class="rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="flex items-center justify-center">
+                  <div class="mini-card p-4">
+                    <div id="avatarPreview" class="w-[180px] h-[180px] flex items-center justify-center"></div>
+                  </div>
+                </div>
+
+                <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+                  <span class="px-3 py-1 rounded-full text-xs font-bold bg-pink-50 text-pink-600 border border-pink-100" id="tagFace">face: round</span>
+                  <span class="px-3 py-1 rounded-full text-xs font-bold bg-violet-50 text-violet-700 border border-violet-100" id="tagHair">hair: bob</span>
+                  <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100" id="tagColor">color: pink</span>
+                </div>
+              </div>
+
+              <div class="mt-4 rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="text-sm font-extrabold">Sticker</div>
+                <div class="text-xs text-gray-600 mt-1">كل تغيير يعمل bounce صغير 😄</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="step hidden" data-step="5">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="mini-card p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 3h14v18H5z" fill="#b9a7ff" opacity=".22"/>
+                  <path d="M7 6h10M7 10h10M7 14h6" stroke="#1f2937" stroke-width="2.2" stroke-linecap="round"/>
+                  <path d="M16.5 13.5 21 18l-2.5 2.5L14 16l2.5-2.5Z" fill="#ff5ca8" opacity=".22" stroke="#1f2937" stroke-width="1.5" stroke-linejoin="round"/>
+                </svg>
+                <div class="font-extrabold">اهتماماتك</div>
+              </div>
+
+              <div class="flex items-center justify-between mb-2">
+                <div class="text-sm font-bold">اختر Top 5 Genres</div>
+                <div class="text-xs text-gray-600"><span id="genresCount">0</span>/5</div>
+              </div>
+
+              <div id="genresGrid" class="flex flex-wrap gap-2"></div>
+
+              <div class="mt-4 rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="text-sm font-extrabold">هل تحب الكوميكس الغربية؟</div>
+                  <button id="westernToggle" type="button"
+                          class="relative w-14 h-8 rounded-full bg-white/70 border border-white/70 transition">
+                    <span id="westernKnob" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-gradient-to-l from-pink-400 to-violet-400 transition"></span>
+                  </button>
+                </div>
+                <div class="text-xs text-gray-600 mt-2" id="westernLabel">حاليًا: لا</div>
+              </div>
+            </div>
+
+            <div class="mini-card p-4">
+              <div class="font-extrabold mb-3">Preview اهتمامات</div>
+
+              <div class="rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="text-xs text-gray-600 mb-2">Genres المختارة:</div>
+                <div id="selectedGenresPreview" class="flex flex-wrap gap-2"></div>
+
+                <div class="mt-4 flex items-center gap-2">
+                  <span class="text-xs text-gray-600">Western comics:</span>
+                  <span id="westernPill" class="px-2 py-1 rounded-full text-xs font-bold bg-gray-50 text-gray-700 border border-gray-100">No</span>
+                </div>
+              </div>
+
+              <div class="mt-4 rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="text-sm font-extrabold">Tip</div>
+                <div class="text-xs text-gray-600 mt-1">الـ Top 5 يساعدنا نقترح مجتمعك بسرعة ⚡</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="step hidden" data-step="6">
+          <div class="mini-card p-4">
+            <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+              <div class="flex items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="#6ee7d8" opacity=".35"/>
+                  <path d="M17 13a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" fill="#ffd166" opacity=".32"/>
+                  <path d="M2 22c0-4 3-7 7-7s7 3 7 7" fill="#b9a7ff" opacity=".18"/>
+                  <path d="M14 22c.2-3.1 2.5-5.7 5.8-6" fill="none" stroke="#1f2937" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+                <div>
+                  <div class="font-extrabold">متابعة</div>
+                  <div class="text-xs text-gray-600">سلايدر اقتراحات (بدون مكتبات)</div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button id="slidePrev" type="button" class="mini-card px-3 py-2 text-sm font-extrabold hover:scale-[1.02] active:scale-[.98] transition">→</button>
+                <button id="slideNext" type="button" class="mini-card px-3 py-2 text-sm font-extrabold hover:scale-[1.02] active:scale-[.98] transition">←</button>
+              </div>
+            </div>
+
+            <div class="relative">
+              <div id="suggestionsTrack"
+                   class="no-scrollbar flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2">
+                <!-- cards injected -->
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-2xl border border-white/70 bg-white/60 p-4 flex items-center justify-between flex-wrap gap-2">
+              <div class="text-sm font-extrabold">
+                تتابع الآن: <span id="followCount" class="text-pink-600">0</span>
+              </div>
+              <div class="text-xs text-gray-600">تقدر تعمل Unfollow كمان 😄</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 7 (Extra suggested) -->
+        <div class="step hidden" data-step="7">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="mini-card p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2 14.9 8.3 22 9.2l-5.2 4.8 1.4 7-6.2-3.4L5.8 21l1.4-7L2 9.2l7.1-.9L12 2Z"
+                        fill="#ffd166" opacity=".55" stroke="#1f2937" stroke-width="1.2" stroke-linejoin="round"/>
+                  <path d="M8.5 13.2c1.2 1.4 2.6 2 3.5 2 1.2 0 2.4-.6 3.5-2" fill="none" stroke="#ff5ca8" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+                <div class="font-extrabold">خطوة إضافية: Beginner Badge</div>
+              </div>
+
+              <div class="text-sm text-gray-600 mb-3">
+                اختر شارة بداية — ستظهر في ملفك 👑
+              </div>
+
+              <div id="badgeGrid" class="grid sm:grid-cols-2 gap-3"></div>
+
+              <div class="mt-4 rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="text-sm font-extrabold">Preview الشارة</div>
+                <div class="mt-2 inline-flex items-center gap-2 mini-card px-3 py-2">
+                  <span id="badgePreviewIcon"></span>
+                  <span class="text-sm font-bold" id="badgePreviewText">—</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mini-card p-4">
+              <div class="font-extrabold mb-3">لماذا شارة؟</div>
+              <div class="rounded-2xl border border-white/70 bg-white/60 p-4 text-sm text-gray-700">
+                تعطي “طابع” سريع لأسلوبك، وتفتح تحديات لطيفة لاحقًا ✨
+              </div>
+
+              <div class="mt-4 rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="text-sm font-extrabold">Mini Profile</div>
+                <div class="mt-3 flex items-center gap-3">
+                  <div class="mini-card p-3">
+                    <div id="tinyAvatar3"></div>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="font-extrabold truncate" id="previewName3">—</div>
+                    <div class="text-xs text-gray-600 mt-1">Badge: <span id="badgeInline">—</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 8 -->
+        <div class="step hidden" data-step="8">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="mini-card p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2c5.5 0 10 4.5 10 10s-4.5 10-10 10S2 17.5 2 12 6.5 2 12 2Z" fill="#6ee7d8" opacity=".28"/>
+                  <path d="M8.2 12.7 10.4 15l5.6-6" fill="none" stroke="#1f2937" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div class="font-extrabold">تأكيد نهائي</div>
+              </div>
+
+              <div class="rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="flex items-center gap-3">
+                  <div class="mini-card p-3">
+                    <div id="finalAvatar"></div>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-lg font-extrabold truncate" id="finalName">—</div>
+                    <div class="text-xs text-gray-600 mt-1" id="finalMeta">—</div>
+
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                      <span class="px-2 py-1 rounded-full text-xs font-bold bg-pink-50 text-pink-600 border border-pink-100" id="finalMood">—</span>
+                      <span class="px-2 py-1 rounded-full text-xs font-bold bg-violet-50 text-violet-700 border border-violet-100" id="finalPersona">—</span>
+                      <span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-100 inline-flex items-center gap-1" id="finalBadge">
+                        <span id="finalBadgeIcon"></span><span id="finalBadgeText">—</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-4">
+                  <div class="text-xs text-gray-600 mb-2">Top 5 Genres:</div>
+                  <div id="finalGenres" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="mt-4 flex items-center justify-between flex-wrap gap-2">
+                  <div class="text-xs text-gray-600">Western comics: <span class="font-bold" id="finalWestern">—</span></div>
+                  <div class="text-xs text-gray-600">Following: <span class="font-bold" id="finalFollowing">0</span></div>
+                </div>
+              </div>
+
+              <button id="letsGo" type="button"
+                      class="mt-4 w-full rounded-2xl px-5 py-4 font-extrabold text-white
+                             bg-gradient-to-l from-pink-500 to-violet-500
+                             hover:scale-[1.01] active:scale-[.98] transition shadow-lg">
+                Let’s Go! 🎉
+              </button>
+
+              <div class="text-xs text-gray-600 mt-2 text-center">
+                بيطلع confetti بسيط + Toast لطيف 💖
+              </div>
+            </div>
+
+            <div class="mini-card p-4">
+              <div class="font-extrabold mb-3">Checklist</div>
+
+              <div id="checklist" class="grid gap-2"></div>
+
+              <div class="mt-4 rounded-2xl border border-white/70 bg-white/60 p-4">
+                <div class="text-sm font-extrabold">معلومة</div>
+                <div class="text-xs text-gray-600 mt-1">
+                  هذه صفحة واحدة (Single Page) — نتحرك بين الخطوات بدون Reload.
+                </div>
+              </div>
+
+              <button id="restart" type="button"
+                      class="mt-4 w-full mini-card px-4 py-3 font-extrabold hover:scale-[1.01] active:scale-[.98] transition">
+                إعادة من البداية 🔁
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom nav -->
+        <div class="mt-6 flex items-center justify-between gap-3 flex-wrap">
+          <button id="btnBack" class="hidden mini-card px-4 py-3 font-extrabold hover:scale-[1.01] active:scale-[.98] transition" type="button">
+            ← رجوع
+          </button>
+
+          <div class="flex-1"></div>
+
+          <button id="btnNext" class="mini-card px-4 py-3 font-extrabold hover:scale-[1.01] active:scale-[.98] transition" type="button">
+            التالي →
+          </button>
+        </div>
+      </section>
+
+      <!-- Side profile summary -->
+      <aside class="card p-5 md:p-7 lg:sticky lg:top-6">
+        <div class="flex items-center justify-between">
+          <div class="font-extrabold">ملفك (Live)</div>
+          <span class="mini-card px-3 py-1 text-xs font-extrabold shimmer">Kawaii</span>
+        </div>
+
+        <div class="mt-4 rounded-2xl border border-white/70 bg-white/60 p-4">
+          <div class="flex items-center gap-3">
+            <div class="mini-card p-3">
+              <div id="sideAvatar"></div>
+            </div>
+
+            <div class="min-w-0">
+              <div class="text-sm text-gray-600">اسم</div>
+              <div class="text-lg font-extrabold truncate" id="sideName">—</div>
+              <div class="mt-2 flex flex-wrap items-center gap-2">
+                <span class="px-2 py-1 rounded-full text-xs font-bold bg-pink-50 text-pink-600 border border-pink-100" id="sideMood">Mood: —</span>
+                <span class="px-2 py-1 rounded-full text-xs font-bold bg-violet-50 text-violet-700 border border-violet-100" id="sidePersona">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 grid gap-2 text-xs text-gray-600">
+            <div class="flex items-center justify-between">
+              <span>Country</span><span class="font-bold" id="sideCountry">—</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Birth</span><span class="font-bold" id="sideBirth">—</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Western</span><span class="font-bold" id="sideWestern">—</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Following</span><span class="font-bold" id="sideFollowing">0</span>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <div class="text-xs text-gray-600 mb-2">Top 5 Genres</div>
+            <div id="sideGenres" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <div class="mt-4">
+            <div class="text-xs text-gray-600 mb-2">Beginner Badge</div>
+            <div class="inline-flex items-center gap-2 mini-card px-3 py-2">
+              <span id="sideBadgeIcon"></span>
+              <span class="text-sm font-bold" id="sideBadge">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 rounded-2xl border border-white/70 bg-white/60 p-4">
+          <div class="text-sm font-extrabold mb-2">Toast Demo</div>
+          <div class="flex gap-2">
+            <button id="toastOk" type="button" class="mini-card px-3 py-2 text-xs font-extrabold hover:scale-[1.02] active:scale-[.98] transition">
+              Success ✅
+            </button>
+            <button id="toastBad" type="button" class="mini-card px-3 py-2 text-xs font-extrabold hover:scale-[1.02] active:scale-[.98] transition">
+              Error ❌
+            </button>
+          </div>
+          <div class="text-xs text-gray-600 mt-2">لطيف للرسائل السريعة.</div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="text-center text-xs text-gray-500 mt-8">
+      صنع بحبّ + Tailwind CDN + Vanilla JS 🌸
+    </footer>
+  </main>
+
+  <script>
+    /***********************
+     * Data + State
+     ***********************/
+    const totalSteps = 8;
+
+    const state = {
+      step: 1,
+      name: "",
+      mood: "",
+      email: "",
+      password: "",
+      passwordScore: 0,
+      country: "",
+      birth: "",
+      persona: "",
+      avatar: { face: "round", hair: "bob", color: "pink" },
+      genres: [],
+      western: false,
+      following: new Set(),
+      badge: "",
+    };
+
+    const moods = [
+      { id: "excited", label: "excited ⚡", color: "pink" },
+      { id: "chill", label: "chill 🌿", color: "mint" },
+      { id: "cozy", label: "cozy ☕", color: "sun" },
+      { id: "chaotic", label: "chaotic 🌀", color: "violet" },
+      { id: "focused", label: "focused 🎯", color: "ink" },
+    ];
+
+    const personas = [
+      { id: "Fan Artist", icon: "🎨", desc: "أرسم وأشارك فن!" },
+      { id: "Reviewer", icon: "📝", desc: "أكتب مراجعات" },
+      { id: "Collector", icon: "📦", desc: "أجمع المقتنيات" },
+      { id: "Cosplayer", icon: "🧵", desc: "أعمل كوسبلاي" },
+    ];
+
+    const genres = [
+      "Shonen", "Seinen", "Slice of Life", "Isekai", "Romance", "Horror",
+      "Comedy", "Fantasy", "Sci-Fi", "Sports", "Mystery", "Drama"
+    ];
+
+    const suggestions = [
+      { id: "u1", name: "Mira", role: "Fan Artist", vibe: "Pastel sketch vibes" },
+      { id: "u2", name: "Kaito", role: "Reviewer", vibe: "Hot takes & ratings" },
+      { id: "u3", name: "Yuna", role: "Cosplayer", vibe: "DIY props wizard" },
+      { id: "u4", name: "Rex", role: "Collector", vibe: "Rare finds hunter" },
+      { id: "u5", name: "Nami", role: "Fan Artist", vibe: "Chibi overload" },
+      { id: "u6", name: "Omar", role: "Reviewer", vibe: "Manga + comics" },
+    ];
+
+    const badges = [
+      { id: "Starter Star", icon: "⭐", note: "للبداية السريعة" },
+      { id: "Sketch Sprout", icon: "🌱", note: "للفنّانين" },
+      { id: "First Review", icon: "🧾", note: "للمراجعين" },
+      { id: "Cosplay Seed", icon: "🧷", note: "للكوسبلاي" },
+      { id: "Collector Cub", icon: "🧸", note: "للهواة الجامعين" },
+      { id: "Community Buddy", icon: "🤝", note: "للاصدقاء" },
+    ];
+
+    /***********************
+     * Helpers (UI)
+     ***********************/
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+
+    function showToast(type, message){
+      const wrap = $("#toasts");
+      const id = "t_" + Math.random().toString(16).slice(2);
+
+      const icon = type === "success"
+        ? `<span class="mini-card p-2">✅</span>`
+        : type === "error"
+          ? `<span class="mini-card p-2">❌</span>`
+          : `<span class="mini-card p-2">✨</span>`;
+
+      const accent = type === "success"
+        ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+        : type === "error"
+          ? "border-rose-200 bg-rose-50 text-rose-900"
+          : "border-violet-200 bg-violet-50 text-violet-900";
+
+      const el = document.createElement("div");
+      el.id = id;
+      el.className = `toast-in mini-card p-3 border ${accent} flex items-start gap-3`;
+      el.innerHTML = `
+        ${icon}
+        <div class="min-w-0">
+          <div class="font-extrabold text-sm">${type === "success" ? "Yay!" : type === "error" ? "Oops!" : "Hey!"}</div>
+          <div class="text-xs mt-1 break-words">${escapeHtml(message)}</div>
+        </div>
+        <button class="ms-auto mini-card px-2 py-1 text-xs font-extrabold hover:scale-[1.02] active:scale-[.98] transition" aria-label="Close">✕</button>
+      `;
+
+      el.querySelector("button").addEventListener("click", () => dismissToast(el));
+      wrap.appendChild(el);
+
+      setTimeout(() => dismissToast(el), 3200);
+    }
+
+    function dismissToast(el){
+      if (!el || el.dataset.closing) return;
+      el.dataset.closing = "1";
+      el.classList.remove("toast-in");
+      el.classList.add("toast-out");
+      setTimeout(() => el.remove(), 220);
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+      }[s]));
+    }
+
+    function bounce(el){
+      if (!el) return;
+      el.classList.remove("bounce-on");
+      void el.offsetWidth; // reflow
+      el.classList.add("bounce-on");
+    }
+
+    /***********************
+     * Avatar SVG builder
+     ***********************/
+    function getPalette(color){
+      switch(color){
+        case "pink": return { main:"#ff5ca8", soft:"rgba(255,92,168,.18)", hair:"#1f2937" };
+        case "violet": return { main:"#b9a7ff", soft:"rgba(185,167,255,.22)", hair:"#1f2937" };
+        case "mint": return { main:"#6ee7d8", soft:"rgba(110,231,216,.22)", hair:"#1f2937" };
+        case "sun": return { main:"#ffd166", soft:"rgba(255,209,102,.22)", hair:"#1f2937" };
+        case "ink": return { main:"#111827", soft:"rgba(17,24,39,.14)", hair:"#111827" };
+        default: return { main:"#ff5ca8", soft:"rgba(255,92,168,.18)", hair:"#1f2937" };
+      }
+    }
+
+    function chibiSvg({face, hair, color}, size=140){
+      const p = getPalette(color);
+
+      // Face shape tweaks
+      const facePath = (() => {
+        if (face === "soft") return `<path d="M32 20c10 0 18 7.5 18 18v8c0 12-8 22-18 22S14 58 14 46v-8c0-10.5 8-18 18-18Z" fill="#fff"/>`;
+        if (face === "chubby") return `<path d="M32 18c11 0 20 7.8 20 19v7c0 13-9 24-20 24S12 57 12 44v-7c0-11.2 9-19 20-19Z" fill="#fff"/>`;
+        return `<path d="M32 20c10.5 0 19 7.2 19 18v8c0 12-8.5 22-19 22S13 58 13 46v-8c0-10.8 8.5-18 19-18Z" fill="#fff"/>`;
+      })();
+
+      // Hair styles
+      const hairShape = (() => {
+        if (hair === "spiky") return `
+          <path d="M16 34c2-10 12-16 16-16s14 4 16 16c-2-2-4-3-6-3
+                   1-2 1-4 0-6-2 3-5 5-8 6 1-3 1-6 0-9-2 4-6 7-10 9
+                   0-3-1-5-3-7-1 3-3 5-5 7Z"
+                fill="${p.main}" opacity=".55"/>
+          <path d="M16 34c2-10 12-16 16-16s14 4 16 16" fill="none" stroke="${p.hair}" stroke-width="2.5" stroke-linecap="round"/>
+        `;
+        if (hair === "curly") return `
+          <path d="M16 33c1-10 12-16 16-16s15 6 16 16c-2-2-4-3-6-3
+                   1 2 1 4 0 6-2-1-3-2-4-4 0 3-2 5-4 6 0-2-1-3-2-4
+                   -1 2-3 3-6 3-1-2-2-3-4-4 0 2-1 3-2 4-1-2-2-4-4-4Z"
+                fill="${p.main}" opacity=".52"/>
+          <path d="M18 30c2-6 9-11 14-11s12 3 14 11" fill="none" stroke="${p.hair}" stroke-width="2.5" stroke-linecap="round"/>
+        `;
+        if (hair === "long") return `
+          <path d="M16 34c1-10 12-16 16-16s15 6 16 16v18c0 8-5 14-10 14 2-4 2-10 2-16
+                   -3 6-6 10-8 10s-5-4-8-10c0 6 0 12 2 16-5 0-10-6-10-14V34Z"
+                fill="${p.main}" opacity=".52"/>
+          <path d="M16 34c1-10 12-16 16-16s15 6 16 16" fill="none" stroke="${p.hair}" stroke-width="2.5" stroke-linecap="round"/>
+        `;
+        // bob default
+        return `
+          <path d="M16 34c1-10 12-16 16-16s15 6 16 16c0 2-.3 4-1 6-4-3-8-4-12-4s-8 1-12 4c-.7-2-1-4-1-6Z"
+                fill="${p.main}" opacity=".55"/>
+          <path d="M18 36c3-5 9-8 14-8s11 3 14 8" fill="none" stroke="${p.hair}" stroke-width="2.5" stroke-linecap="round"/>
+        `;
+      })();
+
+      // Sparkle accents
+      const sparkles = `
+        <circle cx="14" cy="18" r="2" fill="${p.main}" opacity=".35"/>
+        <circle cx="52" cy="16" r="1.6" fill="${p.main}" opacity=".35"/>
+        <path d="M50 48l1.5 3 3 .8-3 .8-1.5 3-1.5-3-3-.8 3-.8 1.5-3Z" fill="${p.main}" opacity=".22"/>
+      `;
+
+      // cheeks + face details
+      const svg = `
+        <svg width="${size}" height="${size}" viewBox="0 0 64 64" role="img" aria-label="Chibi avatar preview">
+          <defs>
+            <linearGradient id="bgGrad" x1="0" x2="1">
+              <stop offset="0" stop-color="${p.main}" stop-opacity=".18"/>
+              <stop offset="1" stop-color="#b9a7ff" stop-opacity=".18"/>
+            </linearGradient>
+          </defs>
+
+          <circle cx="32" cy="32" r="30" fill="url(#bgGrad)"/>
+          <circle cx="32" cy="32" r="26" fill="${p.soft}"/>
+
+          ${hairShape}
+          ${facePath}
+
+          <circle cx="25" cy="40" r="3.5" fill="${p.main}" opacity=".22"/>
+          <circle cx="39" cy="40" r="3.5" fill="${p.main}" opacity=".22"/>
+
+          <circle cx="26" cy="38" r="2.6" fill="#111827"/>
+          <circle cx="38" cy="38" r="2.6" fill="#111827"/>
+          <circle cx="26.8" cy="37.3" r=".9" fill="#fff"/>
+          <circle cx="38.8" cy="37.3" r=".9" fill="#fff"/>
+
+          <path d="M28 44c2.4 2.6 5.6 2.6 8 0" fill="none" stroke="#ff5ca8" stroke-width="3" stroke-linecap="round"/>
+          <path d="M21 34c2-1.8 4-2.6 6-2.6" fill="none" stroke="#1f2937" stroke-width="2.2" stroke-linecap="round" opacity=".65"/>
+          <path d="M43 34c-2-1.8-4-2.6-6-2.6" fill="none" stroke="#1f2937" stroke-width="2.2" stroke-linecap="round" opacity=".65"/>
+
+          ${sparkles}
+        </svg>
+      `;
+      return svg;
+    }
+
+    function renderAvatar(targetId, size){
+      const el = document.getElementById(targetId);
+      if (!el) return;
+      el.innerHTML = chibiSvg(state.avatar, size);
+    }
+
+    /***********************
+     * Password strength -> hearts
+     ***********************/
+    function scorePassword(pw){
+      if (!pw) return 0;
+      let score = 0;
+
+      const len = pw.length;
+      const hasLower = /[a-z]/.test(pw);
+      const hasUpper = /[A-Z]/.test(pw);
+      const hasNum   = /[0-9]/.test(pw);
+      const hasSym   = /[^a-zA-Z0-9]/.test(pw);
+
+      if (len >= 6) score++;
+      if (len >= 10) score++;
+      if (hasLower && hasUpper) score++;
+      if (hasNum) score++;
+      if (hasSym) score++;
+
+      return Math.min(5, score);
+    }
+
+    function heartSvg(filled){
+      return `
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 21s-7-4.6-9.5-8.4C.6 9.6 2 6.5 5.2 6.1c1.7-.2 3.2.7 4 2 0 0 1.2-2.2 4-2 3.2.4 4.6 3.5 2.7 6.5C19 16.4 12 21 12 21Z"
+            fill="${filled ? "#ff5ca8" : "rgba(31,41,55,.18)"}" />
+        </svg>
+      `;
+    }
+
+    function renderHearts(score){
+      const meter = $("#heartsMeter");
+      if (!meter) return;
+      meter.innerHTML = Array.from({length: 5}, (_, i) => heartSvg(i < score)).join("");
+    }
+
+    /***********************
+     * Step rendering
+     ***********************/
+    const stepMeta = [
+      null,
+      { title: "مرحبًا!", sub: "اختر اسمك + Mood اليوم" },
+      { title: "Email / Password", sub: "قوة كلمة المرور = قلوب" },
+      { title: "تفاصيل", sub: "البلد + تاريخ الميلاد + شخصيتك" },
+      { title: "Chibi Maker", sub: "اختيارات + Preview SVG" },
+      { title: "اهتمامات", sub: "Top 5 Genres + Toggle" },
+      { title: "متابعة", sub: "سلايدر اقتراحات + Follow" },
+      { title: "Beginner Badge", sub: "شارة بداية تظهر بالملف" },
+      { title: "تأكيد نهائي", sub: "Let’s Go! + Confetti" },
+    ];
+
+    function setStep(n){
+      state.step = Math.max(1, Math.min(totalSteps, n));
+
+      $$(".step").forEach(s => s.classList.add("hidden"));
+      const current = document.querySelector(`.step[data-step="${state.step}"]`);
+      if (current) current.classList.remove("hidden");
+
+      // Titles
+      $("#stepTitle").textContent = stepMeta[state.step].title;
+      $("#stepSub").textContent = stepMeta[state.step].sub;
+
+      // Progress
+      $("#stepLabel").textContent = String(state.step);
+      $("#stepTotal").textContent = String(totalSteps);
+      const pct = Math.round((state.step / totalSteps) * 100);
+      $("#progressBar").style.width = pct + "%";
+
+      // Back buttons visibility
+      const backVisible = state.step > 1;
+      $("#btnBack").classList.toggle("hidden", !backVisible);
+      $("#btnBackTop").classList.toggle("hidden", !backVisible);
+
+      // Skip logic (hide on last)
+      $("#btnSkipTop").classList.toggle("hidden", state.step === totalSteps);
+
+      // Next label
+      $("#btnNext").textContent = (state.step === totalSteps) ? "إنهاء ✓" : "التالي →";
+
+      // On step enter: render some previews
+      updateAllPreviews();
+      if (state.step === 2) renderHearts(state.passwordScore);
+      if (state.step === 6) updateFollowCount();
+      if (state.step === 8) renderFinal();
+    }
+
+    /***********************
+     * Validation per step
+     ***********************/
+    function isValidEmail(email){
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function validateStep(step){
+      if (step === 1){
+        if (!state.name.trim()){
+          showToast("error", "اكتب اسمك أولًا ✍️");
+          return false;
+        }
+        if (!state.mood){
+          showToast("error", "اختر Mood واحد 🌈");
+          return false;
+        }
+        return true;
+      }
+
+      if (step === 2){
+        if (!isValidEmail(state.email)){
+          showToast("error", "الإيميل يبدو غير صحيح 😅");
+          return false;
+        }
+        if (state.passwordScore < 2){
+          showToast("error", "قوة كلمة المرور ضعيفة… حاول تزيد القلوب ❤️");
+          return false;
+        }
+        return true;
+      }
+
+      if (step === 3){
+        if (!state.country){
+          showToast("error", "اختر البلد 🌍");
+          return false;
+        }
+        if (!state.birth){
+          showToast("error", "اختَر تاريخ الميلاد 🎂");
+          return false;
+        }
+        if (!state.persona){
+          showToast("error", "اختَر شخصيتك 😄");
+          return false;
+        }
+        return true;
+      }
+
+      if (step === 4){
+        // always valid (has defaults)
+        return true;
+      }
+
+      if (step === 5){
+        if (state.genres.length !== 5){
+          showToast("error", "لازم تختار 5 Genres بالضبط ✋");
+          return false;
+        }
+        return true;
+      }
+
+      if (step === 6){
+        // optional follow; allow continue
+        return true;
+      }
+
+      if (step === 7){
+        if (!state.badge){
+          showToast("error", "اختَر شارة بداية ⭐");
+          return false;
+        }
+        return true;
+      }
+
+      if (step === 8){
+        return true;
+      }
+
+      return true;
+    }
+
+    /***********************
+     * UI Builders
+     ***********************/
+    function buildMoodChips(){
+      const wrap = $("#moodChips");
+      wrap.innerHTML = "";
+      moods.forEach(m => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className =
+          "mini-card px-3 py-2 text-sm font-extrabold hover:scale-[1.02] active:scale-[.98] transition";
+        btn.dataset.mood = m.id;
+        btn.innerHTML = `
+          <span class="inline-flex items-center gap-2">
+            <span class="inline-block w-2.5 h-2.5 rounded-full ${m.color === "pink" ? "bg-pink-400" :
+              m.color === "mint" ? "bg-emerald-400" :
+              m.color === "sun" ? "bg-amber-400" :
+              m.color === "violet" ? "bg-violet-400" : "bg-gray-900"}"></span>
+            <span>${m.label}</span>
+          </span>
+        `;
+
+        btn.addEventListener("click", () => {
+          state.mood = m.id;
+          $$("#moodChips button").forEach(x => x.classList.remove("ring-2","ring-pink-300","scale-[1.01]"));
+          btn.classList.add("ring-2","ring-pink-300","scale-[1.01]");
+          bounce(btn);
+          $("#moodHint").textContent = "تم ✅";
+          updateAllPreviews();
+          showToast("success", `Mood اليوم صار: ${m.label}`);
+        });
+
+        wrap.appendChild(btn);
+      });
+    }
+
+    function buildPersonas(){
+      const wrap = $("#personaGroup");
+      wrap.innerHTML = "";
+      personas.forEach(p => {
+        const id = "persona_" + p.id.replace(/\s+/g,"_");
+        const label = document.createElement("label");
+        label.className = "mini-card p-3 flex items-start gap-3 cursor-pointer hover:scale-[1.01] active:scale-[.99] transition";
+        label.innerHTML = `
+          <input class="mt-1" type="radio" name="persona" value="${escapeHtml(p.id)}" id="${id}">
+          <div class="min-w-0">
+            <div class="font-extrabold text-sm">${p.icon} ${escapeHtml(p.id)}</div>
+            <div class="text-xs text-gray-600 mt-1">${escapeHtml(p.desc)}</div>
+          </div>
+        `;
+        const input = label.querySelector("input");
+        input.addEventListener("change", () => {
+          state.persona = p.id;
+          bounce(label);
+          updateAllPreviews();
+          showToast("success", `شخصيتك: ${p.id}`);
+        });
+        wrap.appendChild(label);
+      });
+    }
+
+    function buildGenres(){
+      const wrap = $("#genresGrid");
+      wrap.innerHTML = "";
+      genres.forEach(g => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "mini-card px-3 py-2 text-xs font-extrabold hover:scale-[1.02] active:scale-[.98] transition";
+        btn.textContent = g;
+
+        btn.addEventListener("click", () => {
+          const idx = state.genres.indexOf(g);
+          if (idx >= 0){
+            state.genres.splice(idx, 1);
+            btn.classList.remove("ring-2","ring-violet-300","scale-[1.01]");
+            showToast("info", `تمت إزالة: ${g}`);
+          } else {
+            if (state.genres.length >= 5){
+              showToast("error", "وصلت للحد: 5 Genres ✋");
+              return;
+            }
+            state.genres.push(g);
+            btn.classList.add("ring-2","ring-violet-300","scale-[1.01]");
+            showToast("success", `تمت إضافة: ${g}`);
+          }
+          bounce(btn);
+          updateAllPreviews();
+        });
+
+        wrap.appendChild(btn);
+      });
+    }
+
+    function buildSuggestions(){
+      const track = $("#suggestionsTrack");
+      track.innerHTML = "";
+
+      suggestions.forEach((u, i) => {
+        const card = document.createElement("div");
+        card.className = "mini-card snap-start min-w-[260px] max-w-[260px] p-4 flex flex-col gap-3";
+        card.innerHTML = `
+          <div class="flex items-start gap-3">
+            <div class="mini-card p-2">
+              ${chibiSvg({ face: ["round","soft","chubby"][i%3], hair: ["bob","spiky","curly","long"][i%4], color: ["pink","violet","mint","sun"][i%4] }, 66)}
+            </div>
+            <div class="min-w-0">
+              <div class="font-extrabold truncate">${escapeHtml(u.name)}</div>
+              <div class="text-xs text-gray-600 mt-1">${escapeHtml(u.role)} • ${escapeHtml(u.vibe)}</div>
+            </div>
+          </div>
+          <button data-follow="${u.id}" class="followBtn w-full rounded-2xl px-4 py-3 font-extrabold
+                 bg-white/70 border border-white/70 hover:scale-[1.01] active:scale-[.98] transition">
+            Follow 💕
+          </button>
+        `;
+        track.appendChild(card);
+      });
+
+      $$(".followBtn", track).forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.follow;
+          if (state.following.has(id)){
+            state.following.delete(id);
+            btn.textContent = "Follow 💕";
+            btn.classList.remove("ring-2","ring-pink-300");
+            showToast("info", "Unfollow تم 🌙");
+          } else {
+            state.following.add(id);
+            btn.textContent = "Following ✓";
+            btn.classList.add("ring-2","ring-pink-300");
+            showToast("success", "Follow تم! 🌸");
+          }
+          bounce(btn);
+          updateFollowCount();
+          updateAllPreviews();
+        });
+      });
+    }
+
+    function updateFollowCount(){
+      $("#followCount").textContent = String(state.following.size);
+    }
+
+    function buildBadges(){
+      const wrap = $("#badgeGrid");
+      wrap.innerHTML = "";
+
+      badges.forEach(b => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "mini-card p-4 text-start hover:scale-[1.01] active:scale-[.99] transition";
+        btn.dataset.badge = b.id;
+        btn.innerHTML = `
+          <div class="flex items-start gap-3">
+            <div class="mini-card px-3 py-2 text-lg">${b.icon}</div>
+            <div class="min-w-0">
+              <div class="font-extrabold">${escapeHtml(b.id)}</div>
+              <div class="text-xs text-gray-600 mt-1">${escapeHtml(b.note)}</div>
+            </div>
+          </div>
+        `;
+
+        btn.addEventListener("click", () => {
+          state.badge = b.id;
+          $$("#badgeGrid button").forEach(x => x.classList.remove("ring-2","ring-amber-300"));
+          btn.classList.add("ring-2","ring-amber-300");
+          bounce(btn);
+          updateAllPreviews();
+          showToast("success", `تم اختيار الشارة: ${b.icon} ${b.id}`);
+        });
+
+        wrap.appendChild(btn);
+      });
+    }
+
+    function badgeIconFor(id){
+      const b = badges.find(x => x.id === id);
+      return b ? b.icon : "🏷️";
+    }
+
+    /***********************
+     * Previews
+     ***********************/
+    function updateAllPreviews(){
+      // Name/mood
+      $("#previewName").textContent = state.name.trim() || "…";
+      $("#previewName2").textContent = state.name.trim() || "—";
+      $("#previewName3").textContent = state.name.trim() || "—";
+      $("#sideName").textContent = state.name.trim() || "—";
+
+      const moodObj = moods.find(m => m.id === state.mood);
+      $("#previewMood").textContent = moodObj ? moodObj.label : "—";
+      $("#sideMood").textContent = `Mood: ${moodObj ? moodObj.label : "—"}`;
+
+      // Email
+      $("#previewEmail").textContent = state.email || "—";
+
+      // Country/birth/persona
+      $("#previewCountry").textContent = state.country || "بلد؟";
+      $("#previewBirth").textContent = state.birth ? state.birth : "تاريخ؟";
+      $("#previewPersona").textContent = state.persona || "—";
+
+      $("#sideCountry").textContent = state.country || "—";
+      $("#sideBirth").textContent = state.birth || "—";
+      $("#sidePersona").textContent = state.persona || "—";
+
+      // Avatar everywhere
+      renderAvatar("avatarPreview", 170);
+      renderAvatar("sideAvatar", 78);
+      renderAvatar("tinyAvatar1", 70);
+      renderAvatar("tinyAvatar2", 70);
+      renderAvatar("tinyAvatar3", 70);
+      renderAvatar("finalAvatar", 80);
+
+      // Chibi tags
+      $("#tagFace").textContent = "face: " + state.avatar.face;
+      $("#tagHair").textContent = "hair: " + state.avatar.hair;
+      $("#tagColor").textContent = "color: " + state.avatar.color;
+
+      // Genres
+      $("#genresCount").textContent = String(state.genres.length);
+
+      // Selected preview chips
+      const preview = $("#selectedGenresPreview");
+      preview.innerHTML = "";
+      state.genres.forEach(g => {
+        const span = document.createElement("span");
+        span.className = "px-2 py-1 rounded-full text-xs font-extrabold bg-violet-50 text-violet-700 border border-violet-100";
+        span.textContent = g;
+        preview.appendChild(span);
+      });
+
+      // side genres
+      const side = $("#sideGenres");
+      side.innerHTML = "";
+      (state.genres.length ? state.genres : ["—"]).forEach(g => {
+        const span = document.createElement("span");
+        span.className = "px-2 py-1 rounded-full text-[11px] font-extrabold bg-white/70 border border-white/70";
+        span.textContent = g;
+        side.appendChild(span);
+      });
+
+      // western
+      $("#westernLabel").textContent = "حاليًا: " + (state.western ? "نعم" : "لا");
+      $("#westernPill").textContent = state.western ? "Yes" : "No";
+      $("#westernPill").className =
+        "px-2 py-1 rounded-full text-xs font-bold border " +
+        (state.western ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-gray-50 text-gray-700 border-gray-100");
+
+      $("#sideWestern").textContent = state.western ? "Yes" : "No";
+      $("#sideFollowing").textContent = String(state.following.size);
+
+      // Badge
+      $("#badgePreviewIcon").textContent = state.badge ? badgeIconFor(state.badge) : "—";
+      $("#badgePreviewText").textContent = state.badge || "—";
+      $("#badgeInline").textContent = state.badge || "—";
+      $("#sideBadgeIcon").textContent = state.badge ? badgeIconFor(state.badge) : "—";
+      $("#sideBadge").textContent = state.badge || "—";
+    }
+
+    function renderFinal(){
+      const moodObj = moods.find(m => m.id === state.mood);
+      $("#finalName").textContent = state.name || "—";
+      $("#finalMeta").textContent =
+        `${state.country || "—"} • ${state.birth || "—"} • ${state.email || "—"}`;
+
+      $("#finalMood").textContent = moodObj ? moodObj.label : "—";
+      $("#finalPersona").textContent = state.persona || "—";
+
+      $("#finalBadgeIcon").textContent = state.badge ? badgeIconFor(state.badge) : "—";
+      $("#finalBadgeText").textContent = state.badge || "—";
+
+      // Genres
+      const wrap = $("#finalGenres");
+      wrap.innerHTML = "";
+      state.genres.forEach(g => {
+        const s = document.createElement("span");
+        s.className = "px-2 py-1 rounded-full text-xs font-extrabold bg-violet-50 text-violet-700 border border-violet-100";
+        s.textContent = g;
+        wrap.appendChild(s);
+      });
+
+      $("#finalWestern").textContent = state.western ? "Yes" : "No";
+      $("#finalFollowing").textContent = String(state.following.size);
+
+      // Checklist
+      const checks = [
+        { ok: !!state.name.trim(), text: "Name" },
+        { ok: !!state.mood, text: "Mood" },
+        { ok: isValidEmail(state.email), text: "Email" },
+        { ok: state.passwordScore >= 2, text: "Password hearts ≥ 2" },
+        { ok: !!state.country, text: "Country" },
+        { ok: !!state.birth, text: "Birth date" },
+        { ok: !!state.persona, text: "Persona" },
+        { ok: state.genres.length === 5, text: "Top 5 genres" },
+        { ok: !!state.badge, text: "Beginner badge" },
+      ];
+      const list = $("#checklist");
+      list.innerHTML = "";
+      checks.forEach(c => {
+        const row = document.createElement("div");
+        row.className = "mini-card px-3 py-2 flex items-center justify-between";
+        row.innerHTML = `
+          <div class="text-sm font-bold">${escapeHtml(c.text)}</div>
+          <div class="text-sm">${c.ok ? "✅" : "⏳"}</div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    /***********************
+     * Confetti
+     ***********************/
+    function launchConfetti(){
+      const layer = $("#confettiLayer");
+      layer.innerHTML = "";
+      layer.classList.remove("hidden");
+
+      const colors = ["#ff5ca8","#b9a7ff","#6ee7d8","#ffd166","#111827"];
+      const count = 90;
+
+      for (let i=0;i<count;i++){
+        const c = document.createElement("div");
+        c.className = "confetti";
+        const x = Math.random() * 100;
+        const w = 6 + Math.random() * 10;
+        const h = 10 + Math.random() * 14;
+        const dur = 1.8 + Math.random() * 1.6;
+        const delay = Math.random() * 0.25;
+        c.style.left = x + "vw";
+        c.style.width = w + "px";
+        c.style.height = h + "px";
+        c.style.background = colors[i % colors.length];
+        c.style.setProperty("--dur", dur + "s");
+        c.style.animationDelay = delay + "s";
+        c.style.opacity = (0.75 + Math.random() * 0.25).toFixed(2);
+        c.style.borderRadius = (2 + Math.random() * 5) + "px";
+        layer.appendChild(c);
+      }
+
+      setTimeout(() => {
+        layer.classList.add("hidden");
+        layer.innerHTML = "";
+      }, 2600);
+    }
+
+    /***********************
+     * Events wiring
+     ***********************/
+    function wireInputs(){
+      // Step 1
+      $("#nameInput").addEventListener("input", (e) => {
+        state.name = e.target.value;
+        updateAllPreviews();
+      });
+
+      // Step 2
+      $("#emailInput").addEventListener("input", (e) => {
+        state.email = e.target.value.trim();
+        updateAllPreviews();
+      });
+
+      $("#passwordInput").addEventListener("input", (e) => {
+        state.password = e.target.value;
+        state.passwordScore = scorePassword(state.password);
+        renderHearts(state.passwordScore);
+
+        const hint = $("#pwHint");
+        const s = state.passwordScore;
+        hint.textContent =
+          s <= 1 ? "ضعيفة… زِد الطول + أرقام/رموز ❤️" :
+          s === 2 ? "تمام كبداية 🙂 حاول تخليها أقوى." :
+          s === 3 ? "جيدة! 💪" :
+          s === 4 ? "قوية جدًا! 🔥" : "أسطورية! 👑";
+
+        updateAllPreviews();
+      });
+
+      // Step 3
+      $("#countrySelect").addEventListener("change", (e) => {
+        state.country = e.target.value;
+        updateAllPreviews();
+      });
+      $("#birthInput").addEventListener("change", (e) => {
+        state.birth = e.target.value;
+        updateAllPreviews();
+      });
+
+      // Step 4 selects
+      $("#faceSelect").addEventListener("change", (e) => {
+        state.avatar.face = e.target.value;
+        updateAllPreviews();
+        bounce($("#avatarPreview"));
+      });
+      $("#hairSelect").addEventListener("change", (e) => {
+        state.avatar.hair = e.target.value;
+        updateAllPreviews();
+        bounce($("#avatarPreview"));
+      });
+      $("#colorSelect").addEventListener("change", (e) => {
+        state.avatar.color = e.target.value;
+        updateAllPreviews();
+        bounce($("#avatarPreview"));
+      });
+
+      $("#randomizeAvatar").addEventListener("click", () => {
+        const faces = ["round","soft","chubby"];
+        const hairs = ["bob","spiky","curly","long"];
+        const colors = ["pink","violet","mint","sun","ink"];
+        state.avatar.face = faces[Math.floor(Math.random()*faces.length)];
+        state.avatar.hair = hairs[Math.floor(Math.random()*hairs.length)];
+        state.avatar.color = colors[Math.floor(Math.random()*colors.length)];
+
+        $("#faceSelect").value = state.avatar.face;
+        $("#hairSelect").value = state.avatar.hair;
+        $("#colorSelect").value = state.avatar.color;
+
+        updateAllPreviews();
+        bounce($("#avatarPreview"));
+        showToast("success", "تم عمل Random للأفاتار 🎲");
+      });
+
+      // Step 5 toggle
+      $("#westernToggle").addEventListener("click", () => {
+        state.western = !state.western;
+        const knob = $("#westernKnob");
+        knob.style.right = state.western ? "calc(100% - 1.75rem - 0.25rem)" : "0.25rem";
+        bounce($("#westernToggle"));
+        updateAllPreviews();
+      });
+
+      // Step 6 slider controls
+      $("#slidePrev").addEventListener("click", () => slideTrack(-1));
+      $("#slideNext").addEventListener("click", () => slideTrack(1));
+
+      // Toast demo
+      $("#toastOk").addEventListener("click", () => showToast("success", "تم الحفظ بنجاح 🎀"));
+      $("#toastBad").addEventListener("click", () => showToast("error", "فيه خطأ بسيط… جرّب مرة ثانية 🙈"));
+
+      // Navigation
+      const goNext = () => {
+        if (!validateStep(state.step)) return;
+
+        if (state.step === totalSteps){
+          showToast("success", "جاهز! اضغط Let’s Go! 🎉");
+          bounce($("#letsGo"));
+          return;
+        }
+        setStep(state.step + 1);
+      };
+
+      const goBack = () => setStep(state.step - 1);
+
+      $("#btnNext").addEventListener("click", goNext);
+      $("#btnBack").addEventListener("click", goBack);
+      $("#btnBackTop").addEventListener("click", goBack);
+
+      $("#btnSkipTop").addEventListener("click", () => {
+        // Friendly skip: jump forward but keep minimal constraints
+        if (state.step < totalSteps){
+          showToast("info", "تخطّي لطيف… لكن ممكن ترجع وتكمّل لاحقًا 🐾");
+          setStep(Math.min(totalSteps, state.step + 1));
+        }
+      });
+
+      // Final actions
+      $("#letsGo").addEventListener("click", () => {
+        // Ensure all required pieces are present
+        const allOk =
+          validateStep(1) &&
+          validateStep(2) &&
+          validateStep(3) &&
+          validateStep(5) &&
+          validateStep(7);
+
+        if (!allOk){
+          showToast("error", "فيه خطوات ناقصة… ارجع كملها 🥺");
+          return;
+        }
+
+        launchConfetti();
+        showToast("success", "تم إنشاء حسابك (Demo) 🎉 أهلاً بك!");
+      });
+
+      $("#restart").addEventListener("click", () => {
+        // reset state (keep defaults for avatar)
+        state.step = 1;
+        state.name = "";
+        state.mood = "";
+        state.email = "";
+        state.password = "";
+        state.passwordScore = 0;
+        state.country = "";
+        state.birth = "";
+        state.persona = "";
+        state.avatar = { face: "round", hair: "bob", color: "pink" };
+        state.genres = [];
+        state.western = false;
+        state.following = new Set();
+        state.badge = "";
+
+        // reset inputs
+        $("#nameInput").value = "";
+        $$("#moodChips button").forEach(x => x.classList.remove("ring-2","ring-pink-300","scale-[1.01]"));
+        $("#moodHint").textContent = "اختر واحدًا";
+
+        $("#emailInput").value = "";
+        $("#passwordInput").value = "";
+        renderHearts(0);
+        $("#pwHint").textContent = "اجعلها أطول + رموز + أرقام ❤️";
+
+        $("#countrySelect").value = "";
+        $("#birthInput").value = "";
+        $$('input[name="persona"]').forEach(r => r.checked = false);
+
+        $("#faceSelect").value = "round";
+        $("#hairSelect").value = "bob";
+        $("#colorSelect").value = "pink";
+
+        // reset genres buttons
+        $$("#genresGrid button").forEach(b => b.classList.remove("ring-2","ring-violet-300","scale-[1.01]"));
+
+        // toggle reset
+        $("#westernKnob").style.right = "0.25rem";
+
+        // badges reset
+        $$("#badgeGrid button").forEach(b => b.classList.remove("ring-2","ring-amber-300"));
+
+        // follow reset UI
+        $$(".followBtn").forEach(b => {
+          b.textContent = "Follow 💕";
+          b.classList.remove("ring-2","ring-pink-300");
+        });
+
+        updateAllPreviews();
+        setStep(1);
+        showToast("success", "رجعنا من البداية ✨");
+      });
+    }
+
+    function slideTrack(dir){
+      const track = $("#suggestionsTrack");
+      const card = track.querySelector(".mini-card");
+      const amount = card ? (card.getBoundingClientRect().width + 12) : 280;
+      track.scrollBy({ left: dir * amount, behavior: "smooth" });
+    }
+
+    /***********************
+     * Init
+     ***********************/
+    function init(){
+      $("#stepTotal").textContent = String(totalSteps);
+
+      buildMoodChips();
+      buildPersonas();
+      buildGenres();
+      buildSuggestions();
+      buildBadges();
+
+      // Defaults for UI
+      renderHearts(0);
+      updateAllPreviews();
+
+      // Set initial avatar selects
+      $("#faceSelect").value = state.avatar.face;
+      $("#hairSelect").value = state.avatar.hair;
+      $("#colorSelect").value = state.avatar.color;
+
+      // default knob position
+      $("#westernKnob").style.right = "0.25rem";
+
+      wireInputs();
+      setStep(1);
+
+      showToast("info", "أهلًا! ابدأ من Step 1 🐾");
+    }
+
+    init();
+  </script>
+</body>
+</html>

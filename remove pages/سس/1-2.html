@@ -1,0 +1,1140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>1-2</title>
+
+  <style>
+    :root{
+      --bg0:#050513;
+      --bg1:#0b0a22;
+      --ink:#eaf2ff;
+      --muted:#a9b4d0;
+
+      --card:#0b0b19cc;
+      --stroke:#ffffff1a;
+      --shadow: 0 40px 140px rgba(0,0,0,.75);
+
+      --a:#22d3ee;   /* cyan */
+      --b:#7c3aed;   /* violet */
+      --c:#fb7185;   /* pink */
+      --d:#fbbf24;   /* amber */
+
+      --ring: rgba(34, 211, 238, .35);
+      --radius: 24px;
+
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--font);
+      color:var(--ink);
+      overflow:hidden;
+      background:
+        radial-gradient(1100px 700px at 12% 18%, rgba(124,58,237,.35), transparent 55%),
+        radial-gradient(900px 650px at 88% 22%, rgba(34,211,238,.28), transparent 55%),
+        radial-gradient(900px 650px at 60% 88%, rgba(251,113,133,.22), transparent 55%),
+        linear-gradient(160deg, var(--bg0), var(--bg1));
+    }
+
+    /* ======= ANIME BACKGROUND LAYERS ======= */
+
+    /* Manga panel grid */
+    .manga-grid{
+      position:fixed; inset:-30%;
+      background:
+        linear-gradient(#ffffff10 1px, transparent 1px) 0 0 / 180px 180px,
+        linear-gradient(90deg,#ffffff10 1px, transparent 1px) 0 0 / 180px 180px;
+      transform: rotate(-10deg);
+      opacity:.18;
+      pointer-events:none;
+      animation: gridDrift 10s ease-in-out infinite alternate;
+      filter: blur(.2px);
+    }
+    @keyframes gridDrift{
+      from{ translate:-1.2% -1.2%; }
+      to  { translate: 1.2%  1.0%; }
+    }
+
+    /* Speed lines (shonen energy) */
+    .speedlines{
+      position:fixed; inset:-40%;
+      background:
+        repeating-linear-gradient(
+          110deg,
+          transparent 0 16px,
+          rgba(255,255,255,.06) 16px 17px,
+          transparent 17px 34px
+        );
+      transform: rotate(-8deg);
+      opacity:.35;
+      pointer-events:none;
+      animation: speed 7s linear infinite;
+      mix-blend-mode: screen;
+      filter: blur(.3px);
+    }
+    @keyframes speed{
+      from{ translate:-2% -2% }
+      to  { translate: 2%  2% }
+    }
+
+    /* Halftone dots (manga texture) */
+    .halftone{
+      position:fixed; inset:0;
+      background:
+        radial-gradient(circle at 20% 25%, rgba(255,255,255,.14) 0 1px, transparent 2px) 0 0 / 14px 14px;
+      opacity:.18;
+      pointer-events:none;
+      mask-image: radial-gradient(800px 500px at 30% 30%, black, transparent 60%);
+      animation: halftonePulse 6s ease-in-out infinite;
+    }
+    @keyframes halftonePulse{
+      0%,100%{ opacity:.12 }
+      50%{ opacity:.22 }
+    }
+
+    /* Scanlines (anime-cinema vibe) */
+    .scanlines{
+      position:fixed; inset:0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.06) 0px,
+        rgba(255,255,255,.06) 1px,
+        transparent 2px,
+        transparent 6px
+      );
+      opacity:.12;
+      pointer-events:none;
+      mix-blend-mode: overlay;
+      animation: scan 10s linear infinite;
+    }
+    @keyframes scan{
+      from{ transform: translateY(-6px) }
+      to  { transform: translateY(6px) }
+    }
+
+    /* Big animated glow blobs */
+    .blobs{
+      position:fixed; inset:0; pointer-events:none;
+      filter: blur(40px);
+      opacity:.65;
+    }
+    .blob{
+      position:absolute;
+      width:520px; height:520px; border-radius: 999px;
+      transform: translate3d(0,0,0);
+      animation: blobMove 10s ease-in-out infinite alternate;
+      mix-blend-mode: screen;
+    }
+    .blob.one{
+      left:-120px; top:-80px;
+      background: radial-gradient(circle at 30% 30%, rgba(34,211,238,.9), rgba(34,211,238,0) 65%);
+      animation-duration: 11s;
+    }
+    .blob.two{
+      right:-160px; top:40px;
+      background: radial-gradient(circle at 30% 30%, rgba(124,58,237,.9), rgba(124,58,237,0) 65%);
+      animation-duration: 13s;
+    }
+    .blob.three{
+      left:20%; bottom:-220px;
+      background: radial-gradient(circle at 30% 30%, rgba(251,113,133,.85), rgba(251,113,133,0) 65%);
+      animation-duration: 12s;
+    }
+    @keyframes blobMove{
+      from{ transform: translate(-12px, 8px) scale(1); }
+      to  { transform: translate(18px, -12px) scale(1.06); }
+    }
+
+    /* Floating “anime stickers” (generic) */
+    .stickers{ position:fixed; inset:0; pointer-events:none; }
+    .sticker{
+      position:absolute;
+      width:34px; height:34px;
+      opacity:.9;
+      filter: drop-shadow(0 18px 32px rgba(0,0,0,.55));
+      animation: floatUp linear infinite;
+      transform: translateZ(0);
+    }
+    @keyframes floatUp{
+      from{ transform: translateY(40px) rotate(0deg) scale(.85); opacity:0; }
+      10%{ opacity:.9; }
+      to  { transform: translateY(-120vh) rotate(360deg) scale(1.05); opacity:0; }
+    }
+
+    /* Sakura petals (anime feel) */
+    .petals{ position:fixed; inset:0; pointer-events:none; }
+    .petal{
+      position:absolute;
+      width:16px; height:16px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.7), rgba(255,255,255,0) 55%),
+        radial-gradient(circle at 55% 55%, rgba(251,113,133,.9), rgba(251,113,133,0) 65%);
+      border-radius: 60% 40% 60% 40%;
+      transform: rotate(25deg);
+      opacity:.95;
+      filter: drop-shadow(0 16px 24px rgba(0,0,0,.35));
+      animation: petalFall linear infinite;
+    }
+    @keyframes petalFall{
+      from{ transform: translateY(-10vh) translateX(0) rotate(0deg); opacity:0; }
+      10%{ opacity:.95; }
+      to  { transform: translateY(120vh) translateX(140px) rotate(520deg); opacity:0; }
+    }
+
+    /* Canvas FX (particles + comet lines) */
+    canvas#fx{
+      position:fixed; inset:0;
+      width:100%; height:100%;
+      pointer-events:none;
+      opacity:.9;
+    }
+
+    /* Demo content behind modal */
+    .behind{
+      position:fixed; inset:0;
+      display:grid; place-items:center;
+      z-index:1;
+    }
+    .openbtn{
+      border-radius:999px;
+      padding:12px 18px;
+      border:1px solid #ffffff1a;
+      background: rgba(10,10,22,.55);
+      color:var(--ink);
+      cursor:pointer;
+      backdrop-filter: blur(10px);
+      transition: transform .18s ease, border-color .2s ease, box-shadow .25s ease;
+      box-shadow: 0 18px 60px rgba(0,0,0,.45);
+    }
+    .openbtn:hover{
+      transform: translateY(-2px) scale(1.02);
+      border-color: #ffffff30;
+      box-shadow: 0 26px 80px rgba(0,0,0,.55);
+    }
+    .openbtn:active{ transform: translateY(0) scale(.99); }
+
+    /* ======= MODAL ======= */
+
+    .overlay{
+      position:fixed; inset:0;
+      display:grid; place-items:center;
+      background:
+        radial-gradient(900px 650px at 50% 35%, rgba(0,0,0,.25), rgba(0,0,0,.86));
+      backdrop-filter: blur(14px) saturate(1.15);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .25s ease;
+      z-index:5;
+    }
+    .overlay.open{ opacity:1; pointer-events:auto; }
+
+    .modal{
+      width:min(560px, calc(100vw - 32px));
+      border-radius: var(--radius);
+      position:relative;
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(11,11,25,.92), rgba(7,7,18,.92));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+
+      /* entrance state */
+      opacity:0;
+      transform: translateY(28px) scale(.96) rotateX(10deg);
+      filter: blur(2px);
+      transition:
+        transform .65s cubic-bezier(.16, 1, .2, 1),
+        opacity .35s ease,
+        filter .45s ease;
+      transform-style: preserve-3d;
+      will-change: transform, filter, opacity;
+    }
+    .overlay.open .modal{
+      opacity:1;
+      transform: translateY(0) scale(1) rotateX(0deg);
+      filter: blur(0);
+      animation: popSpring .75s cubic-bezier(.15, 1.25, .15, 1) both;
+    }
+    @keyframes popSpring{
+      0%{ transform: translateY(28px) scale(.92) rotateX(12deg); }
+      55%{ transform: translateY(-8px) scale(1.02) rotateX(0deg); }
+      100%{ transform: translateY(0) scale(1); }
+    }
+
+    /* animated neon edge */
+    .modal::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: conic-gradient(from 180deg, var(--a), var(--b), var(--c), var(--d), var(--a));
+      opacity:.65;
+      filter: blur(18px);
+      animation: spin 3.2s linear infinite;
+      pointer-events:none;
+    }
+    @keyframes spin{ to{ transform: rotate(360deg) } }
+
+    /* shine sweep */
+    .modal::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(110deg, transparent 0 35%, rgba(255,255,255,.22) 45%, transparent 55% 100%);
+      transform: translateX(-120%);
+      opacity:.25;
+      pointer-events:none;
+      animation: sweep 3.6s ease-in-out infinite;
+      mix-blend-mode: screen;
+    }
+    @keyframes sweep{
+      0%,55%{ transform: translateX(-120%); opacity:0; }
+      70%{ opacity:.35; }
+      100%{ transform: translateX(120%); opacity:0; }
+    }
+
+    .content{
+      position:relative;
+      padding: 26px 24px 22px;
+    }
+
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      min-width: 0;
+    }
+    .logo{
+      width:40px; height:40px;
+      border-radius:14px;
+      background: linear-gradient(135deg, var(--a), var(--b));
+      box-shadow:
+        0 0 0 1px #ffffff1c inset,
+        0 22px 70px rgba(34,211,238,.18);
+      position:relative;
+      overflow:hidden;
+      flex:0 0 auto;
+    }
+    .logo i{
+      position:absolute; inset:-40%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent);
+      transform: rotate(22deg);
+      animation: logoShine 2.7s ease-in-out infinite;
+      opacity:.0;
+    }
+    @keyframes logoShine{
+      0%,55%{ transform: translateX(-35%) rotate(22deg); opacity:0; }
+      70%{ opacity:.85; }
+      100%{ transform: translateX(35%) rotate(22deg); opacity:0; }
+    }
+    .brand-title{
+      min-width:0;
+      line-height:1.05;
+    }
+    .brand-title .name{
+      font-weight: 900;
+      letter-spacing: .2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .brand-title .tag{
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .close{
+      width:42px; height:42px;
+      border-radius: 16px;
+      border: 1px solid #ffffff1f;
+      background: rgba(10,10,22,.75);
+      color: var(--ink);
+      cursor:pointer;
+      transition: transform .18s ease, border-color .2s ease, box-shadow .25s ease;
+    }
+    .close:hover{
+      transform: translateY(-2px) rotate(-2deg);
+      border-color:#ffffff35;
+      box-shadow: 0 20px 70px rgba(0,0,0,.6);
+    }
+    .close:active{ transform: translateY(0) scale(.98); }
+
+    .headline{
+      margin: 8px 0 6px;
+      font-size: 26px;
+      line-height: 1.1;
+      letter-spacing: .2px;
+    }
+    .sub{
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    /* Floating labels */
+    .field{
+      margin: 12px 0;
+      position:relative;
+    }
+    .input{
+      width:100%;
+      padding: 16px 14px 12px;
+      border-radius: 18px;
+      border:1px solid #ffffff1a;
+      background: linear-gradient(180deg, rgba(15,15,32,.92), rgba(9,9,20,.92));
+      color: var(--ink);
+      outline:none;
+      transition: transform .16s ease, box-shadow .2s ease, border-color .2s ease, filter .2s ease;
+    }
+    .input:hover{
+      transform: translateY(-1px);
+      border-color:#ffffff2f;
+      filter: brightness(1.03);
+    }
+    .input:focus{
+      border-color: rgba(34,211,238,.55);
+      box-shadow: 0 0 0 4px var(--ring), 0 24px 90px rgba(0,0,0,.7);
+    }
+
+    .label{
+      position:absolute;
+      left:14px;
+      top: 13px;
+      font-size: 12px;
+      color: rgba(233,242,255,.65);
+      pointer-events:none;
+      transition: transform .18s ease, opacity .18s ease, color .18s ease;
+      transform-origin: left top;
+    }
+    .field:focus-within .label,
+    .field.filled .label{
+      transform: translateY(-9px) scale(.92);
+      opacity:.95;
+      color: rgba(233,242,255,.85);
+    }
+
+    /* password eye */
+    .pw-wrap{ position:relative; }
+    .pw-toggle{
+      position:absolute;
+      right: 10px; top: 50%;
+      transform: translateY(-50%);
+      border:1px solid #ffffff1a;
+      background: rgba(10,10,22,.8);
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor:pointer;
+      transition: transform .16s ease, border-color .2s ease;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .pw-toggle:hover{ transform: translateY(-50%) scale(1.04); border-color:#ffffff30; }
+    .pw-toggle:active{ transform: translateY(-50%) scale(.98); }
+
+    /* policy */
+    .policy{
+      display:flex; gap:10px; align-items:flex-start;
+      margin-top: 10px;
+      padding: 12px 12px;
+      border-radius: 18px;
+      border: 1px dashed #ffffff22;
+      background: rgba(255,255,255,.03);
+      transition: transform .16s ease, border-color .2s ease;
+    }
+    .policy:hover{ transform: translateY(-1px); border-color:#ffffff35; }
+    .policy input{ margin-top: 3px; accent-color: var(--a); }
+    .policy small{ color: var(--muted); line-height: 1.35; }
+
+    /* primary button with anime “impact” */
+    .primary{
+      width:100%;
+      margin-top: 14px;
+      padding: 13px 14px;
+      border-radius: 18px;
+      border:none;
+      cursor:pointer;
+      color:#071019;
+      font-weight: 950;
+      letter-spacing: .25px;
+
+      background: linear-gradient(90deg, var(--a), var(--b), var(--c), var(--d));
+      background-size: 220% 220%;
+      transition: transform .16s ease, filter .2s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .primary:hover{
+      transform: translateY(-2px) scale(1.01);
+      filter: brightness(1.08);
+      animation: gradientShift 1.4s ease infinite;
+    }
+    .primary:active{ transform: translateY(0) scale(.99); }
+    .primary:disabled{
+      cursor:not-allowed;
+      filter:saturate(.2) brightness(.85);
+      opacity:.7;
+    }
+    @keyframes gradientShift{
+      0%{ background-position: 0% 50% }
+      50%{ background-position: 100% 50% }
+      100%{ background-position: 0% 50% }
+    }
+
+    /* impact ring + ripple */
+    .primary .impact{
+      position:absolute; inset:0;
+      pointer-events:none;
+      opacity:0;
+      background:
+        radial-gradient(420px 220px at 50% 50%, rgba(255,255,255,.55), transparent 55%),
+        radial-gradient(520px 260px at 50% 50%, rgba(255,255,255,.18), transparent 65%);
+      transform: scale(.9);
+    }
+    .primary.boom .impact{
+      animation: impact .55s ease-out;
+    }
+    @keyframes impact{
+      0%{ opacity:0; transform: scale(.85); }
+      15%{ opacity:1; transform: scale(1); }
+      100%{ opacity:0; transform: scale(1.25); }
+    }
+    .primary .rip{
+      position:absolute;
+      border-radius:999px;
+      transform: translate(-50%,-50%);
+      pointer-events:none;
+      width:12px; height:12px;
+      background: rgba(255,255,255,.9);
+      mix-blend-mode: overlay;
+      animation: rip 720ms ease-out forwards;
+    }
+    @keyframes rip{
+      to{ width: 620px; height: 620px; opacity:0; }
+    }
+
+    .divider{
+      display:flex; align-items:center; gap:12px;
+      margin: 18px 0 12px;
+      color: rgba(233,242,255,.6);
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .divider::before, .divider::after{
+      content:"";
+      flex:1; height:1px;
+      background: linear-gradient(90deg, transparent, #ffffff22, transparent);
+    }
+
+    .socials{ display:grid; gap:10px; }
+    .social{
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      border:1px solid #ffffff1a;
+      background: linear-gradient(180deg, rgba(15,15,32,.92), rgba(9,9,20,.92));
+      color: var(--ink);
+      cursor:pointer;
+      font-weight: 850;
+      transition: transform .16s ease, border-color .2s ease, box-shadow .25s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .social::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(110deg, transparent 0 35%, rgba(255,255,255,.18) 45%, transparent 55% 100%);
+      transform: translateX(-140%);
+      opacity:0;
+      transition: opacity .2s ease;
+      pointer-events:none;
+      mix-blend-mode: screen;
+    }
+    .social:hover{
+      transform: translateY(-2px);
+      border-color:#ffffff2e;
+      box-shadow: 0 26px 90px rgba(0,0,0,.7);
+    }
+    .social:hover::after{
+      opacity:.35;
+      animation: btnSweep .9s ease-out;
+    }
+    @keyframes btnSweep{
+      from{ transform: translateX(-140%); }
+      to  { transform: translateX(140%); }
+    }
+    .social:active{ transform: translateY(0) scale(.99); }
+
+    .icon{ width:22px; height:22px; filter: drop-shadow(0 14px 22px rgba(0,0,0,.55)); }
+
+    .hint{
+      margin-top: 10px;
+      text-align:center;
+      color: rgba(169,180,208,.75);
+      font-size: 12px;
+    }
+
+    /* modal error shake */
+    .shake{ animation: shake .45s ease; }
+    @keyframes shake{
+      0%,100%{ transform: translateY(0) }
+      20%{ transform: translateY(0) translateX(-7px) }
+      40%{ transform: translateY(0) translateX(7px) }
+      60%{ transform: translateY(0) translateX(-5px) }
+      80%{ transform: translateY(0) translateX(5px) }
+    }
+
+    /* tiny success confetti container */
+    .confetti{ position:fixed; inset:0; pointer-events:none; z-index:20; }
+
+    /* reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .modal, .modal::before, .modal::after, .speedlines, .manga-grid, .scanlines, .halftone,
+      .blob, .sticker, .petal, canvas#fx { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Background layers -->
+  <div class="manga-grid"></div>
+  <div class="speedlines"></div>
+  <div class="halftone"></div>
+  <div class="scanlines"></div>
+
+  <div class="blobs" aria-hidden="true">
+    <div class="blob one"></div>
+    <div class="blob two"></div>
+    <div class="blob three"></div>
+  </div>
+
+  <canvas id="fx"></canvas>
+  <div class="stickers" id="stickers" aria-hidden="true"></div>
+  <div class="petals" id="petals" aria-hidden="true"></div>
+
+  <!-- Demo open button -->
+  <div class="behind">
+    <button class="openbtn" id="open">Open Join Modal</button>
+  </div>
+
+  <!-- Modal -->
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="title">
+      <div class="content">
+        <div class="topbar">
+          <div class="brand">
+            <div class="logo" aria-hidden="true"><i></i></div>
+            <div class="brand-title">
+              <div class="name">Follow</div>
+              <div class="tag">Anime • Comics • Community</div>
+            </div>
+          </div>
+          <button class="close" id="close" aria-label="Close">✕</button>
+        </div>
+
+        <!-- 1) Welcome -->
+        <h1 class="headline" id="title">Welcome — join us ✨</h1>
+        <p class="sub">Build your follow list, collect badges, and jump into weekly fandom drops.</p>
+
+        <form id="form" novalidate>
+          <!-- 2) Signup -->
+          <div class="field" id="fEmail">
+            <input class="input" id="email" type="email" autocomplete="email" required />
+            <div class="label">Email</div>
+          </div>
+
+          <div class="field pw-wrap" id="fPass">
+            <input class="input" id="password" type="password" autocomplete="new-password" minlength="6" required />
+            <div class="label">Password</div>
+            <button class="pw-toggle" type="button" id="togglePw" aria-label="Toggle password visibility">SHOW</button>
+          </div>
+
+          <div class="policy">
+            <input id="policy" type="checkbox" required />
+            <small>I agree to the <u>Policy</u> & <u>Terms</u> (required).</small>
+          </div>
+
+          <button class="primary" id="signup" type="submit" disabled>
+            <span class="impact" aria-hidden="true"></span>
+            Sign up
+          </button>
+
+          <!-- 3) Or line -->
+          <div class="divider">or</div>
+
+          <!-- 4) Google / Apple -->
+          <div class="socials">
+            <button class="social" type="button" data-provider="google">
+              <svg class="icon" viewBox="0 0 48 48" aria-hidden="true">
+                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.1-.1-2.3-.4-3.5z"/>
+                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+                <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.1C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.6 5.1C9.4 39.5 16.2 44 24 44z"/>
+                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l.1-.1 6.2 5.1C36.9 39 44 34 44 24c0-1.1-.1-2.3-.4-3.5z"/>
+              </svg>
+              Continue with Google
+            </button>
+
+            <button class="social" type="button" data-provider="apple">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M16.7 13.3c0 2.8 2.5 3.7 2.5 3.7s-1.9 5.4-4.4 5.4c-1.2 0-1.7-.8-3.2-.8s-2 .8-3.2.8C5.8 22.4 3 17.9 3 13.7 3 10 5.4 8 7.7 8c1.2 0 2.2.8 3.2.8 1 0 2.5-.9 4-.8.6 0 2.6.2 3.8 2-3.3 1.8-2.6 4.7-2 5.3zM14.2 6.3c.8-1 1.4-2.4 1.2-3.8-1.2.1-2.6.8-3.4 1.8-.8.9-1.4 2.3-1.2 3.6 1.3.1 2.6-.7 3.4-1.6z"/>
+              </svg>
+              Continue with Apple
+            </button>
+          </div>
+
+          <div class="hint">⚡ Anime vibes + clean UX + strong focus animations.</div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+
+  <script>
+    /* =========================
+       Modal logic + focus trap
+    ========================== */
+    const overlay = document.getElementById('overlay');
+    const modal = document.getElementById('modal');
+    const openBtn = document.getElementById('open');
+    const closeBtn = document.getElementById('close');
+
+    const form = document.getElementById('form');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const policy = document.getElementById('policy');
+    const signup = document.getElementById('signup');
+
+    const fEmail = document.getElementById('fEmail');
+    const fPass  = document.getElementById('fPass');
+
+    const togglePw = document.getElementById('togglePw');
+
+    function setFilled() {
+      fEmail.classList.toggle('filled', !!email.value.trim());
+      fPass.classList.toggle('filled', !!password.value.trim());
+    }
+
+    function openModal(){
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+
+      // 3D parallax reset
+      modal.style.transform = "";
+
+      setTimeout(() => email.focus(), 90);
+      document.addEventListener('keydown', onKeyDown, true);
+    }
+    function closeModal(){
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', onKeyDown, true);
+      openBtn.focus();
+    }
+
+    function trapFocus(e){
+      if (e.key !== 'Tab') return;
+      const focusables = overlay.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const list = Array.from(focusables).filter(el => !el.disabled && el.offsetParent !== null);
+      const first = list[0], last = list[list.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    }
+
+    function onKeyDown(e){
+      if (e.key === 'Escape') closeModal();
+      trapFocus(e);
+    }
+
+    overlay.addEventListener('mousedown', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+
+    /* =========================
+       Input state + micro FX
+    ========================== */
+    function updateSignupState(){
+      const ok = policy.checked && email.value.trim() && password.value.trim().length >= 6;
+      signup.disabled = !ok;
+      setFilled();
+    }
+    [email, password, policy].forEach(el => el.addEventListener('input', updateSignupState));
+    updateSignupState();
+
+    togglePw.addEventListener('click', () => {
+      const isHidden = password.type === 'password';
+      password.type = isHidden ? 'text' : 'password';
+      togglePw.textContent = isHidden ? 'HIDE' : 'SHOW';
+      password.focus();
+    });
+
+    // ripple + impact
+    signup.addEventListener('pointerdown', (e) => {
+      const rect = signup.getBoundingClientRect();
+      const r = document.createElement('span');
+      r.className = 'rip';
+      r.style.left = (e.clientX - rect.left) + 'px';
+      r.style.top  = (e.clientY - rect.top) + 'px';
+      signup.appendChild(r);
+      setTimeout(() => r.remove(), 800);
+
+      signup.classList.remove('boom');
+      void signup.offsetWidth;
+      signup.classList.add('boom');
+    });
+
+    function shakeModal(){
+      modal.classList.remove('shake');
+      void modal.offsetWidth;
+      modal.classList.add('shake');
+    }
+
+    /* =========================
+       Confetti (success)
+    ========================== */
+    const confettiHost = document.getElementById('confetti');
+    function confettiBurst() {
+      const N = 70;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const cx = w / 2;
+      const cy = h / 2;
+
+      for (let i = 0; i < N; i++) {
+        const p = document.createElement('div');
+        const size = 6 + Math.random() * 10;
+        const dx = (Math.random() - 0.5) * 420;
+        const dy = (Math.random() - 0.9) * 520;
+        const rot = Math.random() * 720;
+
+        p.style.position = 'absolute';
+        p.style.left = cx + 'px';
+        p.style.top = (cy - 40) + 'px';
+        p.style.width = size + 'px';
+        p.style.height = (size * (0.55 + Math.random())) + 'px';
+        p.style.borderRadius = (Math.random() > 0.6 ? '999px' : '6px');
+        p.style.background =
+          `linear-gradient(135deg,
+            rgba(34,211,238,.95),
+            rgba(124,58,237,.95),
+            rgba(251,113,133,.95),
+            rgba(251,191,36,.95))`;
+        p.style.boxShadow = '0 18px 40px rgba(0,0,0,.35)';
+        p.style.transform = `translate(-50%,-50%) rotate(${rot}deg)`;
+        p.style.willChange = 'transform, opacity';
+
+        confettiHost.appendChild(p);
+
+        const dur = 900 + Math.random() * 700;
+        const start = performance.now();
+        const g = 1400 + Math.random() * 900;
+        const x0 = 0, y0 = 0;
+        const vx = dx / (dur / 1000);
+        const vy = dy / (dur / 1000);
+
+        function tick(now){
+          const t = (now - start) / dur;
+          if (t >= 1) { p.remove(); return; }
+
+          // simple physics-ish
+          const tt = t;
+          const x = x0 + vx * tt * (dur/1000);
+          const y = y0 + vy * tt * (dur/1000) + 0.5 * g * (tt*tt) / (dur/1000);
+          const spin = rot + 900 * tt;
+
+          p.style.opacity = String(1 - tt);
+          p.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${spin}deg)`;
+          requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (signup.disabled) return shakeModal();
+
+      confettiBurst();
+      alert('✅ Signed up (demo). Hook your NestJS signup endpoint here.');
+      closeModal();
+    });
+
+    document.querySelectorAll('.social').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        alert('🔐 ' + btn.dataset.provider.toUpperCase() + ' login (demo). Hook OAuth here.');
+      });
+    });
+
+    /* =========================
+       Anime 3D parallax on modal
+    ========================== */
+    let lastMove = 0;
+    overlay.addEventListener('mousemove', (e) => {
+      if (!overlay.classList.contains('open')) return;
+      const now = performance.now();
+      if (now - lastMove < 16) return; // throttle
+      lastMove = now;
+
+      const r = modal.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+
+      const dx = (e.clientX - cx) / r.width;
+      const dy = (e.clientY - cy) / r.height;
+
+      const tiltX = (-dy * 6).toFixed(2);
+      const tiltY = ( dx * 8).toFixed(2);
+
+      modal.style.transform = `translateY(0) scale(1) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+    });
+    overlay.addEventListener('mouseleave', () => {
+      if (!overlay.classList.contains('open')) return;
+      modal.style.transform = `translateY(0) scale(1) rotateX(0deg) rotateY(0deg)`;
+    });
+
+    /* =========================
+       Anime stickers + petals
+    ========================== */
+    const stickers = document.getElementById('stickers');
+    const petals = document.getElementById('petals');
+
+    // tiny inline SVG “stickers” (generic anime-style icons)
+    const stickerSvgs = [
+      // starburst
+      `<svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 2l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-3.2L12 2z" fill="rgba(251,191,36,.95)"/>
+        <path d="M12 4.4l1.6 4.9L18.8 12l-5.2 1.7L12 18.6l-1.6-4.9L5.2 12l5.2-2.7L12 4.4z" fill="rgba(255,255,255,.55)"/>
+      </svg>`,
+      // lightning
+      `<svg viewBox="0 0 24 24" fill="none">
+        <path d="M13 2L3 14h7l-1 8 12-14h-7l-1-6z" fill="rgba(34,211,238,.95)"/>
+      </svg>`,
+      // heart
+      `<svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 21s-7-4.5-9.5-8.6C.7 9 .9 5.8 3.5 4.2 6.1 2.6 8.5 4 10 5.6 11.5 4 13.9 2.6 16.5 4.2c2.6 1.6 2.8 4.8 1 8.2C19 16.5 12 21 12 21z" fill="rgba(251,113,133,.95)"/>
+        <path d="M9 7c-1.6-1.8-4-1.6-5.1.1" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>`,
+      // speech bubble
+      `<svg viewBox="0 0 24 24" fill="none">
+        <path d="M4 5.8C4 4.8 4.8 4 5.8 4h12.4C19.2 4 20 4.8 20 5.8v7.4c0 1-.8 1.8-1.8 1.8H10l-4.2 3v-3H5.8C4.8 15 4 14.2 4 13.2V5.8z" fill="rgba(167,139,250,.95)"/>
+        <circle cx="9" cy="9.5" r="1" fill="rgba(255,255,255,.75)"/>
+        <circle cx="12" cy="9.5" r="1" fill="rgba(255,255,255,.75)"/>
+        <circle cx="15" cy="9.5" r="1" fill="rgba(255,255,255,.75)"/>
+      </svg>`
+    ];
+
+    function spawnSticker(){
+      const el = document.createElement('div');
+      el.className = 'sticker';
+
+      const svg = stickerSvgs[(Math.random()*stickerSvgs.length)|0];
+      el.innerHTML = svg;
+
+      const left = Math.random()*100;
+      const size = 26 + Math.random()*24;
+      const dur = 6 + Math.random()*7;
+      const delay = Math.random()*2;
+
+      el.style.left = left + '%';
+      el.style.bottom = (-40 - Math.random()*80) + 'px';
+      el.style.width = size + 'px';
+      el.style.height = size + 'px';
+      el.style.animationDuration = dur + 's';
+      el.style.animationDelay = delay + 's';
+
+      // slight sideways drift via CSS variable-ish using translate in keyframes? easiest: random rotate + let animation handle
+      stickers.appendChild(el);
+
+      // cleanup after finish
+      setTimeout(()=> el.remove(), (dur + delay) * 1000 + 200);
+    }
+
+    function spawnPetal(){
+      const p = document.createElement('div');
+      p.className = 'petal';
+      const left = Math.random()*110 - 5;
+      const size = 10 + Math.random()*12;
+      const dur = 7 + Math.random()*8;
+      const delay = Math.random()*2.5;
+
+      p.style.left = left + '%';
+      p.style.top = (-80 - Math.random()*120) + 'px';
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.opacity = (0.6 + Math.random()*0.4).toFixed(2);
+      p.style.animationDuration = dur + 's';
+      p.style.animationDelay = delay + 's';
+
+      petals.appendChild(p);
+      setTimeout(()=> p.remove(), (dur + delay) * 1000 + 200);
+    }
+
+    // keep a steady stream
+    for(let i=0;i<10;i++){ spawnSticker(); spawnPetal(); }
+    setInterval(spawnSticker, 700);
+    setInterval(spawnPetal, 420);
+
+    /* =========================
+       Canvas FX: particles + comets
+    ========================== */
+    const canvas = document.getElementById('fx');
+    const ctx = canvas.getContext('2d');
+
+    function resize(){
+      canvas.width = Math.floor(window.innerWidth * devicePixelRatio);
+      canvas.height = Math.floor(window.innerHeight * devicePixelRatio);
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const particles = [];
+    const comets = [];
+
+    function rand(a,b){ return a + Math.random()*(b-a); }
+
+    const palette = [
+      [34,211,238],  // cyan
+      [124,58,237],  // violet
+      [251,113,133], // pink
+      [251,191,36]   // amber
+    ];
+
+    function addParticle(){
+      const c = palette[(Math.random()*palette.length)|0];
+      particles.push({
+        x: rand(0, window.innerWidth),
+        y: rand(0, window.innerHeight),
+        r: rand(0.8, 2.1),
+        vx: rand(-0.18, 0.18),
+        vy: rand(-0.12, 0.12),
+        a: rand(0.10, 0.30),
+        cr: c[0], cg: c[1], cb: c[2],
+      });
+      if (particles.length > 120) particles.shift();
+    }
+
+    function addComet(){
+      const c = palette[(Math.random()*palette.length)|0];
+      const fromLeft = Math.random() > 0.5;
+      comets.push({
+        x: fromLeft ? -50 : window.innerWidth + 50,
+        y: rand(0, window.innerHeight * 0.7),
+        vx: fromLeft ? rand(3.8, 6.2) : -rand(3.8, 6.2),
+        vy: rand(0.2, 1.0),
+        life: 0,
+        max: rand(38, 62),
+        cr: c[0], cg: c[1], cb: c[2]
+      });
+      if (comets.length > 6) comets.shift();
+    }
+
+    for(let i=0;i<90;i++) addParticle();
+    setInterval(addParticle, 120);
+    setInterval(addComet, 1100);
+
+    function tick(){
+      ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+
+      // particles
+      for (const p of particles){
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < -20) p.x = window.innerWidth + 20;
+        if (p.x > window.innerWidth + 20) p.x = -20;
+        if (p.y < -20) p.y = window.innerHeight + 20;
+        if (p.y > window.innerHeight + 20) p.y = -20;
+
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(${p.cr},${p.cg},${p.cb},${p.a})`;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fill();
+      }
+
+      // connect near particles (soft anime glow network)
+      for (let i=0;i<particles.length;i++){
+        for (let j=i+1;j<particles.length;j++){
+          const a = particles[i], b = particles[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d2 = dx*dx + dy*dy;
+          if (d2 < 130*130){
+            const t = 1 - Math.sqrt(d2)/130;
+            ctx.strokeStyle = `rgba(255,255,255,${0.05*t})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // comets
+      for (let k=comets.length-1; k>=0; k--){
+        const c = comets[k];
+        c.life++;
+
+        const x0 = c.x, y0 = c.y;
+        c.x += c.vx;
+        c.y += c.vy;
+
+        // tail
+        const tail = 120;
+        const tx = c.x - c.vx * 10;
+        const ty = c.y - c.vy * 10;
+
+        const grad = ctx.createLinearGradient(c.x, c.y, tx, ty);
+        grad.addColorStop(0, `rgba(${c.cr},${c.cg},${c.cb},.55)`);
+        grad.addColorStop(1, `rgba(${c.cr},${c.cg},${c.cb},0)`);
+
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(c.x, c.y);
+        ctx.lineTo(tx, ty);
+        ctx.stroke();
+
+        // head
+        ctx.fillStyle = `rgba(255,255,255,.55)`;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 2.2, 0, Math.PI*2);
+        ctx.fill();
+
+        if (c.life > c.max || c.x < -200 || c.x > window.innerWidth + 200 || c.y > window.innerHeight + 200){
+          comets.splice(k,1);
+        }
+      }
+
+      requestAnimationFrame(tick);
+    }
+    tick();
+
+    /* =========================
+       Start open
+    ========================== */
+    openModal();
+  </script>
+</body>
+</html>

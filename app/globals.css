@@ -1,0 +1,773 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss";
+
+/* =========================================================
+   1) Monochrome base – محايد (مُحسّن)
+   ========================================================= */
+
+:root {
+  /* قائمة fallback للإيموجي (خطوط نظام) */
+  --font-emoji: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol";
+
+  --emoji-fallback: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+
+  /* White → Charcoal/Black */
+  --mono-0: #ffffff;
+  --mono-5: #fcfcfd;
+  --mono-10: #f7f8fa;
+  --mono-20: #eef0f3;
+  --mono-30: #e3e7ec;
+  --mono-40: #cfd6de;
+  --mono-50: #94a3b8;
+  --mono-60: #64748b;
+  --mono-70: #475569;
+  --mono-80: #334155;
+  --mono-90: #0b1220; /* Charcoal (Brand neutral) */
+  --mono-95: #060b16;
+  --mono-100: #000000;
+
+  /* =========================================================
+     2) Brand Palette – من الشعار (مصدر الحقيقة)
+     ========================================================= */
+
+  /* Brand Teals */
+  --brand-aqua: #03bec8; /* bright highlight */
+  --brand-teal: #018199; /* primary mid */
+  --brand-deep: #15637b; /* primary solid / CTA */
+
+  /* Accents */
+  --accent-orange: #f54c00;
+  --accent-yellow: #febf08;
+  --accent-amber: #fe9e01;
+
+  /* Neutrals */
+  --neutral-ice: #eff2f3;
+  --neutral-charcoal: #0b1220;
+
+  /* =========================================================
+     3) Scales – BRAND / SUCCESS / WARNING / DANGER / INFO
+     (مبنية على البراند + ألوان semantic قياسية مع توافق بصري)
+     ========================================================= */
+
+  /* BRAND (Primary) – مبني حول Teal/Deep Teal */
+  --brand-50: color-mix(in srgb, var(--brand-teal) 8%, #ffffff);
+  --brand-100: color-mix(in srgb, var(--brand-teal) 14%, #ffffff);
+  --brand-200: color-mix(in srgb, var(--brand-teal) 22%, #ffffff);
+  --brand-300: color-mix(in srgb, var(--brand-aqua) 45%, #ffffff);
+  --brand-400: var(--brand-aqua);
+  --brand-500: var(--brand-teal);
+  --brand-600: var(--brand-deep);
+  --brand-700: color-mix(in srgb, var(--brand-deep) 86%, #000000);
+  --brand-800: color-mix(in srgb, var(--brand-deep) 74%, #000000);
+  --brand-900: color-mix(in srgb, var(--brand-deep) 62%, #000000);
+
+  /* on-brand (مراعاة التباين) */
+  --on-brand-strong: #ffffff;
+  --on-brand-on-aqua: var(--neutral-charcoal);
+
+  /* SUCCESS (Green) – اخترنا درجات داكنة عشان نص أبيض يكون AA */
+  --success-50: #ecfdf5;
+  --success-100: #d1fae5;
+  --success-200: #a7f3d0;
+  --success-300: #6ee7b7;
+  --success-400: #16a34a;
+  --success-500: #15803d; /* solid */
+  --success-600: #166534;
+  --success-700: #14532d;
+  --success-800: #0f3d22;
+  --success-900: #0b2a18;
+
+  /* WARNING (Amber/Yellow من الشعار) */
+  --warning-50: color-mix(in srgb, var(--accent-yellow) 12%, #ffffff);
+  --warning-100: color-mix(in srgb, var(--accent-yellow) 20%, #ffffff);
+  --warning-200: color-mix(in srgb, var(--accent-yellow) 34%, #ffffff);
+  --warning-300: color-mix(in srgb, var(--accent-amber) 55%, #ffffff);
+  --warning-400: var(--accent-yellow);
+  --warning-500: var(--accent-amber); /* solid */
+  --warning-600: color-mix(in srgb, var(--accent-amber) 70%, #000000);
+  --warning-700: color-mix(in srgb, var(--accent-amber) 58%, #000000);
+  --warning-800: color-mix(in srgb, var(--accent-amber) 46%, #000000);
+  --warning-900: color-mix(in srgb, var(--accent-amber) 36%, #000000);
+
+  /* DANGER (Red) – قياسي للوضوح */
+  --danger-50: #fef2f2;
+  --danger-100: #fee2e2;
+  --danger-200: #fecaca;
+  --danger-300: #fca5a5;
+  --danger-400: #ef4444;
+  --danger-500: #dc2626; /* solid */
+  --danger-600: #b91c1c;
+  --danger-700: #991b1b;
+  --danger-800: #7f1d1d;
+  --danger-900: #651616;
+
+  /* INFO – نستخدم Aqua من الشعار */
+  --info-50: color-mix(in srgb, var(--brand-aqua) 10%, #ffffff);
+  --info-100: color-mix(in srgb, var(--brand-aqua) 16%, #ffffff);
+  --info-200: color-mix(in srgb, var(--brand-aqua) 24%, #ffffff);
+  --info-300: color-mix(in srgb, var(--brand-aqua) 36%, #ffffff);
+  --info-400: color-mix(in srgb, var(--brand-aqua) 85%, #ffffff);
+  --info-500: var(--brand-aqua); /* solid (text should be dark) */
+  --info-600: var(--brand-teal);
+  --info-700: var(--brand-deep);
+  --info-800: color-mix(in srgb, var(--brand-deep) 74%, #000000);
+  --info-900: color-mix(in srgb, var(--brand-deep) 62%, #000000);
+
+  /* =========================================================
+     4) Semantic Tokens – Light Theme (افتراضي)
+     ========================================================= */
+
+  color-scheme: light;
+
+  /* خلفيات */
+  --bg-page: var(--neutral-ice);
+  --bg-subtle: color-mix(in srgb, var(--neutral-ice) 55%, var(--mono-20));
+  --bg-elevated: var(--mono-0);
+  --bg-soft-strong: var(--neutral-charcoal);
+
+  /* أسطح */
+  --surface-default: var(--mono-0);
+  --surface-soft: var(--mono-10);
+  --surface-muted: var(--mono-20);
+
+  /* نصوص */
+  --fg-strong: var(--neutral-charcoal);
+  --fg-default: color-mix(in srgb, var(--neutral-charcoal) 86%, #ffffff);
+  --fg-muted: color-mix(in srgb, var(--neutral-charcoal) 55%, #ffffff);
+  --fg-soft: color-mix(in srgb, var(--neutral-charcoal) 40%, #ffffff);
+  --fg-disabled: rgba(15, 23, 42, 0.38);
+
+  /* حدود */
+  --border-subtle: color-mix(in srgb, var(--neutral-charcoal) 10%, transparent);
+  --border-strong: color-mix(in srgb, var(--neutral-charcoal) 18%, transparent);
+
+  /* BRAND semantic */
+  --brand-solid: var(--brand-600); /* Deep Teal للـ CTA */
+  --brand-solid-strong: var(--brand-700);
+  --brand-soft-bg: color-mix(in srgb, var(--brand-500) 10%, transparent);
+  --brand-soft-border: color-mix(in srgb, var(--brand-600) 26%, transparent);
+  --brand-subtle-bg: color-mix(in srgb, var(--brand-500) 4%, transparent);
+  --brand-subtle-ring: color-mix(in srgb, var(--brand-400) 72%, transparent);
+  --brand-on-solid: var(--on-brand-strong);
+
+  /* SUCCESS semantic */
+  --success-soft-bg: color-mix(in srgb, var(--success-400) 10%, transparent);
+  --success-soft-border: color-mix(
+    in srgb,
+    var(--success-500) 28%,
+    transparent
+  );
+  --success-soft-ring: color-mix(in srgb, var(--success-500) 70%, transparent);
+  --success-solid-bg: var(--success-500);
+  --success-on-solid: #ffffff;
+
+  /* WARNING semantic (نص غامق أفضل على الأصفر/العنبر) */
+  --warning-soft-bg: color-mix(in srgb, var(--warning-500) 10%, transparent);
+  --warning-soft-border: color-mix(
+    in srgb,
+    var(--warning-600) 30%,
+    transparent
+  );
+  --warning-soft-ring: color-mix(in srgb, var(--warning-600) 70%, transparent);
+  --warning-solid-bg: var(--warning-500);
+  --warning-on-solid: var(--neutral-charcoal);
+
+  /* DANGER semantic */
+  --danger-soft-bg: color-mix(in srgb, var(--danger-400) 10%, transparent);
+  --danger-soft-border: color-mix(in srgb, var(--danger-500) 32%, transparent);
+  --danger-soft-ring: color-mix(in srgb, var(--danger-500) 72%, transparent);
+  --danger-solid-bg: var(--danger-500);
+  --danger-on-solid: #ffffff;
+
+  /* INFO semantic (Aqua ساطع → نص غامق) */
+  --info-soft-bg: color-mix(in srgb, var(--info-500) 10%, transparent);
+  --info-soft-border: color-mix(in srgb, var(--info-700) 30%, transparent);
+  --info-soft-ring: color-mix(in srgb, var(--info-600) 72%, transparent);
+  --info-solid-bg: var(--info-500);
+  --info-on-solid: var(--neutral-charcoal);
+
+  /* =========================================================
+     5) Shadows & Glows – Light (على البراند الجديد)
+     ========================================================= */
+
+  --shadow-xs: 0 1px 1px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 8px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 10px 18px rgba(15, 23, 42, 0.1);
+  --shadow-xl: 0 18px 28px rgba(15, 23, 42, 0.12);
+  --shadow-2xl: 0 28px 50px rgba(15, 23, 42, 0.16);
+
+  --shadow-elevated: 0 16px 34px rgba(15, 23, 42, 0.12);
+  --shadow-glow-brand: 0 0 26px
+    color-mix(in srgb, var(--brand-400) 55%, transparent);
+  --shadow-glow-success: 0 0 22px rgba(21, 128, 61, 0.45);
+  --shadow-glow-warning: 0 0 22px rgba(254, 158, 1, 0.45);
+  --shadow-glow-danger: 0 0 22px rgba(220, 38, 38, 0.45);
+  --shadow-glow-info: 0 0 22px
+    color-mix(in srgb, var(--brand-aqua) 45%, transparent);
+
+  /* =========================================================
+     6) Gradients & Overlays & Focus Rings – Light
+     ========================================================= */
+
+  --gradient-brand-soft: linear-gradient(
+    135deg,
+    var(--brand-400),
+    var(--brand-600)
+  );
+  --gradient-brand-strong: linear-gradient(
+    135deg,
+    var(--brand-700),
+    var(--neutral-charcoal)
+  );
+
+  --gradient-success-soft: linear-gradient(
+    135deg,
+    var(--success-400),
+    var(--success-600)
+  );
+  --gradient-warning-soft: linear-gradient(
+    135deg,
+    var(--warning-400),
+    var(--warning-700)
+  );
+  --gradient-danger-soft: linear-gradient(
+    135deg,
+    var(--danger-400),
+    var(--danger-700)
+  );
+  --gradient-info-soft: linear-gradient(
+    135deg,
+    var(--info-400),
+    var(--info-700)
+  );
+
+  --overlay-soft: rgba(11, 18, 32, 0.35);
+  --overlay-strong: rgba(11, 18, 32, 0.7);
+
+  --ring-brand: color-mix(in srgb, var(--brand-400) 70%, transparent);
+  --ring-success: color-mix(in srgb, var(--success-500) 62%, transparent);
+  --ring-warning: color-mix(in srgb, var(--warning-600) 65%, transparent);
+  --ring-danger: color-mix(in srgb, var(--danger-500) 68%, transparent);
+  --ring-info: color-mix(in srgb, var(--info-600) 68%, transparent);
+
+  /* =========================================================
+     7) Language Menu Tokens (مُعاد ضبطها على البراند)
+     ========================================================= */
+
+  --lang-toggle-shadow-hover: 0 0 24px
+    color-mix(in srgb, var(--brand-400) 55%, transparent);
+  --lang-menu-shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+  --lang-option-hover-bg: color-mix(
+    in srgb,
+    var(--neutral-charcoal) 6%,
+    transparent
+  );
+  --lang-option-active: var(--brand-400);
+  --lang-ring: var(--brand-400);
+  --lang-ring-offset: var(--mono-0);
+
+  /* Scrolling */
+  --app-mobile-nav-h: 56px;
+  --app-mobile-footer-h: 64px;
+
+  --scroll-track: transparent;
+  --scroll-thumb: color-mix(in srgb, var(--border-strong) 45%, transparent);
+  --scroll-thumb-hover: color-mix(
+    in srgb,
+    var(--border-strong) 70%,
+    transparent
+  );
+
+  /* Glass / Card / Nav */
+  --glass-bg: color-mix(in srgb, var(--surface-default) 78%, transparent);
+  --glass-border: color-mix(in srgb, var(--border-strong) 22%, transparent);
+  --glass-highlight: color-mix(in srgb, var(--mono-0) 55%, transparent);
+
+  --card-bg: color-mix(in srgb, var(--surface-default) 92%, transparent);
+  --card-border: color-mix(in srgb, var(--border-strong) 26%, transparent);
+
+  --nav-bg: color-mix(in srgb, var(--surface-default) 70%, transparent);
+  --nav-border: color-mix(in srgb, var(--border-strong) 22%, transparent);
+
+  --divider: color-mix(in srgb, var(--border-subtle) 75%, transparent);
+
+  --shadow-glass: 0 0 0 1px color-mix(in srgb, #000 12%, transparent),
+    0 18px 70px rgba(11, 18, 32, 0.14);
+  --shadow-glass-strong: 0 0 0 1px color-mix(in srgb, #000 16%, transparent),
+    0 26px 120px rgba(11, 18, 32, 0.2);
+}
+
+/* =========================================================
+   8) Dark Theme – overrides (محسّن للبراند)
+   ========================================================= */
+
+.dark {
+  color-scheme: dark;
+
+  /* خلفيات */
+  --bg-page: var(--neutral-charcoal);
+  --bg-subtle: color-mix(in srgb, var(--neutral-charcoal) 86%, #000000);
+  --bg-elevated: color-mix(in srgb, var(--neutral-charcoal) 92%, #000000);
+  --bg-soft-strong: #000000;
+
+  --surface-default: color-mix(in srgb, var(--neutral-charcoal) 92%, #000000);
+  --surface-soft: color-mix(in srgb, var(--neutral-charcoal) 90%, #000000);
+  --surface-muted: color-mix(in srgb, var(--neutral-charcoal) 88%, #000000);
+
+  /* نصوص */
+  --fg-strong: #ffffff;
+  --fg-default: color-mix(in srgb, #ffffff 92%, var(--neutral-charcoal));
+  --fg-muted: rgba(226, 232, 240, 0.72);
+  --fg-soft: rgba(148, 163, 184, 0.82);
+  --fg-disabled: rgba(148, 163, 184, 0.55);
+
+  /* حدود */
+  --border-subtle: rgba(51, 65, 85, 0.92);
+  --border-strong: rgba(148, 163, 184, 0.68);
+
+  /* BRAND in dark:
+     - CTA بـ Aqua (بارز على الدارك) ونص غامق لكونه ساطع */
+  --brand-solid: var(--brand-400);
+  --brand-solid-strong: var(--brand-500);
+  --brand-soft-bg: color-mix(in srgb, var(--brand-500) 18%, transparent);
+  --brand-soft-border: color-mix(in srgb, var(--brand-400) 42%, transparent);
+  --brand-subtle-bg: color-mix(
+    in srgb,
+    var(--surface-default) 90%,
+    transparent
+  );
+  --brand-subtle-ring: color-mix(in srgb, var(--brand-400) 88%, transparent);
+  --brand-on-solid: var(--on-brand-on-aqua);
+
+  /* SUCCESS */
+  --success-soft-bg: rgba(21, 128, 61, 0.22);
+  --success-soft-border: rgba(21, 128, 61, 0.55);
+  --success-soft-ring: rgba(21, 128, 61, 0.9);
+  --success-solid-bg: var(--success-500);
+  --success-on-solid: #ffffff;
+
+  /* WARNING */
+  --warning-soft-bg: color-mix(in srgb, var(--warning-500) 26%, transparent);
+  --warning-soft-border: color-mix(
+    in srgb,
+    var(--warning-500) 56%,
+    transparent
+  );
+  --warning-soft-ring: color-mix(in srgb, var(--warning-500) 92%, transparent);
+  --warning-solid-bg: var(--warning-500);
+  --warning-on-solid: var(--neutral-charcoal);
+
+  /* DANGER */
+  --danger-soft-bg: rgba(220, 38, 38, 0.26);
+  --danger-soft-border: rgba(220, 38, 38, 0.6);
+  --danger-soft-ring: rgba(220, 38, 38, 0.92);
+  --danger-solid-bg: var(--danger-500);
+  --danger-on-solid: #ffffff;
+
+  /* INFO */
+  --info-soft-bg: color-mix(in srgb, var(--info-500) 24%, transparent);
+  --info-soft-border: color-mix(in srgb, var(--info-600) 52%, transparent);
+  --info-soft-ring: color-mix(in srgb, var(--info-500) 92%, transparent);
+  --info-solid-bg: var(--info-500);
+  --info-on-solid: var(--neutral-charcoal);
+
+  /* Shadows أقوى في الدارك */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.52);
+  --shadow-md: 0 10px 18px rgba(0, 0, 0, 0.58);
+  --shadow-lg: 0 16px 26px rgba(0, 0, 0, 0.64);
+  --shadow-xl: 0 22px 34px rgba(0, 0, 0, 0.7);
+  --shadow-2xl: 0 34px 54px rgba(0, 0, 0, 0.78);
+
+  --shadow-elevated: 0 26px 70px rgba(0, 0, 0, 0.85);
+  --shadow-glow-brand: 0 0 30px
+    color-mix(in srgb, var(--brand-400) 75%, transparent);
+  --shadow-glow-success: 0 0 26px rgba(21, 128, 61, 0.75);
+  --shadow-glow-warning: 0 0 26px rgba(254, 158, 1, 0.8);
+  --shadow-glow-danger: 0 0 26px rgba(220, 38, 38, 0.8);
+  --shadow-glow-info: 0 0 26px
+    color-mix(in srgb, var(--brand-aqua) 70%, transparent);
+
+  /* Gradients */
+  --gradient-brand-soft: linear-gradient(
+    135deg,
+    var(--brand-700),
+    var(--neutral-charcoal)
+  );
+  --gradient-brand-strong: linear-gradient(
+    135deg,
+    #000000,
+    var(--neutral-charcoal)
+  );
+
+  --gradient-success-soft: linear-gradient(135deg, #166534, #052e16);
+  --gradient-warning-soft: linear-gradient(135deg, var(--warning-600), #2a1600);
+  --gradient-danger-soft: linear-gradient(135deg, #b91c1c, #2a0a0a);
+  --gradient-info-soft: linear-gradient(135deg, var(--info-700), #021a1a);
+
+  --overlay-soft: rgba(0, 0, 0, 0.55);
+  --overlay-strong: rgba(0, 0, 0, 0.78);
+
+  --ring-brand: color-mix(in srgb, var(--brand-400) 92%, transparent);
+  --ring-success: rgba(21, 128, 61, 0.92);
+  --ring-warning: rgba(254, 158, 1, 0.94);
+  --ring-danger: rgba(220, 38, 38, 0.94);
+  --ring-info: color-mix(in srgb, var(--info-500) 92%, transparent);
+
+  /* scrolling */
+  --scroll-thumb: color-mix(in srgb, var(--border-strong) 35%, transparent);
+  --scroll-thumb-hover: color-mix(
+    in srgb,
+    var(--border-strong) 60%,
+    transparent
+  );
+
+  --glass-bg: color-mix(in srgb, var(--surface-default) 72%, transparent);
+  --glass-border: color-mix(in srgb, var(--border-strong) 34%, transparent);
+  --glass-highlight: color-mix(in srgb, #fff 10%, transparent);
+
+  --card-bg: color-mix(in srgb, var(--surface-default) 88%, transparent);
+  --card-border: color-mix(in srgb, var(--border-strong) 38%, transparent);
+
+  --nav-bg: color-mix(in srgb, var(--surface-default) 62%, transparent);
+  --nav-border: color-mix(in srgb, var(--border-strong) 36%, transparent);
+
+  --divider: color-mix(in srgb, var(--border-subtle) 85%, transparent);
+
+  --shadow-glass: 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 22px 85px rgba(0, 0, 0, 0.55);
+  --shadow-glass-strong: 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 34px 140px rgba(0, 0, 0, 0.7);
+
+  /* Language menu في الدارك */
+  --lang-option-hover-bg: rgba(255, 255, 255, 0.06);
+  --lang-option-active: var(--brand-400);
+  --lang-ring: var(--brand-400);
+  --lang-ring-offset: var(--neutral-charcoal);
+}
+
+/* =========================================================
+   9) ربط التوكنز مع Tailwind v4 – @theme inline
+   ========================================================= */
+
+@theme inline {
+  /* الخلفيات والأسطح */
+  --color-background: var(--bg-page);
+  --color-background-soft: var(--bg-subtle);
+  --color-background-elevated: var(--bg-elevated);
+  --color-surface: var(--surface-default);
+  --color-surface-soft: var(--surface-soft);
+  --color-surface-muted: var(--surface-muted);
+
+  /* النصوص */
+  --color-foreground: var(--fg-default);
+  --color-foreground-strong: var(--fg-strong);
+  --color-foreground-muted: var(--fg-muted);
+  --color-foreground-soft: var(--fg-soft);
+  --color-foreground-disabled: var(--fg-disabled);
+
+  /* الحدود */
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+
+  --color-glass: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+
+  --color-card: var(--card-bg);
+  --color-card-border: var(--card-border);
+
+  --color-nav: var(--nav-bg);
+  --color-nav-border: var(--nav-border);
+
+  --color-divider: var(--divider);
+
+  /* BRAND */
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+
+  --color-accent: var(--brand-solid);
+  --color-accent-strong: var(--brand-solid-strong);
+  --color-accent-soft: var(--brand-soft-bg);
+  --color-accent-subtle: var(--brand-subtle-bg);
+  --color-accent-border: var(--brand-soft-border);
+  --color-accent-ring: var(--brand-subtle-ring);
+  --color-accent-foreground: var(--brand-on-solid);
+
+  /* SUCCESS */
+  --color-success-50: var(--success-50);
+  --color-success-100: var(--success-100);
+  --color-success-200: var(--success-200);
+  --color-success-300: var(--success-300);
+  --color-success-400: var(--success-400);
+  --color-success-500: var(--success-500);
+  --color-success-600: var(--success-600);
+  --color-success-700: var(--success-700);
+  --color-success-800: var(--success-800);
+  --color-success-900: var(--success-900);
+
+  --color-success-soft: var(--success-soft-bg);
+  --color-success-soft-border: var(--success-soft-border);
+  --color-success-solid: var(--success-solid-bg);
+  --color-success-foreground: var(--success-on-solid);
+
+  /* WARNING */
+  --color-warning-50: var(--warning-50);
+  --color-warning-100: var(--warning-100);
+  --color-warning-200: var(--warning-200);
+  --color-warning-300: var(--warning-300);
+  --color-warning-400: var(--warning-400);
+  --color-warning-500: var(--warning-500);
+  --color-warning-600: var(--warning-600);
+  --color-warning-700: var(--warning-700);
+  --color-warning-800: var(--warning-800);
+  --color-warning-900: var(--warning-900);
+
+  --color-warning-soft: var(--warning-soft-bg);
+  --color-warning-soft-border: var(--warning-soft-border);
+  --color-warning-solid: var(--warning-solid-bg);
+  --color-warning-foreground: var(--warning-on-solid);
+
+  /* DANGER */
+  --color-danger-50: var(--danger-50);
+  --color-danger-100: var(--danger-100);
+  --color-danger-200: var(--danger-200);
+  --color-danger-300: var(--danger-300);
+  --color-danger-400: var(--danger-400);
+  --color-danger-500: var(--danger-500);
+  --color-danger-600: var(--danger-600);
+  --color-danger-700: var(--danger-700);
+  --color-danger-800: var(--danger-800);
+  --color-danger-900: var(--danger-900);
+
+  --color-danger-soft: var(--danger-soft-bg);
+  --color-danger-soft-border: var(--danger-soft-border);
+  --color-danger-solid: var(--danger-solid-bg);
+  --color-danger-foreground: var(--danger-on-solid);
+
+  /* INFO */
+  --color-info-50: var(--info-50);
+  --color-info-100: var(--info-100);
+  --color-info-200: var(--info-200);
+  --color-info-300: var(--info-300);
+  --color-info-400: var(--info-400);
+  --color-info-500: var(--info-500);
+  --color-info-600: var(--info-600);
+  --color-info-700: var(--info-700);
+  --color-info-800: var(--info-800);
+  --color-info-900: var(--info-900);
+
+  --color-info-soft: var(--info-soft-bg);
+  --color-info-soft-border: var(--info-soft-border);
+  --color-info-solid: var(--info-solid-bg);
+  --color-info-foreground: var(--info-on-solid);
+
+  /* Language menu colors */
+  --color-lang-active: var(--lang-option-active);
+  --color-lang-ring: var(--lang-ring);
+  --color-lang-ring-offset: var(--lang-ring-offset);
+  --color-lang-hover: var(--lang-option-hover-bg);
+}
+
+/* =========================================================
+   10) Base Styles (html / body / helpers)
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--bg-page);
+  color: var(--fg-default);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", sans-serif;
+}
+
+/* EN */
+body.font-latin {
+  font-family: var(--font-latin), system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, var(--font-emoji);
+}
+
+body.font-latin-ext {
+  font-family: var(--font-latin-ext), system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, var(--font-emoji);
+}
+
+body.font-arabic {
+  font-family: var(--font-arabic), system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, var(--font-emoji);
+}
+
+/* اختيار النص */
+::selection {
+  background-color: color-mix(in srgb, var(--brand-solid) 82%, transparent);
+  color: #f9fafb;
+}
+
+/* ظل عام ناعم (تقدر تستخدمه مع الكروت أو الأزرار المهمة) */
+.shadow-soft {
+  box-shadow: var(--shadow-md);
+}
+
+/* Scrollbar خفيف */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+
+.scroll-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-thin::-webkit-scrollbar-thumb {
+  background-color: var(--border-subtle);
+  border-radius: 999px;
+}
+
+/* الكلاس اللي مستخدمه عندك: app-scroll */
+.app-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+/* only when the page overflows */
+.app-scroll.has-scroll {
+  scrollbar-gutter: stable;
+}
+
+.app-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.app-scroll::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+}
+.app-scroll::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.app-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+}
+
+@media (max-width: 767px) {
+  .app-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .app-scroll::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+}
+
+/* for layouts */
+@layer utilities {
+  @property --dx {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+  }
+
+  /* Lite للموبايل: أنيميشن واحد فقط */
+  .animate-sakura-lite {
+    animation: sakura-fall var(--dur, 12s) linear infinite;
+  }
+
+  /* Full للدسكتوب */
+  .animate-sakura {
+    animation: sakura-fall var(--dur, 12s) linear infinite,
+      sakura-drift calc(var(--dur, 12s) * 0.9) ease-in-out infinite;
+  }
+
+  @keyframes sakura-fall {
+    from {
+      transform: translate3d(calc(var(--sx) + var(--dx)), var(--sy), 0)
+        rotate(var(--r1)) scale(var(--s));
+    }
+    to {
+      transform: translate3d(calc(var(--ex) + var(--dx)), var(--ey), 0)
+        rotate(var(--r2)) scale(var(--s));
+    }
+  }
+
+  @keyframes sakura-drift {
+    0% {
+      --dx: 0px;
+    }
+    50% {
+      --dx: var(--drift, 50px);
+    }
+    100% {
+      --dx: 0px;
+    }
+  }
+
+  /* Lite aurora: بدون hue-rotate (أخف) */
+  .animate-aurora-lite {
+    animation: aurora-move 26s ease-in-out infinite alternate;
+  }
+
+  .animate-aurora {
+    animation: aurora-move 18s ease-in-out infinite alternate,
+      aurora-hue 10s linear infinite;
+  }
+
+  @keyframes aurora-move {
+    0% {
+      transform: translate3d(-3%, -2%, 0) scale(1.06);
+    }
+    50% {
+      transform: translate3d(3%, 1%, 0) scale(1.1);
+    }
+    100% {
+      transform: translate3d(-2%, 3%, 0) scale(1.08);
+    }
+  }
+
+  @keyframes aurora-hue {
+    from {
+      filter: hue-rotate(0deg) saturate(1.2);
+    }
+    to {
+      filter: hue-rotate(40deg) saturate(1.2);
+    }
+  }
+}

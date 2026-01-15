@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>1</title>
+  <style>
+    :root{
+      --bg1:#070713; --bg2:#12062a;
+      --card:#0b0b16cc;
+      --text:#eaf1ff;
+      --muted:#9fb0d0;
+      --line:#ffffff22;
+      --a:#7c3aed; --b:#22d3ee; --c:#fb7185;
+      --ring:#22d3ee66;
+      --shadow: 0 30px 90px #000000cc;
+      --radius: 22px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--font);
+      color:var(--text);
+      overflow:hidden;
+      background:
+        radial-gradient(1200px 700px at 10% 10%, #2b1b6a 0%, transparent 55%),
+        radial-gradient(900px 600px at 90% 20%, #0ea5e9 0%, transparent 52%),
+        radial-gradient(800px 500px at 60% 90%, #fb7185 0%, transparent 48%),
+        linear-gradient(135deg,var(--bg1),var(--bg2));
+    }
+
+    /* animated “speed lines” */
+    .speedlines{
+      position:fixed; inset:-40%;
+      background:
+        repeating-linear-gradient( 110deg,
+          transparent 0 14px,
+          #ffffff08 14px 15px,
+          transparent 15px 28px);
+      filter: blur(.2px);
+      transform: rotate(-8deg);
+      animation: drift 10s linear infinite;
+      pointer-events:none;
+      opacity:.55;
+    }
+    @keyframes drift{
+      from{ translate:-2% -2% }
+      to  { translate: 2%  2% }
+    }
+
+    /* overlay + modal */
+    .overlay{
+      position:fixed; inset:0;
+      display:grid; place-items:center;
+      background: radial-gradient(900px 600px at 50% 40%, #00000055, #000000cc);
+      backdrop-filter: blur(10px);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .25s ease;
+    }
+    .overlay.open{ opacity:1; pointer-events:auto; }
+
+    .modal{
+      width:min(520px, calc(100vw - 32px));
+      border-radius:var(--radius);
+      background:
+        linear-gradient(180deg, #0b0b16f2, #080816f2);
+      border:1px solid #ffffff1a;
+      box-shadow:var(--shadow);
+      position:relative;
+      transform: translateY(18px) scale(.98);
+      opacity:0;
+      transition: transform .35s cubic-bezier(.2,.9,.2,1), opacity .35s ease;
+      overflow:hidden;
+    }
+    .overlay.open .modal{
+      transform: translateY(0) scale(1);
+      opacity:1;
+    }
+
+    /* animated border glow */
+    .modal::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: conic-gradient(from 180deg, var(--b), var(--a), var(--c), var(--b));
+      filter: blur(14px);
+      opacity:.55;
+      animation: spin 3.6s linear infinite;
+      pointer-events:none;
+    }
+    .modal::after{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(1000px 500px at 20% 0%, #22d3ee14, transparent 55%),
+                  radial-gradient(900px 520px at 90% 30%, #7c3aed1a, transparent 55%);
+      pointer-events:none;
+    }
+    @keyframes spin{ to{ transform: rotate(360deg) } }
+
+    .content{
+      position:relative;
+      padding:26px 24px 22px;
+    }
+
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; margin-bottom:10px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      letter-spacing:.3px;
+    }
+    .logo{
+      width:38px; height:38px; border-radius:12px;
+      background: linear-gradient(135deg, var(--b), var(--a));
+      box-shadow: 0 0 0 1px #ffffff1a inset, 0 10px 30px #22d3ee22;
+      position:relative;
+      overflow:hidden;
+    }
+    .logo::after{
+      content:"";
+      position:absolute; inset:-40%;
+      background: linear-gradient(90deg, transparent, #ffffff55, transparent);
+      transform: rotate(25deg);
+      animation: shine 2.8s ease-in-out infinite;
+      opacity:.6;
+    }
+    @keyframes shine{
+      0%,55%{ transform: translateX(-30%) rotate(25deg); opacity:.0 }
+      70%   { opacity:.8 }
+      100%  { transform: translateX(30%) rotate(25deg); opacity:.0 }
+    }
+
+    .close{
+      border:1px solid #ffffff1f;
+      background:#0c0c18;
+      color:var(--text);
+      width:40px; height:40px;
+      border-radius:14px;
+      cursor:pointer;
+      transition: transform .15s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .close:hover{
+      transform: translateY(-1px);
+      border-color:#ffffff35;
+      box-shadow: 0 12px 30px #00000066;
+    }
+    .close:active{ transform: translateY(0) scale(.98); }
+
+    h1{
+      margin:10px 0 6px;
+      font-size: 24px;
+      line-height:1.15;
+    }
+    .sub{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .field{
+      display:flex; flex-direction:column; gap:8px;
+      margin: 12px 0;
+    }
+    label{
+      font-size:12px;
+      color:#cfe0ffcc;
+      letter-spacing:.25px;
+    }
+    .input{
+      width:100%;
+      border-radius:16px;
+      padding:12px 14px;
+      border:1px solid #ffffff1a;
+      background: linear-gradient(180deg,#0f0f20,#0b0b18);
+      color:var(--text);
+      outline:none;
+      transition: box-shadow .2s ease, border-color .2s ease, transform .15s ease;
+    }
+    .input:hover{ border-color:#ffffff2e; transform: translateY(-1px); }
+    .input:focus{
+      border-color:#22d3ee55;
+      box-shadow: 0 0 0 4px var(--ring), 0 18px 40px #00000088;
+    }
+
+    .row{
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      margin-top:10px;
+    }
+    .policy{
+      display:flex; gap:10px; align-items:flex-start;
+      padding:12px 12px;
+      border-radius:16px;
+      border:1px dashed #ffffff22;
+      background: #0a0a1440;
+      transition: border-color .2s ease, transform .15s ease;
+    }
+    .policy:hover{ border-color:#ffffff33; transform: translateY(-1px); }
+    .policy input{ margin-top:3px; accent-color: #22d3ee; }
+    .policy small{ color:var(--muted); line-height:1.35; }
+
+    .primary{
+      width:100%;
+      margin-top:14px;
+      border:none;
+      border-radius:18px;
+      padding:12px 14px;
+      color:#071019;
+      font-weight:700;
+      letter-spacing:.2px;
+      cursor:pointer;
+      background: linear-gradient(90deg, var(--b), var(--a), var(--c));
+      background-size: 160% 160%;
+      transition: transform .15s ease, filter .2s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .primary:hover{ transform: translateY(-1px); filter: brightness(1.08); }
+    .primary:active{ transform: translateY(0) scale(.99); }
+    .primary:disabled{
+      cursor:not-allowed;
+      filter:saturate(.2) brightness(.8);
+      opacity:.7;
+    }
+    /* ripple */
+    .primary .rip{
+      position:absolute; border-radius:999px;
+      transform: translate(-50%,-50%);
+      pointer-events:none;
+      width: 12px; height: 12px;
+      background:#ffffffaa;
+      animation: rip 700ms ease-out forwards;
+      mix-blend-mode: overlay;
+    }
+    @keyframes rip{
+      to{ width: 520px; height: 520px; opacity:0; }
+    }
+
+    .divider{
+      display:flex; align-items:center; gap:12px;
+      margin:18px 0 12px;
+      color: #cfe0ff88;
+      font-size:12px;
+      letter-spacing:.8px;
+      text-transform:uppercase;
+    }
+    .divider::before, .divider::after{
+      content:"";
+      height:1px; flex:1;
+      background: linear-gradient(90deg, transparent, var(--line), transparent);
+    }
+
+    .socials{ display:grid; gap:10px; }
+    .social{
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      border-radius:18px;
+      padding:12px 14px;
+      cursor:pointer;
+      border:1px solid #ffffff1a;
+      background: linear-gradient(180deg,#0f0f20,#0b0b18);
+      color:var(--text);
+      font-weight:650;
+      transition: transform .15s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .social:hover{
+      transform: translateY(-1px);
+      border-color:#ffffff2e;
+      box-shadow: 0 18px 40px #00000088;
+    }
+    .social:active{ transform: translateY(0) scale(.99); }
+    .icon{
+      width:22px; height:22px; display:inline-block;
+      filter: drop-shadow(0 8px 16px #00000099);
+    }
+
+    /* error shake */
+    .shake{ animation: shake .45s ease; }
+    @keyframes shake{
+      0%,100%{ transform: translateY(0) }
+      20%{ transform: translateY(0) translateX(-6px) }
+      40%{ transform: translateY(0) translateX(6px) }
+      60%{ transform: translateY(0) translateX(-4px) }
+      80%{ transform: translateY(0) translateX(4px) }
+    }
+
+    /* small helper */
+    .hint{ color:#b8c7e6aa; font-size:12px; margin-top:10px; text-align:center; }
+
+    /* demo “open” button behind modal */
+    .behind{
+      position:fixed; inset:0;
+      display:grid; place-items:center;
+      pointer-events:auto;
+    }
+    .openbtn{
+      border-radius:999px;
+      padding:12px 18px;
+      border:1px solid #ffffff1a;
+      background:#0b0b16aa;
+      color:var(--text);
+      cursor:pointer;
+      transition: transform .15s ease, border-color .2s ease;
+      backdrop-filter: blur(10px);
+    }
+    .openbtn:hover{ transform: translateY(-1px); border-color:#ffffff30; }
+  </style>
+</head>
+<body>
+  <div class="speedlines"></div>
+
+  <div class="behind">
+    <button class="openbtn" id="open">Open Join Modal</button>
+  </div>
+
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="title">
+      <div class="content">
+        <div class="topbar">
+          <div class="brand">
+            <div class="logo" aria-hidden="true"></div>
+            <div>
+              <div style="font-weight:800; line-height:1;">Follow</div>
+              <div style="color:var(--muted); font-size:12px;">Anime • Comics • Community</div>
+            </div>
+          </div>
+          <button class="close" id="close" aria-label="Close">✕</button>
+        </div>
+
+        <h1 id="title">Welcome — join us ✨</h1>
+        <p class="sub">Create your account and start following creators, series, and fandom drops.</p>
+
+        <form id="form" novalidate>
+          <div class="field">
+            <label for="email">Email</label>
+            <input class="input" id="email" name="email" type="email" placeholder="you@domain.com" autocomplete="email" required />
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input class="input" id="password" name="password" type="password" placeholder="••••••••" autocomplete="new-password" minlength="6" required />
+          </div>
+
+          <div class="policy">
+            <input id="policy" type="checkbox" required />
+            <small>
+              I agree to the <u>Policy</u> and <u>Terms</u> (required).
+              <br/>Tip: Keep it respectful — we protect the community vibe.
+            </small>
+          </div>
+
+          <button class="primary" id="signup" type="submit" disabled>
+            Sign up
+          </button>
+
+          <div class="divider">or</div>
+
+          <div class="socials">
+            <button class="social" type="button" data-provider="google">
+              <svg class="icon" viewBox="0 0 48 48" aria-hidden="true">
+                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.1-.1-2.3-.4-3.5z"/>
+                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+                <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.1C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.6 5.1C9.4 39.5 16.2 44 24 44z"/>
+                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l.1-.1 6.2 5.1C36.9 39 44 34 44 24c0-1.1-.1-2.3-.4-3.5z"/>
+              </svg>
+              Continue with Google
+            </button>
+
+            <button class="social" type="button" data-provider="apple">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M16.7 13.3c0 2.8 2.5 3.7 2.5 3.7s-1.9 5.4-4.4 5.4c-1.2 0-1.7-.8-3.2-.8s-2 .8-3.2.8C5.8 22.4 3 17.9 3 13.7 3 10 5.4 8 7.7 8c1.2 0 2.2.8 3.2.8 1 0 2.5-.9 4-.8.6 0 2.6.2 3.8 2-3.3 1.8-2.6 4.7-2 5.3zM14.2 6.3c.8-1 1.4-2.4 1.2-3.8-1.2.1-2.6.8-3.4 1.8-.8.9-1.4 2.3-1.2 3.6 1.3.1 2.6-.7 3.4-1.6z"/>
+              </svg>
+              Continue with Apple
+            </button>
+          </div>
+
+          <div class="hint">By joining, you unlock badges, follow lists, and anime drops.</div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const overlay = document.getElementById('overlay');
+    const openBtn = document.getElementById('open');
+    const closeBtn = document.getElementById('close');
+    const form = document.getElementById('form');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const policy = document.getElementById('policy');
+    const signup = document.getElementById('signup');
+    const modal = document.querySelector('.modal');
+
+    function openModal(){
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden','false');
+      // slight delay for animation; then focus
+      setTimeout(() => email.focus(), 80);
+      document.addEventListener('keydown', onKeyDown);
+    }
+    function closeModal(){
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden','true');
+      document.removeEventListener('keydown', onKeyDown);
+      openBtn.focus();
+    }
+
+    // focus trap
+    function trapFocus(e){
+      if(e.key !== 'Tab') return;
+      const focusables = overlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const list = Array.from(focusables).filter(el => !el.disabled && el.offsetParent !== null);
+      const first = list[0], last = list[list.length-1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
+
+    function onKeyDown(e){
+      if(e.key === 'Escape') closeModal();
+      trapFocus(e);
+    }
+
+    overlay.addEventListener('mousedown', (e) => {
+      if(e.target === overlay) closeModal();
+    });
+    closeBtn.addEventListener('click', closeModal);
+    openBtn.addEventListener('click', openModal);
+
+    function updateSignupState(){
+      const ok = policy.checked && email.value.trim() && password.value.trim().length >= 6;
+      signup.disabled = !ok;
+    }
+    [email, password, policy].forEach(el => el.addEventListener('input', updateSignupState));
+    updateSignupState();
+
+    // button ripple
+    signup.addEventListener('pointerdown', (e) => {
+      const r = document.createElement('span');
+      r.className = 'rip';
+      const rect = signup.getBoundingClientRect();
+      r.style.left = (e.clientX - rect.left) + 'px';
+      r.style.top  = (e.clientY - rect.top) + 'px';
+      signup.appendChild(r);
+      setTimeout(()=>r.remove(), 800);
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if(signup.disabled){
+        modal.classList.remove('shake'); void modal.offsetWidth; modal.classList.add('shake');
+        return;
+      }
+      alert('✅ Signed up (demo). Connect to your backend here.');
+      closeModal();
+    });
+
+    document.querySelectorAll('.social').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        alert('🔐 ' + btn.dataset.provider.toUpperCase() + ' login (demo). Hook OAuth here.');
+      });
+    });
+
+    // open on load
+    openModal();
+  </script>
+</body>
+</html>

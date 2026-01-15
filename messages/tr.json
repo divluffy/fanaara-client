@@ -1,0 +1,61 @@
+{
+  "g": {
+    "platform_name": "Fanara",
+    "sign_up": "Sign up"
+  },
+
+  "login": {
+    "headline": "Tekrar hoş geldin \uD83D\uDC4B",
+    "subheadline": "Fanara'daki yolculuğuna devam etmek için giriş yap.",
+    "email_label": "E-posta",
+    "email_placeholder": "you@example.com",
+    "password_label": "Şifre",
+    "password_placeholder": "Şifreni gir",
+    "remember_me": "Beni hatırla",
+    "forgot_password": "Şifreni mi unuttun?",
+    "primary_button": "Giriş yap",
+    "primary_button_loading": "Giriş yapılıyor...",
+    "or": "veya devam et",
+    "login_with_google": "Google ile devam et",
+    "login_with_apple": "Apple ile devam et",
+    "no_account": "Hesabın yok mu?",
+    "signup_link": "Yeni hesap oluştur",
+
+    "email_required": "Lütfen e-posta adresini gir.",
+    "email_invalid": "Lütfen geçerli bir e-posta adresi gir.",
+    "password_min_length": "Şifre en az 6 karakter olmalıdır.",
+    "server_error_generic": "Bir şeyler yanlış gitti, lütfen tekrar dene."
+  },
+  "Landing": {
+    "brand": {
+      "tagline": "アニメとコミックのコミュニティプラットフォーム"
+    },
+    "nav": {
+      "features": "機能",
+      "community": "コミュニティ",
+      "creators": "クリエイター向け",
+      "howItWorks": "使い方"
+    },
+    "hero": {
+      "badge": "アニメとマンガファンのために設計",
+      "title": "あなたの<anime>アニメ</anime> と <manga>マンガ</manga>コミュニティのホーム。",
+      "subtitle": "新しい作品を発見し、お気に入りのクリエイターをフォローし、リストを作成し、リアルタイムでエピソードを語り合い、自分のオーディエンスを育てましょう。オタクのために設計されたソーシャルプラットフォームです。"
+    },
+    "cta": {
+      "primary": "無料で始める",
+      "secondary": "すでにアカウントをお持ちの方"
+    },
+    "stats": {
+      "watchlists": "作成されたウォッチリスト",
+      "creators": "アクティブなクリエイター",
+      "noAds": "ベータ期間中は広告なし"
+    },
+    "footer": {
+      "madeFor": "アニメとマンガファンのためのプラットフォームです。スタジオや出版社とは提携していません。"
+    }
+  },
+  "Auth": {
+    "login": "ログイン",
+    "signup": "新規登録"
+  }
+}

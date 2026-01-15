@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تسجيل حساب | مجتمع أنمي وكوميكس</title>
+
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Smooth step transitions */
+    .step { display: none; }
+    .step.is-active { display: block; }
+    .enter-right { animation: stepInRight 360ms ease both; }
+    .enter-left  { animation: stepInLeft 360ms ease both; }
+    @keyframes stepInRight { from { opacity: 0; transform: translateX(18px) scale(.995); } to { opacity: 1; transform: translateX(0) scale(1); } }
+    @keyframes stepInLeft  { from { opacity: 0; transform: translateX(-18px) scale(.995);} to { opacity: 1; transform: translateX(0) scale(1); } }
+
+    /* Simple custom shadow */
+    .soft-shadow { box-shadow: 0 18px 60px rgba(15, 23, 42, .12), 0 2px 10px rgba(15, 23, 42, .06); }
+
+    /* Clicky card micro-interaction */
+    .clicky { transition: transform .12s ease, box-shadow .12s ease; }
+    .clicky:active { transform: scale(.99); }
+
+    /* Selected state helper (we add/remove via JS) */
+    .is-selected {
+      outline: 2px solid rgba(34, 211, 238, .9);
+      box-shadow: 0 16px 40px rgba(34, 211, 238, .18);
+    }
+
+    /* Tiny scrollbar hiding for stepper on mobile */
+    .hide-scrollbar::-webkit-scrollbar { height: 0; width: 0; }
+    .hide-scrollbar { scrollbar-width: none; }
+
+    /* Theme switching (boys/girls) affecting only decorations */
+    .theme-boys  { --decor-a: #22d3ee; --decor-b: #a78bfa; --decor-c: #34d399; --decor-d:#fbbf24; }
+    .theme-girls { --decor-a: #fb7185; --decor-b: #f472b6; --decor-c: #22d3ee; --decor-d:#fbbf24; }
+
+    .decor-gradient {
+      background: linear-gradient(135deg, var(--decor-a), var(--decor-b), var(--decor-d));
+    }
+    .decor-chip {
+      border-color: color-mix(in srgb, var(--decor-a) 65%, white);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen text-slate-800">
+  <!-- Background -->
+  <div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-cyan-50 via-yellow-50 to-pink-50">
+    <!-- Decorative SVGs (stars/sparks/clouds) -->
+    <svg class="pointer-events-none absolute -top-10 -right-10 opacity-70" width="340" height="260" viewBox="0 0 340 260" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#22d3ee" stop-opacity=".6"/>
+          <stop offset=".5" stop-color="#fbbf24" stop-opacity=".45"/>
+          <stop offset="1" stop-color="#fb7185" stop-opacity=".55"/>
+        </linearGradient>
+      </defs>
+      <path d="M78 150c18-28 64-34 86-16 16-22 52-22 68 3 22-6 50 10 50 34 0 24-21 39-43 39H105c-31 0-53-16-53-40 0-12 8-20 26-20Z" fill="url(#g1)"/>
+      <g opacity=".9">
+        <path d="M245 52l6 14 14 6-14 6-6 14-6-14-14-6 14-6 6-14Z" fill="#22d3ee"/>
+        <path d="M280 102l4 10 10 4-10 4-4 10-4-10-10-4 10-4 4-10Z" fill="#fb7185"/>
+        <path d="M54 60l5 12 12 5-12 5-5 12-5-12-12-5 12-5 5-12Z" fill="#fbbf24"/>
+      </g>
+    </svg>
+
+    <svg class="pointer-events-none absolute -bottom-16 -left-10 opacity-70" width="420" height="300" viewBox="0 0 420 300" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#34d399" stop-opacity=".45"/>
+          <stop offset=".5" stop-color="#22d3ee" stop-opacity=".45"/>
+          <stop offset="1" stop-color="#f472b6" stop-opacity=".45"/>
+        </linearGradient>
+      </defs>
+      <path d="M105 170c10-26 44-40 72-26 12-20 46-26 66-8 18-8 44 2 52 22 28 0 49 15 49 38 0 22-17 40-50 40H130c-45 0-70-16-70-40 0-16 16-26 45-26Z" fill="url(#g2)"/>
+      <g opacity=".85">
+        <circle cx="345" cy="55" r="7" fill="#22d3ee"/>
+        <circle cx="368" cy="72" r="4" fill="#fbbf24"/>
+        <circle cx="322" cy="78" r="5" fill="#fb7185"/>
+        <path d="M92 70l6 14 14 6-14 6-6 14-6-14-14-6 14-6 6-14Z" fill="#34d399"/>
+      </g>
+    </svg>
+
+    <!-- Overlay -->
+    <div id="overlay" class="relative flex min-h-screen items-center justify-center p-4">
+      <!-- Modal -->
+      <div id="modal"
+           class="theme-boys soft-shadow relative w-full max-w-xl rounded-[28px] bg-white/90 backdrop-blur border border-white/60">
+        <!-- Top bar -->
+        <div class="flex items-start justify-between px-5 sm:px-7 pt-5 sm:pt-7">
+          <div class="space-y-1">
+            <h1 class="text-xl sm:text-2xl font-extrabold">
+              تسجيل حساب ✨
+            </h1>
+            <p class="text-sm text-slate-600">
+              نبني لك بداية “بروفايل أنمي” بسرعة… خطوة خطوة وبمزاج لطيف 🎀⚡
+            </p>
+          </div>
+
+          <button id="closeBtn"
+                  type="button"
+                  class="clicky ml-2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-500"
+                  aria-label="إغلاق">
+            <span class="text-xl leading-none">×</span>
+          </button>
+        </div>
+
+        <!-- Stepper -->
+        <div class="px-5 sm:px-7 pt-4">
+          <div class="flex items-center gap-3">
+            <div class="w-full overflow-x-auto hide-scrollbar">
+              <div id="stepper" class="flex items-center gap-2 min-w-max py-1">
+                <!-- circles injected by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="mt-3 h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div id="progressBar" class="h-full w-0 rounded-full bg-gradient-to-l from-cyan-400 via-yellow-300 to-pink-400 transition-[width] duration-300"></div>
+          </div>
+        </div>
+
+        <!-- Steps -->
+        <div class="px-5 sm:px-7 py-5 sm:py-6">
+          <!-- Step 1 -->
+          <section class="step" data-step="1">
+            <div class="mb-4">
+              <h2 class="text-lg sm:text-xl font-bold">جاهز تدخل عالم الأنمي؟ 🌈</h2>
+              <p class="text-sm text-slate-600 mt-1">اختر نوع التجربة اللي تحبها… تقدر تغيّرها لاحقًا.</p>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-3 text-right hover:bg-slate-50"
+                      data-group="experience" data-value="مشاهدة" data-mode="single">
+                <div class="text-2xl">📺</div>
+                <div class="mt-1 font-semibold">مشاهدة</div>
+                <div class="text-xs text-slate-500">أنمي وسلاسل</div>
+              </button>
+
+              <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-3 text-right hover:bg-slate-50"
+                      data-group="experience" data-value="قراءة مانجا" data-mode="single">
+                <div class="text-2xl">📖</div>
+                <div class="mt-1 font-semibold">قراءة مانجا</div>
+                <div class="text-xs text-slate-500">فصول ومتابعة</div>
+              </button>
+
+              <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-3 text-right hover:bg-slate-50"
+                      data-group="experience" data-value="كوميكس" data-mode="single">
+                <div class="text-2xl">🦸</div>
+                <div class="mt-1 font-semibold">كوميكس</div>
+                <div class="text-xs text-slate-500">عالم الأبطال</div>
+              </button>
+
+              <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-3 text-right hover:bg-slate-50"
+                      data-group="experience" data-value="رسومات" data-mode="single">
+                <div class="text-2xl">🎨</div>
+                <div class="mt-1 font-semibold">رسومات</div>
+                <div class="text-xs text-slate-500">فن وفان آرت</div>
+              </button>
+            </div>
+
+            <div class="mt-5 rounded-2xl border border-slate-200 bg-gradient-to-l from-cyan-50 via-yellow-50 to-pink-50 p-4">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">💡</span>
+                <p class="text-sm text-slate-700">نصيحة: اختَر اللي يعبّر عنك الآن… والباقي بنضيفه بالمحتوى لاحقًا.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Step 2 -->
+          <section class="step" data-step="2">
+            <div class="mb-4">
+              <h2 class="text-lg sm:text-xl font-bold">بيانات الدخول الأساسية 🔐</h2>
+              <p class="text-sm text-slate-600 mt-1">خليها بسيطة… بدون تعقيد ولا تحقق.</p>
+            </div>
+
+            <div class="space-y-3">
+              <label class="block">
+                <span class="text-sm font-semibold">البريد الإلكتروني</span>
+                <input id="emailInput" type="email" placeholder="example@domain.com"
+                       class="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-cyan-200"/>
+              </label>
+
+              <label class="block">
+                <span class="text-sm font-semibold">كلمة المرور</span>
+                <input id="passInput" type="password" placeholder="••••••••"
+                       class="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-pink-200"/>
+              </label>
+
+              <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                <p class="text-sm text-slate-600">
+                  تلميح: اختَر كلمة مرور تحسّها “بطلة/بطل” 👀✨ (بدون تحقق… أنت المسؤول!)
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Step 3 -->
+          <section class="step" data-step="3">
+            <div class="mb-4">
+              <h2 class="text-lg sm:text-xl font-bold">معلومات خفيفة ✍️</h2>
+              <p class="text-sm text-slate-600 mt-1">أشياء بسيطة تساعدنا نضبط الجو العام.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label class="block">
+                <span class="text-sm font-semibold">اسم العرض (Display Name)</span>
+                <input id="displayNameInput" type="text" placeholder="مثال: لوفّي_العاشق"
+                       class="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-cyan-200"/>
+              </label>
+
+              <div class="block">
+                <span class="text-sm font-semibold">الدولة</span>
+                <div class="mt-1 flex flex-wrap gap-2">
+                  <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                          data-group="country" data-value="السعودية" data-mode="single">🇸🇦 السعودية</button>
+                  <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                          data-group="country" data-value="مصر" data-mode="single">🇪🇬 مصر</button>
+                  <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                          data-group="country" data-value="المغرب" data-mode="single">🇲🇦 المغرب</button>
+                  <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                          data-group="country" data-value="أخرى" data-mode="single">🌍 أخرى</button>
+                </div>
+              </div>
+
+              <div class="block">
+                <span class="text-sm font-semibold">اللغة</span>
+                <div class="mt-1 flex flex-wrap gap-2">
+                  <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                          data-group="language" data-value="العربية" data-mode="single">العربية</button>
+                  <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                          data-group="language" data-value="English" data-mode="single">English</button>
+                  <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                          data-group="language" data-value="日本語" data-mode="single">日本語</button>
+                </div>
+              </div>
+
+              <div class="block">
+                <span class="text-sm font-semibold">العمر</span>
+                <p class="text-xs text-slate-500 mt-1">تلميح: هذه المنصة تستهدف +16 بشكل لطيف وبسيط ✅</p>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                          data-group="age" data-value="16–18" data-mode="single">16–18</button>
+                  <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                          data-group="age" data-value="19–24" data-mode="single">19–24</button>
+                  <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                          data-group="age" data-value="25+" data-mode="single">25+</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Step 4 -->
+          <section class="step" data-step="4">
+            <div class="mb-4">
+              <h2 class="text-lg sm:text-xl font-bold">اختيار الهوية الأنمي 🧩</h2>
+              <p class="text-sm text-slate-600 mt-1">بدّل النسخة اللي تعجبك… التغيير هنا “زخرفي” فقط.</p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button type="button" id="tabBoys"
+                      class="clicky rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">
+                نسخة للأولاد
+              </button>
+              <button type="button" id="tabGirls"
+                      class="clicky rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">
+                نسخة للبنات
+              </button>
+
+              <div class="mr-auto hidden sm:flex items-center gap-2 text-xs text-slate-500">
+                <span>زخارف:</span>
+                <span id="themeEmojis" class="text-base">⚔️🔥✨</span>
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <div class="font-bold">ستايل الشخصية</div>
+                  <div class="text-sm text-slate-600">اختَر طاقة شخصيتك في المنصة.</div>
+                </div>
+                <div class="h-10 w-10 rounded-2xl decor-gradient"></div>
+              </div>
+
+              <div class="mt-4 flex flex-wrap gap-2">
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="characterStyle" data-value="لطيف" data-mode="single">😊 لطيف</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="characterStyle" data-value="غامض" data-mode="single">🕶️ غامض</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="characterStyle" data-value="حماسي" data-mode="single">⚡ حماسي</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="characterStyle" data-value="هادئ" data-mode="single">🌿 هادئ</button>
+              </div>
+
+              <div class="mt-4 text-sm text-slate-600">
+                <span class="inline-flex items-center gap-2">
+                  <span class="text-lg">🪄</span>
+                  <span id="themeHint">الزخارف الحالية تعطي إحساس “أكشن” لطيف.</span>
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Step 5 -->
+          <section class="step" data-step="5">
+            <div class="mb-4">
+              <h2 class="text-lg sm:text-xl font-bold">اختيار صورة رمزية 🧑‍🎤</h2>
+              <p class="text-sm text-slate-600 mt-1">اختر أفاتار SVG أو ارفع صورة مع معاينة مصغّرة.</p>
+            </div>
+
+            <div class="grid grid-cols-4 sm:grid-cols-4 gap-3">
+              <!-- 8 SVG avatars -->
+              <button type="button" class="avatar-pick clicky rounded-2xl border border-slate-200 bg-white p-2 hover:bg-slate-50"
+                      data-group="avatarId" data-value="a1" data-mode="single" aria-label="أفاتار 1">
+                <svg viewBox="0 0 64 64" class="w-full h-auto">
+                  <circle cx="32" cy="34" r="18" fill="#fde68a"/>
+                  <path d="M14 30c4-16 34-20 40 2 0 0-6-10-20-10S14 30 14 30Z" fill="#0f172a"/>
+                  <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  <path d="M26 44c3 3 9 3 12 0" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                  <circle cx="22" cy="33" r="1.3" fill="#fb7185"/><circle cx="42" cy="33" r="1.3" fill="#fb7185"/>
+                </svg>
+              </button>
+
+              <button type="button" class="avatar-pick clicky rounded-2xl border border-slate-200 bg-white p-2 hover:bg-slate-50"
+                      data-group="avatarId" data-value="a2" data-mode="single" aria-label="أفاتار 2">
+                <svg viewBox="0 0 64 64" class="w-full h-auto">
+                  <circle cx="32" cy="34" r="18" fill="#fed7aa"/>
+                  <path d="M14 28c2-10 12-18 22-18 12 0 20 6 24 16-10-4-15-4-24 0-8 4-13 4-22 2Z" fill="#22c55e"/>
+                  <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  <path d="M28 45c2 2 6 2 8 0" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                  <path d="M22 30c2-2 5-2 7 0" stroke="#0f172a" stroke-width="2" stroke-linecap="round" fill="none"/>
+                  <path d="M35 30c2-2 5-2 7 0" stroke="#0f172a" stroke-width="2" stroke-linecap="round" fill="none"/>
+                </svg>
+              </button>
+
+              <button type="button" class="avatar-pick clicky rounded-2xl border border-slate-200 bg-white p-2 hover:bg-slate-50"
+                      data-group="avatarId" data-value="a3" data-mode="single" aria-label="أفاتار 3">
+                <svg viewBox="0 0 64 64" class="w-full h-auto">
+                  <circle cx="32" cy="34" r="18" fill="#fde68a"/>
+                  <path d="M12 30c2-18 18-22 28-16 12 6 12 16 12 16-6-6-12-8-20-8s-14 2-20 8Z" fill="#38bdf8"/>
+                  <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  <path d="M24 44c4 4 12 4 16 0" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                  <path d="M32 40v2" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+
+              <button type="button" class="avatar-pick clicky rounded-2xl border border-slate-200 bg-white p-2 hover:bg-slate-50"
+                      data-group="avatarId" data-value="a4" data-mode="single" aria-label="أفاتار 4">
+                <svg viewBox="0 0 64 64" class="w-full h-auto">
+                  <circle cx="32" cy="34" r="18" fill="#fecaca"/>
+                  <path d="M16 26c4-10 12-16 20-16 10 0 18 6 22 18-10-2-14 0-22 4-8 4-12 4-20-6Z" fill="#a78bfa"/>
+                  <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  <path d="M28 46c2-1 6-1 8 0" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                  <path d="M20 37c2 2 6 2 8 0" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round" fill="none" opacity=".8"/>
+                  <path d="M36 37c2 2 6 2 8 0" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round" fill="none" opacity=".8"/>
+                </svg>
+              </button>
+
+              <button type="button" class="avatar-pick clicky rounded-2xl border border-slate-200 bg-white p-2 hover:bg-slate-50"
+                      data-group="avatarId" data-value="a5" data-mode="single" aria-label="أفاتار 5">
+                <svg viewBox="0 0 64 64" class="w-full h-auto">
+                  <circle cx="32" cy="34" r="18" fill="#fde68a"/>
+                  <path d="M14 26c3-12 14-18 24-16 10 2 18 10 18 22-10-8-26-10-42-6Z" fill="#fb7185"/>
+                  <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  <path d="M26 44c3 2 9 2 12 0" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                  <path d="M28 33c1.5-1 3.5-1 5 0" stroke="#0f172a" stroke-width="1.7" stroke-linecap="round" fill="none"/>
+                </svg>
+              </button>
+
+              <button type="button" class="avatar-pick clicky rounded-2xl border border-slate-200 bg-white p-2 hover:bg-slate-50"
+                      data-group="avatarId" data-value="a6" data-mode="single" aria-label="أفاتار 6">
+                <svg viewBox="0 0 64 64" class="w-full h-auto">
+                  <circle cx="32" cy="34" r="18" fill="#fed7aa"/>
+                  <path d="M18 24c4-10 14-16 22-14 9 2 14 8 18 18-12-4-22-4-40-4Z" fill="#0f172a"/>
+                  <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  <path d="M27 46c2 2 8 2 10 0" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                  <path d="M20 30c2 3 6 5 12 5" stroke="#22d3ee" stroke-width="2.2" stroke-linecap="round" fill="none" opacity=".9"/>
+                </svg>
+              </button>
+
+              <button type="button" class="avatar-pick clicky rounded-2xl border border-slate-200 bg-white p-2 hover:bg-slate-50"
+                      data-group="avatarId" data-value="a7" data-mode="single" aria-label="أفاتار 7">
+                <svg viewBox="0 0 64 64" class="w-full h-auto">
+                  <circle cx="32" cy="34" r="18" fill="#fecaca"/>
+                  <path d="M14 30c0-12 8-22 18-22 8 0 13 4 18 10 2 2 4 4 6 6-10 0-16 4-24 10-8 6-12 6-18-4Z" fill="#fbbf24"/>
+                  <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  <path d="M24 44c4 1 12 1 16 0" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                  <circle cx="32" cy="48" r="1.4" fill="#0f172a"/>
+                </svg>
+              </button>
+
+              <button type="button" class="avatar-pick clicky rounded-2xl border border-slate-200 bg-white p-2 hover:bg-slate-50"
+                      data-group="avatarId" data-value="a8" data-mode="single" aria-label="أفاتار 8">
+                <svg viewBox="0 0 64 64" class="w-full h-auto">
+                  <circle cx="32" cy="34" r="18" fill="#fde68a"/>
+                  <path d="M16 26c4-12 14-18 24-14 10 4 16 12 16 22-14-8-26-10-40-8Z" fill="#34d399"/>
+                  <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  <path d="M26 44c3 4 9 4 12 0" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                  <path d="M24 32h16" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round" opacity=".35"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+              <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold">رفع صورة (اختياري)</div>
+                  <span class="text-xs text-slate-500">بدون تحقق</span>
+                </div>
+                <input id="avatarUpload" type="file" accept="image/*"
+                       class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm" />
+                <p class="mt-2 text-xs text-slate-500">يتم عرض معاينة فقط داخل هذه الخطوة.</p>
+              </div>
+
+              <div class="rounded-2xl border border-slate-200 bg-gradient-to-l from-cyan-50 via-yellow-50 to-pink-50 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold">المعاينة</div>
+                  <div class="text-xs text-slate-600">مصغّرة</div>
+                </div>
+                <div class="mt-3 flex items-center gap-3">
+                  <div class="h-16 w-16 rounded-2xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center">
+                    <img id="uploadPreview" alt="معاينة" class="hidden h-full w-full object-cover" />
+                    <span id="previewPlaceholder" class="text-2xl">🖼️</span>
+                  </div>
+                  <div class="text-sm text-slate-700">
+                    <div class="font-semibold">اختيارك الحالي:</div>
+                    <div id="avatarChoiceText" class="text-slate-600">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Step 6 -->
+          <section class="step" data-step="6">
+            <div class="mb-4">
+              <h2 class="text-lg sm:text-xl font-bold">اهتمامات أنمي 🎬</h2>
+              <p class="text-sm text-slate-600 mt-1">اختَر Genres (متعدد) + مزاج مشاهدة واحد.</p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <div class="font-bold">الأنواع (Genres)</div>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="animeGenres" data-value="شونين" data-mode="multi">🔥 شونين</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="animeGenres" data-value="إيسيكاي" data-mode="multi">🌀 إيسيكاي</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="animeGenres" data-value="رومانس" data-mode="multi">💗 رومانس</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="animeGenres" data-value="غموض" data-mode="multi">🕵️ غموض</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="animeGenres" data-value="رياضي" data-mode="multi">🏀 رياضي</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="animeGenres" data-value="خيال" data-mode="multi">🦄 خيال</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="animeGenres" data-value="سايبربانك" data-mode="multi">🤖 سايبربانك</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="animeGenres" data-value="شريحة من الحياة" data-mode="multi">🍡 شريحة من الحياة</button>
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+              <div class="font-bold">مزاج المشاهدة</div>
+              <div class="mt-3 grid grid-cols-3 gap-2">
+                <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-3 hover:bg-slate-50"
+                        data-group="animeMood" data-value="مضحك" data-mode="single">
+                  <div class="text-2xl">😂</div>
+                  <div class="mt-1 text-sm font-semibold">مضحك</div>
+                </button>
+                <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-3 hover:bg-slate-50"
+                        data-group="animeMood" data-value="حزين" data-mode="single">
+                  <div class="text-2xl">🥲</div>
+                  <div class="mt-1 text-sm font-semibold">حزين</div>
+                </button>
+                <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-3 hover:bg-slate-50"
+                        data-group="animeMood" data-value="حماسي" data-mode="single">
+                  <div class="text-2xl">⚡</div>
+                  <div class="mt-1 text-sm font-semibold">حماسي</div>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Step 7 -->
+          <section class="step" data-step="7">
+            <div class="mb-4">
+              <h2 class="text-lg sm:text-xl font-bold">اهتمامات كوميكس 🗯️</h2>
+              <p class="text-sm text-slate-600 mt-1">اختر اهتماماتك + نوع المحتوى في الصفحة الرئيسية.</p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <div class="font-bold">الاهتمامات</div>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="comicsInterests" data-value="Marvel" data-mode="multi">🕷️ Marvel</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="comicsInterests" data-value="DC" data-mode="multi">🦇 DC</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="comicsInterests" data-value="ويب تون" data-mode="multi">📱 ويب تون</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="comicsInterests" data-value="مانهوا" data-mode="multi">🧧 مانهوا</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="comicsInterests" data-value="قصص قصيرة" data-mode="multi">🧩 قصص قصيرة</button>
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+              <div class="font-bold">ماذا تريد أن ترى في الصفحة الرئيسية؟</div>
+              <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50"
+                        data-group="homeContent" data-value="ترندات ونقاشات" data-mode="single">
+                  <div class="text-2xl">💬</div>
+                  <div class="mt-2 text-sm font-semibold">ترندات ونقاشات</div>
+                  <div class="text-xs text-slate-500">مواضيع ساخنة</div>
+                </button>
+                <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50"
+                        data-group="homeContent" data-value="مراجعات وتقييمات" data-mode="single">
+                  <div class="text-2xl">⭐</div>
+                  <div class="mt-2 text-sm font-semibold">مراجعات وتقييمات</div>
+                  <div class="text-xs text-slate-500">آراء وريتنج</div>
+                </button>
+                <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50"
+                        data-group="homeContent" data-value="فن ورسومات" data-mode="single">
+                  <div class="text-2xl">🎨</div>
+                  <div class="mt-2 text-sm font-semibold">فن ورسومات</div>
+                  <div class="text-xs text-slate-500">إبداعات المجتمع</div>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Step 8 -->
+          <section class="step" data-step="8">
+            <div class="mb-4">
+              <h2 class="text-lg sm:text-xl font-bold">متابعة حسابات 🌟</h2>
+              <p class="text-sm text-slate-600 mt-1">هذه اقتراحات لطيفة… زر Follow/Unfollow يغيّر الحالة فقط.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- user cards -->
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-3">
+                <div class="h-12 w-12 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                  <svg viewBox="0 0 64 64" class="h-12 w-12">
+                    <circle cx="32" cy="34" r="18" fill="#fde68a"/>
+                    <path d="M14 28c2-10 12-18 22-18 12 0 20 6 24 16-10-4-15-4-24 0-8 4-13 4-22 2Z" fill="#22d3ee"/>
+                    <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold">نَدى الرسّامة</div>
+                  <div class="text-xs text-slate-500">#رسّامة</div>
+                </div>
+                <button type="button" class="follow-btn clicky rounded-full px-4 py-2 text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50"
+                        data-user="u1">Follow</button>
+              </div>
+
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-3">
+                <div class="h-12 w-12 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                  <svg viewBox="0 0 64 64" class="h-12 w-12">
+                    <circle cx="32" cy="34" r="18" fill="#fed7aa"/>
+                    <path d="M18 24c4-10 14-16 22-14 9 2 14 8 18 18-12-4-22-4-40-4Z" fill="#0f172a"/>
+                    <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold">سامي الناقد</div>
+                  <div class="text-xs text-slate-500">#ناقد</div>
+                </div>
+                <button type="button" class="follow-btn clicky rounded-full px-4 py-2 text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50"
+                        data-user="u2">Follow</button>
+              </div>
+
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-3">
+                <div class="h-12 w-12 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                  <svg viewBox="0 0 64 64" class="h-12 w-12">
+                    <circle cx="32" cy="34" r="18" fill="#fecaca"/>
+                    <path d="M16 26c4-10 12-16 20-16 10 0 18 6 22 18-10-2-14 0-22 4-8 4-12 4-20-6Z" fill="#f472b6"/>
+                    <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold">ليان الجامِعة</div>
+                  <div class="text-xs text-slate-500">#جامع</div>
+                </div>
+                <button type="button" class="follow-btn clicky rounded-full px-4 py-2 text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50"
+                        data-user="u3">Follow</button>
+              </div>
+
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-3">
+                <div class="h-12 w-12 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                  <svg viewBox="0 0 64 64" class="h-12 w-12">
+                    <circle cx="32" cy="34" r="18" fill="#fde68a"/>
+                    <path d="M14 26c3-12 14-18 24-16 10 2 18 10 18 22-10-8-26-10-42-6Z" fill="#34d399"/>
+                    <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold">حازم المترجم</div>
+                  <div class="text-xs text-slate-500">#مترجم</div>
+                </div>
+                <button type="button" class="follow-btn clicky rounded-full px-4 py-2 text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50"
+                        data-user="u4">Follow</button>
+              </div>
+
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-3">
+                <div class="h-12 w-12 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                  <svg viewBox="0 0 64 64" class="h-12 w-12">
+                    <circle cx="32" cy="34" r="18" fill="#fed7aa"/>
+                    <path d="M12 30c2-18 18-22 28-16 12 6 12 16 12 16-6-6-12-8-20-8s-14 2-20 8Z" fill="#fbbf24"/>
+                    <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold">رِهام صانعة محتوى</div>
+                  <div class="text-xs text-slate-500">#صانع</div>
+                </div>
+                <button type="button" class="follow-btn clicky rounded-full px-4 py-2 text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50"
+                        data-user="u5">Follow</button>
+              </div>
+
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-3">
+                <div class="h-12 w-12 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                  <svg viewBox="0 0 64 64" class="h-12 w-12">
+                    <circle cx="32" cy="34" r="18" fill="#fecaca"/>
+                    <path d="M18 24c4-10 14-16 22-14 9 2 14 8 18 18-12-4-22-4-40-4Z" fill="#22d3ee"/>
+                    <circle cx="26" cy="36" r="2.2" fill="#0f172a"/><circle cx="38" cy="36" r="2.2" fill="#0f172a"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-bold">زيد المُلخّص</div>
+                  <div class="text-xs text-slate-500">#ملخّصات</div>
+                </div>
+                <button type="button" class="follow-btn clicky rounded-full px-4 py-2 text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50"
+                        data-user="u6">Follow</button>
+              </div>
+            </div>
+
+            <div class="mt-4 text-sm text-slate-600">
+              <span class="inline-flex items-center gap-2">
+                <span class="text-lg">🧡</span>
+                <span>تقدر تبدأ بفولوين بسيط… وبعدها نرشّح لك ناس أكثر حسب اهتماماتك.</span>
+              </span>
+            </div>
+          </section>
+
+          <!-- Step 9 -->
+          <section class="step" data-step="9">
+            <div class="mb-4">
+              <h2 class="text-lg sm:text-xl font-bold">تفضيلات السبويلر 🙈</h2>
+              <p class="text-sm text-slate-600 mt-1">اختر مستوى إخفاء الحرق + تفضيل المحتوى.</p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <div class="font-bold">مستوى إخفاء الحرق</div>
+              <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50"
+                        data-group="spoilerLevel" data-value="خفيف" data-mode="single">
+                  <div class="text-2xl">🙂</div>
+                  <div class="mt-2 font-semibold">خفيف</div>
+                  <div class="text-xs text-slate-500">تنبيه بسيط</div>
+                </button>
+                <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50"
+                        data-group="spoilerLevel" data-value="متوسط" data-mode="single">
+                  <div class="text-2xl">😶</div>
+                  <div class="mt-2 font-semibold">متوسط</div>
+                  <div class="text-xs text-slate-500">إخفاء أغلبه</div>
+                </button>
+                <button type="button" class="option-card clicky rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50"
+                        data-group="spoilerLevel" data-value="شديد" data-mode="single">
+                  <div class="text-2xl">🫣</div>
+                  <div class="mt-2 font-semibold">شديد</div>
+                  <div class="text-xs text-slate-500">حماية قصوى</div>
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+              <div class="font-bold">تفضيل المحتوى</div>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="contentPref" data-value="آمن" data-mode="single">🛡️ آمن</button>
+                <button type="button" class="chip option-chip decor-chip rounded-full border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                        data-group="contentPref" data-value="متوازن" data-mode="single">⚖️ متوازن</button>
+              </div>
+              <p class="mt-3 text-xs text-slate-500">هذا مجرد تفضيل للعرض العام داخل الصفحة الرئيسية.</p>
+            </div>
+          </section>
+
+          <!-- Step 10 -->
+          <section class="step" data-step="10">
+            <div class="mb-4">
+              <h2 class="text-lg sm:text-xl font-bold">تم تجهيز البداية! 🎉</h2>
+              <p class="text-sm text-slate-600 mt-1">ملخّص بسيط لما اخترته (بدون إلزام).</p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <div class="flex items-center justify-between">
+                <div class="font-bold">الملخّص</div>
+                <span class="text-xs text-slate-500">تجريبي</span>
+              </div>
+              <div id="summary" class="mt-3 space-y-2 text-sm text-slate-700"></div>
+            </div>
+
+            <div class="mt-4 rounded-2xl border border-slate-200 bg-gradient-to-l from-cyan-50 via-yellow-50 to-pink-50 p-4">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🚀</span>
+                <p class="text-sm text-slate-700">اضغط “إنشاء الحساب” لبدء رحلتك. (بدون تحقق/إلزام هنا)</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Footer buttons -->
+        <div class="px-5 sm:px-7 pb-5 sm:pb-7">
+          <div class="flex items-center gap-2">
+            <button id="prevBtn" type="button"
+                    class="clicky rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50">
+              السابق
+            </button>
+
+            <button id="nextBtn" type="button"
+                    class="clicky ml-auto rounded-2xl bg-gradient-to-l from-cyan-400 via-yellow-300 to-pink-400 px-5 py-3 text-sm font-extrabold text-slate-900 shadow-sm hover:opacity-95">
+              التالي
+            </button>
+
+            <button id="createBtn" type="button"
+                    class="hidden clicky ml-auto rounded-2xl bg-gradient-to-l from-emerald-400 via-cyan-300 to-yellow-300 px-5 py-3 text-sm font-extrabold text-slate-900 shadow-sm hover:opacity-95">
+              إنشاء الحساب ✅
+            </button>
+          </div>
+
+          <div class="mt-3 text-xs text-slate-500 flex items-center justify-between">
+            <span>واجهة Single Page — RTL — بدون تحقق إدخالات.</span>
+            <span id="stepCounter">1/10</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Re-open button (for demo after closing) -->
+    <button id="reopenBtn" type="button"
+            class="hidden fixed bottom-4 left-4 clicky rounded-full border border-white/60 bg-white/80 backdrop-blur px-4 py-3 text-sm font-bold soft-shadow">
+      إعادة فتح التسجيل ✨
+    </button>
+  </div>
+
+  <script>
+    // -----------------------------
+    // State
+    // -----------------------------
+    const totalSteps = 10;
+    let currentStep = 1;
+    let lastDirection = "next";
+
+    const state = {
+      experience: null,
+      email: "",
+      password: "",
+      displayName: "",
+      country: null,
+      language: null,
+      age: null,
+
+      identityVersion: "boys", // boys | girls
+      characterStyle: null,
+
+      avatarId: null,
+      avatarUpload: null,
+
+      animeGenres: [],
+      animeMood: null,
+
+      comicsInterests: [],
+      homeContent: null,
+
+      follows: { u1:false, u2:false, u3:false, u4:false, u5:false, u6:false },
+
+      spoilerLevel: null,
+      contentPref: null
+    };
+
+    // -----------------------------
+    // Elements
+    // -----------------------------
+    const modal = document.getElementById("modal");
+    const overlay = document.getElementById("overlay");
+    const closeBtn = document.getElementById("closeBtn");
+    const reopenBtn = document.getElementById("reopenBtn");
+
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const createBtn = document.getElementById("createBtn");
+
+    const stepper = document.getElementById("stepper");
+    const progressBar = document.getElementById("progressBar");
+    const stepCounter = document.getElementById("stepCounter");
+
+    const emailInput = document.getElementById("emailInput");
+    const passInput = document.getElementById("passInput");
+    const displayNameInput = document.getElementById("displayNameInput");
+
+    const tabBoys = document.getElementById("tabBoys");
+    const tabGirls = document.getElementById("tabGirls");
+    const themeEmojis = document.getElementById("themeEmojis");
+    const themeHint = document.getElementById("themeHint");
+
+    const avatarUpload = document.getElementById("avatarUpload");
+    const uploadPreview = document.getElementById("uploadPreview");
+    const previewPlaceholder = document.getElementById("previewPlaceholder");
+    const avatarChoiceText = document.getElementById("avatarChoiceText");
+
+    const summaryEl = document.getElementById("summary");
+
+    // -----------------------------
+    // Stepper build
+    // -----------------------------
+    function buildStepper() {
+      stepper.innerHTML = "";
+      for (let i = 1; i <= totalSteps; i++) {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className =
+          "clicky flex items-center justify-center h-9 w-9 rounded-full border text-sm font-extrabold " +
+          "border-slate-200 bg-white text-slate-600 hover:bg-slate-50";
+        item.textContent = i;
+        item.dataset.stepJump = String(i);
+        item.title = `الخطوة ${i}`;
+        stepper.appendChild(item);
+      }
+    }
+
+    // -----------------------------
+    // Helpers for selection UI
+    // -----------------------------
+    function setSelected(el, selected) {
+      if (selected) el.classList.add("is-selected");
+      else el.classList.remove("is-selected");
+    }
+
+    function clearGroupSelection(group) {
+      document.querySelectorAll(`[data-group="${group}"][data-mode="single"]`).forEach(btn => {
+        setSelected(btn, false);
+      });
+    }
+
+    function syncInputState() {
+      // Plain inputs (no validation)
+      if (emailInput) state.email = emailInput.value || "";
+      if (passInput) state.password = passInput.value || "";
+      if (displayNameInput) state.displayName = displayNameInput.value || "";
+    }
+
+    function toggleValueInArray(arr, value) {
+      const idx = arr.indexOf(value);
+      if (idx >= 0) arr.splice(idx, 1);
+      else arr.push(value);
+    }
+
+    function handleOptionClick(btn) {
+      const group = btn.dataset.group;
+      const value = btn.dataset.value;
+      const mode = btn.dataset.mode;
+
+      if (!group || !value || !mode) return;
+
+      if (mode === "single") {
+        clearGroupSelection(group);
+        setSelected(btn, true);
+        state[group] = value;
+      } else if (mode === "multi") {
+        setSelected(btn, !btn.classList.contains("is-selected"));
+        toggleValueInArray(state[group], value);
+      }
+
+      if (group === "avatarId") {
+        // If user picks an SVG avatar, keep upload as optional (we won't auto-clear it)
+        state.avatarId = value;
+        avatarChoiceText.textContent = `أفاتار SVG: ${value.toUpperCase()}`;
+      }
+
+      if (group === "animeGenres") { /* multi */ }
+      if (group === "comicsInterests") { /* multi */ }
+
+      // Update summary if on step 10
+      if (currentStep === 10) renderSummary();
+    }
+
+    function bindOptions() {
+      document.querySelectorAll("[data-group][data-value][data-mode]").forEach(btn => {
+        btn.addEventListener("click", () => handleOptionClick(btn));
+      });
+    }
+
+    // -----------------------------
+    // Follow toggles
+    // -----------------------------
+    function setFollowBtnUI(btn, isFollowing) {
+      if (isFollowing) {
+        btn.textContent = "Unfollow";
+        btn.classList.remove("bg-white", "border-slate-200");
+        btn.classList.add("decor-gradient", "text-slate-900", "border", "border-white/60");
+      } else {
+        btn.textContent = "Follow";
+        btn.classList.remove("decor-gradient", "text-slate-900", "border-white/60");
+        btn.classList.add("bg-white", "border-slate-200");
+      }
+    }
+
+    function bindFollowButtons() {
+      document.querySelectorAll(".follow-btn").forEach(btn => {
+        const id = btn.dataset.user;
+        setFollowBtnUI(btn, !!state.follows[id]);
+
+        btn.addEventListener("click", () => {
+          state.follows[id] = !state.follows[id];
+          setFollowBtnUI(btn, state.follows[id]);
+          if (currentStep === 10) renderSummary();
+        });
+      });
+    }
+
+    // -----------------------------
+    // Theme (boys/girls) - decorative only
+    // -----------------------------
+    function setTheme(version) {
+      state.identityVersion = version;
+
+      modal.classList.remove("theme-boys", "theme-girls");
+      modal.classList.add(version === "girls" ? "theme-girls" : "theme-boys");
+
+      // update decorative text/emojis
+      if (version === "girls") {
+        themeEmojis.textContent = "🎀✨💖";
+        themeHint.textContent = "الزخارف الحالية تعطي إحساس “لطف ولمعة” إيجابية.";
+        tabGirls.classList.add("is-selected");
+        tabBoys.classList.remove("is-selected");
+      } else {
+        themeEmojis.textContent = "⚔️🔥✨";
+        themeHint.textContent = "الزخارف الحالية تعطي إحساس “أكشن” لطيف.";
+        tabBoys.classList.add("is-selected");
+        tabGirls.classList.remove("is-selected");
+      }
+    }
+
+    tabBoys.addEventListener("click", () => setTheme("boys"));
+    tabGirls.addEventListener("click", () => setTheme("girls"));
+
+    // -----------------------------
+    // Step rendering
+    // -----------------------------
+    function updateStepperUI() {
+      const items = [...stepper.querySelectorAll("[data-step-jump]")];
+      items.forEach((btn, idx) => {
+        const stepNum = idx + 1;
+        btn.classList.remove("decor-gradient", "text-slate-900", "border-white/60");
+        btn.classList.remove("bg-white", "text-slate-600", "border-slate-200", "bg-slate-50");
+
+        if (stepNum === currentStep) {
+          btn.classList.add("decor-gradient", "text-slate-900", "border", "border-white/60");
+        } else if (stepNum < currentStep) {
+          btn.classList.add("bg-slate-50", "text-slate-700", "border", "border-slate-200");
+          btn.textContent = "✓";
+        } else {
+          btn.classList.add("bg-white", "text-slate-600", "border", "border-slate-200");
+          btn.textContent = String(stepNum);
+        }
+      });
+    }
+
+    function updateProgress() {
+      const pct = ((currentStep - 1) / (totalSteps - 1)) * 100;
+      progressBar.style.width = `${pct}%`;
+      stepCounter.textContent = `${currentStep}/${totalSteps}`;
+    }
+
+    function showStep(step, direction = "next") {
+      syncInputState();
+
+      const steps = document.querySelectorAll(".step");
+      steps.forEach(s => {
+        s.classList.remove("is-active", "enter-right", "enter-left");
+        s.style.display = "none";
+      });
+
+      const active = document.querySelector(`.step[data-step="${step}"]`);
+      if (!active) return;
+
+      active.style.display = "block";
+      active.classList.add("is-active");
+      active.classList.add(direction === "next" ? "enter-right" : "enter-left");
+
+      // Buttons logic (no validation / no blocking)
+      prevBtn.disabled = step === 1;
+      prevBtn.classList.toggle("opacity-50", step === 1);
+      prevBtn.classList.toggle("cursor-not-allowed", step === 1);
+
+      if (step === totalSteps) {
+        nextBtn.classList.add("hidden");
+        createBtn.classList.remove("hidden");
+      } else {
+        nextBtn.classList.remove("hidden");
+        createBtn.classList.add("hidden");
+      }
+
+      currentStep = step;
+      updateStepperUI();
+      updateProgress();
+
+      // Optional: update summary when arriving to step 10
+      if (currentStep === 10) renderSummary();
+
+      // Optional: update avatar text while leaving step 5
+      updateAvatarChoiceText();
+    }
+
+    // stepper jump (also no validation)
+    stepper.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-step-jump]");
+      if (!btn) return;
+      const target = Number(btn.dataset.stepJump);
+      if (!Number.isFinite(target)) return;
+      const direction = target > currentStep ? "next" : "prev";
+      showStep(target, direction);
+    });
+
+    prevBtn.addEventListener("click", () => {
+      if (currentStep <= 1) return;
+      showStep(currentStep - 1, "prev");
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (currentStep >= totalSteps) return;
+      showStep(currentStep + 1, "next");
+    });
+
+    createBtn.addEventListener("click", () => {
+      // Demo action: show a friendly success pulse
+      renderSummary();
+      createBtn.textContent = "تم! 🎉";
+      setTimeout(() => (createBtn.textContent = "إنشاء الحساب ✅"), 900);
+    });
+
+    // -----------------------------
+    // Avatar upload preview
+    // -----------------------------
+    function updateAvatarChoiceText() {
+      const parts = [];
+      if (state.avatarId) parts.push(`أفاتار SVG: ${state.avatarId.toUpperCase()}`);
+      if (state.avatarUpload) parts.push("صورة مرفوعة: نعم");
+      avatarChoiceText.textContent = parts.length ? parts.join(" • ") : "—";
+    }
+
+    avatarUpload.addEventListener("change", () => {
+      const file = avatarUpload.files && avatarUpload.files[0];
+      if (!file) {
+        state.avatarUpload = null;
+        uploadPreview.src = "";
+        uploadPreview.classList.add("hidden");
+        previewPlaceholder.classList.remove("hidden");
+        updateAvatarChoiceText();
+        if (currentStep === 10) renderSummary();
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.avatarUpload = String(reader.result || "");
+        uploadPreview.src = state.avatarUpload;
+        uploadPreview.classList.remove("hidden");
+        previewPlaceholder.classList.add("hidden");
+        updateAvatarChoiceText();
+        if (currentStep === 10) renderSummary();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // -----------------------------
+    // Summary
+    // -----------------------------
+    function chipsText(arr) {
+      if (!arr || !arr.length) return "—";
+      return arr.join("، ");
+    }
+
+    function followCount() {
+      return Object.values(state.follows).filter(Boolean).length;
+    }
+
+    function line(label, value) {
+      const v = (value === null || value === undefined || value === "") ? "—" : value;
+      return `
+        <div class="flex items-start gap-2">
+          <span class="mt-1 inline-block h-2 w-2 rounded-full bg-gradient-to-l from-cyan-400 via-yellow-300 to-pink-400"></span>
+          <div><span class="font-semibold">${label}:</span> <span class="text-slate-600">${v}</span></div>
+        </div>
+      `;
+    }
+
+    function renderSummary() {
+      syncInputState();
+      updateAvatarChoiceText();
+
+      const themeLabel = state.identityVersion === "girls" ? "نسخة للبنات" : "نسخة للأولاد";
+      const avatarLabel = state.avatarUpload
+        ? "صورة مرفوعة (معاينة)"
+        : (state.avatarId ? `أفاتار SVG (${state.avatarId.toUpperCase()})` : "—");
+
+      summaryEl.innerHTML =
+        line("نوع التجربة", state.experience) +
+        line("البريد", state.email ? "تم إدخاله" : "—") +
+        line("اسم العرض", state.displayName) +
+        line("الدولة / اللغة", `${state.country || "—"} / ${state.language || "—"}`) +
+        line("العمر", state.age) +
+        line("الهوية", `${themeLabel} • ستايل: ${state.characterStyle || "—"}`) +
+        line("الصورة الرمزية", avatarLabel) +
+        line("أنمي", `Genres: ${chipsText(state.animeGenres)} • مزاج: ${state.animeMood || "—"}`) +
+        line("كوميكس", `اهتمامات: ${chipsText(state.comicsInterests)} • الرئيسية: ${state.homeContent || "—"}`) +
+        line("متابعة", `${followCount()} حساب/حسابات`) +
+        line("السبويلر", `${state.spoilerLevel || "—"} • تفضيل المحتوى: ${state.contentPref || "—"}`);
+    }
+
+    // -----------------------------
+    // Close / Reopen
+    // -----------------------------
+    function closeModal() {
+      modal.classList.add("opacity-0", "scale-[0.99]");
+      modal.style.transition = "opacity 200ms ease, transform 200ms ease";
+      setTimeout(() => {
+        overlay.classList.add("hidden");
+        reopenBtn.classList.remove("hidden");
+      }, 200);
+    }
+
+    function openModal() {
+      overlay.classList.remove("hidden");
+      reopenBtn.classList.add("hidden");
+      modal.classList.remove("opacity-0", "scale-[0.99]");
+      modal.style.transition = "";
+    }
+
+    closeBtn.addEventListener("click", closeModal);
+    reopenBtn.addEventListener("click", openModal);
+
+    // -----------------------------
+    // Init
+    // -----------------------------
+    buildStepper();
+    bindOptions();
+    bindFollowButtons();
+
+    // keep state in sync while typing
+    emailInput?.addEventListener("input", () => { state.email = emailInput.value || ""; });
+    passInput?.addEventListener("input", () => { state.password = passInput.value || ""; });
+    displayNameInput?.addEventListener("input", () => { state.displayName = displayNameInput.value || ""; });
+
+    // initial theme + step
+    setTheme("boys");
+    showStep(1, "next");
+  </script>
+</body>
+</html>

@@ -1,0 +1,2317 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#050512" />
+  <title>Anime Opening UI — Create Account</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-t: env(safe-area-inset-top, 0px);
+      --glow: rgba(180, 120, 255, .55);
+      --glow2: rgba(80, 220, 255, .45);
+      --ink: #070712;
+      --card: rgba(14, 14, 28, .66);
+      --line: rgba(255,255,255,.10);
+      --txt: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.62);
+      --accent: #A78BFA;
+      --accent2:#22D3EE;
+      --ok: #34D399;
+      --bad:#FB7185;
+      --warn:#FBBF24;
+      --shadow: 0 20px 60px rgba(0,0,0,.65);
+      --blur: blur(12px);
+      --radius: 22px;
+    }
+
+    html,body{ height:100%; background: #000; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans Arabic", "Noto Sans", Arial, sans-serif;
+      color: var(--txt);
+      overscroll-behavior: none;
+      touch-action: pan-y;
+      background: radial-gradient(1200px 800px at 50% 20%, rgba(167,139,250,.12), transparent 55%),
+                  radial-gradient(900px 600px at 85% 55%, rgba(34,211,238,.10), transparent 60%),
+                  #02020a;
+    }
+    *{ -webkit-tap-highlight-color: transparent; }
+
+    /* ====== Layout Layers ====== */
+    #app{ position: relative; min-height:100vh; overflow:hidden; }
+    #scenes{ position:absolute; inset:0; z-index:0; }
+    .scene{
+      position:absolute; inset:0;
+      opacity:0; transform: scale(1.02);
+      transition: opacity .45s ease, transform .55s ease;
+      pointer-events:none;
+    }
+    .scene.is-active{ opacity:1; transform: scale(1); }
+    .scene .vignette{
+      position:absolute; inset:-1px;
+      background:
+        radial-gradient(900px 700px at 50% 10%, transparent 0 60%, rgba(0,0,0,.55) 82%, rgba(0,0,0,.82) 100%),
+        radial-gradient(900px 700px at 50% 120%, rgba(0,0,0,.78), transparent 55%);
+      pointer-events:none;
+    }
+
+    /* ====== Holographic Sticker Card ====== */
+    .holo{
+      position: relative;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(14,14,28,.78), rgba(10,10,18,.58));
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .holo:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(800px 600px at 20% 10%, rgba(167,139,250,.28), transparent 55%),
+        radial-gradient(900px 650px at 80% 25%, rgba(34,211,238,.22), transparent 52%),
+        linear-gradient(120deg, rgba(255,255,255,.10), transparent 35%, rgba(255,255,255,.06) 60%, transparent 85%);
+      mix-blend-mode: screen;
+      opacity:.75;
+      pointer-events:none;
+      filter: blur(.2px);
+    }
+    .holo:after{
+      content:"";
+      position:absolute; inset:-120% -120%;
+      background:
+        repeating-linear-gradient(135deg,
+          rgba(255,255,255,.10) 0 1px,
+          rgba(255,255,255,0) 1px 10px);
+      opacity:.12;
+      transform: rotate(8deg);
+      pointer-events:none;
+    }
+
+    .shimmer{
+      position:absolute; inset:-30% -60%;
+      background: linear-gradient(120deg, transparent 10%, rgba(255,255,255,.20) 22%, rgba(255,255,255,.08) 35%, transparent 55%);
+      transform: translateX(-30%) rotate(10deg);
+      opacity:.0;
+      pointer-events:none;
+    }
+    .holo:hover .shimmer,
+    .holo[data-shimmer="on"] .shimmer{
+      animation: shimmerSweep 1.25s ease forwards;
+    }
+    @keyframes shimmerSweep{
+      0%{ opacity:.0; transform: translateX(-40%) rotate(10deg); }
+      10%{ opacity:.55; }
+      100%{ opacity:0; transform: translateX(45%) rotate(10deg); }
+    }
+
+    /* ====== Inputs ====== */
+    .field{
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      padding: 12px 12px;
+      outline: none;
+      color: var(--txt);
+      width:100%;
+      transition: border-color .2s ease, background .2s ease, transform .2s ease;
+    }
+    .field:focus{
+      border-color: rgba(167,139,250,.55);
+      background: rgba(167,139,250,.06);
+      transform: translateY(-1px);
+    }
+    .label{
+      font-size: 12px; color: var(--muted);
+      letter-spacing: .2px;
+      margin-bottom: 6px;
+    }
+    .hint{ font-size:12px; color: rgba(255,255,255,.55); }
+
+    /* ====== Typography Rhythm ====== */
+    .title{
+      font-weight: 900;
+      letter-spacing: .3px;
+      line-height: 1.06;
+      text-shadow: 0 10px 26px rgba(0,0,0,.65);
+      background: linear-gradient(90deg, rgba(255,255,255,.95), rgba(167,139,250,.90), rgba(34,211,238,.85));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .subtitle{
+      color: rgba(255,255,255,.75);
+      line-height: 1.55;
+    }
+
+    /* ====== Step Dots ====== */
+    .dot{
+      width: 10px; height: 10px;
+      border-radius:999px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.06);
+      transition: transform .25s ease, background .25s ease, border-color .25s ease;
+    }
+    .dot.active{
+      background: rgba(167,139,250,.85);
+      border-color: rgba(167,139,250,.95);
+      transform: scale(1.25);
+      box-shadow: 0 0 0 6px rgba(167,139,250,.16);
+    }
+    .dot.done{
+      background: rgba(52,211,153,.85);
+      border-color: rgba(52,211,153,.95);
+      box-shadow: 0 0 0 6px rgba(52,211,153,.14);
+    }
+
+    /* ====== Bottom Action Bar ====== */
+    #actionBar{
+      position: fixed;
+      left:0; right:0; bottom:0;
+      z-index: 30;
+      padding-bottom: calc(12px + var(--safe-b));
+      padding-top: 10px;
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.45) 18%, rgba(0,0,0,.72));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .btn{
+      border-radius: 16px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--txt);
+      font-weight: 800;
+      letter-spacing: .2px;
+      transition: transform .12s ease, background .2s ease, border-color .2s ease, opacity .2s ease, filter .2s ease;
+      user-select:none;
+    }
+    .btn:active{ transform: scale(.98); }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(167,139,250,.95), rgba(34,211,238,.75));
+      border-color: rgba(255,255,255,.16);
+      color: #0a0a14;
+      filter: saturate(1.05);
+    }
+    .btn.primary:active{ transform: scale(.98) translateY(1px); }
+    .btn:disabled{ opacity:.45; filter: grayscale(.2); }
+
+    /* ====== Transition Layer ====== */
+    #transitionLayer{
+      position:absolute; inset:0;
+      z-index: 50;
+      pointer-events:none;
+      display:none;
+    }
+    #transitionLayer.is-on{ display:block; }
+    .speedlines{
+      position:absolute;
+      top:-10%; bottom:-10%;
+      width: 160%;
+      right:-30%;
+      transform: translateX(110%) skewX(-12deg);
+      opacity: 0;
+      background:
+        repeating-linear-gradient(135deg,
+          rgba(255,255,255,.0) 0 8px,
+          rgba(255,255,255,.18) 8px 10px,
+          rgba(255,255,255,.0) 10px 18px),
+        radial-gradient(500px 300px at 50% 40%, rgba(167,139,250,.35), transparent 60%),
+        radial-gradient(480px 320px at 55% 55%, rgba(34,211,238,.25), transparent 62%);
+      filter: blur(0.6px);
+      mix-blend-mode: screen;
+    }
+    .iris{
+      position:absolute; inset:0;
+      background: rgba(0,0,0,.92);
+      clip-path: circle(0% at 50% 50%);
+      opacity:1;
+    }
+    .motionBlurOut{ filter: blur(8px) saturate(1.05); transform: translateY(2px) scale(.995); }
+    .motionBlurIn{ filter: blur(2px) saturate(1.02); }
+
+    @keyframes speedWipeIn{
+      0%{ opacity:0; transform: translateX(var(--from,110%)) skewX(-12deg); }
+      20%{ opacity:.92; }
+      100%{ opacity:.0; transform: translateX(var(--to,-120%)) skewX(-12deg); }
+    }
+    @keyframes irisClose{
+      0%{ clip-path: circle(0% at 50% 50%); }
+      100%{ clip-path: circle(130% at 50% 50%); }
+    }
+    @keyframes irisOpen{
+      0%{ clip-path: circle(130% at 50% 50%); }
+      100%{ clip-path: circle(0% at 50% 50%); }
+    }
+
+    /* ====== Micro SFX ====== */
+    .spark{
+      position:absolute;
+      width: 6px; height: 6px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(167,139,250,.85) 45%, rgba(34,211,238,.15) 70%, transparent 75%);
+      box-shadow: 0 0 16px rgba(167,139,250,.55);
+      pointer-events:none;
+      filter: blur(.1px);
+      mix-blend-mode: screen;
+    }
+    .stamp{
+      position:absolute;
+      inset:auto 14px 14px auto;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: rgba(52,211,153,.12);
+      border: 1px solid rgba(52,211,153,.40);
+      color: rgba(220,255,242,.95);
+      font-weight: 900;
+      letter-spacing: .7px;
+      transform: rotate(8deg) scale(0.2);
+      opacity:0;
+      filter: blur(6px);
+      box-shadow: 0 16px 40px rgba(0,0,0,.55);
+    }
+    .stamp.is-on{
+      animation: stampPop .7s cubic-bezier(.2,.8,.2,1) forwards;
+    }
+    @keyframes stampPop{
+      0%{ opacity:0; transform: rotate(14deg) scale(2.6); filter: blur(10px); }
+      45%{ opacity:1; transform: rotate(6deg) scale(1.06); filter: blur(0px); }
+      65%{ transform: rotate(8deg) scale(.98); }
+      100%{ opacity:1; transform: rotate(8deg) scale(1); }
+    }
+
+    /* ====== Chips ====== */
+    .chip{
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      border-radius: 999px;
+      padding: 10px 12px;
+      font-weight: 800;
+      letter-spacing: .1px;
+      transition: transform .12s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+      user-select:none;
+      position:relative;
+      overflow:hidden;
+    }
+    .chip:active{ transform: scale(.98); }
+    .chip.is-on{
+      background: rgba(167,139,250,.16);
+      border-color: rgba(167,139,250,.46);
+      box-shadow: 0 0 0 6px rgba(167,139,250,.12);
+    }
+    .chip .chipSheen{
+      position:absolute; inset:-70% -60%;
+      background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.22) 52%, transparent 64%);
+      transform: translateX(-40%) rotate(12deg);
+      opacity:0;
+      pointer-events:none;
+    }
+    .chip.is-on .chipSheen{ animation: chipSheen .85s ease forwards; }
+    @keyframes chipSheen{
+      0%{ opacity:0; transform: translateX(-50%) rotate(12deg); }
+      15%{ opacity:.65; }
+      100%{ opacity:0; transform: translateX(55%) rotate(12deg); }
+    }
+
+    /* ====== Avatars ====== */
+    .avatarTile{
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      overflow:hidden;
+      position:relative;
+      transition: transform .15s ease, border-color .2s ease, box-shadow .2s ease;
+      user-select:none;
+    }
+    .avatarTile:active{ transform: scale(.99); }
+    .avatarTile.is-on{
+      border-color: rgba(34,211,238,.55);
+      box-shadow: 0 0 0 6px rgba(34,211,238,.14);
+    }
+    .avatarRing{
+      position:absolute; inset:10px;
+      border-radius: 18px;
+      border: 2px solid rgba(34,211,238,.0);
+      pointer-events:none;
+      transition: border-color .2s ease;
+    }
+    .avatarTile.is-on .avatarRing{
+      border-color: rgba(34,211,238,.65);
+      box-shadow: 0 0 26px rgba(34,211,238,.35);
+    }
+
+    /* ====== Tabs ====== */
+    .tab{
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 900;
+      letter-spacing: .1px;
+      color: rgba(255,255,255,.72);
+      transition: background .2s ease, border-color .2s ease, transform .12s ease, color .2s ease;
+      user-select:none;
+    }
+    .tab:active{ transform: scale(.98); }
+    .tab.is-on{
+      background: rgba(34,211,238,.14);
+      border-color: rgba(34,211,238,.44);
+      color: rgba(255,255,255,.92);
+      box-shadow: 0 0 0 6px rgba(34,211,238,.10);
+    }
+
+    /* ====== Reduced Motion ====== */
+    .reduce-motion *{
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+    .reduce-motion .speedlines{ display:none; }
+    .reduce-motion .iris{ opacity:0 !important; }
+
+    /* ====== Scene 1: Light Gate ====== */
+    #scene-1 .mesh{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(800px 520px at 30% 20%, rgba(167,139,250,.35), transparent 62%),
+        radial-gradient(900px 700px at 70% 35%, rgba(34,211,238,.25), transparent 60%),
+        radial-gradient(700px 620px at 50% 80%, rgba(255,255,255,.08), transparent 62%),
+        conic-gradient(from 210deg at 50% 40%, rgba(167,139,250,.10), rgba(34,211,238,.10), rgba(255,255,255,.06), rgba(167,139,250,.10));
+      filter: saturate(1.2);
+    }
+    #scene-1 .gate{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(520px 520px at 50% 40%, rgba(255,255,255,.10), transparent 60%),
+        radial-gradient(520px 520px at 50% 40%, rgba(34,211,238,.20), transparent 70%),
+        radial-gradient(820px 680px at 50% 45%, rgba(167,139,250,.20), transparent 62%),
+        radial-gradient(900px 720px at 50% 45%, transparent 0 58%, rgba(0,0,0,.40) 72%, rgba(0,0,0,.75) 100%);
+      mix-blend-mode: screen;
+    }
+    #scene-1 .glints{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(2px 2px at 12% 18%, rgba(255,255,255,.85), transparent 60%),
+        radial-gradient(2px 2px at 75% 28%, rgba(255,255,255,.65), transparent 60%),
+        radial-gradient(3px 3px at 48% 14%, rgba(255,255,255,.75), transparent 60%),
+        radial-gradient(2px 2px at 62% 62%, rgba(255,255,255,.55), transparent 60%),
+        radial-gradient(2px 2px at 32% 66%, rgba(255,255,255,.65), transparent 60%);
+      opacity:.65;
+      animation: glintDrift 7s ease-in-out infinite;
+      filter: blur(.15px);
+    }
+    @keyframes glintDrift{
+      0%,100%{ transform: translate3d(0,0,0); opacity:.55; }
+      50%{ transform: translate3d(0,-10px,0); opacity:.85; }
+    }
+
+    /* ====== Scene 2: Night City ====== */
+    #scene-2 .sky{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(900px 520px at 70% 15%, rgba(34,211,238,.15), transparent 60%),
+        radial-gradient(900px 720px at 30% 30%, rgba(167,139,250,.14), transparent 62%),
+        linear-gradient(180deg, rgba(10,10,25,1), rgba(2,2,12,1));
+    }
+    #scene-2 .cityWrap{
+      position:absolute; inset:0;
+      display:flex; align-items:flex-end; justify-content:center;
+    }
+    #scene-2 svg{ width: 120%; max-width: 860px; height:auto; opacity:.95; filter: drop-shadow(0 30px 50px rgba(0,0,0,.75)); }
+    .win{ opacity: .18; }
+    .win.flick{ animation: winFlicker 1.35s steps(2,end) infinite; }
+    @keyframes winFlicker{
+      0%,100%{ opacity:.15; }
+      50%{ opacity:.65; }
+    }
+    .neonLine{
+      stroke: rgba(34,211,238,.35);
+      filter: drop-shadow(0 0 10px rgba(34,211,238,.25));
+      opacity:.35;
+      animation: neonPulse 2.8s ease-in-out infinite;
+    }
+    @keyframes neonPulse{
+      0%,100%{ opacity:.25; }
+      50%{ opacity:.55; }
+    }
+
+    /* ====== Scene 3: Avatar Lab ====== */
+    #scene-3 .labBg{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(900px 650px at 50% 30%, rgba(34,211,238,.14), transparent 60%),
+        radial-gradient(900px 720px at 25% 65%, rgba(167,139,250,.14), transparent 62%),
+        linear-gradient(180deg, rgba(3,5,18,1), rgba(2,2,10,1));
+    }
+    #scene-3 .hud{
+      position:absolute; inset:0;
+      opacity:.9;
+    }
+    #scene-3 .hud .ringA{ animation: spin 14s linear infinite; transform-origin: 50% 50%; }
+    #scene-3 .hud .ringB{ animation: spinR 18s linear infinite; transform-origin: 50% 50%; }
+    #scene-3 .hud .ringC{ animation: spin 24s linear infinite; transform-origin: 50% 50%; }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+    @keyframes spinR{ to{ transform: rotate(-360deg); } }
+    #scene-3 .sweep{
+      position:absolute; inset:-40% -40%;
+      background: linear-gradient(120deg, transparent 40%, rgba(34,211,238,.18) 52%, transparent 64%);
+      transform: translateX(-40%) rotate(10deg);
+      opacity:.0;
+      animation: sweep 3.2s ease-in-out infinite;
+      mix-blend-mode: screen;
+    }
+    @keyframes sweep{
+      0%{ opacity:0; transform: translateX(-45%) rotate(10deg); }
+      20%{ opacity:.35; }
+      60%{ opacity:.18; }
+      100%{ opacity:0; transform: translateX(55%) rotate(10deg); }
+    }
+
+    /* ====== Scene 4: Social Stage ====== */
+    #scene-4 .stage{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(900px 650px at 50% 20%, rgba(255,255,255,.08), transparent 62%),
+        radial-gradient(900px 650px at 20% 45%, rgba(167,139,250,.12), transparent 62%),
+        radial-gradient(900px 650px at 80% 45%, rgba(34,211,238,.10), transparent 62%),
+        linear-gradient(180deg, rgba(8,6,18,1), rgba(2,2,12,1));
+    }
+    #scene-4 .floatCard{
+      position:absolute;
+      width: 180px; height: 120px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 20px 60px rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      overflow:hidden;
+      transform-style: preserve-3d;
+      animation: floaty 6s ease-in-out infinite;
+      opacity:.65;
+    }
+    #scene-4 .floatCard:before{
+      content:"";
+      position:absolute; inset:-40% -60%;
+      background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.18) 52%, transparent 64%);
+      transform: translateX(-40%) rotate(8deg);
+      opacity:.0;
+      animation: sheen 3.6s ease-in-out infinite;
+    }
+    @keyframes floaty{
+      0%,100%{ transform: translate3d(0,0,0) rotate(-1deg); }
+      50%{ transform: translate3d(0,-18px,0) rotate(1deg); }
+    }
+    @keyframes sheen{
+      0%{ opacity:0; transform: translateX(-45%) rotate(8deg); }
+      20%{ opacity:.35; }
+      100%{ opacity:0; transform: translateX(55%) rotate(8deg); }
+    }
+
+    /* ====== Scene 5: Interest Galaxy ====== */
+    #scene-5 .space{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(900px 720px at 45% 30%, rgba(167,139,250,.16), transparent 60%),
+        radial-gradient(900px 720px at 70% 50%, rgba(34,211,238,.12), transparent 62%),
+        linear-gradient(180deg, rgba(4,4,16,1), rgba(1,1,10,1));
+    }
+    #scene-5 .orbits{
+      position:absolute; inset:0;
+      opacity:.9;
+      pointer-events:none;
+    }
+    .orbit{
+      position:absolute;
+      left:50%; top:45%;
+      width: 360px; height: 360px;
+      margin-left:-180px; margin-top:-180px;
+      border-radius: 999px;
+      border: 1px dashed rgba(255,255,255,.10);
+      filter: drop-shadow(0 0 18px rgba(167,139,250,.15));
+      animation: spin 22s linear infinite;
+    }
+    .orbit.o2{ width: 520px; height: 520px; margin-left:-260px; margin-top:-260px; animation-duration: 34s; opacity:.65; }
+    .orbit.o3{ width: 700px; height: 700px; margin-left:-350px; margin-top:-350px; animation-duration: 48s; opacity:.45; }
+    .orbitChip{
+      position:absolute;
+      left: 50%;
+      top: -10px;
+      transform: translateX(-50%);
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: .2px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 18px 40px rgba(0,0,0,.55);
+    }
+
+    /* ====== Settings Sheet ====== */
+    #sheet{
+      position: fixed;
+      inset:auto 12px calc(84px + var(--safe-b)) 12px;
+      z-index: 35;
+      display:none;
+    }
+    #sheet.is-on{ display:block; }
+    #sheet .sheetCard{
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(10,10,18,.72);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow:hidden;
+    }
+    .switch{
+      width: 52px; height: 32px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      position:relative;
+      transition: background .2s ease, border-color .2s ease;
+      flex: 0 0 auto;
+    }
+    .switch .knob{
+      position:absolute; top:4px; right:4px;
+      width: 24px; height: 24px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.88);
+      transition: transform .2s ease;
+      box-shadow: 0 10px 22px rgba(0,0,0,.45);
+    }
+    .switch.is-on{
+      background: rgba(52,211,153,.16);
+      border-color: rgba(52,211,153,.35);
+    }
+    .switch.is-on .knob{ transform: translateX(-20px); }
+
+    /* ====== Success Burst ====== */
+    .burst{
+      position:absolute;
+      inset:-10% -10%;
+      background:
+        conic-gradient(from 180deg at 50% 50%,
+          rgba(255,255,255,.0) 0deg,
+          rgba(167,139,250,.24) 28deg,
+          rgba(34,211,238,.18) 55deg,
+          rgba(255,255,255,.0) 80deg,
+          rgba(167,139,250,.22) 120deg,
+          rgba(34,211,238,.18) 160deg,
+          rgba(255,255,255,.0) 200deg,
+          rgba(167,139,250,.20) 260deg,
+          rgba(34,211,238,.16) 320deg,
+          rgba(255,255,255,.0) 360deg);
+      mix-blend-mode: screen;
+      opacity:.0;
+      transform: scale(.9);
+      pointer-events:none;
+    }
+    .burst.is-on{ animation: burstIn 1.1s ease forwards; }
+    @keyframes burstIn{
+      0%{ opacity:0; transform: scale(.75) rotate(-10deg); filter: blur(8px); }
+      40%{ opacity:.65; filter: blur(0px); }
+      100%{ opacity:.20; transform: scale(1.05) rotate(8deg); }
+    }
+
+    /* ====== Canvas crisp ====== */
+    canvas{ display:block; width:100%; height:100%; }
+
+    /* ====== Utility: prevent scroll jump with fixed bar ====== */
+    .pad-bottom-bar{ padding-bottom: calc(118px + var(--safe-b)); }
+  </style>
+</head>
+
+<body>
+  <div id="app" class="relative">
+    <!-- Scenes -->
+    <div id="scenes" aria-hidden="true">
+      <!-- Step 1: Light Gate -->
+      <section id="scene-1" class="scene">
+        <div class="mesh"></div>
+        <canvas id="starsCanvas" class="absolute inset-0 opacity-90"></canvas>
+        <div class="gate"></div>
+        <div class="glints"></div>
+        <div class="vignette"></div>
+      </section>
+
+      <!-- Step 2: Night City -->
+      <section id="scene-2" class="scene">
+        <div class="sky"></div>
+        <canvas id="cityStarsCanvas" class="absolute inset-0 opacity-60"></canvas>
+        <div class="cityWrap">
+          <svg viewBox="0 0 1200 520" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bldg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="rgba(20,20,40,1)"/>
+                <stop offset="1" stop-color="rgba(6,6,18,1)"/>
+              </linearGradient>
+              <linearGradient id="neon" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="rgba(34,211,238,.0)"/>
+                <stop offset=".5" stop-color="rgba(34,211,238,.7)"/>
+                <stop offset="1" stop-color="rgba(34,211,238,.0)"/>
+              </linearGradient>
+            </defs>
+
+            <!-- far skyline -->
+            <g opacity=".92">
+              <path d="M0 400 L90 380 L140 410 L210 360 L310 405 L370 350 L470 410 L540 360 L650 420 L760 370 L870 420 L940 360 L1030 420 L1100 380 L1200 400 L1200 520 L0 520 Z" fill="url(#bldg)"/>
+            </g>
+
+            <!-- main buildings -->
+            <g id="buildings" fill="url(#bldg)">
+              <path d="M60 520 V280 L150 250 V520 Z"/>
+              <path d="M170 520 V220 L260 200 V520 Z"/>
+              <path d="M280 520 V260 L365 240 V520 Z"/>
+              <path d="M390 520 V180 L500 150 V520 Z"/>
+              <path d="M520 520 V240 L610 220 V520 Z"/>
+              <path d="M630 520 V210 L740 190 V520 Z"/>
+              <path d="M760 520 V260 L845 245 V520 Z"/>
+              <path d="M870 520 V170 L980 140 V520 Z"/>
+              <path d="M1000 520 V230 L1140 200 V520 Z"/>
+            </g>
+
+            <!-- neon rail -->
+            <path d="M40 420 C180 390, 330 410, 480 385 C640 360, 820 420, 1160 360" fill="none" stroke="url(#neon)" stroke-width="3" class="neonLine"/>
+            <path d="M60 450 C210 430, 360 450, 520 430 C700 405, 840 470, 1140 410" fill="none" stroke="url(#neon)" stroke-width="2" class="neonLine" opacity=".25"/>
+
+            <!-- windows container -->
+            <g id="windows"></g>
+          </svg>
+        </div>
+        <div class="vignette"></div>
+      </section>
+
+      <!-- Step 3: Avatar Lab -->
+      <section id="scene-3" class="scene">
+        <div class="labBg"></div>
+        <div class="sweep"></div>
+        <svg class="hud absolute inset-0" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="hudGlow" cx="50%" cy="50%" r="60%">
+              <stop offset="0" stop-color="rgba(34,211,238,.18)"/>
+              <stop offset="1" stop-color="rgba(34,211,238,0)"/>
+            </radialGradient>
+          </defs>
+          <g opacity=".95">
+            <circle cx="500" cy="500" r="320" fill="url(#hudGlow)"/>
+          </g>
+          <g class="ringA" fill="none" stroke="rgba(34,211,238,.28)" stroke-width="2">
+            <circle cx="500" cy="500" r="260" stroke-dasharray="22 14"/>
+            <circle cx="500" cy="500" r="220" stroke-dasharray="8 10"/>
+          </g>
+          <g class="ringB" fill="none" stroke="rgba(167,139,250,.24)" stroke-width="2">
+            <circle cx="500" cy="500" r="340" stroke-dasharray="14 18"/>
+            <circle cx="500" cy="500" r="160" stroke-dasharray="6 12"/>
+          </g>
+          <g class="ringC" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="2">
+            <circle cx="500" cy="500" r="410" stroke-dasharray="4 14"/>
+          </g>
+          <g opacity=".65" stroke="rgba(255,255,255,.10)" stroke-width="1">
+            <path d="M120 510 H880"/>
+            <path d="M500 120 V880"/>
+            <path d="M210 210 L790 790"/>
+            <path d="M790 210 L210 790"/>
+          </g>
+        </svg>
+        <div class="vignette"></div>
+      </section>
+
+      <!-- Step 4: Social Stage -->
+      <section id="scene-4" class="scene">
+        <div class="stage"></div>
+        <canvas id="confettiCanvas" class="absolute inset-0 opacity-80"></canvas>
+        <div class="floatCard" style="right: 8%; top: 18%; animation-delay: .2s;"></div>
+        <div class="floatCard" style="left: 10%; top: 28%; width: 160px; height: 110px; opacity:.5; animation-delay: 1.1s;"></div>
+        <div class="floatCard" style="right: 14%; top: 55%; width: 210px; height: 140px; opacity:.55; animation-delay: .75s;"></div>
+        <div class="floatCard" style="left: 16%; top: 62%; width: 190px; height: 130px; opacity:.45; animation-delay: 1.65s;"></div>
+        <div class="vignette"></div>
+      </section>
+
+      <!-- Step 5: Interest Galaxy -->
+      <section id="scene-5" class="scene">
+        <div class="space"></div>
+        <canvas id="galaxyCanvas" class="absolute inset-0 opacity-90"></canvas>
+        <div class="orbits">
+          <div class="orbit o1"><div class="orbitChip">شونين</div></div>
+          <div class="orbit o2"><div class="orbitChip">مانغا</div></div>
+          <div class="orbit o3"><div class="orbitChip">كوميكس</div></div>
+        </div>
+        <div class="vignette"></div>
+      </section>
+    </div>
+
+    <!-- Transition Layer -->
+    <div id="transitionLayer" aria-hidden="true">
+      <div id="speedlines" class="speedlines"></div>
+      <div id="iris" class="iris"></div>
+    </div>
+
+    <!-- Settings Sheet -->
+    <div id="sheet">
+      <div class="sheetCard p-4">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <div class="text-sm font-black tracking-wide">الإعدادات</div>
+            <div class="text-xs text-white/60 mt-1">احترام تفضيل تقليل الحركة + زر يدوي</div>
+          </div>
+          <button id="closeSheet" class="btn px-3 py-2 text-xs">إغلاق</button>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between gap-3">
+          <div>
+            <div class="text-sm font-extrabold">تقليل الأنيميشن</div>
+            <div class="text-xs text-white/60 mt-1">يوقف المؤثرات الثقيلة ويُبقي التجربة سريعة.</div>
+          </div>
+          <button id="motionSwitch" class="switch" type="button" aria-label="toggle reduced motion">
+            <span class="knob"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UI Layer -->
+    <main id="ui" class="relative z-10 min-h-screen pad-bottom-bar">
+      <!-- Top Bar -->
+      <header class="px-4 pt-[calc(14px+var(--safe-t))] pb-3">
+        <div class="max-w-xl mx-auto flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center shadow-[0_18px_40px_rgba(0,0,0,.35)]">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 2l2.2 6.8h7.1l-5.75 4.2 2.2 6.8L12 15.6 6.25 19.8l2.2-6.8L2.7 8.8h7.1L12 2z" stroke="rgba(255,255,255,.85)" stroke-width="1.4" opacity=".9"/>
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-black tracking-wide">NOVA • مجتمع أنمي/كوميكس</div>
+              <div id="sceneLabel" class="text-xs text-white/60 mt-1">Opening — بوابة الضوء</div>
+            </div>
+          </div>
+
+          <button id="openSheet" class="btn px-3 py-2 text-xs flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
+              <path d="M19.4 15a8.2 8.2 0 0 0 .05-6l2-1.2-2-3.5-2.3.9a8.2 8.2 0 0 0-5.2-3L11.6 0H7.5l-.3 2.2a8.2 8.2 0 0 0-5.1 3L-.2 4.3l-2 3.5 2 1.2a8.2 8.2 0 0 0 0 6l-2 1.2 2 3.5 2.3-.9a8.2 8.2 0 0 0 5.1 3l.3 2.2h4.1l.3-2.2a8.2 8.2 0 0 0 5.2-3l2.3.9 2-3.5-2-1.2z" stroke="rgba(255,255,255,.35)" stroke-width="1.2" opacity=".9"/>
+            </svg>
+            <span>إعدادات</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Center Card -->
+      <section class="px-4">
+        <div class="max-w-xl mx-auto">
+          <div class="holo p-5 sm:p-6">
+            <div class="shimmer"></div>
+
+            <!-- Stepper -->
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <div>
+                <div id="stepTitle" class="title text-2xl sm:text-3xl">أنشئ حسابك</div>
+                <div id="stepSubtitle" class="subtitle text-sm mt-2">مشهد ١ — التفاصيل الأساسية</div>
+              </div>
+              <div class="flex items-center gap-2" aria-label="progress">
+                <span class="dot active" data-dot="1"></span>
+                <span class="dot" data-dot="2"></span>
+                <span class="dot" data-dot="3"></span>
+                <span class="dot" data-dot="4"></span>
+                <span class="dot" data-dot="5"></span>
+              </div>
+            </div>
+
+            <!-- Panels -->
+            <div id="panels" class="relative">
+              <!-- Step 1 -->
+              <section class="panel" data-step="1">
+                <div class="grid gap-3">
+                  <div>
+                    <div class="label">الاسم</div>
+                    <input id="name" class="field" placeholder="مثال: لوفّي" autocomplete="name" />
+                  </div>
+
+                  <div>
+                    <div class="label">البريد</div>
+                    <input id="email" class="field" placeholder="name@example.com" autocomplete="email" inputmode="email" />
+                  </div>
+
+                  <div>
+                    <div class="label">كلمة المرور</div>
+                    <div class="flex gap-2">
+                      <div class="flex-1 relative">
+                        <input id="password" class="field pr-12" type="password" placeholder="••••••••" autocomplete="new-password" />
+                        <button id="togglePass" type="button" class="absolute left-2 top-1/2 -translate-y-1/2 btn px-3 py-2 text-xs">
+                          إظهار
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="mt-3">
+                      <div class="flex items-center justify-between text-xs">
+                        <span class="text-white/70 font-extrabold">قوة كلمة المرور</span>
+                        <span id="passLabel" class="text-white/60">—</span>
+                      </div>
+                      <div class="mt-2 h-2 rounded-full bg-white/10 overflow-hidden border border-white/10">
+                        <div id="passBar" class="h-full w-0 rounded-full" style="background: linear-gradient(90deg, rgba(251,113,133,.9), rgba(251,191,36,.9), rgba(52,211,153,.9)); transition: width .25s ease;"></div>
+                      </div>
+                      <div id="passHint" class="hint mt-2">استخدم ٨+ أحرف مع رموز/أرقام لتوهج أقوى.</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-1 text-xs text-white/55">
+                    <span class="font-extrabold text-white/70">ملاحظة:</span> يمكنك السحب يمين/يسار للتنقل.
+                  </div>
+                </div>
+              </section>
+
+              <!-- Step 2 -->
+              <section class="panel hidden" data-step="2">
+                <div class="grid gap-3">
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <div class="label">الدولة</div>
+                      <select id="country" class="field">
+                        <option value="">اختر</option>
+                        <option>فلسطين</option>
+                        <option>مصر</option>
+                        <option>السعودية</option>
+                        <option>الإمارات</option>
+                        <option>الأردن</option>
+                        <option>المغرب</option>
+                        <option>تونس</option>
+                        <option>الجزائر</option>
+                        <option>العراق</option>
+                        <option>لبنان</option>
+                        <option>أخرى</option>
+                      </select>
+                    </div>
+                    <div>
+                      <div class="label">المدينة</div>
+                      <input id="city" class="field" placeholder="مثال: القدس" autocomplete="address-level2" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="label">نبذة قصيرة</div>
+                    <textarea id="bio" class="field" rows="3" placeholder="سطرين… ذوقك الأنمي، كوميكس، مانغا…"></textarea>
+                    <div class="hint mt-2">اجعلها بسيطة — مثل لقطة Opening.</div>
+                  </div>
+
+                  <div>
+                    <div class="label">Username (فريد)</div>
+                    <div class="relative">
+                      <input id="username" class="field pl-12" placeholder="مثال: dev_luffy" autocomplete="username" />
+                      <div id="userStatusDot" class="absolute right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white/20"></div>
+                      <div id="userStatus" class="mt-2 text-xs text-white/60">اكتب اسم مستخدم…</div>
+                    </div>
+                    <div class="hint mt-1">حروف إنجليزية/أرقام/underscore فقط.</div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Step 3 -->
+              <section class="panel hidden" data-step="3">
+                <div class="grid gap-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="text-sm font-black">Avatar Lab</div>
+                      <div class="text-xs text-white/60 mt-1">اختر نمطًا تجريديًا أو ارفع صورة.</div>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl border border-white/10 bg-white/5 overflow-hidden relative">
+                      <img id="avatarPreview" alt="preview" class="w-full h-full object-cover hidden" />
+                      <div id="avatarFallback" class="absolute inset-0 flex items-center justify-center text-xs text-white/50 font-extrabold">
+                        معاينة
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="label">رفع صورة</div>
+                    <input id="avatarUpload" class="field" type="file" accept="image/*" />
+                    <div class="hint mt-2">لا صور محمية — فقط اختيارك.</div>
+                  </div>
+
+                  <div>
+                    <div class="label">أو اختر من الشبكة</div>
+                    <div id="avatarGrid" class="grid grid-cols-4 gap-3"></div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Step 4 -->
+              <section class="panel hidden" data-step="4">
+                <div class="grid gap-4">
+                  <div class="flex items-end justify-between gap-3">
+                    <div>
+                      <div class="text-sm font-black">Social Stage</div>
+                      <div class="text-xs text-white/60 mt-1">تابع صُنّاع (Mock) لتبدأ الخوارزمية.</div>
+                    </div>
+                    <div class="flex gap-2">
+                      <button class="tab is-on" data-tab="trending" type="button">ترند</button>
+                      <button class="tab" data-tab="new" type="button">جدد</button>
+                      <button class="tab" data-tab="creators" type="button">صُنّاع</button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="label">بحث</div>
+                    <input id="followSearch" class="field" placeholder="اكتب اسمًا…" />
+                  </div>
+
+                  <div id="followList" class="grid gap-2"></div>
+                </div>
+              </section>
+
+              <!-- Step 5 -->
+              <section class="panel hidden" data-step="5">
+                <div class="grid gap-4">
+                  <div class="flex items-end justify-between gap-3">
+                    <div>
+                      <div class="text-sm font-black">Interest Galaxy</div>
+                      <div class="text-xs text-white/60 mt-1">اختر اهتماماتك… وفعّل الشرارات.</div>
+                    </div>
+                    <div class="text-xs text-white/60">
+                      اكتمال الملف: <span id="completionPct" class="font-black text-white/80">0%</span>
+                    </div>
+                  </div>
+
+                  <div class="h-2 rounded-full bg-white/10 overflow-hidden border border-white/10">
+                    <div id="completionBar" class="h-full w-0 rounded-full" style="background: linear-gradient(90deg, rgba(34,211,238,.85), rgba(167,139,250,.85)); transition: width .25s ease;"></div>
+                  </div>
+
+                  <div>
+                    <div class="label">تصنيفات</div>
+                    <div id="categoryTabs" class="flex flex-wrap gap-2"></div>
+                  </div>
+
+                  <div>
+                    <div class="label">اهتمامات (Multiple)</div>
+                    <div id="interestChips" class="flex flex-wrap gap-2"></div>
+                  </div>
+
+                  <div>
+                    <div class="flex items-center justify-between">
+                      <div class="label">مستوى الهوس</div>
+                      <div id="obsessionLabel" class="text-xs text-white/70 font-black">6/10</div>
+                    </div>
+                    <input id="obsession" type="range" min="1" max="10" value="6" class="w-full mt-2 accent-white" />
+                    <div class="hint mt-2">من “هادئ” إلى “أعيش في المجرة”.</div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Success -->
+              <section class="panel hidden" data-step="success">
+                <div class="relative">
+                  <div id="successBurst" class="burst"></div>
+
+                  <div class="text-center">
+                    <div class="title text-3xl sm:text-4xl">Account Created!</div>
+                    <div class="subtitle text-sm mt-2">أهلاً بك في NOVA — حيث الـ Opening لا ينتهي.</div>
+                  </div>
+
+                  <div class="mt-5 holo p-4" data-shimmer="on">
+                    <div class="shimmer"></div>
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <div class="text-xs text-white/60 font-bold">Profile Card</div>
+                        <div id="sumName" class="text-lg font-black mt-1">—</div>
+                        <div id="sumUser" class="text-sm text-white/70 font-extrabold mt-1">—</div>
+                      </div>
+                      <div class="w-14 h-14 rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+                        <img id="sumAvatar" class="w-full h-full object-cover hidden" alt="avatar"/>
+                        <div id="sumAvatarFallback" class="w-full h-full flex items-center justify-center text-xs text-white/50 font-extrabold">NOVA</div>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
+                      <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+                        <div class="text-xs text-white/60 font-bold">الموقع</div>
+                        <div id="sumLoc" class="font-extrabold mt-1">—</div>
+                      </div>
+                      <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+                        <div class="text-xs text-white/60 font-bold">الهوس</div>
+                        <div id="sumObs" class="font-extrabold mt-1">—</div>
+                      </div>
+                      <div class="rounded-2xl border border-white/10 bg-white/5 p-3 col-span-2">
+                        <div class="text-xs text-white/60 font-bold">اهتمامات</div>
+                        <div id="sumInterests" class="font-extrabold mt-1 leading-relaxed">—</div>
+                      </div>
+                      <div class="rounded-2xl border border-white/10 bg-white/5 p-3 col-span-2">
+                        <div class="text-xs text-white/60 font-bold">تابعت</div>
+                        <div id="sumFollows" class="font-extrabold mt-1">—</div>
+                      </div>
+                    </div>
+
+                    <div class="stamp" id="successStamp">✓ تم</div>
+                  </div>
+
+                  <button id="goLogin" class="btn primary w-full mt-4">دخول</button>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <div class="mt-3 text-center text-xs text-white/45">
+            تلميح: الضغط السريع على البطاقة يعطي لمعان — مثل لقطة Screen flare.
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Action Bar -->
+    <div id="actionBar">
+      <div class="max-w-xl mx-auto px-4">
+        <div class="flex items-center gap-3">
+          <button id="backBtn" class="btn w-1/3" disabled>رجوع</button>
+          <button id="nextBtn" class="btn primary w-2/3" disabled>التالي</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      // ====== State ======
+      const $ = (sel, root=document) => root.querySelector(sel);
+      const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const storedReduce = localStorage.getItem('nova_reduce_motion');
+      const reduceMotion = {
+        value: storedReduce === null ? prefersReduced : storedReduce === '1'
+      };
+
+      const SCENE_META = {
+        1: { label: 'Opening — بوابة الضوء', sub: 'مشهد ١ — التفاصيل الأساسية', title: 'أنشئ حسابك' },
+        2: { label: 'Opening — مدينة الليل', sub: 'مشهد ٢ — معلومات عامة', title: 'هوية المدينة' },
+        3: { label: 'Opening — Avatar Lab', sub: 'مشهد ٣ — المختبر', title: 'اصنع صورتك' },
+        4: { label: 'Opening — Social Stage', sub: 'مشهد ٤ — المتابعة', title: 'ادخل المسرح' },
+        5: { label: 'Opening — مجرة الاهتمامات', sub: 'مشهد ٥ — اختياراتك', title: 'اضبط المجرة' },
+        success: { label: 'Opening — النهاية اللامعة', sub: 'تم الإنشاء', title: 'جاهز!' }
+      };
+
+      const state = {
+        step: 1,
+        lock: false,
+        data: {
+          name: '',
+          email: '',
+          password: '',
+          country: '',
+          city: '',
+          bio: '',
+          username: '',
+          usernameStatus: 'idle', // idle|checking|ok|taken|invalid|error
+          avatar: { kind: 'none', svgId: null, dataUrl: null },
+          follows: new Set(),
+          followTab: 'trending',
+          followSearch: '',
+          interests: new Set(),
+          category: 'أنمي',
+          obsession: 6
+        }
+      };
+
+      // ====== Elements ======
+      const ui = $('#ui');
+      const panels = $$('#panels .panel');
+      const backBtn = $('#backBtn');
+      const nextBtn = $('#nextBtn');
+      const sceneLabel = $('#sceneLabel');
+      const stepTitle = $('#stepTitle');
+      const stepSubtitle = $('#stepSubtitle');
+      const transitionLayer = $('#transitionLayer');
+      const speedlines = $('#speedlines');
+      const iris = $('#iris');
+
+      // Step 1
+      const nameEl = $('#name');
+      const emailEl = $('#email');
+      const passEl = $('#password');
+      const togglePass = $('#togglePass');
+      const passBar = $('#passBar');
+      const passLabel = $('#passLabel');
+      const passHint = $('#passHint');
+
+      // Step 2
+      const countryEl = $('#country');
+      const cityEl = $('#city');
+      const bioEl = $('#bio');
+      const usernameEl = $('#username');
+      const userStatus = $('#userStatus');
+      const userStatusDot = $('#userStatusDot');
+
+      // Step 3
+      const avatarUpload = $('#avatarUpload');
+      const avatarGrid = $('#avatarGrid');
+      const avatarPreview = $('#avatarPreview');
+      const avatarFallback = $('#avatarFallback');
+
+      // Step 4
+      const followSearch = $('#followSearch');
+      const followList = $('#followList');
+
+      // Step 5
+      const categoryTabs = $('#categoryTabs');
+      const interestChips = $('#interestChips');
+      const obsession = $('#obsession');
+      const obsessionLabel = $('#obsessionLabel');
+      const completionPct = $('#completionPct');
+      const completionBar = $('#completionBar');
+
+      // Success
+      const successBurst = $('#successBurst');
+      const successStamp = $('#successStamp');
+      const sumName = $('#sumName');
+      const sumUser = $('#sumUser');
+      const sumAvatar = $('#sumAvatar');
+      const sumAvatarFallback = $('#sumAvatarFallback');
+      const sumLoc = $('#sumLoc');
+      const sumObs = $('#sumObs');
+      const sumInterests = $('#sumInterests');
+      const sumFollows = $('#sumFollows');
+      const goLogin = $('#goLogin');
+
+      // Settings
+      const sheet = $('#sheet');
+      const openSheet = $('#openSheet');
+      const closeSheet = $('#closeSheet');
+      const motionSwitch = $('#motionSwitch');
+
+      // Scenes
+      const scenes = {
+        1: $('#scene-1'),
+        2: $('#scene-2'),
+        3: $('#scene-3'),
+        4: $('#scene-4'),
+        5: $('#scene-5')
+      };
+
+      // ====== Apply reduced motion ======
+      function applyReducedMotion(on){
+        reduceMotion.value = !!on;
+        localStorage.setItem('nova_reduce_motion', on ? '1' : '0');
+        document.documentElement.classList.toggle('reduce-motion', !!on);
+        motionSwitch.classList.toggle('is-on', !!on);
+      }
+      applyReducedMotion(reduceMotion.value);
+
+      openSheet.addEventListener('click', () => sheet.classList.add('is-on'));
+      closeSheet.addEventListener('click', () => sheet.classList.remove('is-on'));
+      sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.classList.remove('is-on'); });
+      motionSwitch.addEventListener('click', () => applyReducedMotion(!reduceMotion.value));
+
+      // ====== City windows generation + flicker ======
+      function genWindows(){
+        const winG = $('#windows');
+        winG.innerHTML = '';
+        const buildings = [
+          { x: 75,  yTop: 270, w: 60, h: 250, cols: 4, rows: 12 },
+          { x: 190, yTop: 215, w: 55, h: 305, cols: 4, rows: 14 },
+          { x: 300, yTop: 255, w: 55, h: 265, cols: 4, rows: 12 },
+          { x: 415, yTop: 175, w: 70, h: 345, cols: 5, rows: 16 },
+          { x: 535, yTop: 235, w: 55, h: 285, cols: 4, rows: 13 },
+          { x: 655, yTop: 205, w: 70, h: 315, cols: 5, rows: 14 },
+          { x: 775, yTop: 255, w: 55, h: 265, cols: 4, rows: 12 },
+          { x: 890, yTop: 165, w: 70, h: 355, cols: 5, rows: 16 },
+          { x: 1020,yTop: 225, w: 95, h: 295, cols: 6, rows: 13 },
+        ];
+        const colors = [
+          'rgba(34,211,238,.75)',
+          'rgba(167,139,250,.78)',
+          'rgba(255,255,255,.75)',
+          'rgba(251,191,36,.75)'
+        ];
+        let id = 0;
+        for (const b of buildings){
+          const padX = 8, padY = 12;
+          const cellW = (b.w - padX*2)/b.cols;
+          const cellH = (b.h - padY*2)/b.rows;
+          for (let r=0; r<b.rows; r++){
+            for (let c=0; c<b.cols; c++){
+              if (Math.random() < 0.15) continue;
+              const x = b.x + padX + c*cellW + (Math.random()*1.2);
+              const y = b.yTop + padY + r*cellH + (Math.random()*1.2);
+              const w = Math.max(4, cellW*0.5);
+              const h = Math.max(6, cellH*0.55);
+              const col = colors[(id + r + c) % colors.length];
+              const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+              rect.setAttribute('x', x.toFixed(1));
+              rect.setAttribute('y', y.toFixed(1));
+              rect.setAttribute('width', w.toFixed(1));
+              rect.setAttribute('height', h.toFixed(1));
+              rect.setAttribute('rx', '1.2');
+              rect.setAttribute('fill', col);
+              rect.classList.add('win');
+              if (Math.random() < 0.22) rect.classList.add('flick');
+              rect.dataset.win = String(id++);
+              winG.appendChild(rect);
+            }
+          }
+        }
+      }
+      genWindows();
+      setInterval(() => {
+        // random flick toggle
+        const wins = $$('#windows .win');
+        for (let i=0;i<10;i++){
+          const w = wins[(Math.random()*wins.length)|0];
+          if (!w) continue;
+          if (Math.random() < 0.5) w.classList.toggle('flick');
+          w.style.opacity = (0.10 + Math.random()*0.65).toFixed(2);
+        }
+      }, 700);
+
+      // ====== Avatar SVG set ======
+      function avatarSVG(id){
+        const palettes = [
+          { a:'#A78BFA', b:'#22D3EE', c:'#FBBF24' },
+          { a:'#22D3EE', b:'#34D399', c:'#FB7185' },
+          { a:'#FB7185', b:'#A78BFA', c:'#22D3EE' },
+          { a:'#FBBF24', b:'#A78BFA', c:'#34D399' },
+        ];
+        const p = palettes[id % palettes.length];
+        const seed = (id+1)*97;
+        const r1 = 18 + (seed % 14);
+        const r2 = 12 + ((seed>>2) % 10);
+        const r3 = 9 + ((seed>>3) % 9);
+
+        return `
+          <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <radialGradient id="g${id}" cx="35%" cy="30%" r="70%">
+                <stop offset="0" stop-color="${p.b}" stop-opacity=".85"/>
+                <stop offset=".7" stop-color="${p.a}" stop-opacity=".55"/>
+                <stop offset="1" stop-color="#0b0b18" stop-opacity="1"/>
+              </radialGradient>
+              <linearGradient id="l${id}" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="${p.c}" stop-opacity=".7"/>
+                <stop offset="1" stop-color="${p.b}" stop-opacity=".4"/>
+              </linearGradient>
+            </defs>
+            <rect x="0" y="0" width="120" height="120" rx="22" fill="rgba(255,255,255,.04)"/>
+            <circle cx="60" cy="58" r="44" fill="url(#g${id})" opacity=".95"/>
+            <path d="M18 72 C28 60, 42 66, 50 58 C58 50, 76 46, 92 54 C104 60, 104 84, 90 92 C74 102, 46 104, 30 92 C22 86, 18 80, 18 72Z"
+                  fill="url(#l${id})" opacity=".65"/>
+            <circle cx="52" cy="54" r="${r2}" fill="rgba(255,255,255,.16)"/>
+            <circle cx="70" cy="68" r="${r3}" fill="rgba(34,211,238,.16)"/>
+            <path d="M30 28 L92 28" stroke="rgba(255,255,255,.14)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M28 92 L92 92" stroke="rgba(255,255,255,.10)" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="60" cy="60" r="${r1}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="2" stroke-dasharray="6 9"/>
+          </svg>
+        `;
+      }
+      function buildAvatarGrid(){
+        avatarGrid.innerHTML = '';
+        for (let i=0;i<8;i++){
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'avatarTile aspect-square p-2';
+          btn.dataset.avatar = String(i);
+          btn.innerHTML = `<div class="avatarRing"></div>${avatarSVG(i)}`;
+          btn.addEventListener('click', () => {
+            state.data.avatar.kind = 'svg';
+            state.data.avatar.svgId = i;
+            state.data.avatar.dataUrl = null;
+            $$('.avatarTile', avatarGrid).forEach(t => t.classList.toggle('is-on', t === btn));
+            setAvatarPreviewFromState();
+            pulseCardShimmer();
+            maybeEnableNext();
+          });
+          avatarGrid.appendChild(btn);
+        }
+      }
+      buildAvatarGrid();
+
+      function setAvatarPreviewFromState(){
+        const a = state.data.avatar;
+        if (a.kind === 'upload' && a.dataUrl){
+          avatarPreview.src = a.dataUrl;
+          avatarPreview.classList.remove('hidden');
+          avatarFallback.classList.add('hidden');
+          return;
+        }
+        if (a.kind === 'svg' && a.svgId != null){
+          const svg = avatarSVG(a.svgId);
+          const data = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+          avatarPreview.src = data;
+          avatarPreview.classList.remove('hidden');
+          avatarFallback.classList.add('hidden');
+          return;
+        }
+        avatarPreview.classList.add('hidden');
+        avatarFallback.classList.remove('hidden');
+      }
+
+      avatarUpload.addEventListener('change', () => {
+        const f = avatarUpload.files && avatarUpload.files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          state.data.avatar.kind = 'upload';
+          state.data.avatar.dataUrl = String(reader.result || '');
+          state.data.avatar.svgId = null;
+          $$('.avatarTile', avatarGrid).forEach(t => t.classList.remove('is-on'));
+          setAvatarPreviewFromState();
+          spawnSparkleBurst(avatarUpload);
+          pulseCardShimmer();
+          maybeEnableNext();
+        };
+        reader.readAsDataURL(f);
+      });
+
+      // ====== Follow mock data ======
+      const followPeople = [
+        { id:'kaito', name:'Kaito Neon', tag:'مراجع أنمي', group:'trending' },
+        { id:'mira', name:'Mira Panels', tag:'رسامة كوميكس', group:'creators' },
+        { id:'sora', name:'Sora Cut', tag:'مونتاج Opening', group:'trending' },
+        { id:'hana', name:'Hana Ink', tag:'مانغا / حبر', group:'creators' },
+        { id:'zen', name:'Zen Frame', tag:'تحليل حلقات', group:'new' },
+        { id:'nova', name:'Nova Studio', tag:'فن تجريدي', group:'trending' },
+        { id:'rin', name:'Rin Chroma', tag:'ألوان نيون', group:'new' },
+        { id:'yuki', name:'Yuki Lore', tag:'قصص وكونيات', group:'trending' },
+        { id:'aria', name:'Aria Glint', tag:'موسيقى تخيلية', group:'new' },
+        { id:'noir', name:'Noir City', tag:'ستايل مدينة', group:'creators' }
+      ];
+
+      function personBadge(seed){
+        const k = seed.charCodeAt(0) % 4;
+        const styles = [
+          'background: radial-gradient(circle at 30% 30%, rgba(34,211,238,.55), rgba(167,139,250,.25) 55%, rgba(0,0,0,.4) 80%);',
+          'background: radial-gradient(circle at 30% 30%, rgba(167,139,250,.55), rgba(251,191,36,.22) 55%, rgba(0,0,0,.4) 80%);',
+          'background: radial-gradient(circle at 30% 30%, rgba(52,211,153,.55), rgba(34,211,238,.22) 55%, rgba(0,0,0,.4) 80%);',
+          'background: radial-gradient(circle at 30% 30%, rgba(251,113,133,.55), rgba(167,139,250,.22) 55%, rgba(0,0,0,.4) 80%);'
+        ];
+        return styles[k];
+      }
+
+      function renderFollowList(){
+        const tab = state.data.followTab;
+        const q = (state.data.followSearch || '').trim().toLowerCase();
+        const filtered = followPeople.filter(p => (tab ? p.group===tab : true))
+          .filter(p => !q || p.name.toLowerCase().includes(q) || p.tag.toLowerCase().includes(q));
+
+        followList.innerHTML = '';
+        for (const p of filtered){
+          const row = document.createElement('div');
+          row.className = 'rounded-2xl border border-white/10 bg-white/5 p-3 flex items-center justify-between gap-3';
+          const followed = state.data.follows.has(p.id);
+          row.innerHTML = `
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-11 h-11 rounded-2xl border border-white/10 overflow-hidden" style="${personBadge(p.id)}"></div>
+              <div class="min-w-0">
+                <div class="font-black truncate">${p.name}</div>
+                <div class="text-xs text-white/60 truncate">${p.tag}</div>
+              </div>
+            </div>
+            <button type="button" class="btn ${followed ? '' : 'primary'} px-3 py-2 text-xs" data-follow="${p.id}">
+              ${followed ? 'Following' : 'Follow'}
+            </button>
+          `;
+          const btn = $('button[data-follow]', row);
+          btn.addEventListener('click', () => {
+            const isOn = state.data.follows.has(p.id);
+            if (isOn) state.data.follows.delete(p.id);
+            else state.data.follows.add(p.id);
+
+            // Micro confetti burst (visual only)
+            fireConfettiBurst();
+            pulseCardShimmer();
+            renderFollowList();
+            maybeEnableNext();
+          });
+          followList.appendChild(row);
+        }
+
+        if (!filtered.length){
+          followList.innerHTML = `
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+              لا نتائج… جرّب كلمة أخرى ✨
+            </div>
+          `;
+        }
+      }
+
+      $$('.tab').forEach(t => t.addEventListener('click', () => {
+        $$('.tab').forEach(x => x.classList.remove('is-on'));
+        t.classList.add('is-on');
+        state.data.followTab = t.dataset.tab;
+        renderFollowList();
+        spawnSparkleBurst(t);
+      }));
+
+      followSearch.addEventListener('input', () => {
+        state.data.followSearch = followSearch.value;
+        renderFollowList();
+      });
+
+      // ====== Interests data ======
+      const interestData = {
+        'أنمي': ['شونين','سينين','إيسيكاي','ميكا','سلايس أوف لايف','رعب','موسيقى','رياضة','غموض','رومانسي'],
+        'مانغا': ['فصول أسبوعية','كوميكس-ستايل','فن الحبر','لوحات سريعة','صفحات مزدوجة','خلفيات','شخصيات أصلية','تلوين'],
+        'كوميكس': ['أبطال','خيال علمي','سوبر-ناتشرال','قصص قصيرة','سلاسل طويلة','مغامرات','ساخر','نوير'],
+        'تصميم': ['UI Motion','تايبوجرافي','ألوان نيون','هود/HUD','بارالاكس','ملصقات','شعارات','أيقونات']
+      };
+
+      function renderCategories(){
+        categoryTabs.innerHTML = '';
+        Object.keys(interestData).forEach(cat => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'tab ' + (state.data.category===cat ? 'is-on' : '');
+          b.textContent = cat;
+          b.addEventListener('click', () => {
+            state.data.category = cat;
+            renderCategories();
+            renderChips();
+            pulseCardShimmer();
+          });
+          categoryTabs.appendChild(b);
+        });
+      }
+
+      function renderChips(){
+        const cat = state.data.category;
+        const items = interestData[cat] || [];
+        interestChips.innerHTML = '';
+        for (const it of items){
+          const on = state.data.interests.has(it);
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'chip text-sm ' + (on ? 'is-on' : '');
+          b.innerHTML = `<span class="chipSheen"></span>${it}`;
+          b.addEventListener('click', () => {
+            if (state.data.interests.has(it)) state.data.interests.delete(it);
+            else state.data.interests.add(it);
+            b.classList.toggle('is-on');
+            spawnSparkleBurst(b);
+            updateCompletion();
+            maybeEnableNext();
+          });
+          interestChips.appendChild(b);
+        }
+      }
+
+      obsession.addEventListener('input', () => {
+        state.data.obsession = Number(obsession.value || 6);
+        obsessionLabel.textContent = `${state.data.obsession}/10`;
+        updateCompletion();
+      });
+
+      function updateCompletion(){
+        // Very simple completion score
+        let score = 0, total = 10;
+        if (state.data.name.trim()) score++;
+        if (isValidEmail(state.data.email)) score++;
+        if (passwordScore(state.data.password).score >= 2) score++;
+        if (state.data.country) score++;
+        if (state.data.city.trim()) score++;
+        if (state.data.bio.trim().length >= 10) score++;
+        if (state.data.usernameStatus === 'ok') score++;
+        if (state.data.avatar.kind !== 'none') score++;
+        if (state.data.follows.size >= 1) score++;
+        if (state.data.interests.size >= 3) score++;
+
+        const pct = Math.round((score/total)*100);
+        completionPct.textContent = pct + '%';
+        completionBar.style.width = pct + '%';
+      }
+
+      // ====== Step 1 logic ======
+      togglePass.addEventListener('click', () => {
+        const isPass = passEl.type === 'password';
+        passEl.type = isPass ? 'text' : 'password';
+        togglePass.textContent = isPass ? 'إخفاء' : 'إظهار';
+        spawnSparkleBurst(togglePass);
+      });
+
+      function isValidEmail(v){
+        v = (v || '').trim();
+        if (!v) return false;
+        return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(v);
+      }
+
+      function passwordScore(pw){
+        pw = pw || '';
+        let score = 0;
+        const len = pw.length;
+        const hasLower = /[a-z]/.test(pw);
+        const hasUpper = /[A-Z]/.test(pw);
+        const hasNum = /\d/.test(pw);
+        const hasSym = /[^a-zA-Z0-9]/.test(pw);
+        const variety = [hasLower,hasUpper,hasNum,hasSym].filter(Boolean).length;
+
+        if (len >= 8) score++;
+        if (len >= 12) score++;
+        if (variety >= 2) score++;
+        if (variety >= 3) score++;
+        if (/^(password|123456|qwerty|111111|000000)$/i.test(pw)) score = 0;
+        if (/(.)\1{2,}/.test(pw) && score>0) score--;
+
+        score = Math.max(0, Math.min(4, score));
+        const labels = ['ضعيفة','مقبولة','جيدة','قوية','أسطورية'];
+        const width = [8, 28, 55, 78, 100][score];
+        return { score, label: labels[score], width };
+      }
+
+      function syncStep1(){
+        state.data.name = nameEl.value || '';
+        state.data.email = emailEl.value || '';
+        state.data.password = passEl.value || '';
+
+        const s = passwordScore(state.data.password);
+        passBar.style.width = s.width + '%';
+        passLabel.textContent = s.label;
+        passHint.textContent =
+          s.score <= 1 ? 'زِد الطول + رمز/رقم — لتخرج من الظلال.'
+        : s.score === 2 ? 'جيد… الآن أضف تنوعًا (Upper/رمز).'
+        : s.score === 3 ? 'قوية… تقريبًا لقطات نهائية.'
+        : 'أسطورية — شعاع Opening كامل.';
+
+        maybeEnableNext();
+      }
+      [nameEl, emailEl, passEl].forEach(el => el.addEventListener('input', syncStep1));
+
+      // ====== Step 2: Username async check ======
+      const takenSet = new Set(['admin','root','support','nova','kaito','mira','sora','hana','zen','yuki','aria','noir','dev','test','user']);
+      let usernameReqId = 0;
+
+      function setUserStatus(kind){
+        state.data.usernameStatus = kind;
+        const map = {
+          idle: { t:'اكتب اسم مستخدم…', c:'bg-white/20' },
+          checking: { t:'جاري التحقق…', c:'bg-white/30' },
+          ok: { t:'متاح ✓', c:'bg-emerald-400' },
+          taken: { t:'محجوز ✕', c:'bg-rose-400' },
+          invalid: { t:'غير صالح (حروف/أرقام/underscore، 3+)', c:'bg-amber-400' },
+          error: { t:'خطأ مؤقت… أعد المحاولة', c:'bg-amber-400' }
+        };
+        userStatus.textContent = map[kind].t;
+        userStatusDot.className = 'absolute right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full ' + map[kind].c;
+        maybeEnableNext();
+      }
+
+      function isUsernameValid(u){
+        u = (u || '').trim();
+        if (u.length < 3) return false;
+        if (u.length > 20) return false;
+        return /^[a-z0-9_]+$/i.test(u);
+      }
+      function isUsernameAvailable(u){
+        const k = u.toLowerCase();
+        return !takenSet.has(k);
+      }
+      function simulatedNetworkDelay(){
+        return 600 + Math.random()*900;
+      }
+
+      let usernameDebounce = null;
+      usernameEl.addEventListener('input', () => {
+        state.data.username = usernameEl.value || '';
+        clearTimeout(usernameDebounce);
+        usernameDebounce = setTimeout(() => checkUsernameAsync(state.data.username), 300);
+      });
+      usernameEl.addEventListener('blur', () => checkUsernameAsync(usernameEl.value || ''));
+
+      async function checkUsernameAsync(v){
+        v = (v || '').trim();
+        state.data.username = v;
+        if (!v){
+          setUserStatus('idle');
+          return;
+        }
+        if (!isUsernameValid(v)){
+          setUserStatus('invalid');
+          return;
+        }
+        const myId = ++usernameReqId;
+        setUserStatus('checking');
+
+        await new Promise(r => setTimeout(r, simulatedNetworkDelay()));
+        if (myId !== usernameReqId) return;
+
+        if (Math.random() < 0.08){
+          setUserStatus('error');
+          return;
+        }
+
+        if (isUsernameAvailable(v)){
+          setUserStatus('ok');
+          // tiny sparkle for success
+          spawnSparkleBurst(usernameEl);
+        } else {
+          setUserStatus('taken');
+        }
+      }
+
+      function syncStep2(){
+        state.data.country = countryEl.value || '';
+        state.data.city = cityEl.value || '';
+        state.data.bio = bioEl.value || '';
+        // username sync handled by input listener
+        maybeEnableNext();
+      }
+      [countryEl, cityEl, bioEl].forEach(el => el.addEventListener('input', syncStep2));
+      countryEl.addEventListener('change', syncStep2);
+
+      // ====== Validation per step ======
+      function canProceed(step){
+        const d = state.data;
+        if (step === 1){
+          const pw = passwordScore(d.password);
+          return d.name.trim().length >= 2 && isValidEmail(d.email) && pw.score >= 2;
+        }
+        if (step === 2){
+          return d.country && d.city.trim().length >= 2 && d.bio.trim().length >= 10 && d.usernameStatus === 'ok';
+        }
+        if (step === 3){
+          return d.avatar.kind !== 'none';
+        }
+        if (step === 4){
+          return d.follows.size >= 1;
+        }
+        if (step === 5){
+          return d.interests.size >= 3;
+        }
+        return true;
+      }
+
+      function maybeEnableNext(){
+        const s = state.step;
+        backBtn.disabled = state.lock || !(s !== 1 && s !== 'success');
+        if (s === 'success'){
+          nextBtn.disabled = true;
+          return;
+        }
+        const label = s === 5 ? 'إنشاء الحساب' : 'التالي';
+        nextBtn.textContent = label;
+        nextBtn.disabled = state.lock || !canProceed(s);
+        updateDots();
+        if (s === 5) updateCompletion();
+      }
+
+      function updateDots(){
+        const s = state.step;
+        const n = typeof s === 'number' ? s : 5;
+        $$('[data-dot]').forEach(dot => {
+          const k = Number(dot.dataset.dot);
+          dot.classList.toggle('active', k === n && state.step !== 'success');
+          dot.classList.toggle('done', k < n || state.step === 'success');
+        });
+      }
+
+      // ====== Panels + Scenes ======
+      function setSceneActive(step){
+        Object.values(scenes).forEach(sc => sc.classList.remove('is-active'));
+        if (typeof step === 'number' && scenes[step]) scenes[step].classList.add('is-active');
+      }
+
+      function showPanel(step){
+        panels.forEach(p => p.classList.add('hidden'));
+        const target = panels.find(p => p.dataset.step === String(step));
+        if (target) target.classList.remove('hidden');
+
+        // copy meta
+        const meta = SCENE_META[step] || SCENE_META[1];
+        sceneLabel.textContent = meta.label;
+        stepTitle.textContent = meta.title;
+        stepSubtitle.textContent = meta.sub;
+
+        // shimmer on entry
+        pulseCardShimmer();
+
+        // step-specific refresh
+        if (step === 4) renderFollowList();
+        if (step === 5){ renderCategories(); renderChips(); updateCompletion(); }
+
+        // success visuals
+        if (step === 'success'){
+          successBurst.classList.remove('is-on');
+          void successBurst.offsetWidth;
+          successBurst.classList.add('is-on');
+
+          successStamp.classList.remove('is-on');
+          void successStamp.offsetWidth;
+          successStamp.classList.add('is-on');
+        }
+      }
+
+      // ====== Transition ======
+      async function transitionTo(nextStep){
+        if (state.lock) return;
+        const prev = state.step;
+        if (prev === nextStep) return;
+
+        state.lock = true;
+        maybeEnableNext();
+
+        const direction = computeDirection(prev, nextStep);
+        const from = direction === 'forward' ? '110%' : '-110%';
+        const to = direction === 'forward' ? '-120%' : '120%';
+
+        if (reduceMotion.value){
+          // no cinematic transition
+          state.step = nextStep;
+          setSceneActive(typeof nextStep === 'number' ? nextStep : 5);
+          showPanel(nextStep);
+          state.lock = false;
+          maybeEnableNext();
+          return;
+        }
+
+        transitionLayer.classList.add('is-on');
+        speedlines.style.setProperty('--from', from);
+        speedlines.style.setProperty('--to', to);
+
+        // blur out current UI
+        ui.classList.add('motionBlurOut');
+
+        // Phase 1: close iris + wipe
+        speedlines.style.animation = 'none';
+        iris.style.animation = 'none';
+        void speedlines.offsetWidth;
+
+        speedlines.style.animation = 'speedWipeIn .55s ease forwards';
+        iris.style.animation = 'irisClose .42s ease forwards';
+
+        await sleep(240);
+
+        // Swap step mid-flight
+        state.step = nextStep;
+        setSceneActive(typeof nextStep === 'number' ? nextStep : 5);
+        showPanel(nextStep);
+
+        // Phase 2: open iris
+        ui.classList.remove('motionBlurOut');
+        ui.classList.add('motionBlurIn');
+        iris.style.animation = 'irisOpen .52s ease forwards';
+
+        await sleep(560);
+
+        ui.classList.remove('motionBlurIn');
+        transitionLayer.classList.remove('is-on');
+        iris.style.animation = 'none';
+        speedlines.style.animation = 'none';
+
+        state.lock = false;
+        maybeEnableNext();
+      }
+
+      function computeDirection(prev, next){
+        const a = typeof prev === 'number' ? prev : 6;
+        const b = typeof next === 'number' ? next : 6;
+        return b > a ? 'forward' : 'back';
+      }
+
+      function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+      // ====== Navigation buttons ======
+      backBtn.addEventListener('click', () => {
+        if (state.step === 1 || state.step === 'success') return;
+        transitionTo(state.step - 1);
+      });
+
+      nextBtn.addEventListener('click', async () => {
+        if (state.step === 'success') return;
+        if (!canProceed(state.step)) { pulseCardShimmer(); return; }
+        if (state.step < 5){
+          transitionTo(state.step + 1);
+        } else {
+          // Create account
+          await createAccount();
+        }
+      });
+
+      async function createAccount(){
+        state.lock = true;
+        maybeEnableNext();
+
+        // tiny "processing" vibe without text spam
+        pulseCardShimmer();
+        fireConfettiBurst();
+        spawnSparkleBurst(nextBtn);
+
+        await sleep(reduceMotion.value ? 200 : 700);
+
+        // Fill summary
+        sumName.textContent = state.data.name.trim() || '—';
+        sumUser.textContent = '@' + (state.data.username.trim() || '—');
+        const loc = [state.data.country, state.data.city].filter(Boolean).join(' • ');
+        sumLoc.textContent = loc || '—';
+        sumObs.textContent = `${state.data.obsession}/10`;
+        sumInterests.textContent = state.data.interests.size ? Array.from(state.data.interests).slice(0, 12).join(' • ') : '—';
+
+        const follows = Array.from(state.data.follows).map(id => followPeople.find(p => p.id===id)?.name || id);
+        sumFollows.textContent = follows.length ? follows.join(' • ') : '—';
+
+        if (state.data.avatar.kind === 'upload' && state.data.avatar.dataUrl){
+          sumAvatar.src = state.data.avatar.dataUrl;
+          sumAvatar.classList.remove('hidden');
+          sumAvatarFallback.classList.add('hidden');
+        } else if (state.data.avatar.kind === 'svg' && state.data.avatar.svgId != null){
+          const svg = avatarSVG(state.data.avatar.svgId);
+          sumAvatar.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+          sumAvatar.classList.remove('hidden');
+          sumAvatarFallback.classList.add('hidden');
+        } else {
+          sumAvatar.classList.add('hidden');
+          sumAvatarFallback.classList.remove('hidden');
+        }
+
+        state.lock = false;
+        await transitionTo('success');
+      }
+
+      goLogin.addEventListener('click', () => {
+        spawnSparkleBurst(goLogin);
+        pulseCardShimmer();
+        // mock "login" action:
+        goLogin.textContent = 'تم — (Mock دخول)';
+        goLogin.disabled = true;
+      });
+
+      // ====== Swipe gestures ======
+      let tStartX=0, tStartY=0, tMoveX=0, tMoveY=0, swiping=false, lockScroll=false;
+      ui.addEventListener('touchstart', (e) => {
+        if (state.lock) return;
+        const t = e.touches[0];
+        tStartX = t.clientX; tStartY = t.clientY;
+        tMoveX = tStartX; tMoveY = tStartY;
+        swiping = true; lockScroll = false;
+      }, { passive: true });
+
+      ui.addEventListener('touchmove', (e) => {
+        if (!swiping) return;
+        const t = e.touches[0];
+        tMoveX = t.clientX; tMoveY = t.clientY;
+        const dx = tMoveX - tStartX;
+        const dy = tMoveY - tStartY;
+        if (!lockScroll){
+          if (Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 1.2){
+            lockScroll = true;
+          }
+        }
+        if (lockScroll){
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      ui.addEventListener('touchend', async () => {
+        if (!swiping) return;
+        swiping = false;
+        const dx = tMoveX - tStartX;
+        const dy = tMoveY - tStartY;
+        if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+
+        // RTL: swipe right means "forward"? We'll keep intuitive: swipe left => next, swipe right => back.
+        if (dx < 0){
+          // next
+          if (state.step !== 'success' && canProceed(state.step)){
+            if (state.step < 5) transitionTo(state.step + 1);
+            else createAccount();
+          } else {
+            pulseCardShimmer();
+          }
+        } else {
+          // back
+          if (typeof state.step === 'number' && state.step > 1) transitionTo(state.step - 1);
+        }
+      }, { passive: true });
+
+      // ====== Micro SFX helpers ======
+      function spawnSparkleBurst(anchorEl){
+        const rect = anchorEl.getBoundingClientRect();
+        const cx = rect.left + rect.width/2;
+        const cy = rect.top + rect.height/2;
+
+        const n = reduceMotion.value ? 6 : 14;
+        for (let i=0;i<n;i++){
+          const s = document.createElement('div');
+          s.className = 'spark';
+          const angle = Math.random()*Math.PI*2;
+          const dist = 12 + Math.random()*28;
+          const x = cx + Math.cos(angle)*dist;
+          const y = cy + Math.sin(angle)*dist;
+          s.style.left = x + 'px';
+          s.style.top = y + 'px';
+          s.style.opacity = '0';
+          document.body.appendChild(s);
+
+          const dx = Math.cos(angle) * (18 + Math.random()*36);
+          const dy = Math.sin(angle) * (18 + Math.random()*36);
+          const dur = reduceMotion.value ? 180 : 520;
+          s.animate([
+            { transform: 'translate(0px,0px) scale(.7)', opacity: 0 },
+            { transform: 'translate('+(dx*0.35)+'px,'+(dy*0.35)+'px) scale(1)', opacity: .95, offset: 0.35 },
+            { transform: 'translate('+dx+'px,'+dy+'px) scale(.7)', opacity: 0 }
+          ], { duration: dur, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' });
+
+          setTimeout(() => s.remove(), dur+40);
+        }
+      }
+
+      function pulseCardShimmer(){
+        const card = $('.holo');
+        if (!card) return;
+        card.dataset.shimmer = 'on';
+        setTimeout(() => { card.dataset.shimmer = 'off'; }, reduceMotion.value ? 60 : 520);
+      }
+
+      // ====== Confetti micro (canvas) ======
+      const confetti = {
+        canvas: $('#confettiCanvas'),
+        ctx: null,
+        w: 0, h: 0,
+        parts: [],
+        last: 0
+      };
+      function resizeCanvas(c){
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        const r = c.getBoundingClientRect();
+        c.width = Math.round(r.width * dpr);
+        c.height = Math.round(r.height * dpr);
+        return dpr;
+      }
+      function initConfetti(){
+        confetti.ctx = confetti.canvas.getContext('2d');
+        resizeCanvas(confetti.canvas);
+      }
+      function fireConfettiBurst(){
+        if (state.step !== 4) return;
+        if (!confetti.ctx) initConfetti();
+        const c = confetti.canvas;
+        const dpr = (c.width / c.getBoundingClientRect().width) || 1;
+        const x = (c.width * (0.5 + (Math.random()*0.12 - 0.06)));
+        const y = (c.height * (0.35 + (Math.random()*0.12 - 0.06)));
+        const count = reduceMotion.value ? 20 : 45;
+        for (let i=0;i<count;i++){
+          confetti.parts.push({
+            x, y,
+            vx: (Math.random()*2-1) * (2.2*dpr),
+            vy: (-2.5 - Math.random()*2.0) * dpr,
+            g: (0.08 + Math.random()*0.05) * dpr,
+            s: (2 + Math.random()*3.5) * dpr,
+            a: 1,
+            r: Math.random()*Math.PI*2,
+            vr: (Math.random()*0.2 - 0.1),
+          });
+        }
+      }
+      function tickConfetti(ts){
+        if (!confetti.ctx) return;
+        const ctx = confetti.ctx;
+        const c = confetti.canvas;
+        const rect = c.getBoundingClientRect();
+        const dpr = (c.width / rect.width) || 1;
+
+        if (confetti.w !== c.width || confetti.h !== c.height){
+          confetti.w = c.width; confetti.h = c.height;
+        }
+
+        ctx.clearRect(0,0,c.width,c.height);
+        const parts = confetti.parts;
+        for (let i=parts.length-1;i>=0;i--){
+          const p = parts[i];
+          p.vy += p.g;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.r += p.vr;
+          p.a *= 0.985;
+
+          if (p.y > c.height + 20*dpr || p.a < 0.03){
+            parts.splice(i,1);
+            continue;
+          }
+
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, p.a);
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.r);
+          // colorful but computed (no fixed palette)
+          const hue = (ts*0.03 + i*13) % 360;
+          ctx.fillStyle = `hsla(${hue}, 90%, 70%, ${Math.min(1,p.a)})`;
+          ctx.fillRect(-p.s/2, -p.s/2, p.s, p.s*0.6);
+          ctx.restore();
+        }
+      }
+
+      // ====== Starfields + Galaxy (canvas) ======
+      function makeStarSystem(canvas, options){
+        const ctx = canvas.getContext('2d');
+        const stars = [];
+        let w=0,h=0,dpr=1;
+
+        function resize(){
+          dpr = resizeCanvas(canvas);
+          w = canvas.width; h = canvas.height;
+          stars.length = 0;
+          const count = options.count || 120;
+          for (let i=0;i<count;i++){
+            stars.push({
+              x: Math.random()*w,
+              y: Math.random()*h,
+              r: (0.6 + Math.random()*1.6) * dpr,
+              s: (0.07 + Math.random()*0.22) * dpr,
+              a: 0.22 + Math.random()*0.65,
+              tw: Math.random()*Math.PI*2,
+            });
+          }
+        }
+
+        function draw(ts){
+          if (!w || !h) return;
+          ctx.clearRect(0,0,w,h);
+          const t = ts*0.001;
+          for (const st of stars){
+            st.y += st.s;
+            st.x += (Math.sin(t + st.tw) * 0.06 * dpr);
+            if (st.y > h + 10*dpr) st.y = -10*dpr;
+            const tw = 0.55 + 0.45*Math.sin(t*0.8 + st.tw);
+            ctx.globalAlpha = Math.min(1, st.a*tw);
+            ctx.fillStyle = 'rgba(255,255,255,1)';
+            ctx.beginPath();
+            ctx.arc(st.x, st.y, st.r, 0, Math.PI*2);
+            ctx.fill();
+          }
+        }
+
+        resize();
+        window.addEventListener('resize', resize);
+        return { draw, resize };
+      }
+
+      const stars1 = makeStarSystem($('#starsCanvas'), { count: 150 });
+      const stars2 = makeStarSystem($('#cityStarsCanvas'), { count: 120 });
+
+      // Galaxy system (particles + constellation lines)
+      function makeGalaxy(canvas){
+        const ctx = canvas.getContext('2d');
+        let w=0,h=0,dpr=1;
+        const pts = [];
+        const maxPts = 90;
+
+        function resize(){
+          dpr = resizeCanvas(canvas);
+          w = canvas.width; h = canvas.height;
+          pts.length = 0;
+          const cx = w*0.5, cy = h*0.45;
+          for (let i=0;i<maxPts;i++){
+            const ang = Math.random()*Math.PI*2;
+            const rad = (Math.random()**0.55) * Math.min(w,h) * 0.42;
+            pts.push({
+              x: cx + Math.cos(ang)*rad,
+              y: cy + Math.sin(ang)*rad,
+              vx: (Math.random()*2-1) * 0.06*dpr,
+              vy: (Math.random()*2-1) * 0.06*dpr,
+              r: (0.7 + Math.random()*1.8) * dpr,
+              a: 0.18 + Math.random()*0.6
+            });
+          }
+        }
+
+        function draw(ts){
+          if (!w || !h) return;
+          ctx.clearRect(0,0,w,h);
+          const t = ts*0.001;
+
+          // particles
+          for (const p of pts){
+            p.x += p.vx; p.y += p.vy;
+            // gentle orbit pull
+            const cx = w*0.5, cy = h*0.45;
+            p.x += (cx - p.x) * 0.0006;
+            p.y += (cy - p.y) * 0.0006;
+
+            // bounds
+            if (p.x < -40*dpr) p.x = w + 40*dpr;
+            if (p.x > w + 40*dpr) p.x = -40*dpr;
+            if (p.y < -40*dpr) p.y = h + 40*dpr;
+            if (p.y > h + 40*dpr) p.y = -40*dpr;
+          }
+
+          // constellation lines
+          for (let i=0;i<pts.length;i++){
+            for (let j=i+1;j<pts.length;j++){
+              const a = pts[i], b = pts[j];
+              const dx = a.x-b.x, dy=a.y-b.y;
+              const d = Math.sqrt(dx*dx+dy*dy);
+              const maxD = 95*dpr;
+              if (d < maxD){
+                const alpha = (1 - d/maxD) * 0.18;
+                ctx.strokeStyle = `rgba(34,211,238,${alpha})`;
+                ctx.lineWidth = 1*dpr;
+                ctx.beginPath();
+                ctx.moveTo(a.x,a.y);
+                ctx.lineTo(b.x,b.y);
+                ctx.stroke();
+              }
+            }
+          }
+
+          // glow fog
+          const gx = w*0.5, gy = h*0.45;
+          const grad = ctx.createRadialGradient(gx,gy, 10*dpr, gx,gy, Math.min(w,h)*0.55);
+          grad.addColorStop(0, 'rgba(167,139,250,.12)');
+          grad.addColorStop(0.45, 'rgba(34,211,238,.08)');
+          grad.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0,0,w,h);
+
+          // draw particles last
+          for (const p of pts){
+            const tw = 0.55 + 0.45*Math.sin(t*1.4 + (p.x+p.y)*0.002);
+            ctx.globalAlpha = Math.min(1, p.a*tw);
+            ctx.fillStyle = 'rgba(255,255,255,1)';
+            ctx.beginPath();
+            ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+            ctx.fill();
+          }
+        }
+
+        resize();
+        window.addEventListener('resize', resize);
+        return { draw, resize };
+      }
+      const galaxy = makeGalaxy($('#galaxyCanvas'));
+
+      // Main RAF
+      function raf(ts){
+        // always draw base starfields gently
+        stars1.draw(ts);
+        stars2.draw(ts);
+
+        if (state.step === 4) tickConfetti(ts);
+        else if (confetti.ctx) {
+          // clear when not needed
+          confetti.ctx.clearRect(0,0,confetti.canvas.width,confetti.canvas.height);
+          confetti.parts.length = 0;
+        }
+
+        if (state.step === 5) galaxy.draw(ts);
+        else {
+          const ctx = galaxy && $('#galaxyCanvas').getContext('2d');
+          if (ctx) ctx.clearRect(0,0,$('#galaxyCanvas').width,$('#galaxyCanvas').height);
+        }
+
+        requestAnimationFrame(raf);
+      }
+      requestAnimationFrame(raf);
+
+      // ====== Step init + defaults ======
+      function hydrate(){
+        // Step 1
+        syncStep1();
+
+        // Step 2
+        syncStep2();
+        setUserStatus('idle');
+
+        // Step 3
+        setAvatarPreviewFromState();
+
+        // Step 4
+        renderFollowList();
+
+        // Step 5
+        renderCategories();
+        renderChips();
+        obsession.value = String(state.data.obsession);
+        obsessionLabel.textContent = `${state.data.obsession}/10`;
+        updateCompletion();
+      }
+
+      // ====== Step switching without transition for first paint ======
+      function init(){
+        setSceneActive(1);
+        scenes[1].classList.add('is-active');
+        showPanel(1);
+        maybeEnableNext();
+        hydrate();
+      }
+      init();
+
+      // ====== Card tap shimmer ======
+      const card = $('.holo');
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('input') || e.target.closest('textarea') || e.target.closest('select')) return;
+        pulseCardShimmer();
+        spawnSparkleBurst(card);
+      });
+
+      // ====== Keep state synced ======
+      function syncAllInputs(){
+        syncStep1();
+        syncStep2();
+      }
+
+      // ====== On step enter: ensure focus doesn't jump under fixed bar ======
+      document.addEventListener('focusin', (e) => {
+        const el = e.target;
+        if (!(el instanceof HTMLElement)) return;
+        if (el.matches('input,textarea,select')){
+          // small scroll adjustment for mobile
+          setTimeout(() => {
+            el.scrollIntoView({ block:'center', behavior: reduceMotion.value ? 'auto' : 'smooth' });
+          }, 40);
+        }
+      });
+
+      // ====== Wire other inputs ======
+      function wireStep1(){
+        // already wired
+      }
+      function wireStep2(){
+        // already wired
+      }
+
+      // ====== Step changes update scenes ======
+      const originalShowPanel = showPanel;
+      showPanel = function(step){
+        originalShowPanel(step);
+        setSceneActive(typeof step === 'number' ? step : 5);
+        maybeEnableNext();
+        if (step === 5) updateCompletion();
+      };
+
+      // Start with step 1 already shown
+      setSceneActive(1);
+
+      // ====== Observe inputs to update completion too ======
+      [nameEl,emailEl,passEl,countryEl,cityEl,bioEl,usernameEl].forEach(el => el.addEventListener('input', () => {
+        if (state.step === 5) updateCompletion();
+      }));
+
+      // ====== initial async check if preset username ======
+      if (usernameEl.value.trim()) checkUsernameAsync(usernameEl.value.trim());
+
+      // ====== Helper: enable next when typing correct ======
+      const enableWatcher = setInterval(() => {
+        if (state.lock) return;
+        maybeEnableNext();
+      }, 450);
+
+      // ====== Cleanup on unload ======
+      window.addEventListener('beforeunload', () => clearInterval(enableWatcher));
+
+      // ====== Kick scene label ======
+      sceneLabel.textContent = SCENE_META[1].label;
+
+      // Ensure dots + buttons
+      maybeEnableNext();
+
+      // Expose minimal debug (optional)
+      // window.__NOVA = { state };
+
+    })();
+  </script>
+</body>
+</html>

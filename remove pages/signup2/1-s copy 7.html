@@ -1,0 +1,1375 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>تسجيل Comic Pop-Art</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* ===== Comic Pop-Art vibe ===== */
+    :root{
+      --ink:#121212;
+      --paper:#fff7de;
+      --c1:#ff3d7f;
+      --c2:#00d4ff;
+      --c3:#ffe600;
+      --c4:#8b5cf6;
+      --c5:#22c55e;
+    }
+
+    /* halftone background */
+    body{
+      background:
+        radial-gradient(circle at 20% 10%, rgba(255,61,127,.25) 0 18%, transparent 19% 100%),
+        radial-gradient(circle at 85% 25%, rgba(0,212,255,.22) 0 16%, transparent 17% 100%),
+        radial-gradient(circle at 30% 90%, rgba(255,230,0,.22) 0 18%, transparent 19% 100%),
+        radial-gradient(circle at 70% 80%, rgba(139,92,246,.18) 0 16%, transparent 17% 100%),
+        radial-gradient(rgba(18,18,18,.12) 1px, transparent 1px);
+      background-size:
+        420px 420px,
+        520px 520px,
+        500px 500px,
+        520px 520px,
+        14px 14px;
+      background-position:
+        0 0, 0 0, 0 0, 0 0, 0 0;
+      background-color: var(--paper);
+    }
+
+    /* comic outline text */
+    .comic-outline{
+      text-shadow:
+        3px 0 0 var(--ink),
+        -3px 0 0 var(--ink),
+        0 3px 0 var(--ink),
+        0 -3px 0 var(--ink),
+        2px 2px 0 var(--ink),
+        -2px 2px 0 var(--ink),
+        2px -2px 0 var(--ink),
+        -2px -2px 0 var(--ink);
+      letter-spacing: .5px;
+    }
+
+    /* panels */
+    .panel{
+      border: 4px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+      border-radius: 14px;
+      background: rgba(255,255,255,.92);
+    }
+    .panel-soft{
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      border-radius: 14px;
+      background: rgba(255,255,255,.92);
+    }
+
+    /* comic buttons */
+    .btn-comic{
+      border: 4px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+      border-radius: 14px;
+      font-weight: 900;
+      letter-spacing: .5px;
+      transition: transform .08s ease, box-shadow .08s ease;
+      user-select: none;
+    }
+    .btn-comic:active{
+      transform: translate(4px,4px);
+      box-shadow: 2px 2px 0 var(--ink);
+    }
+
+    /* BAM/POW tag */
+    .pow-tag{
+      display:inline-block;
+      transform: rotate(-6deg);
+      border: 3px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+      border-radius: 999px;
+      padding: .1rem .55rem;
+      font-weight: 900;
+      background: var(--c3);
+    }
+
+    /* speech-bubble toast */
+    .bubble{
+      position: relative;
+      border: 4px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+      border-radius: 18px;
+      background: white;
+      padding: 12px 14px;
+      max-width: 360px;
+      font-weight: 800;
+    }
+    .bubble:after{
+      content:"";
+      position:absolute;
+      bottom:-16px;
+      right: 26px;
+      width: 0; height: 0;
+      border: 16px solid transparent;
+      border-top-color: var(--ink);
+      transform: rotate(10deg);
+    }
+    .bubble:before{
+      content:"";
+      position:absolute;
+      bottom:-12px;
+      right: 28px;
+      width: 0; height: 0;
+      border: 14px solid transparent;
+      border-top-color: white;
+      transform: rotate(10deg);
+      z-index: 2;
+    }
+
+    /* tiny error */
+    .err{
+      color:#b91c1c;
+      font-weight: 900;
+    }
+
+    /* chips */
+    .chip{
+      border: 3px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+      border-radius: 999px;
+      padding: .35rem .7rem;
+      font-weight: 900;
+      background: white;
+      cursor: pointer;
+      transition: transform .06s ease;
+    }
+    .chip:active{ transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
+    .chip[data-on="1"]{ background: var(--c2); }
+
+    /* stepper cards */
+    .step-card{
+      min-width: 170px;
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      border-radius: 14px;
+      background: rgba(255,255,255,.9);
+      padding: 10px 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .step-card[data-active="1"]{
+      background: var(--c3);
+      transform: rotate(-1deg);
+    }
+
+    /* avatar cropper */
+    .crop-frame{
+      width: 240px; height: 240px;
+      border: 4px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+      border-radius: 18px;
+      background: repeating-radial-gradient(circle at 10px 10px, rgba(18,18,18,.10) 0 2px, transparent 2px 9px);
+      overflow: hidden;
+      position: relative;
+      touch-action: none;
+    }
+    .crop-img{
+      position:absolute;
+      top:50%; left:50%;
+      transform: translate(-50%,-50%);
+      will-change: transform;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+    .crop-mask{
+      position:absolute; inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(rgba(0,0,0,.18),rgba(0,0,0,.18)),
+        radial-gradient(circle at 50% 50%, transparent 0 48%, rgba(0,0,0,.45) 49% 100%);
+      mix-blend-mode: multiply;
+      opacity: .65;
+    }
+    .crop-square{
+      position:absolute;
+      width: 72%;
+      aspect-ratio: 1/1;
+      top:14%;
+      left:14%;
+      border: 4px dashed rgba(255,255,255,.9);
+      border-radius: 18px;
+      box-shadow: 0 0 0 3px rgba(18,18,18,.75) inset;
+      pointer-events:none;
+    }
+
+    /* POW success overlay */
+    .pow-overlay{
+      position: fixed;
+      inset: 0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background: rgba(0,0,0,.45);
+      z-index: 60;
+    }
+    .pow-burst{
+      width: 280px; height: 280px;
+      background: conic-gradient(from 0deg, var(--c3), var(--c1), var(--c2), var(--c4), var(--c5), var(--c3));
+      border: 6px solid var(--ink);
+      box-shadow: 10px 10px 0 var(--ink);
+      border-radius: 40% 60% 55% 45% / 45% 40% 60% 55%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transform: scale(.6) rotate(-10deg);
+      animation: pop .55s ease forwards;
+    }
+    .pow-text{
+      font-size: 64px;
+      font-weight: 1000;
+      color: white;
+      text-shadow:
+        4px 0 0 var(--ink),
+        -4px 0 0 var(--ink),
+        0 4px 0 var(--ink),
+        0 -4px 0 var(--ink),
+        3px 3px 0 var(--ink);
+      transform: rotate(8deg);
+    }
+    @keyframes pop{
+      0%{ transform: scale(.55) rotate(-14deg); }
+      70%{ transform: scale(1.08) rotate(6deg); }
+      100%{ transform: scale(1) rotate(2deg); }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen text-zinc-900">
+  <!-- Toasts -->
+  <div id="toastHost" class="fixed top-4 left-4 right-4 z-50 flex flex-col gap-3 items-start"></div>
+
+  <!-- POW overlay -->
+  <div id="powOverlay" class="pow-overlay">
+    <div class="pow-burst">
+      <div class="pow-text">POW!</div>
+    </div>
+  </div>
+
+  <div class="max-w-5xl mx-auto px-4 py-7">
+    <!-- Header -->
+    <header class="panel p-6 md:p-7 flex flex-col md:flex-row items-start md:items-center gap-4 justify-between">
+      <div>
+        <div class="inline-flex items-center gap-2">
+          <span class="pow-tag">BAM</span>
+          <span class="pow-tag" style="background: var(--c2);">POW</span>
+        </div>
+        <h1 class="mt-3 text-4xl md:text-5xl font-black comic-outline text-zinc-900">
+          صفحة تسجيل… بسستايل كوميكس Pop-Art!
+        </h1>
+        <p class="mt-2 font-extrabold text-zinc-800">
+          خطوات سريعة + ألوان قوية + فُقاعات كلام. (ملف واحد)
+        </p>
+      </div>
+
+      <div class="panel-soft p-4 w-full md:w-auto">
+        <div class="flex items-center justify-between gap-3">
+          <div class="font-black">التقدّم</div>
+          <div class="font-black"><span id="progressLabel">1</span> / 8</div>
+        </div>
+        <div class="mt-3 h-3 rounded-full border-[3px] border-zinc-900 bg-white overflow-hidden">
+          <div id="progressBar" class="h-full" style="width:12.5%; background: var(--c5);"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Stepper -->
+    <section class="mt-6 panel p-4">
+      <div class="font-black mb-3 flex items-center gap-2">
+        <span class="pow-tag">Panels</span>
+        <span>الخطوات</span>
+      </div>
+      <div id="stepper" class="flex gap-3 overflow-x-auto pb-2"></div>
+      <div class="mt-3 text-sm font-extrabold text-zinc-700">
+        تقدر تضغط على أي لوحة <span class="pow-tag" style="background: var(--c1); color:white;">(لو خلّصت اللي قبلها)</span>
+      </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="mt-6 panel p-5 md:p-7">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <div class="inline-flex items-center gap-2">
+            <span id="stepBadge" class="pow-tag">1</span>
+            <span id="stepTitle" class="text-2xl md:text-3xl font-black">هوّيتك</span>
+          </div>
+          <div id="stepHint" class="mt-2 font-extrabold text-zinc-700">خلّينا نبدأ باسمك داخل المجتمع.</div>
+        </div>
+        <div class="hidden md:flex items-center gap-2">
+          <span class="pow-tag" style="background: var(--c4); color:white;">Comic</span>
+          <span class="pow-tag" style="background: var(--c2);">Pop</span>
+          <span class="pow-tag" style="background: var(--c3);">Art</span>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <!-- Step 1 -->
+        <section class="step" data-step="1">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="panel-soft p-4">
+              <label class="font-black">Username</label>
+              <input id="username" class="mt-2 w-full panel-soft px-3 py-2 outline-none" placeholder="مثال: devluffy" />
+              <div id="err_username" class="mt-2 text-sm err hidden">لازم.</div>
+            </div>
+            <div class="panel-soft p-4">
+              <label class="font-black">Display name</label>
+              <input id="displayName" class="mt-2 w-full panel-soft px-3 py-2 outline-none" placeholder="اسم يظهر للناس" />
+              <div class="mt-2 text-sm font-extrabold text-zinc-700">ينفع عربي/إنجليزي ✨</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 2 -->
+        <section class="step hidden" data-step="2">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="panel-soft p-4">
+              <label class="font-black">Email</label>
+              <input id="email" type="email" class="mt-2 w-full panel-soft px-3 py-2 outline-none" placeholder="you@domain.com" />
+              <div id="err_email" class="mt-2 text-sm err hidden">إيميل؟</div>
+            </div>
+
+            <div class="panel-soft p-4">
+              <label class="font-black">Password</label>
+              <div class="mt-2 flex gap-2 items-center">
+                <input id="password" type="password" class="w-full panel-soft px-3 py-2 outline-none" placeholder="••••••••" />
+                <button id="togglePass" class="btn-comic px-3 py-2" style="background: var(--c2);">👁</button>
+              </div>
+              <div id="err_password" class="mt-2 text-sm err hidden">قصيرة.</div>
+              <div class="mt-3">
+                <label class="font-black">Confirm</label>
+                <div class="mt-2 flex gap-2 items-center">
+                  <input id="confirmPassword" type="password" class="w-full panel-soft px-3 py-2 outline-none" placeholder="••••••••" />
+                  <button id="toggleConfirm" class="btn-comic px-3 py-2" style="background: var(--c3);">👁</button>
+                </div>
+                <div id="err_confirm" class="mt-2 text-sm err hidden">مش نفس.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 3 -->
+        <section class="step hidden" data-step="3">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="panel-soft p-4">
+              <label class="font-black">البلد</label>
+              <select id="country" class="mt-2 w-full panel-soft px-3 py-2 outline-none">
+                <option value="">اختر…</option>
+                <option>السعودية</option>
+                <option>مصر</option>
+                <option>الإمارات</option>
+                <option>المغرب</option>
+                <option>الأردن</option>
+                <option>فلسطين</option>
+                <option>العراق</option>
+                <option>قطر</option>
+                <option>الكويت</option>
+                <option>لبنان</option>
+                <option>تونس</option>
+                <option>الجزائر</option>
+                <option>سوريا</option>
+                <option>أخرى</option>
+              </select>
+              <div id="err_country" class="mt-2 text-sm err hidden">اختار.</div>
+            </div>
+
+            <div class="panel-soft p-4">
+              <label class="font-black">العمر</label>
+              <input id="age" type="number" min="10" max="99" class="mt-2 w-full panel-soft px-3 py-2 outline-none" placeholder="مثال: 21" />
+              <div id="err_age" class="mt-2 text-sm err hidden">رقم.</div>
+            </div>
+
+            <div class="panel-soft p-4 md:col-span-2">
+              <label class="font-black">Bio</label>
+              <textarea id="bio" rows="3" class="mt-2 w-full panel-soft px-3 py-2 outline-none" placeholder="جملة قصيرة…"></textarea>
+              <div class="mt-2 text-sm font-extrabold text-zinc-700">خليه خفيف 🍜</div>
+            </div>
+
+            <div class="panel-soft p-4 md:col-span-2">
+              <div class="flex items-center justify-between gap-3">
+                <label class="font-black">أنا أحب…</label>
+                <span class="pow-tag" style="background: var(--c5); color:white;">Chips</span>
+              </div>
+              <div id="loveChips" class="mt-3 flex flex-wrap gap-2"></div>
+              <div id="err_love" class="mt-2 text-sm err hidden">اختار 1.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 4 -->
+        <section class="step hidden" data-step="4">
+          <div class="grid lg:grid-cols-2 gap-5">
+            <div class="panel-soft p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="font-black">Gallery</div>
+                <span class="pow-tag" style="background: var(--c1); color:white;">Pick</span>
+              </div>
+              <div id="avatarGallery" class="mt-3 grid grid-cols-4 gap-3"></div>
+
+              <div class="mt-4 border-t-4 border-zinc-900 pt-4">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="font-black">Upload</div>
+                  <span class="pow-tag" style="background: var(--c2);">PNG/JPG</span>
+                </div>
+                <input id="avatarUpload" type="file" accept="image/*" class="mt-3 w-full panel-soft px-3 py-2" />
+                <div class="mt-2 text-sm font-extrabold text-zinc-700">بعد الرفع: اسحب الصورة + زوّم.</div>
+              </div>
+            </div>
+
+            <div class="panel-soft p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="font-black">Crop / Preview</div>
+                <span class="pow-tag" style="background: var(--c3);">Square</span>
+              </div>
+
+              <div class="mt-4 flex flex-col md:flex-row gap-4 items-start">
+                <div>
+                  <div id="cropFrame" class="crop-frame">
+                    <img id="cropImg" class="crop-img hidden" alt="avatar crop" />
+                    <div class="crop-mask"></div>
+                    <div class="crop-square"></div>
+                  </div>
+
+                  <div class="mt-4">
+                    <label class="font-black">Zoom</label>
+                    <input id="zoom" type="range" min="1" max="3" step="0.01" value="1"
+                           class="mt-2 w-full" />
+                  </div>
+
+                  <div class="mt-4 flex gap-2">
+                    <button id="btnSaveCrop" class="btn-comic px-4 py-2" style="background: var(--c5); color:white;">
+                      قصّ واحتفظ
+                    </button>
+                    <button id="btnResetCrop" class="btn-comic px-4 py-2" style="background: var(--c3);">
+                      Reset
+                    </button>
+                  </div>
+
+                  <div id="err_avatar" class="mt-3 text-sm err hidden">اختار.</div>
+                </div>
+
+                <div class="panel-soft p-3">
+                  <div class="font-black mb-2">Preview</div>
+                  <img id="avatarPreview" class="w-28 h-28 rounded-2xl border-[4px] border-zinc-900 shadow-[6px_6px_0_#121212] object-cover bg-white"
+                       alt="avatar preview" />
+                  <div class="mt-2 text-sm font-extrabold text-zinc-700">هنا اللي هيتحفظ ✅</div>
+                </div>
+              </div>
+
+              <!-- hidden canvas for crop -->
+              <canvas id="cropCanvas" width="512" height="512" class="hidden"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 5 -->
+        <section class="step hidden" data-step="5">
+          <div class="grid lg:grid-cols-2 gap-4">
+            <div class="panel-soft p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="font-black">اهتمامات رئيسية</div>
+                <span class="pow-tag" style="background: var(--c4); color:white;">Pick 1+</span>
+              </div>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <button class="chip" data-key="mainInterests" data-value="Anime">Anime</button>
+                <button class="chip" data-key="mainInterests" data-value="Manga">Manga</button>
+                <button class="chip" data-key="mainInterests" data-value="Comics">Comics</button>
+              </div>
+              <div id="err_main" class="mt-2 text-sm err hidden">اختار.</div>
+            </div>
+
+            <div class="panel-soft p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="font-black">Genres</div>
+                <span class="pow-tag" style="background: var(--c2);">Multi</span>
+              </div>
+              <div id="genreChips" class="mt-3 flex flex-wrap gap-2"></div>
+              <div class="mt-2 text-sm font-extrabold text-zinc-700">اختياراتك هتظبط الاقتراحات 🔥</div>
+            </div>
+
+            <div class="panel-soft p-4 lg:col-span-2">
+              <div class="flex items-center justify-between gap-3">
+                <div class="font-black">Creators I follow (اختياري)</div>
+                <span class="pow-tag" style="background: var(--c3);">Optional</span>
+              </div>
+              <div class="mt-3 flex gap-2">
+                <input id="creatorInput" class="w-full panel-soft px-3 py-2 outline-none" placeholder="اكتب اسم + Enter" />
+                <button id="addCreator" class="btn-comic px-4 py-2" style="background: var(--c1); color:white;">BAM</button>
+              </div>
+              <div id="creatorTags" class="mt-3 flex flex-wrap gap-2"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 6 -->
+        <section class="step hidden" data-step="6">
+          <div class="panel-soft p-4">
+            <div class="flex items-center justify-between gap-3">
+              <div class="font-black text-xl">تابِع ناس شبهك</div>
+              <span class="pow-tag" style="background: var(--c5); color:white;">Follow</span>
+            </div>
+            <div class="mt-2 text-sm font-extrabold text-zinc-700">اختياري… بس بيخلي الصفحة حلوة من أول يوم.</div>
+
+            <div id="followCards" class="mt-4 grid md:grid-cols-2 gap-4"></div>
+          </div>
+        </section>
+
+        <!-- Step 7 -->
+        <section class="step hidden" data-step="7">
+          <div class="panel-soft p-4">
+            <div class="flex items-center justify-between gap-3">
+              <div class="font-black text-xl">اختيار نمط الصفحة الرئيسية</div>
+              <span class="pow-tag" style="background: var(--c2);">Smart</span>
+            </div>
+            <div class="mt-4 grid md:grid-cols-3 gap-4">
+              <button class="panel-soft p-4 text-right hover:translate-y-[-2px] transition" data-home="Discover">
+                <div class="text-3xl">🧭</div>
+                <div class="mt-2 font-black text-lg">Discover</div>
+                <div class="mt-1 font-extrabold text-zinc-700 text-sm">اقتراحات + ترند + ناس جديدة.</div>
+              </button>
+              <button class="panel-soft p-4 text-right hover:translate-y-[-2px] transition" data-home="Following">
+                <div class="text-3xl">👥</div>
+                <div class="mt-2 font-black text-lg">Following</div>
+                <div class="mt-1 font-extrabold text-zinc-700 text-sm">فقط اللي بتتابعهم.</div>
+              </button>
+              <button class="panel-soft p-4 text-right hover:translate-y-[-2px] transition" data-home="Trending">
+                <div class="text-3xl">🔥</div>
+                <div class="mt-2 font-black text-lg">Trending</div>
+                <div class="mt-1 font-extrabold text-zinc-700 text-sm">الأقوى اليوم + نقاشات.</div>
+              </button>
+            </div>
+            <div id="err_home" class="mt-3 text-sm err hidden">اختار.</div>
+          </div>
+        </section>
+
+        <!-- Step 8 -->
+        <section class="step hidden" data-step="8">
+          <div class="grid lg:grid-cols-2 gap-4">
+            <div class="panel-soft p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="font-black text-xl">Review</div>
+                <span class="pow-tag" style="background: var(--c3);">Check</span>
+              </div>
+              <div id="reviewBox" class="mt-4 space-y-2 font-extrabold"></div>
+            </div>
+
+            <div class="panel-soft p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="font-black text-xl">Create account</div>
+                <span class="pow-tag" style="background: var(--c1); color:white;">POW!</span>
+              </div>
+
+              <div class="mt-4 panel-soft p-4" style="background: rgba(255,230,0,.18);">
+                <div class="font-black">لمسة أخيرة</div>
+                <div class="mt-2 font-extrabold text-zinc-800 text-sm">
+                  بالضغط على الزر… هنحفظ بياناتك محليًا (Demo) ونطلع Toast + POW!
+                </div>
+              </div>
+
+              <button id="createAccount" class="mt-4 btn-comic w-full py-3 text-xl"
+                      style="background: var(--c5); color:white;">
+                CREATE ⚡ POW
+              </button>
+
+              <div id="createNote" class="mt-3 text-sm font-extrabold text-zinc-700">
+                (تقدر بعدين توصلها بNest.js API بسهولة)
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Nav -->
+      <div class="mt-7 flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center">
+        <button id="btnBack" class="btn-comic px-5 py-3" style="background: white;">
+          ← رجوع
+        </button>
+
+        <div class="flex gap-3">
+          <button id="btnSkip" class="btn-comic px-5 py-3 hidden" style="background: var(--c3);">
+            تخطّي
+          </button>
+          <button id="btnNext" class="btn-comic px-5 py-3" style="background: var(--c2);">
+            التالي → <span class="ml-2 pow-tag" style="background: white;">BAM</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="mt-6 text-center font-extrabold text-zinc-700">
+      صنع بحب… ونِقَط Halftone ✦
+    </footer>
+  </div>
+
+  <script>
+    /* =========================================================
+      Comic Multi-step Signup (single-file)
+      - Tailwind CDN + internal JS
+      - Simple validation
+      - Chips
+      - Avatar gallery + upload + drag+zoom crop -> square preview
+      - Toasts as speech bubbles
+    ========================================================= */
+
+    const $ = (q, root=document) => root.querySelector(q);
+    const $$ = (q, root=document) => Array.from(root.querySelectorAll(q));
+
+    const state = {
+      step: 1,
+      username: "",
+      displayName: "",
+      email: "",
+      password: "",
+      country: "",
+      age: "",
+      bio: "",
+      love: new Set(),
+      avatarDataUrl: "",   // final saved (cropped) avatar
+      mainInterests: new Set(),
+      genres: new Set(),
+      creators: [],
+      follows: new Set(),
+      homeStyle: ""
+    };
+
+    const steps = [
+      { n:1, title:"هوّيتك", hint:"خلّينا نبدأ باسمك داخل المجتمع." },
+      { n:2, title:"الأمان", hint:"إيميل + باسورد." },
+      { n:3, title:"معلومات إضافية", hint:"تفاصيل بسيطة تزبط الاقتراحات." },
+      { n:4, title:"Avatar", hint:"اختار أو ارفع… قصّ سريع." },
+      { n:5, title:"اهتمامات", hint:"Anime/Manga/Comics + Genres." },
+      { n:6, title:"Follow", hint:"ناس شبه ذوقك (اختياري)." },
+      { n:7, title:"نمط الرئيسية", hint:"Discover / Following / Trending." },
+      { n:8, title:"Review", hint:"راجع… ثم POW!" }
+    ];
+
+    /* ---------- Toasts ---------- */
+    function toast(msg, kind="info") {
+      const host = $("#toastHost");
+      const el = document.createElement("div");
+      el.className = "bubble";
+      el.style.background = kind === "err"
+        ? "rgba(255, 61, 127, .14)"
+        : kind === "ok"
+          ? "rgba(34, 197, 94, .14)"
+          : "rgba(0, 212, 255, .12)";
+      el.innerHTML = `<div class="flex items-start gap-2">
+        <div class="text-2xl leading-none">${kind==="ok"?"✅":kind==="err"?"⚠️":"💬"}</div>
+        <div>${escapeHtml(msg)}</div>
+      </div>`;
+      host.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = "0";
+        el.style.transform = "translateY(-6px)";
+        el.style.transition = "all .18s ease";
+        setTimeout(() => el.remove(), 220);
+      }, 2400);
+    }
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[m]));
+    }
+
+    /* ---------- Stepper UI ---------- */
+    function renderStepper() {
+      const wrap = $("#stepper");
+      wrap.innerHTML = "";
+      steps.forEach(st => {
+        const card = document.createElement("button");
+        card.className = "step-card text-right";
+        card.dataset.step = st.n;
+        card.dataset.active = (st.n === state.step) ? "1" : "0";
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <span class="pow-tag" style="background:${st.n===state.step?'white':'var(--c3)'};">${st.n}</span>
+            <span class="font-black">${escapeHtml(st.title)}</span>
+          </div>
+          <div class="mt-2 text-xs font-extrabold text-zinc-700">${escapeHtml(st.hint)}</div>
+        `;
+        card.addEventListener("click", () => {
+          // allow jumping only to completed/previous steps
+          if (st.n <= state.step) goTo(st.n);
+          else toast("خلّص اللي قبلها.", "err");
+        });
+        wrap.appendChild(card);
+      });
+    }
+
+    function updateHeader() {
+      const st = steps[state.step-1];
+      $("#stepBadge").textContent = st.n;
+      $("#stepTitle").textContent = st.title;
+      $("#stepHint").textContent = st.hint;
+
+      $("#progressLabel").textContent = st.n;
+      $("#progressBar").style.width = (st.n/8*100) + "%";
+    }
+
+    function showStep(n) {
+      $$(".step").forEach(s => s.classList.add("hidden"));
+      $(`.step[data-step="${n}"]`).classList.remove("hidden");
+      renderStepper();
+      updateHeader();
+
+      // back/next/skip logic
+      $("#btnBack").disabled = (n === 1);
+      $("#btnBack").style.opacity = (n === 1) ? ".55" : "1";
+
+      // show "Skip" only on step 6 (optional)
+      $("#btnSkip").classList.toggle("hidden", n !== 6);
+
+      // next button label on last
+      $("#btnNext").classList.toggle("hidden", n === 8);
+    }
+
+    function goTo(n){
+      state.step = n;
+      if (n === 8) buildReview();
+      showStep(n);
+      // scroll to top of main panel for mobile
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /* ---------- Validation ---------- */
+    function setErr(id, on){
+      const el = $(id);
+      if(!el) return;
+      el.classList.toggle("hidden", !on);
+    }
+
+    function validateStep(n) {
+      // clear current step errors quickly
+      const hideIds = [
+        "#err_username","#err_email","#err_password","#err_confirm",
+        "#err_country","#err_age","#err_love","#err_avatar","#err_main","#err_home"
+      ];
+      hideIds.forEach(sel => setErr(sel, false));
+
+      if(n === 1){
+        const u = $("#username").value.trim();
+        if(!u){ setErr("#err_username", true); toast("Username لازم.", "err"); return false; }
+        state.username = u;
+        state.displayName = $("#displayName").value.trim();
+        return true;
+      }
+
+      if(n === 2){
+        const email = $("#email").value.trim();
+        const pass = $("#password").value;
+        const conf = $("#confirmPassword").value;
+        const okEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+        if(!okEmail){ setErr("#err_email", true); toast("إيميل؟", "err"); return false; }
+        if(!pass || pass.length < 8){ setErr("#err_password", true); toast("باسورد قصير.", "err"); return false; }
+        if(conf !== pass){ setErr("#err_confirm", true); toast("مش نفس.", "err"); return false; }
+
+        state.email = email;
+        state.password = pass;
+        return true;
+      }
+
+      if(n === 3){
+        const c = $("#country").value;
+        const age = $("#age").value.trim();
+        const aNum = Number(age);
+
+        if(!c){ setErr("#err_country", true); toast("اختار بلد.", "err"); return false; }
+        if(!age || !Number.isFinite(aNum) || aNum < 10 || aNum > 99){ setErr("#err_age", true); toast("عمر؟", "err"); return false; }
+        if(state.love.size < 1){ setErr("#err_love", true); toast("اختار Chip.", "err"); return false; }
+
+        state.country = c;
+        state.age = age;
+        state.bio = $("#bio").value.trim();
+        return true;
+      }
+
+      if(n === 4){
+        if(!state.avatarDataUrl){
+          setErr("#err_avatar", true);
+          toast("Avatar لازم.", "err");
+          return false;
+        }
+        return true;
+      }
+
+      if(n === 5){
+        if(state.mainInterests.size < 1){
+          setErr("#err_main", true);
+          toast("اختار اهتمام.", "err");
+          return false;
+        }
+        return true;
+      }
+
+      if(n === 7){
+        if(!state.homeStyle){
+          setErr("#err_home", true);
+          toast("اختار نمط.", "err");
+          return false;
+        }
+        return true;
+      }
+
+      return true;
+    }
+
+    /* ---------- Chips ---------- */
+    function makeChips(container, items, setRef){
+      const host = $(container);
+      host.innerHTML = "";
+      items.forEach(txt => {
+        const b = document.createElement("button");
+        b.className = "chip";
+        b.textContent = txt;
+        b.dataset.on = setRef.has(txt) ? "1" : "0";
+        b.addEventListener("click", () => {
+          if(setRef.has(txt)) setRef.delete(txt);
+          else setRef.add(txt);
+          b.dataset.on = setRef.has(txt) ? "1" : "0";
+        });
+        host.appendChild(b);
+      });
+    }
+
+    function hookGenericChipButtons(){
+      // chips with data-key/data-value (e.g., mainInterests)
+      $$(".chip[data-key]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const key = btn.dataset.key;
+          const val = btn.dataset.value;
+          const set = state[key];
+          if(!(set instanceof Set)) return;
+
+          if(set.has(val)) set.delete(val); else set.add(val);
+          btn.dataset.on = set.has(val) ? "1" : "0";
+        });
+      });
+    }
+
+    /* ---------- Creators tags ---------- */
+    function renderCreators(){
+      const host = $("#creatorTags");
+      host.innerHTML = "";
+      state.creators.forEach((name, idx) => {
+        const pill = document.createElement("button");
+        pill.className = "chip";
+        pill.dataset.on = "1";
+        pill.innerHTML = `${escapeHtml(name)} <span class="mr-2">✖</span>`;
+        pill.addEventListener("click", () => {
+          state.creators.splice(idx,1);
+          renderCreators();
+        });
+        host.appendChild(pill);
+      });
+    }
+
+    function addCreatorFromInput(){
+      const v = $("#creatorInput").value.trim();
+      if(!v) return;
+      if(state.creators.includes(v)) { toast("موجود.", "err"); return; }
+      state.creators.push(v);
+      $("#creatorInput").value = "";
+      renderCreators();
+    }
+
+    /* ---------- Follow cards ---------- */
+    const followSuggestions = [
+      { id:"mika", name:"Mika", handle:"@mika.ink", reason:"مشابه لاهتماماتك", tags:["Anime","Action","Fanart"] },
+      { id:"omar", name:"Omar", handle:"@omar.manga", reason:"مهووس مانجا", tags:["Manga","Seinen","Thriller"] },
+      { id:"sara", name:"Sara", handle:"@sara.comics", reason:"كوميكس indie", tags:["Comics","Indie","Slice"] },
+      { id:"noor", name:"Noor", handle:"@noor.cos", reason:"حِرف وكوسبلاي", tags:["Cosplay","Art","DIY"] },
+    ];
+
+    function renderFollowCards(){
+      const host = $("#followCards");
+      host.innerHTML = "";
+      followSuggestions.forEach(u => {
+        const on = state.follows.has(u.id);
+        const card = document.createElement("div");
+        card.className = "panel-soft p-4";
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="font-black text-lg">${escapeHtml(u.name)} <span class="text-sm font-extrabold text-zinc-700">${escapeHtml(u.handle)}</span></div>
+              <div class="mt-1 text-sm font-extrabold text-zinc-700">💡 ${escapeHtml(u.reason)}</div>
+              <div class="mt-2 flex flex-wrap gap-2">
+                ${u.tags.map(t => `<span class="pow-tag" style="background: var(--c2);">${escapeHtml(t)}</span>`).join("")}
+              </div>
+            </div>
+            <button class="btn-comic px-4 py-2 followBtn" data-id="${u.id}"
+              style="background:${on?'var(--c5)':'var(--c3)'}; color:${on?'white':'black'};">
+              ${on ? "Following" : "Follow"}
+            </button>
+          </div>
+        `;
+        host.appendChild(card);
+      });
+
+      $$(".followBtn").forEach(b => {
+        b.addEventListener("click", () => {
+          const id = b.dataset.id;
+          if(state.follows.has(id)){
+            state.follows.delete(id);
+            toast("Unfollow.", "info");
+          }else{
+            state.follows.add(id);
+            toast("Follow ✅", "ok");
+          }
+          renderFollowCards();
+        });
+      });
+    }
+
+    /* ---------- Avatar gallery + cropper ---------- */
+    function avatarSvgData(bg, fg, mood){
+      const svg =
+`<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220">
+  <defs>
+    <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="6" dy="6" stdDeviation="0" flood-color="#121212" flood-opacity="1"/>
+    </filter>
+  </defs>
+  <rect x="14" y="14" width="192" height="192" rx="34" fill="${bg}" stroke="#121212" stroke-width="8" filter="url(#s)"/>
+  <circle cx="110" cy="110" r="62" fill="${fg}" stroke="#121212" stroke-width="8"/>
+  <circle cx="85" cy="98" r="10" fill="#121212"/>
+  <circle cx="135" cy="98" r="10" fill="#121212"/>
+  <path d="${mood}" fill="none" stroke="#121212" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="58" cy="64" r="10" fill="#fff" opacity=".9"/>
+  <circle cx="170" cy="56" r="7" fill="#fff" opacity=".9"/>
+</svg>`;
+      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    }
+
+    const gallery = [
+      avatarSvgData("#ffe600","#00d4ff","M78 138 Q110 162 142 138"),
+      avatarSvgData("#ff3d7f","#ffe600","M78 142 Q110 128 142 142"),
+      avatarSvgData("#22c55e","#8b5cf6","M78 140 Q110 155 142 140"),
+      avatarSvgData("#00d4ff","#ff3d7f","M78 145 Q110 170 142 145"),
+      avatarSvgData("#8b5cf6","#ffe600","M78 140 Q110 140 142 140"),
+      avatarSvgData("#111827","#22c55e","M78 138 Q110 160 142 138"),
+      avatarSvgData("#fb7185","#38bdf8","M78 144 Q110 126 142 144"),
+      avatarSvgData("#fde68a","#34d399","M78 140 Q110 168 142 140"),
+    ];
+
+    const crop = {
+      imgEl: null,
+      frameEl: null,
+      zoomEl: null,
+      active: false,
+      // image transform parameters
+      scale: 1,
+      baseScale: 1,
+      // translation offsets in px (relative to frame center)
+      ox: 0,
+      oy: 0,
+      // pointer drag
+      px: 0,
+      py: 0,
+      startOx: 0,
+      startOy: 0
+    };
+
+    function initAvatarGallery(){
+      const host = $("#avatarGallery");
+      host.innerHTML = "";
+      gallery.forEach((src, idx) => {
+        const b = document.createElement("button");
+        b.className = "panel-soft p-2 hover:translate-y-[-2px] transition";
+        b.innerHTML = `<img alt="avatar ${idx+1}" src="${src}" class="w-full aspect-square object-cover rounded-xl border-[3px] border-zinc-900" />`;
+        b.addEventListener("click", () => {
+          loadCropImage(src, "gallery");
+          toast("تم الاختيار.", "ok");
+        });
+        host.appendChild(b);
+      });
+    }
+
+    function loadCropImage(src, from="upload"){
+      const img = $("#cropImg");
+      img.classList.remove("hidden");
+      img.onload = () => {
+        // reset transform
+        crop.ox = 0; crop.oy = 0;
+        $("#zoom").value = 1;
+
+        // compute base scale to cover frame square (a bit generous)
+        const frame = $("#cropFrame");
+        const fw = frame.clientWidth, fh = frame.clientHeight;
+        const iw = img.naturalWidth, ih = img.naturalHeight;
+        const cover = Math.max(fw/iw, fh/ih);
+        crop.baseScale = cover;
+        crop.scale = crop.baseScale * 1;
+        applyCropTransform();
+      };
+      img.src = src;
+      crop.imgEl = img;
+    }
+
+    function applyCropTransform(){
+      if(!crop.imgEl) return;
+      const s = crop.scale;
+      crop.imgEl.style.transform = `translate(calc(-50% + ${crop.ox}px), calc(-50% + ${crop.oy}px)) scale(${s})`;
+    }
+
+    function attachCropDrag(){
+      const frame = $("#cropFrame");
+      crop.frameEl = frame;
+
+      frame.addEventListener("pointerdown", (e) => {
+        if(!crop.imgEl || crop.imgEl.classList.contains("hidden")) return;
+        crop.active = true;
+        frame.setPointerCapture(e.pointerId);
+        crop.px = e.clientX; crop.py = e.clientY;
+        crop.startOx = crop.ox; crop.startOy = crop.oy;
+      });
+
+      frame.addEventListener("pointermove", (e) => {
+        if(!crop.active) return;
+        const dx = e.clientX - crop.px;
+        const dy = e.clientY - crop.py;
+        crop.ox = crop.startOx + dx;
+        crop.oy = crop.startOy + dy;
+        applyCropTransform();
+      });
+
+      frame.addEventListener("pointerup", () => { crop.active = false; });
+      frame.addEventListener("pointercancel", () => { crop.active = false; });
+
+      $("#zoom").addEventListener("input", (e) => {
+        const z = Number(e.target.value);
+        crop.scale = crop.baseScale * z;
+        applyCropTransform();
+      });
+
+      $("#btnResetCrop").addEventListener("click", () => {
+        crop.ox = 0; crop.oy = 0;
+        $("#zoom").value = 1;
+        crop.scale = crop.baseScale * 1;
+        applyCropTransform();
+        toast("Reset.", "info");
+      });
+
+      $("#btnSaveCrop").addEventListener("click", () => {
+        const dataUrl = exportCrop();
+        if(!dataUrl){
+          toast("ارفع/اختار صورة.", "err");
+          return;
+        }
+        state.avatarDataUrl = dataUrl;
+        $("#avatarPreview").src = dataUrl;
+        toast("Avatar جاهز ✅", "ok");
+        setErr("#err_avatar", false);
+      });
+
+      $("#avatarUpload").addEventListener("change", async (e) => {
+        const file = e.target.files?.[0];
+        if(!file) return;
+        if(!file.type.startsWith("image/")){
+          toast("صورة بس.", "err");
+          return;
+        }
+        const dataUrl = await fileToDataUrl(file);
+        loadCropImage(dataUrl, "upload");
+        toast("تم الرفع.", "ok");
+      });
+    }
+
+    function fileToDataUrl(file){
+      return new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result);
+        r.onerror = rej;
+        r.readAsDataURL(file);
+      });
+    }
+
+    function exportCrop(){
+      const img = crop.imgEl;
+      if(!img || img.classList.contains("hidden")) return "";
+
+      // We crop the centered square region shown by .crop-square (72% of frame)
+      const frame = crop.frameEl;
+      const canvas = $("#cropCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const fw = frame.clientWidth, fh = frame.clientHeight;
+      const square = Math.round(Math.min(fw, fh) * 0.72);
+      const sxFrame = (fw - square)/2;
+      const syFrame = (fh - square)/2;
+
+      // Map frame coords -> image coords considering transform translate+scale
+      // Image is positioned at frame center with translate(-50% + ox, -50% + oy) and scale(s)
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+
+      // On-screen image size after scale
+      const dispW = iw * crop.scale;
+      const dispH = ih * crop.scale;
+
+      // Image top-left on frame (in px)
+      const imgLeft = (fw/2) - (dispW/2) + crop.ox;
+      const imgTop  = (fh/2) - (dispH/2) + crop.oy;
+
+      // Crop square region in frame space -> convert to image space
+      const cropLeft = sxFrame;
+      const cropTop  = syFrame;
+
+      const srcX = (cropLeft - imgLeft) / crop.scale;
+      const srcY = (cropTop  - imgTop ) / crop.scale;
+      const srcW = square / crop.scale;
+      const srcH = square / crop.scale;
+
+      // Draw into 512x512 output
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.imageSmoothingEnabled = true;
+
+      // Clamp source box (avoid blank if user drags too far)
+      const clamped = clampSrcBox(srcX, srcY, srcW, srcH, iw, ih);
+
+      // fill background (comic paper)
+      ctx.fillStyle = "#fff7de";
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      ctx.drawImage(
+        img,
+        clamped.x, clamped.y, clamped.w, clamped.h,
+        0, 0, canvas.width, canvas.height
+      );
+
+      return canvas.toDataURL("image/png");
+    }
+
+    function clampSrcBox(x,y,w,h,iw,ih){
+      let nx=x, ny=y, nw=w, nh=h;
+      // clamp position
+      if(nx < 0){ nw += nx; nx = 0; }
+      if(ny < 0){ nh += ny; ny = 0; }
+      if(nx + nw > iw) nw = iw - nx;
+      if(ny + nh > ih) nh = ih - ny;
+
+      // if dragged extremely, keep minimal
+      nw = Math.max(1, nw);
+      nh = Math.max(1, nh);
+      return {x:nx,y:ny,w:nw,h:nh};
+    }
+
+    /* ---------- Home style selection ---------- */
+    function initHomeStyle(){
+      $$("[data-home]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.homeStyle = btn.dataset.home;
+          setErr("#err_home", false);
+          $$("[data-home]").forEach(b => b.style.outline = "none");
+          btn.style.outline = "4px solid var(--ink)";
+          btn.style.boxShadow = "8px 8px 0 var(--ink)";
+          toast("تم ✅", "ok");
+        });
+      });
+    }
+
+    /* ---------- Review ---------- */
+    function buildReview(){
+      const box = $("#reviewBox");
+      const list = [
+        ["Username", state.username || "—"],
+        ["Display", state.displayName || "—"],
+        ["Email", state.email || "—"],
+        ["Country", state.country || "—"],
+        ["Age", state.age || "—"],
+        ["Bio", state.bio || "—"],
+        ["أنا أحب…", [...state.love].join("، ") || "—"],
+        ["Avatar", state.avatarDataUrl ? "✅" : "—"],
+        ["Main", [...state.mainInterests].join("، ") || "—"],
+        ["Genres", [...state.genres].join("، ") || "—"],
+        ["Creators", state.creators.join("، ") || "—"],
+        ["Following", [...state.follows].join("، ") || "—"],
+        ["Home", state.homeStyle || "—"],
+      ];
+
+      box.innerHTML = "";
+      list.forEach(([k,v]) => {
+        const row = document.createElement("div");
+        row.className = "panel-soft p-3 flex items-start justify-between gap-3";
+        row.innerHTML = `<div class="font-black">${escapeHtml(k)}</div><div class="text-zinc-800">${escapeHtml(v)}</div>`;
+        box.appendChild(row);
+      });
+    }
+
+    /* ---------- Buttons / Navigation ---------- */
+    $("#btnBack").addEventListener("click", () => {
+      if(state.step > 1) goTo(state.step - 1);
+    });
+
+    $("#btnSkip").addEventListener("click", () => {
+      // Only used on step 6
+      toast("تخطّينا.", "info");
+      goTo(state.step + 1);
+    });
+
+    $("#btnNext").addEventListener("click", () => {
+      const n = state.step;
+
+      // before moving forward, validate current step
+      if(!validateStep(n)) return;
+
+      // persist step-specific extras where needed
+      if(n === 3){
+        // love chips already in state
+      }
+      if(n === 5){
+        // genres set already in state
+      }
+
+      goTo(Math.min(8, n + 1));
+    });
+
+    /* ---------- Password toggles ---------- */
+    $("#togglePass").addEventListener("click", () => {
+      const el = $("#password");
+      el.type = el.type === "password" ? "text" : "password";
+    });
+    $("#toggleConfirm").addEventListener("click", () => {
+      const el = $("#confirmPassword");
+      el.type = el.type === "password" ? "text" : "password";
+    });
+
+    /* ---------- Create account (demo success) ---------- */
+    $("#createAccount").addEventListener("click", async () => {
+      // Validate everything important quickly (minimal)
+      const checks = [1,2,3,4,5,7].every(s => validateStep(s));
+      if(!checks){
+        toast("فيه نقص.", "err");
+        return;
+      }
+
+      // Save latest inputs in case user came back
+      state.username = $("#username").value.trim();
+      state.displayName = $("#displayName").value.trim();
+      state.email = $("#email").value.trim();
+      state.country = $("#country").value;
+      state.age = $("#age").value.trim();
+      state.bio = $("#bio").value.trim();
+
+      // Demo: store in localStorage
+      const payload = {
+        ...state,
+        love:[...state.love],
+        mainInterests:[...state.mainInterests],
+        genres:[...state.genres],
+        follows:[...state.follows],
+      };
+
+      $("#createAccount").disabled = true;
+      $("#createAccount").style.opacity = ".75";
+
+      try{
+        localStorage.setItem("comic_signup_demo", JSON.stringify(payload));
+      }catch(e){ /* ignore */ }
+
+      // POW overlay
+      const overlay = $("#powOverlay");
+      overlay.style.display = "flex";
+      toast("تم إنشاء الحساب!", "ok");
+
+      setTimeout(() => {
+        overlay.style.display = "none";
+        $("#createAccount").disabled = false;
+        $("#createAccount").style.opacity = "1";
+      }, 1200);
+    });
+
+    /* ---------- Init chips content ---------- */
+    const loveItems = ["Shonen","Seinen","Isekai","Webtoons","Cosplay","Fanart","Indie Comics","Retro","Mecha","Slice of Life"];
+    const genreItems = ["Action","Romance","Horror","Comedy","Mystery","Sci-Fi","Fantasy","Sports","Drama","Adventure"];
+
+    // Create love chips
+    makeChips("#loveChips", loveItems, state.love);
+
+    // Create genre chips (hook to state.genres)
+    makeChips("#genreChips", genreItems, state.genres);
+
+    // Main interests chips already in HTML: hook them
+    hookGenericChipButtons();
+
+    /* ---------- Creator inputs ---------- */
+    $("#addCreator").addEventListener("click", addCreatorFromInput);
+    $("#creatorInput").addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        addCreatorFromInput();
+      }
+    });
+
+    /* ---------- Extra: keep state in sync for chip groups with data-key ---------- */
+    // For step 5 main interests buttons: initialize visual state
+    function syncMainInterestButtons(){
+      $$(".chip[data-key='mainInterests']").forEach(btn => {
+        const val = btn.dataset.value;
+        btn.dataset.on = state.mainInterests.has(val) ? "1" : "0";
+      });
+    }
+    syncMainInterestButtons();
+
+    /* ---------- Home style ---------- */
+    initHomeStyle();
+
+    /* ---------- Follow ---------- */
+    renderFollowCards();
+
+    /* ---------- Avatar ---------- */
+    initAvatarGallery();
+    attachCropDrag();
+    // default preview placeholder
+    $("#avatarPreview").src = gallery[0];
+
+    /* ---------- Stepper + initial ---------- */
+    renderStepper();
+    showStep(state.step);
+
+    /* ---------- Small helpers: whenever leaving step 5, store creators text etc ---------- */
+    // Update genres chips visual state (they were created already via makeChips)
+    // Update love chips state validation: selection required in step 3 (already checks state.love.size)
+
+    // Also: capture chip toggles for love/genre: makeChips already handles setRef
+    // Just ensure those chips have proper dataset changes (handled)
+
+    // Step 5: when clicking "chip" with data-key mainInterests (handled) => sync dataset
+    $$(".chip[data-key='mainInterests']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        setErr("#err_main", false);
+      });
+    });
+
+    // Step 7: if user navigates back and forth, keep outline for selected home
+    function syncHomeOutline(){
+      $$("[data-home]").forEach(btn => {
+        if(btn.dataset.home === state.homeStyle){
+          btn.style.outline = "4px solid var(--ink)";
+          btn.style.boxShadow = "8px 8px 0 var(--ink)";
+        }else{
+          btn.style.outline = "none";
+          btn.style.boxShadow = "4px 4px 0 var(--ink)";
+        }
+      });
+    }
+    document.addEventListener("click", () => {
+      // cheap sync on any click
+      syncHomeOutline();
+      // also keep main interest dataset correct
+      syncMainInterestButtons();
+    });
+
+    // Stepper gate: you can only jump backward or current; forward jump is blocked in renderStepper click handler
+  </script>
+</body>
+</html>

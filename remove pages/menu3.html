@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OtakuVerse UI (Tailwind)</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Optional: custom colors (picked for each nav item) -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand:   { p:"#7C5CFF", c:"#00D7FF" }, // platform accent
+            feed:     "#8B5CF6", // violet
+            explore:  "#22D3EE", // cyan
+            groups:   "#34D399", // emerald
+            chat:     "#FB7185", // rose
+            library:  "#FBBF24", // amber
+            challenges:"#6366F1", // indigo
+            privacy:  "#94A3B8", // slate
+            account:  "#A3A3A3"  // neutral
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="antialiased">
+  <!-- CSS-only Theme Toggle Controller -->
+  <input id="theme" type="checkbox" class="peer sr-only" />
+
+  <!-- APP WRAPPER (default: DARK, checked: LIGHT) -->
+  <div
+    class="min-h-screen transition-colors duration-300
+           bg-slate-950 text-slate-100
+           peer-checked:bg-slate-50 peer-checked:text-slate-900
+           [background:radial-gradient(900px_520px_at_80%_15%,rgba(124,92,255,.14),transparent_60%),radial-gradient(900px_520px_at_15%_85%,rgba(0,215,255,.10),transparent_55%),linear-gradient(180deg,#0b1020,#070a14_70%)]
+           peer-checked:[background:radial-gradient(900px_520px_at_80%_15%,rgba(124,92,255,.10),transparent_60%),radial-gradient(900px_520px_at_15%_85%,rgba(0,215,255,.08),transparent_55%),linear-gradient(180deg,#eef2ff,#f5f7ff_70%)]
+    "
+  >
+    <div class="grid min-h-screen lg:grid-cols-[320px_1fr] gap-4 p-4">
+      <!-- SIDEBAR (full height) -->
+      <aside class="lg:sticky lg:top-0 lg:h-screen">
+        <div
+          class="h-full rounded-2xl border transition-colors duration-300 overflow-hidden
+                 border-white/10 bg-white/5 shadow-[0_18px_55px_rgba(0,0,0,.35)]
+                 peer-checked:border-black/10 peer-checked:bg-black/5 peer-checked:shadow-[0_18px_55px_rgba(0,0,0,.12)]
+          "
+        >
+          <!-- Brand -->
+          <div class="p-4 border-b transition-colors duration-300 border-white/10 peer-checked:border-black/10">
+            <div class="flex items-center gap-3">
+              <div class="h-11 w-11 rounded-2xl bg-gradient-to-br from-brand-p to-brand-c shadow-[0_14px_35px_rgba(124,92,255,.22)]"></div>
+              <div class="min-w-0">
+                <div class="font-semibold tracking-tight truncate">OtakuVerse</div>
+                <div class="text-xs text-white/60 peer-checked:text-black/55 truncate">Anime • Manga • Comics Community</div>
+              </div>
+
+              <span
+                class="ml-auto inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs
+                       border-white/10 bg-white/5 text-white/80
+                       peer-checked:border-black/10 peer-checked:bg-black/5 peer-checked:text-black/70"
+              >
+                <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,.16)]"></span>
+                Online
+              </span>
+            </div>
+          </div>
+
+          <!-- Nav -->
+          <div class="p-3 h-[calc(100%-88px)] overflow-auto">
+            <div class="px-2 pt-2 pb-2 text-[11px] uppercase tracking-wider text-white/45 peer-checked:text-black/45">
+              Main
+            </div>
+
+            <nav class="space-y-1">
+              <!-- Feed (ACTIVE example) -->
+              <a
+                href="#"
+                class="group relative flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 transition
+                       border-white/10 bg-white/5 hover:bg-white/10 hover:-translate-y-[1px]
+                       peer-checked:border-black/10 peer-checked:bg-black/5 peer-checked:hover:bg-black/10
+                       "
+              >
+                <span class="absolute left-2 top-2 bottom-2 w-1 rounded-full bg-feed"></span>
+
+                <span class="flex items-center gap-3 min-w-0 pl-3">
+                  <svg class="h-5 w-5 text-feed" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20v-9.5Z" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M9.5 21.5v-7h5v7" stroke="currentColor" stroke-width="1.7" opacity=".9"/>
+                  </svg>
+                  <span class="font-medium truncate">Feed</span>
+                </span>
+
+                <span class="rounded-full border px-2 py-0.5 text-[11px]
+                             border-feed/25 bg-feed/10 text-feed">
+                  Hot
+                </span>
+              </a>
+
+              <!-- Explore -->
+              <a
+                href="#"
+                class="group flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 transition
+                       border-transparent hover:border-white/10 hover:bg-white/5 hover:-translate-y-[1px]
+                       peer-checked:hover:border-black/10 peer-checked:hover:bg-black/5"
+              >
+                <span class="flex items-center gap-3 min-w-0">
+                  <svg class="h-5 w-5 text-explore" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M14.8 9.2 13 13l-3.8 1.8L11 11l3.8-1.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="font-medium truncate">Explore</span>
+                </span>
+              </a>
+
+              <!-- Groups -->
+              <a
+                href="#"
+                class="group flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 transition
+                       border-transparent hover:border-white/10 hover:bg-white/5 hover:-translate-y-[1px]
+                       peer-checked:hover:border-black/10 peer-checked:hover:bg-black/5"
+              >
+                <span class="flex items-center gap-3 min-w-0">
+                  <svg class="h-5 w-5 text-groups" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 20c0-3.3 3.6-5 9-5s9 1.7 9 5" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="1.7"/>
+                  </svg>
+                  <span class="font-medium truncate">Groups</span>
+                </span>
+                <span class="rounded-full border px-2 py-0.5 text-[11px] border-groups/25 bg-groups/10 text-groups">12</span>
+              </a>
+
+              <!-- Chat -->
+              <a
+                href="#"
+                class="group flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 transition
+                       border-transparent hover:border-white/10 hover:bg-white/5 hover:-translate-y-[1px]
+                       peer-checked:hover:border-black/10 peer-checked:hover:bg-black/5"
+              >
+                <span class="flex items-center gap-3 min-w-0">
+                  <svg class="h-5 w-5 text-chat" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v7A2.5 2.5 0 0 1 17.5 15H10l-4 4v-4H6.5A2.5 2.5 0 0 1 4 12.5v-7Z" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M7.5 8.2h9M7.5 10.8h6" stroke="currentColor" stroke-width="1.7" opacity=".85" stroke-linecap="round"/>
+                  </svg>
+                  <span class="font-medium truncate">Chat</span>
+                </span>
+                <span class="rounded-full border px-2 py-0.5 text-[11px] border-chat/25 bg-chat/10 text-chat">3</span>
+              </a>
+
+              <!-- Library -->
+              <a
+                href="#"
+                class="group flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 transition
+                       border-transparent hover:border-white/10 hover:bg-white/5 hover:-translate-y-[1px]
+                       peer-checked:hover:border-black/10 peer-checked:hover:bg-black/5"
+              >
+                <span class="flex items-center gap-3 min-w-0">
+                  <svg class="h-5 w-5 text-library" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 6h14v12H7V6Z" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M3 8h4v12H3V8Z" stroke="currentColor" stroke-width="1.7" opacity=".9"/>
+                    <path d="M10 10h8M10 13h8M10 16h6" stroke="currentColor" stroke-width="1.7" opacity=".85"/>
+                  </svg>
+                  <span class="font-medium truncate">Library</span>
+                </span>
+              </a>
+
+              <!-- Challenges -->
+              <a
+                href="#"
+                class="group flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 transition
+                       border-transparent hover:border-white/10 hover:bg-white/5 hover:-translate-y-[1px]
+                       peer-checked:hover:border-black/10 peer-checked:hover:bg-black/5"
+              >
+                <span class="flex items-center gap-3 min-w-0">
+                  <svg class="h-5 w-5 text-challenges" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 4h10v3a5 5 0 0 1-10 0V4Z" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M12 12v5" stroke="currentColor" stroke-width="1.7" opacity=".9"/>
+                    <path d="M9 20h6" stroke="currentColor" stroke-width="1.7" opacity=".9"/>
+                  </svg>
+                  <span class="font-medium truncate">Challenges</span>
+                </span>
+                <span class="rounded-full border px-2 py-0.5 text-[11px] border-challenges/25 bg-challenges/10 text-challenges">New</span>
+              </a>
+            </nav>
+
+            <div class="px-2 pt-5 pb-2 text-[11px] uppercase tracking-wider text-white/45 peer-checked:text-black/45">
+              Settings
+            </div>
+
+            <nav class="space-y-1">
+              <a
+                href="#"
+                class="group flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 transition
+                       border-transparent hover:border-white/10 hover:bg-white/5 hover:-translate-y-[1px]
+                       peer-checked:hover:border-black/10 peer-checked:hover:bg-black/5"
+              >
+                <span class="flex items-center gap-3 min-w-0">
+                  <svg class="h-5 w-5 text-privacy" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 21s7-3.5 7-10V6l-7-3-7 3v5c0 6.5 7 10 7 10Z" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M9.5 12.2 11 13.8l3.8-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+                  </svg>
+                  <span class="font-medium truncate">Privacy</span>
+                </span>
+              </a>
+
+              <a
+                href="#"
+                class="group flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 transition
+                       border-transparent hover:border-white/10 hover:bg-white/5 hover:-translate-y-[1px]
+                       peer-checked:hover:border-black/10 peer-checked:hover:bg-black/5"
+              >
+                <span class="flex items-center gap-3 min-w-0">
+                  <svg class="h-5 w-5 text-account" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M19.4 15a7.9 7.9 0 0 0 .1-1l2-1.4-2-3.4-2.4.6a8 8 0 0 0-1.7-1l-.4-2.4h-4l-.4 2.4a8 8 0 0 0-1.7 1l-2.4-.6-2 3.4 2 1.4a8.3 8.3 0 0 0 0 2l-2 1.4 2 3.4 2.4-.6c.5.4 1.1.7 1.7 1l.4 2.4h4l.4-2.4c.6-.3 1.2-.6 1.7-1l2.4.6 2-3.4-2-1.4Z" stroke="currentColor" stroke-width="1.2" opacity=".9"/>
+                  </svg>
+                  <span class="font-medium truncate">Account</span>
+                </span>
+              </a>
+            </nav>
+          </div>
+
+          <!-- Sidebar Footer User -->
+          <div class="p-3 border-t transition-colors duration-300 border-white/10 peer-checked:border-black/10">
+            <div
+              class="flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5
+                     border-white/10 bg-white/5
+                     peer-checked:border-black/10 peer-checked:bg-black/5"
+            >
+              <div class="flex items-center gap-3 min-w-0">
+                <div
+                  class="h-10 w-10 rounded-2xl border grid place-items-center font-extrabold
+                         border-white/10 bg-white/5
+                         peer-checked:border-black/10 peer-checked:bg-black/5"
+                >
+                  D
+                </div>
+                <div class="min-w-0">
+                  <div class="font-semibold text-sm truncate">dev.luffy</div>
+                  <div class="text-xs text-white/60 peer-checked:text-black/55 truncate">Level 12</div>
+                </div>
+              </div>
+
+              <span class="text-[11px] rounded-full border px-2 py-0.5 border-emerald-500/25 bg-emerald-500/10 text-emerald-400">
+                Active
+              </span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN -->
+      <main class="min-h-screen">
+        <!-- Topbar -->
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <div class="min-w-0">
+            <h1 class="text-lg font-semibold tracking-tight truncate">Dashboard</h1>
+            <p class="text-sm text-white/60 peer-checked:text-black/55 truncate">
+              Simple, clean, and production-ready layout
+            </p>
+          </div>
+
+          <!-- Theme Toggle (in main) -->
+          <label
+            for="theme"
+            class="cursor-pointer select-none inline-flex items-center gap-3 rounded-xl border px-3 py-2.5 transition
+                   border-white/10 bg-white/5 hover:bg-white/10 hover:-translate-y-[1px]
+                   peer-checked:border-black/10 peer-checked:bg-black/5 peer-checked:hover:bg-black/10"
+            role="button"
+            tabindex="0"
+            aria-label="Toggle theme"
+          >
+            <span class="text-sm font-semibold">Theme</span>
+
+            <span
+              class="relative h-7 w-12 rounded-full border transition
+                     border-white/10 bg-white/10
+                     peer-checked:border-black/10 peer-checked:bg-black/10"
+              aria-hidden="true"
+            >
+              <span
+                class="absolute top-1 left-1 h-5 w-5 rounded-full bg-gradient-to-br from-brand-p to-brand-c transition-all duration-200
+                       peer-checked:left-6"
+              ></span>
+            </span>
+          </label>
+        </div>
+
+        <!-- Main Profile (avatar + settings icon) -->
+        <section
+          class="mb-4 rounded-2xl border p-4 transition-colors duration-300
+                 border-white/10 bg-white/5 shadow-[0_10px_28px_rgba(0,0,0,.18)]
+                 peer-checked:border-black/10 peer-checked:bg-black/5 peer-checked:shadow-[0_10px_28px_rgba(0,0,0,.10)]"
+        >
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div
+                class="h-14 w-14 rounded-2xl border grid place-items-center font-black text-base
+                       border-white/10 bg-white/5
+                       peer-checked:border-black/10 peer-checked:bg-black/5"
+              >
+                D
+              </div>
+
+              <div class="min-w-0">
+                <div class="font-semibold truncate">dev.luffy</div>
+                <div class="text-sm text-white/60 peer-checked:text-black/55 truncate">
+                  Creator • Anime & Comics Community
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="inline-flex items-center justify-center h-11 w-11 rounded-2xl border transition
+                     border-white/10 bg-white/5 hover:bg-white/10 hover:-translate-y-[1px]
+                     peer-checked:border-black/10 peer-checked:bg-black/5 peer-checked:hover:bg-black/10"
+              aria-label="Settings"
+            >
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M19.4 15a7.9 7.9 0 0 0 .1-1l2-1.4-2-3.4-2.4.6a8 8 0 0 0-1.7-1l-.4-2.4h-4l-.4 2.4a8 8 0 0 0-1.7 1l-2.4-.6-2 3.4 2 1.4a8.3 8.3 0 0 0 0 2l-2 1.4 2 3.4 2.4-.6c.5.4 1.1.7 1.7 1l.4 2.4h4l.4-2.4c.6-.3 1.2-.6 1.7-1l2.4.6 2-3.4-2-1.4Z" stroke="currentColor" stroke-width="1.2" opacity=".9"/>
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- Main Pages / Content -->
+        <div class="grid gap-4 lg:grid-cols-[1.35fr_.65fr]">
+          <!-- Feed card -->
+          <section
+            class="rounded-2xl border p-4 transition-colors duration-300
+                   border-white/10 bg-white/5 shadow-[0_10px_28px_rgba(0,0,0,.18)]
+                   peer-checked:border-black/10 peer-checked:bg-black/5 peer-checked:shadow-[0_10px_28px_rgba(0,0,0,.10)]"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="h-2.5 w-2.5 rounded-full bg-feed"></span>
+                <h2 class="font-semibold">Feed</h2>
+              </div>
+              <span class="text-xs rounded-full border px-2 py-0.5 border-feed/25 bg-feed/10 text-feed">Trending</span>
+            </div>
+
+            <p class="mt-2 text-sm text-white/60 peer-checked:text-black/55">
+              Posts, episode discussions, fan art highlights — clean cards, minimal motion.
+            </p>
+
+            <div class="mt-4 space-y-2">
+              <div class="rounded-xl border p-3 border-white/10 bg-white/5 peer-checked:border-black/10 peer-checked:bg-black/5">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="font-semibold text-sm truncate">Episode Discussion</div>
+                    <div class="text-xs text-white/55 peer-checked:text-black/55 truncate">Attack on Titan • 1.2k comments</div>
+                  </div>
+                  <span class="text-xs rounded-full border px-2 py-0.5 border-explore/25 bg-explore/10 text-explore">Open</span>
+                </div>
+              </div>
+
+              <div class="rounded-xl border p-3 border-white/10 bg-white/5 peer-checked:border-black/10 peer-checked:bg-black/5">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="font-semibold text-sm truncate">New Chapter</div>
+                    <div class="text-xs text-white/55 peer-checked:text-black/55 truncate">One Piece • 540 reactions</div>
+                  </div>
+                  <span class="text-xs rounded-full border px-2 py-0.5 border-library/25 bg-library/10 text-library">Read</span>
+                </div>
+              </div>
+
+              <div class="rounded-xl border p-3 border-white/10 bg-white/5 peer-checked:border-black/10 peer-checked:bg-black/5">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="font-semibold text-sm truncate">Fan Art Spotlight</div>
+                    <div class="text-xs text-white/55 peer-checked:text-black/55 truncate">Jujutsu Kaisen • 210 likes</div>
+                  </div>
+                  <span class="text-xs rounded-full border px-2 py-0.5 border-chat/25 bg-chat/10 text-chat">Like</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Quick Panel -->
+          <aside
+            class="rounded-2xl border p-4 transition-colors duration-300
+                   border-white/10 bg-white/5 shadow-[0_10px_28px_rgba(0,0,0,.18)]
+                   peer-checked:border-black/10 peer-checked:bg-black/5 peer-checked:shadow-[0_10px_28px_rgba(0,0,0,.10)]"
+          >
+            <div class="flex items-center gap-2">
+              <span class="h-2.5 w-2.5 rounded-full bg-brand-c"></span>
+              <h2 class="font-semibold">Quick Panel</h2>
+            </div>
+
+            <p class="mt-2 text-sm text-white/60 peer-checked:text-black/55">
+              Put stats, suggestions, or “Create Post” actions here.
+            </p>
+
+            <div class="mt-4 space-y-2">
+              <div class="rounded-xl border p-3 border-white/10 bg-white/5 peer-checked:border-black/10 peer-checked:bg-black/5">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="font-semibold text-sm">Unread Messages</div>
+                    <div class="text-xs text-white/55 peer-checked:text-black/55">3 conversations</div>
+                  </div>
+                  <span class="text-xs rounded-full border px-2 py-0.5 border-chat/25 bg-chat/10 text-chat">Chat</span>
+                </div>
+              </div>
+
+              <div class="rounded-xl border p-3 border-white/10 bg-white/5 peer-checked:border-black/10 peer-checked:bg-black/5">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="font-semibold text-sm">Your Groups</div>
+                    <div class="text-xs text-white/55 peer-checked:text-black/55">12 joined</div>
+                  </div>
+                  <span class="text-xs rounded-full border px-2 py-0.5 border-groups/25 bg-groups/10 text-groups">Groups</span>
+                </div>
+              </div>
+
+              <button
+                class="w-full mt-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition
+                       border-brand-p/30 bg-brand-p/10 text-brand-p hover:bg-brand-p/15 hover:-translate-y-[1px]
+                       peer-checked:border-brand-p/25 peer-checked:bg-brand-p/10"
+                type="button"
+              >
+                + Create Post
+              </button>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

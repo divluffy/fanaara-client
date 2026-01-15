@@ -1,0 +1,1343 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dark Gothic Vampire Anime — Ritual Registration</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            night: {
+              950: "#07060a",
+              900: "#0b0a10",
+              850: "#0f0d16",
+              800: "#14121d"
+            },
+            blood: {
+              50: "#fff1f2",
+              200: "#fecdd3",
+              400: "#fb7185",
+              600: "#e11d48",
+              700: "#be123c",
+              800: "#9f1239",
+              900: "#881337"
+            },
+            glass: "rgba(255,255,255,.08)"
+          },
+          boxShadow: {
+            glass: "0 10px 30px rgba(0,0,0,.55)",
+            glow: "0 0 0 1px rgba(225,29,72,.25), 0 0 30px rgba(225,29,72,.18)"
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Subtle grain */
+    .grain:before{
+      content:"";
+      position:absolute; inset:0;
+      background-image:
+        radial-gradient(circle at 20% 10%, rgba(225,29,72,.08) 0 2px, transparent 3px),
+        radial-gradient(circle at 80% 30%, rgba(255,255,255,.05) 0 2px, transparent 3px),
+        radial-gradient(circle at 35% 80%, rgba(255,255,255,.04) 0 2px, transparent 3px);
+      opacity:.7; pointer-events:none; filter: blur(.2px);
+      mix-blend-mode: screen;
+    }
+
+    /* Fog animation overlay (used on Create) */
+    .fog {
+      position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+    }
+    .fog:before, .fog:after {
+      content:"";
+      position:absolute; inset:-30%;
+      background:
+        radial-gradient(closest-side at 20% 30%, rgba(255,255,255,.12), transparent 60%),
+        radial-gradient(closest-side at 70% 60%, rgba(255,255,255,.10), transparent 65%),
+        radial-gradient(closest-side at 50% 40%, rgba(225,29,72,.10), transparent 70%);
+      filter: blur(18px);
+      opacity: .55;
+      animation: fogMove 7s linear infinite;
+    }
+    .fog:after{
+      opacity:.35;
+      animation-duration: 10s;
+      transform: translate3d(-6%, 2%, 0) scale(1.05);
+    }
+    @keyframes fogMove {
+      0%   { transform: translate3d(-8%, -2%, 0) scale(1.02); }
+      50%  { transform: translate3d( 8%,  3%, 0) scale(1.06); }
+      100% { transform: translate3d(-8%, -2%, 0) scale(1.02); }
+    }
+
+    /* Parchment error scroll */
+    .parchment {
+      position: relative;
+      background:
+        linear-gradient(180deg, rgba(255,246,220,.95), rgba(245,224,182,.92));
+      border: 1px solid rgba(120,53,15,.55);
+      box-shadow:
+        0 10px 25px rgba(0,0,0,.35),
+        inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    .parchment:before, .parchment:after{
+      content:"";
+      position:absolute; top:-10px;
+      width:28px; height:28px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.6), rgba(0,0,0,0) 65%);
+      opacity:.35;
+      filter: blur(.2px);
+    }
+    .parchment:before{ right:12px; transform: rotate(12deg); }
+    .parchment:after{ left:12px; transform: rotate(-10deg); }
+
+    /* Step transitions */
+    .step-panel { display:none; }
+    .step-panel.active { display:block; animation: panelIn .35s ease-out; }
+    @keyframes panelIn{
+      from { opacity:0; transform: translateY(10px); }
+      to { opacity:1; transform: translateY(0); }
+    }
+
+    /* Better number alignment in RTL */
+    .rtl-num { font-variant-numeric: tabular-nums; }
+
+    /* Range slider for "Blood meter" (optional) */
+    .blood-bar {
+      background: linear-gradient(90deg, rgba(225,29,72,.0), rgba(225,29,72,.35));
+    }
+
+    /* Avatar frame styles */
+    .frame-rose { border-image: linear-gradient(45deg, rgba(225,29,72,.85), rgba(255,255,255,.15)) 1; }
+    .frame-moon { border-image: linear-gradient(45deg, rgba(255,255,255,.25), rgba(225,29,72,.55)) 1; }
+    .frame-thorn{ border-image: linear-gradient(45deg, rgba(225,29,72,.6), rgba(17,24,39,.4)) 1; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-night-950 text-slate-100">
+  <!-- Background -->
+  <div class="fixed inset-0 -z-10">
+    <div class="absolute inset-0 bg-gradient-to-b from-night-950 via-night-900 to-night-950"></div>
+    <div class="absolute inset-0 opacity-70 grain"></div>
+    <!-- Decorative SVG (rose + moon) -->
+    <svg class="absolute -top-10 -left-10 w-[420px] opacity-[.18]" viewBox="0 0 300 300" fill="none" aria-hidden="true">
+      <path d="M150 30c60 0 110 50 110 110s-50 110-110 110S40 200 40 140 90 30 150 30Z" stroke="rgba(225,29,72,.8)" stroke-width="2"/>
+      <path d="M182 72c-26 3-45 22-48 48-3 27 18 54 48 56 32 2 55-29 49-58-4-23-25-49-49-46Z"
+            stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+      <path d="M150 92c-18 0-32 14-32 32 0 20 16 38 32 48 16-10 32-28 32-48 0-18-14-32-32-32Z"
+            stroke="rgba(225,29,72,.65)" stroke-width="2"/>
+      <path d="M150 172v64" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
+      <path d="M150 192c-18 0-28 10-34 20" stroke="rgba(225,29,72,.35)" stroke-width="2"/>
+      <path d="M150 192c18 0 28 10 34 20" stroke="rgba(225,29,72,.35)" stroke-width="2"/>
+    </svg>
+
+    <svg class="absolute -bottom-16 -right-10 w-[520px] opacity-[.14]" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+      <path d="M280 60c-60 8-108 60-108 124 0 70 57 126 126 126 24 0 46-7 66-18-24 36-66 60-114 60-74 0-134-60-134-134 0-72 56-130 128-134 12-.6 24 0 36 2Z"
+            stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+      <path d="M90 110c18 12 32 30 42 54" stroke="rgba(225,29,72,.35)" stroke-width="2"/>
+      <path d="M80 160c24 2 44 12 60 30" stroke="rgba(225,29,72,.35)" stroke-width="2"/>
+    </svg>
+  </div>
+
+  <main class="mx-auto max-w-6xl px-4 py-10">
+    <!-- Header -->
+    <header class="mb-8 flex flex-col gap-3">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="h-11 w-11 rounded-2xl bg-glass backdrop-blur-xl shadow-glass grid place-items-center ring-1 ring-white/10">
+            <!-- Moon icon -->
+            <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" aria-hidden="true">
+              <path d="M20 14.5C18.8 18.2 15.3 21 11 21 5.9 21 2 17.1 2 12 2 7.7 4.8 4.2 8.5 3c-1.2 1.7-1.8 3.8-1.4 6 .7 3.7 4 6.3 7.8 6.3 1.9 0 3.7-.6 5.1-1.8Z"
+                    stroke="rgba(255,255,255,.75)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 6.5c.9.2 1.7.6 2.3 1.2" stroke="rgba(225,29,72,.8)" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl md:text-3xl font-semibold tracking-tight">
+              تسجيل <span class="text-blood-400">طقوسي</span> — Dark Gothic Vampire Anime
+            </h1>
+            <p class="text-slate-300/90 mt-1 leading-relaxed">
+              واجهة زجاجية داكنة، لمسات دمويّة، وخطوات كأنها <span class="text-slate-200">مراحل تعويذة</span>.
+            </p>
+          </div>
+        </div>
+
+        <div class="hidden md:flex items-center gap-2">
+          <span class="text-xs text-slate-300">تباين عالي • قراءة واضحة</span>
+          <span class="h-2 w-2 rounded-full bg-blood-600 shadow-glow"></span>
+        </div>
+      </div>
+
+      <!-- Error parchment -->
+      <div id="errorBox" class="hidden parchment rounded-xl px-4 py-3 text-slate-900">
+        <div class="flex items-start gap-3">
+          <div class="mt-0.5">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 9v5" stroke="rgba(127,29,29,.9)" stroke-width="2" stroke-linecap="round"/>
+              <path d="M12 17.5h.01" stroke="rgba(127,29,29,.9)" stroke-width="3" stroke-linecap="round"/>
+              <path d="M10.3 3.7c.8-1.4 2.6-1.4 3.4 0l8.2 14.2c.8 1.4-.2 3.1-1.7 3.1H3.8c-1.6 0-2.6-1.7-1.7-3.1l8.2-14.2Z"
+                    stroke="rgba(127,29,29,.85)" stroke-width="1.6" />
+            </svg>
+          </div>
+          <div>
+            <p class="font-semibold">مخطوطة التحذير</p>
+            <p id="errorText" class="text-sm mt-1 leading-relaxed"></p>
+          </div>
+          <button type="button" class="ms-auto text-slate-800/70 hover:text-slate-900" onclick="hideError()" aria-label="إغلاق">
+            ✕
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
+      <!-- Stepper -->
+      <aside class="bg-glass backdrop-blur-2xl shadow-glass ring-1 ring-white/10 rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold">مراحل الطقوس</h2>
+          <span class="text-xs text-slate-300 rtl-num"><span id="stepNow">1</span>/<span id="stepAll">8</span></span>
+        </div>
+
+        <ol id="stepper" class="space-y-2" aria-label="Ritual steps"></ol>
+
+        <div class="mt-5 rounded-xl bg-night-800/50 ring-1 ring-white/10 p-4">
+          <p class="text-sm text-slate-200 font-semibold mb-1">تلميح مظلم</p>
+          <p id="hint" class="text-sm text-slate-300 leading-relaxed">
+            اختر اسمًا يليق بليلة طويلة… ثم انتسب إلى House.
+          </p>
+        </div>
+      </aside>
+
+      <!-- Panels -->
+      <section class="bg-glass backdrop-blur-2xl shadow-glass ring-1 ring-white/10 rounded-2xl p-5 md:p-7 relative overflow-hidden">
+        <div class="absolute inset-0 pointer-events-none opacity-[.06]">
+          <div class="absolute -top-20 left-1/3 w-80 h-80 rounded-full bg-blood-600 blur-3xl"></div>
+          <div class="absolute -bottom-24 right-1/4 w-96 h-96 rounded-full bg-white blur-3xl"></div>
+        </div>
+
+        <!-- Top mini-title -->
+        <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+          <div>
+            <p class="text-xs text-slate-300">تعويذة التسجيل</p>
+            <h3 id="panelTitle" class="text-xl font-semibold">الطقس I — الاسم والـ House</h3>
+          </div>
+          <div class="text-xs text-slate-300">
+            <span class="inline-flex items-center gap-2">
+              <span class="h-1.5 w-1.5 rounded-full bg-blood-600 shadow-glow"></span>
+              <span>Glassmorphism • Red Accents</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="step-panel active relative" data-step="1">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-slate-200 mb-2">اسمك (Ritual Name)</label>
+              <input id="name" class="w-full rounded-xl bg-night-900/50 ring-1 ring-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-blood-600/60"
+                     placeholder="مثال: Lune Noctis" autocomplete="nickname" />
+              <p class="mt-2 text-xs text-slate-400">سيظهر للآخرين—يمكن تغييره لاحقًا.</p>
+            </div>
+
+            <div>
+              <label class="block text-sm text-slate-200 mb-2">اختر House</label>
+              <select id="house" class="w-full rounded-xl bg-night-900/50 ring-1 ring-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-blood-600/60">
+                <option value="">— اختر —</option>
+                <option>Night Court</option>
+                <option>Crimson Covenant</option>
+                <option>Velvet Cathedral</option>
+                <option>Thorned Regency</option>
+                <option>Silver Eclipse</option>
+              </select>
+              <p class="mt-2 text-xs text-slate-400">الـ House يعطي طابعًا لهويتك داخل المجتمع.</p>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-xl ring-1 ring-white/10 bg-night-900/35 p-4">
+            <div class="flex items-center gap-3">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 21s-7-4.6-7-11a4 4 0 0 1 7-2.3A4 4 0 0 1 19 10c0 6.4-7 11-7 11Z"
+                      stroke="rgba(225,29,72,.9)" stroke-width="1.8" stroke-linejoin="round"/>
+              </svg>
+              <p class="text-sm text-slate-200">
+                <span class="font-semibold">طقس التسمية:</span> اجعل الاسم سهل القراءة، غامض، دون رموز مبالغ فيها.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-panel relative" data-step="2">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-slate-200 mb-2">Email</label>
+              <input id="email" type="email" class="w-full rounded-xl bg-night-900/50 ring-1 ring-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-blood-600/60"
+                     placeholder="you@domain.com" autocomplete="email" />
+              <p class="mt-2 text-xs text-slate-400">لن نعرضه للعامة.</p>
+            </div>
+
+            <div>
+              <label class="block text-sm text-slate-200 mb-2">Password</label>
+              <input id="password" type="password" class="w-full rounded-xl bg-night-900/50 ring-1 ring-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-blood-600/60"
+                     placeholder="••••••••" autocomplete="new-password" />
+              <p class="mt-2 text-xs text-slate-400">يفضّل 10+ حروف مع رموز/أرقام.</p>
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-2xl ring-1 ring-white/10 bg-night-900/35 p-4">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 2s7 7 7 12a7 7 0 1 1-14 0c0-5 7-12 7-12Z"
+                        stroke="rgba(225,29,72,.9)" stroke-width="1.8" stroke-linejoin="round"/>
+                  <path d="M9.2 14.2c.5 2 2 3.3 4.3 3.5" stroke="rgba(255,255,255,.45)" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+                <div>
+                  <p class="text-sm text-slate-200 font-semibold">Blood Meter</p>
+                  <p id="bloodLabel" class="text-xs text-slate-300">—</p>
+                </div>
+              </div>
+              <span id="bloodScore" class="text-xs text-slate-300 rtl-num">0/100</span>
+            </div>
+
+            <div class="mt-3 h-3 rounded-full bg-night-950/60 ring-1 ring-white/10 overflow-hidden">
+              <div id="bloodFill" class="h-full w-0 bg-gradient-to-r from-blood-700 via-blood-600 to-blood-400 shadow-glow transition-all"></div>
+            </div>
+
+            <ul class="mt-3 text-xs text-slate-300 grid grid-cols-2 md:grid-cols-4 gap-2">
+              <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-white/30"></span> طول كافٍ</li>
+              <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-white/30"></span> أحرف كبيرة/صغيرة</li>
+              <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-white/30"></span> أرقام</li>
+              <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-white/30"></span> رموز</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-panel relative" data-step="3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-slate-200 mb-2">البلد</label>
+              <select id="country" class="w-full rounded-xl bg-night-900/50 ring-1 ring-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-blood-600/60">
+                <option value="">— اختر —</option>
+                <option>Palestine</option>
+                <option>Israel</option>
+                <option>Jordan</option>
+                <option>Egypt</option>
+                <option>Saudi Arabia</option>
+                <option>UAE</option>
+                <option>Morocco</option>
+                <option>Algeria</option>
+                <option>Tunisia</option>
+                <option>Lebanon</option>
+                <option>Iraq</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm text-slate-200 mb-2">تاريخ الميلاد</label>
+              <input id="dob" type="date" class="w-full rounded-xl bg-night-900/50 ring-1 ring-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-blood-600/60" />
+              <p class="mt-2 text-xs text-slate-400">للتحقق العمري وتهيئة التجربة.</p>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <label class="block text-sm text-slate-200 mb-2">Bio</label>
+            <textarea id="bio" rows="4" class="w-full rounded-xl bg-night-900/50 ring-1 ring-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-blood-600/60"
+                      placeholder="اكتب نبذة قصيرة... (مثال: أبحث عن قصص مظلمة ونقاشات عميقة)"></textarea>
+            <p class="mt-2 text-xs text-slate-400">حد مناسب: 160–220 حرفًا (اختياري لكنه يلمّع حسابك).</p>
+          </div>
+
+          <div class="mt-5 rounded-2xl ring-1 ring-white/10 bg-night-900/35 p-4">
+            <p class="text-sm text-slate-200 font-semibold mb-3">اختر Vibe</p>
+            <div id="vibeGroup" class="flex flex-wrap gap-2">
+              <!-- chips injected -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step-panel relative" data-step="4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <p class="text-sm text-slate-200 font-semibold mb-3">إطار Gothic</p>
+              <div id="frameGroup" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+
+              <p class="text-sm text-slate-200 font-semibold mt-5 mb-3">Silhouette</p>
+              <div id="silGroup" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+            </div>
+
+            <div class="rounded-2xl ring-1 ring-white/10 bg-night-900/35 p-4">
+              <div class="flex items-center justify-between">
+                <p class="text-sm text-slate-200 font-semibold">معاينة الأفاتار</p>
+                <span class="text-xs text-slate-400">PNG/JPG</span>
+              </div>
+
+              <div class="mt-4 flex items-center justify-center">
+                <div id="avatarPreview"
+                     class="relative w-44 h-44 rounded-2xl bg-night-950/60 ring-1 ring-white/10 overflow-hidden shadow-glow"
+                     aria-label="Avatar preview">
+                  <img id="avatarImg" alt="" class="absolute inset-0 w-full h-full object-cover hidden"/>
+                  <div id="silOverlay" class="absolute inset-0 grid place-items-center">
+                    <!-- silhouette svg injected -->
+                  </div>
+                  <div id="frameOverlay" class="absolute inset-0 rounded-2xl border-2 frame-rose"></div>
+                  <div class="absolute bottom-2 right-2 rounded-lg bg-night-900/60 ring-1 ring-white/10 px-2 py-1 text-[11px] text-slate-200">
+                    <span id="frameName">Rose</span> • <span id="silName">Bat</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <label class="block text-sm text-slate-200 mb-2">رفع صورة</label>
+                <input id="avatarFile" type="file" accept="image/*"
+                       class="w-full rounded-xl bg-night-950/50 ring-1 ring-white/10 px-4 py-3 text-sm file:me-3 file:rounded-lg file:border-0 file:bg-blood-700/70 file:px-3 file:py-2 file:text-slate-50 hover:file:bg-blood-600/80" />
+                <p class="mt-2 text-xs text-slate-400">اختياري: يمكنك الاعتماد على silhouette فقط.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="step-panel relative" data-step="5">
+          <p class="text-sm text-slate-200 font-semibold mb-3">Themes (Anime/Comics)</p>
+          <div id="themeGroup" class="flex flex-wrap gap-2"></div>
+
+          <div class="mt-5 rounded-2xl ring-1 ring-white/10 bg-night-900/35 p-4">
+            <div class="flex items-center justify-between gap-3">
+              <p class="text-sm text-slate-200 font-semibold">Tags</p>
+              <span class="text-xs text-slate-400">اضغط Enter لإضافة</span>
+            </div>
+
+            <div class="mt-3 flex flex-col gap-3">
+              <input id="tagInput" class="w-full rounded-xl bg-night-900/50 ring-1 ring-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-blood-600/60"
+                     placeholder="مثال: #vampire #gothic #thriller" />
+              <div id="tagList" class="flex flex-wrap gap-2"></div>
+              <p class="text-xs text-slate-400">نظّم اهتماماتك: مثلًا (#Seinen #DarkFantasy #Mystery).</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="step-panel relative" data-step="6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-slate-200 font-semibold">اقتراح حسابات</p>
+              <p class="text-xs text-slate-400 mt-1">أدباء/رسامين/نقاد — لتغذية موجتك.</p>
+            </div>
+            <span id="followCount" class="text-xs text-slate-300 rtl-num">0 متابعة</span>
+          </div>
+
+          <div id="suggestions" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <!-- Step 7 -->
+        <div class="step-panel relative" data-step="7">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="rounded-2xl ring-1 ring-white/10 bg-night-900/35 p-4">
+              <p class="text-sm text-slate-200 font-semibold mb-3">الخصوصية</p>
+              <div class="space-y-3">
+                <label class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-sm text-slate-200">حساب خاص</p>
+                    <p class="text-xs text-slate-400">المحتوى يظهر للمتابعين فقط.</p>
+                  </div>
+                  <button type="button" class="toggle" data-toggle="isPrivate"></button>
+                </label>
+
+                <label class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-sm text-slate-200">إخفاء قائمة المتابعة</p>
+                    <p class="text-xs text-slate-400">لا تُعرض followings علنًا.</p>
+                  </div>
+                  <button type="button" class="toggle" data-toggle="hideFollowing"></button>
+                </label>
+              </div>
+            </div>
+
+            <div class="rounded-2xl ring-1 ring-white/10 bg-night-900/35 p-4">
+              <p class="text-sm text-slate-200 font-semibold mb-3">السبويلر و DM</p>
+              <div class="space-y-3">
+                <label class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-sm text-slate-200">فلتر السبويلر</p>
+                    <p class="text-xs text-slate-400">يُطمس ما قد يحرق الأحداث.</p>
+                  </div>
+                  <button type="button" class="toggle" data-toggle="spoilerFilter"></button>
+                </label>
+
+                <label class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-sm text-slate-200">DM Requests</p>
+                    <p class="text-xs text-slate-400">اسمح بطلبات الرسائل من غير المتابعين.</p>
+                  </div>
+                  <button type="button" class="toggle" data-toggle="dmRequests"></button>
+                </label>
+              </div>
+
+              <div class="mt-4 rounded-xl bg-night-950/50 ring-1 ring-white/10 p-3">
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  يمكنك تعديل كل هذا لاحقًا. الهدف الآن: بداية آمنة داخل الـ Night.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 8 -->
+        <div class="step-panel relative" data-step="8">
+          <div class="rounded-2xl ring-1 ring-white/10 bg-night-900/35 p-4">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="text-sm text-slate-200 font-semibold">Review</p>
+                <p class="text-xs text-slate-400 mt-1">تأكد قبل “خلق” الحساب.</p>
+              </div>
+              <span class="text-xs text-slate-300">طقس الخلق الأخير</span>
+            </div>
+
+            <div id="reviewBox" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+          </div>
+
+          <div class="mt-5 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+            <div class="text-xs text-slate-400 leading-relaxed">
+              بالضغط على Create، سيتم إنشاء حسابك. سنُظهر تأثير ضباب خفيف.
+            </div>
+            <button id="createBtn" type="button"
+                    class="rounded-xl bg-blood-700/70 hover:bg-blood-600/80 ring-1 ring-white/10 px-5 py-3 font-semibold shadow-glow transition">
+              Create ✦
+            </button>
+          </div>
+        </div>
+
+        <!-- Footer nav -->
+        <div class="relative mt-7 flex items-center justify-between gap-3">
+          <button id="backBtn" type="button"
+                  class="rounded-xl bg-night-900/50 hover:bg-night-900/70 ring-1 ring-white/10 px-4 py-3 text-sm transition disabled:opacity-40 disabled:cursor-not-allowed">
+            ← رجوع
+          </button>
+
+          <div class="flex items-center gap-2 text-xs text-slate-300 rtl-num">
+            <span class="hidden sm:inline">ختم المرحلة:</span>
+            <span class="inline-flex items-center gap-2">
+              <span class="h-1.5 w-1.5 rounded-full bg-white/20"></span>
+              <span id="progressText">الطقس 1/8</span>
+            </span>
+          </div>
+
+          <button id="nextBtn" type="button"
+                  class="rounded-xl bg-night-900/50 hover:bg-night-900/70 ring-1 ring-white/10 px-4 py-3 text-sm transition">
+            التالي →
+          </button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Create Modal -->
+  <div id="createModal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/70"></div>
+    <div class="absolute inset-0 grid place-items-center p-4">
+      <div class="relative w-full max-w-lg rounded-2xl bg-glass backdrop-blur-2xl ring-1 ring-white/10 shadow-glass overflow-hidden">
+        <div class="fog"></div>
+        <div class="relative p-6">
+          <div class="flex items-center gap-3">
+            <div class="h-11 w-11 rounded-2xl bg-night-900/50 ring-1 ring-white/10 grid place-items-center shadow-glow">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 2s7 7 7 12a7 7 0 1 1-14 0c0-5 7-12 7-12Z"
+                      stroke="rgba(225,29,72,.9)" stroke-width="1.8" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-lg font-semibold">Summoning Account…</p>
+              <p id="createSub" class="text-sm text-slate-300 mt-1">الضباب يلتف حول الاسم…</p>
+            </div>
+          </div>
+
+          <div class="mt-5 h-3 rounded-full bg-night-950/60 ring-1 ring-white/10 overflow-hidden">
+            <div id="createFill" class="h-full w-0 bg-gradient-to-r from-blood-700 via-blood-600 to-blood-400 transition-all"></div>
+          </div>
+
+          <div class="mt-5 flex items-center justify-between">
+            <span id="createStatus" class="text-xs text-slate-300">0%</span>
+            <button id="closeModalBtn" type="button"
+                    class="rounded-xl bg-night-900/50 hover:bg-night-900/70 ring-1 ring-white/10 px-4 py-2 text-sm transition hidden">
+              إغلاق
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Data ----------
+    const steps = [
+      { title: "الطقس I — الاسم والـ House", hint: "اختر اسمًا يليق بليلة طويلة… ثم انتسب إلى House." },
+      { title: "الطقس II — البريد وكلمة السر", hint: "اجعل كلمة السر قوية: الدم لا يرحم الهشاشة." },
+      { title: "الطقس III — تفاصيل إضافية", hint: "Vibe يحدد أجواء حسابك… اختره بحكمة." },
+      { title: "الطقس IV — الأفاتار", hint: "إطار Gothic + silhouette… أو صورة كاملة إن شئت." },
+      { title: "الطقس V — الاهتمامات والوسوم", hint: "اختصر عالمك بكلمات: Themes + Tags." },
+      { title: "الطقس VI — المتابعة المقترحة", hint: "اتبع من يعلّمك: أديب، رسام، ناقد." },
+      { title: "الطقس VII — الخصوصية و DM", hint: "أغلق الأبواب… أو اتركها نصف مفتوحة." },
+      { title: "الطقس VIII — Review + Create", hint: "آخر نظرة قبل ختم الطقس." },
+    ];
+
+    const vibes = ["mysterious", "elegant", "feral", "melancholic", "playful-dark", "scholar-of-night"];
+    const themes = ["dark fantasy", "thriller", "gothic romance", "psychological", "horror", "mystery", "vampire", "urban night", "occult", "seinen", "noir"];
+
+    const frames = [
+      { id:"rose", name:"Rose Frame", cls:"frame-rose", desc:"ورود/دم" },
+      { id:"moon", name:"Moon Frame", cls:"frame-moon", desc:"هلال/فضة" },
+      { id:"thorn", name:"Thorn Frame", cls:"frame-thorn", desc:"أشواك/ظل" },
+    ];
+
+    const silhouettes = [
+      { id:"bat", name:"Bat", svg: batSVG() },
+      { id:"rose", name:"Rose", svg: roseSVG() },
+      { id:"mask", name:"Mask", svg: maskSVG() },
+    ];
+
+    const suggestedAccounts = [
+      { handle:"@NoirScribe", role:"أديب", bio:"تحليل ثيمات الظلام في المانغا + مراجعات سيئين." },
+      { handle:"@CrimsonInk", role:"رسام", bio:"سكتشات Gothic + دروس تلوين دموي." },
+      { handle:"@PanelCritic", role:"ناقد", bio:"تفكيك سرديات الرعب النفسي وتقييمات أسبوعية." },
+      { handle:"@MoonLitLore", role:"أديب", bio:"حكايات قصيرة: Night Court Chronicles." },
+      { handle:"@ThornedBrush", role:"رسام", bio:"تصاميم شخصيات + سيلويتات قاتمة." },
+      { handle:"@SpoilerPriest", role:"ناقد", bio:"فلترة سبويلر ذكية + نقاشات بلا حرق." },
+    ];
+
+    // ---------- State ----------
+    const state = {
+      step: 1,
+      name: "",
+      house: "",
+      email: "",
+      password: "",
+      blood: 0,
+      country: "",
+      dob: "",
+      bio: "",
+      vibe: "",
+      frame: "rose",
+      silhouette: "bat",
+      avatarDataUrl: "",
+      selectedThemes: new Set(),
+      tags: [],
+      follows: new Set(),
+      privacy: {
+        isPrivate: false,
+        hideFollowing: false,
+        spoilerFilter: true,
+        dmRequests: false
+      }
+    };
+
+    // ---------- Elements ----------
+    const stepperEl = document.getElementById("stepper");
+    const panelTitleEl = document.getElementById("panelTitle");
+    const hintEl = document.getElementById("hint");
+    const stepNowEl = document.getElementById("stepNow");
+    const stepAllEl = document.getElementById("stepAll");
+    const progressTextEl = document.getElementById("progressText");
+
+    const backBtn = document.getElementById("backBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    const errorBox = document.getElementById("errorBox");
+    const errorText = document.getElementById("errorText");
+
+    // Inputs
+    const nameEl = document.getElementById("name");
+    const houseEl = document.getElementById("house");
+    const emailEl = document.getElementById("email");
+    const passwordEl = document.getElementById("password");
+
+    const bloodFill = document.getElementById("bloodFill");
+    const bloodLabel = document.getElementById("bloodLabel");
+    const bloodScore = document.getElementById("bloodScore");
+
+    const countryEl = document.getElementById("country");
+    const dobEl = document.getElementById("dob");
+    const bioEl = document.getElementById("bio");
+
+    const vibeGroup = document.getElementById("vibeGroup");
+    const frameGroup = document.getElementById("frameGroup");
+    const silGroup = document.getElementById("silGroup");
+    const avatarFile = document.getElementById("avatarFile");
+    const avatarImg = document.getElementById("avatarImg");
+    const silOverlay = document.getElementById("silOverlay");
+    const frameOverlay = document.getElementById("frameOverlay");
+    const frameName = document.getElementById("frameName");
+    const silName = document.getElementById("silName");
+
+    const themeGroup = document.getElementById("themeGroup");
+    const tagInput = document.getElementById("tagInput");
+    const tagList = document.getElementById("tagList");
+
+    const suggestionsEl = document.getElementById("suggestions");
+    const followCountEl = document.getElementById("followCount");
+
+    const reviewBox = document.getElementById("reviewBox");
+    const createBtn = document.getElementById("createBtn");
+
+    const createModal = document.getElementById("createModal");
+    const createFill = document.getElementById("createFill");
+    const createStatus = document.getElementById("createStatus");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const createSub = document.getElementById("createSub");
+
+    // ---------- Init ----------
+    stepAllEl.textContent = String(steps.length);
+    buildStepper();
+    buildVibes();
+    buildFrames();
+    buildSilhouettes();
+    buildThemes();
+    buildSuggestions();
+    initToggles();
+    applyAvatarPreview();
+
+    // ---------- Stepper ----------
+    function buildStepper(){
+      stepperEl.innerHTML = "";
+      steps.forEach((s, idx) => {
+        const n = idx + 1;
+        const li = document.createElement("li");
+        li.className = "group";
+        li.innerHTML = `
+          <button type="button" class="w-full text-right rounded-xl px-3 py-3 ring-1 ring-white/10 bg-night-900/35 hover:bg-night-900/55 transition flex items-start gap-3"
+                  data-go="${n}" aria-label="اذهب إلى ${n}">
+            <div class="mt-0.5 shrink-0">
+              ${phaseSVG(n)}
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-sm font-semibold text-slate-100">مرحلة ${roman(n)}</p>
+                <span class="text-xs text-slate-400 rtl-num">${n}/${steps.length}</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-1 line-clamp-2">${stripTitle(s.title)}</p>
+            </div>
+          </button>
+        `;
+        li.querySelector("button").addEventListener("click", () => goToStep(n, true));
+        stepperEl.appendChild(li);
+      });
+      syncUI();
+    }
+
+    function syncUI(){
+      // Title + hint
+      panelTitleEl.textContent = steps[state.step - 1].title;
+      hintEl.textContent = steps[state.step - 1].hint;
+
+      // Progress
+      stepNowEl.textContent = String(state.step);
+      progressTextEl.textContent = `الطقس ${state.step}/${steps.length}`;
+
+      // Panels
+      document.querySelectorAll(".step-panel").forEach(p => {
+        p.classList.toggle("active", Number(p.dataset.step) === state.step);
+      });
+
+      // Stepper highlight
+      stepperEl.querySelectorAll("button[data-go]").forEach(btn => {
+        const n = Number(btn.dataset.go);
+        const active = n === state.step;
+        btn.classList.toggle("shadow-glow", active);
+        btn.classList.toggle("ring-blood-600/40", active);
+        btn.classList.toggle("bg-night-900/60", active);
+      });
+
+      // Back/Next
+      backBtn.disabled = state.step === 1;
+      nextBtn.textContent = state.step === steps.length ? "Finish →" : "التالي →";
+
+      // If step 8, update review
+      if (state.step === 8) renderReview();
+    }
+
+    function goToStep(n, fromClick=false){
+      // Optional: prevent jumping forward without basic validity
+      if (fromClick && n > state.step){
+        // Validate current step before allowing forward jump
+        const ok = validateStep(state.step);
+        if (!ok) return;
+      }
+      hideError();
+      state.step = Math.max(1, Math.min(steps.length, n));
+      syncUI();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    backBtn.addEventListener("click", () => goToStep(state.step - 1));
+    nextBtn.addEventListener("click", () => {
+      hideError();
+      const ok = validateStep(state.step);
+      if (!ok) return;
+      if (state.step < steps.length) goToStep(state.step + 1);
+      else {
+        // If user hits Finish on last step, trigger create
+        createBtn?.click();
+      }
+    });
+
+    // ---------- Validation ----------
+    function validateStep(step){
+      // sync state from inputs
+      state.name = nameEl.value.trim();
+      state.house = houseEl.value;
+      state.email = emailEl.value.trim();
+      state.password = passwordEl.value;
+
+      state.country = countryEl.value;
+      state.dob = dobEl.value;
+      state.bio = bioEl.value.trim();
+
+      if (step === 1){
+        if (state.name.length < 2) return showError("الاسم قصير جدًا. اختر اسمًا طقوسيًا واضحًا (حرفان على الأقل).");
+        if (!state.house) return showError("اختر House قبل متابعة الطقس.");
+      }
+
+      if (step === 2){
+        if (!isValidEmail(state.email)) return showError("البريد غير صالح. اكتب Email بصيغة صحيحة مثل you@domain.com");
+        const strength = computePasswordStrength(state.password);
+        state.blood = strength.score;
+        if (state.password.length < 8) return showError("كلمة السر قصيرة. اجعلها 8 أحرف على الأقل (الأفضل 10+).");
+        if (strength.score < 45) return showError("Blood Meter منخفض. أضف أرقام/رموز/تنويع أحرف لرفع القوة.");
+      }
+
+      if (step === 3){
+        if (!state.country) return showError("اختر البلد لإتمام الطقس.");
+        if (!state.dob) return showError("اختر تاريخ الميلاد.");
+        if (!state.vibe) return showError("اختر Vibe واحدًا على الأقل.");
+        // Bio optional, but if present enforce minimal readability
+        if (state.bio && state.bio.length < 20) return showError("الـ Bio قصير جدًا. اكتب جملة أو جملتين (20 حرفًا+). أو اتركه فارغًا.");
+      }
+
+      if (step === 4){
+        // Avatar optional, but frame & silhouette must exist
+        if (!state.frame) return showError("اختر إطار Gothic.");
+        if (!state.silhouette) return showError("اختر silhouette.");
+      }
+
+      if (step === 5){
+        if (state.selectedThemes.size === 0) return showError("اختر Theme واحدًا على الأقل (Anime/Comics).");
+        // tags optional, but limit
+        if (state.tags.length > 12) return showError("الوسوم كثيرة. اجعلها 12 كحد أقصى.");
+      }
+
+      if (step === 6){
+        // Follow optional, but encourage at least 1
+        // We'll not block, but if 0 show soft warning (still allow)
+      }
+
+      if (step === 7){
+        // Nothing required
+      }
+
+      if (step === 8){
+        // final re-check basics
+        if (!state.name || !state.house || !isValidEmail(state.email)) return showError("يوجد نقص في البيانات الأساسية. ارجع للخطوات السابقة.");
+      }
+
+      return true;
+    }
+
+    function showError(msg){
+      errorText.textContent = msg;
+      errorBox.classList.remove("hidden");
+      errorBox.scrollIntoView({ behavior:"smooth", block:"start" });
+      return false;
+    }
+    function hideError(){ errorBox.classList.add("hidden"); }
+
+    // ---------- Step 2: Blood Meter ----------
+    passwordEl.addEventListener("input", () => {
+      const s = computePasswordStrength(passwordEl.value);
+      state.blood = s.score;
+      bloodFill.style.width = `${s.score}%`;
+      bloodScore.textContent = `${s.score}/100`;
+      bloodLabel.textContent = s.label;
+    });
+
+    function computePasswordStrength(pw){
+      let score = 0;
+      const len = pw.length;
+
+      // length
+      score += Math.min(40, len * 4);
+
+      // variety
+      const hasLower = /[a-z]/.test(pw);
+      const hasUpper = /[A-Z]/.test(pw);
+      const hasNum = /\d/.test(pw);
+      const hasSym = /[^A-Za-z0-9]/.test(pw);
+      score += (hasLower ? 8 : 0) + (hasUpper ? 10 : 0) + (hasNum ? 10 : 0) + (hasSym ? 12 : 0);
+
+      // penalties
+      if (/^\d+$/.test(pw) || /^[a-z]+$/.test(pw) || /^[A-Z]+$/.test(pw)) score -= 12;
+      if (/(.)\1\1/.test(pw)) score -= 10;
+
+      score = Math.max(0, Math.min(100, score));
+
+      let label = "—";
+      if (score < 25) label = "Pale (ضعيف)";
+      else if (score < 50) label = "Veined (متوسط)";
+      else if (score < 75) label = "Crimson (قوي)";
+      else label = "Ancient (أسطوري)";
+
+      return { score, label };
+    }
+
+    // ---------- Step 3: Vibes ----------
+    function buildVibes(){
+      vibeGroup.innerHTML = "";
+      vibes.forEach(v => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = chipClass(false);
+        btn.textContent = v;
+        btn.addEventListener("click", () => {
+          state.vibe = v;
+          [...vibeGroup.children].forEach(c => c.className = chipClass(c.textContent === v));
+        });
+        vibeGroup.appendChild(btn);
+      });
+    }
+
+    // ---------- Step 4: Avatar ----------
+    function buildFrames(){
+      frameGroup.innerHTML = "";
+      frames.forEach(f => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = cardPickClass(f.id === state.frame);
+        btn.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-sm font-semibold text-slate-100">${f.name}</p>
+              <p class="text-xs text-slate-400 mt-1">${f.desc}</p>
+            </div>
+            <span class="h-2 w-2 rounded-full ${f.id==="rose"?"bg-blood-600":f.id==="moon"?"bg-white/50":"bg-slate-400/60"}"></span>
+          </div>
+          <div class="mt-3 h-10 rounded-xl bg-night-950/50 ring-1 ring-white/10 border-2 ${f.cls}"></div>
+        `;
+        btn.addEventListener("click", () => {
+          state.frame = f.id;
+          frameName.textContent = f.id;
+          frameOverlay.className = `absolute inset-0 rounded-2xl border-2 ${f.cls}`;
+          buildFrames();
+        });
+        frameGroup.appendChild(btn);
+      });
+    }
+
+    function buildSilhouettes(){
+      silGroup.innerHTML = "";
+      silhouettes.forEach(s => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = cardPickClass(s.id === state.silhouette);
+        btn.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-sm font-semibold text-slate-100">${s.name}</p>
+              <p class="text-xs text-slate-400 mt-1">silhouette</p>
+            </div>
+            <span class="text-xs text-slate-400">✦</span>
+          </div>
+          <div class="mt-3 rounded-xl bg-night-950/50 ring-1 ring-white/10 p-3 grid place-items-center">
+            ${s.svg}
+          </div>
+        `;
+        btn.addEventListener("click", () => {
+          state.silhouette = s.id;
+          silName.textContent = s.id;
+          applyAvatarPreview();
+          buildSilhouettes();
+        });
+        silGroup.appendChild(btn);
+      });
+    }
+
+    function applyAvatarPreview(){
+      const s = silhouettes.find(x => x.id === state.silhouette);
+      silOverlay.innerHTML = s ? s.svg : "";
+      const f = frames.find(x => x.id === state.frame);
+      frameOverlay.className = `absolute inset-0 rounded-2xl border-2 ${f ? f.cls : "frame-rose"}`;
+      frameName.textContent = state.frame;
+      silName.textContent = state.silhouette;
+    }
+
+    avatarFile.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/")) return showError("الملف ليس صورة. اختر PNG/JPG.");
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.avatarDataUrl = String(reader.result || "");
+        avatarImg.src = state.avatarDataUrl;
+        avatarImg.classList.remove("hidden");
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // ---------- Step 5: Themes + Tags ----------
+    function buildThemes(){
+      themeGroup.innerHTML = "";
+      themes.forEach(t => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = chipClass(state.selectedThemes.has(t));
+        btn.textContent = t;
+        btn.addEventListener("click", () => {
+          if (state.selectedThemes.has(t)) state.selectedThemes.delete(t);
+          else state.selectedThemes.add(t);
+          buildThemes();
+        });
+        themeGroup.appendChild(btn);
+      });
+    }
+
+    tagInput.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const raw = tagInput.value.trim();
+      if (!raw) return;
+
+      // allow multiple tags separated by spaces
+      const parts = raw.split(/\s+/).map(x => x.trim()).filter(Boolean);
+      parts.forEach(p => {
+        let tag = p;
+        if (!tag.startsWith("#")) tag = "#" + tag;
+        tag = tag.replace(/[^\w#-]/g, ""); // keep it clean
+        if (!tag || tag === "#") return;
+        if (state.tags.includes(tag)) return;
+        if (state.tags.length >= 12) return;
+        state.tags.push(tag);
+      });
+
+      tagInput.value = "";
+      renderTags();
+    });
+
+    function renderTags(){
+      tagList.innerHTML = "";
+      state.tags.forEach(tag => {
+        const pill = document.createElement("span");
+        pill.className = "inline-flex items-center gap-2 rounded-full bg-night-950/50 ring-1 ring-white/10 px-3 py-1 text-sm";
+        pill.innerHTML = `
+          <span class="text-slate-100">${escapeHtml(tag)}</span>
+          <button type="button" class="text-slate-300 hover:text-slate-50" aria-label="remove">✕</button>
+        `;
+        pill.querySelector("button").addEventListener("click", () => {
+          state.tags = state.tags.filter(x => x !== tag);
+          renderTags();
+        });
+        tagList.appendChild(pill);
+      });
+    }
+
+    // ---------- Step 6: Suggestions ----------
+    function buildSuggestions(){
+      suggestionsEl.innerHTML = "";
+      suggestedAccounts.forEach(acc => {
+        const card = document.createElement("div");
+        card.className = "rounded-2xl ring-1 ring-white/10 bg-night-900/35 p-4 flex items-start justify-between gap-3";
+        const followed = state.follows.has(acc.handle);
+        card.innerHTML = `
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-night-950/60 ring-1 ring-white/10">
+                ${miniSigilSVG(acc.role)}
+              </span>
+              <div class="min-w-0">
+                <p class="text-sm font-semibold text-slate-100 truncate">${acc.handle}</p>
+                <p class="text-xs text-blood-200/80">${acc.role}</p>
+              </div>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed mt-3">${acc.bio}</p>
+          </div>
+          <button type="button"
+                  class="shrink-0 rounded-xl px-3 py-2 text-sm ring-1 ring-white/10 transition ${followed ? "bg-blood-700/70 hover:bg-blood-600/80 shadow-glow" : "bg-night-950/40 hover:bg-night-950/60"}">
+            ${followed ? "Following" : "Follow"}
+          </button>
+        `;
+        const btn = card.querySelector("button");
+        btn.addEventListener("click", () => {
+          if (state.follows.has(acc.handle)) state.follows.delete(acc.handle);
+          else state.follows.add(acc.handle);
+          buildSuggestions();
+          updateFollowCount();
+        });
+        suggestionsEl.appendChild(card);
+      });
+      updateFollowCount();
+    }
+
+    function updateFollowCount(){
+      followCountEl.textContent = `${state.follows.size} متابعة`;
+    }
+
+    // ---------- Step 7: Toggles ----------
+    function initToggles(){
+      document.querySelectorAll(".toggle").forEach(btn => {
+        const key = btn.dataset.toggle;
+        btn.className = toggleClass(Boolean(state.privacy[key]));
+        btn.addEventListener("click", () => {
+          state.privacy[key] = !state.privacy[key];
+          btn.className = toggleClass(Boolean(state.privacy[key]));
+        });
+      });
+    }
+
+    function toggleClass(on){
+      return [
+        "toggle",
+        "relative",
+        "w-14 h-8 rounded-full ring-1 ring-white/10 transition",
+        on ? "bg-blood-700/70 shadow-glow" : "bg-night-950/50",
+      ].join(" ") + ` ` + (on ? "after:translate-x-6" : "after:translate-x-1") + `
+        after:content-[''] after:absolute after:top-1 after:h-6 after:w-6 after:rounded-full after:bg-white/80 after:transition after:shadow`;
+    }
+
+    // ---------- Step 8: Review ----------
+    function renderReview(){
+      // sync state one more time
+      state.name = nameEl.value.trim();
+      state.house = houseEl.value;
+      state.email = emailEl.value.trim();
+      state.password = passwordEl.value;
+      state.country = countryEl.value;
+      state.dob = dobEl.value;
+      state.bio = bioEl.value.trim();
+
+      const pw = computePasswordStrength(state.password);
+      state.blood = pw.score;
+
+      reviewBox.innerHTML = "";
+      const items = [
+        { k:"الاسم", v: state.name || "—" },
+        { k:"House", v: state.house || "—" },
+        { k:"Email", v: state.email || "—" },
+        { k:"Blood Meter", v: `${pw.label} (${pw.score}/100)` },
+        { k:"البلد", v: state.country || "—" },
+        { k:"تاريخ الميلاد", v: state.dob || "—" },
+        { k:"Vibe", v: state.vibe || "—" },
+        { k:"Avatar", v: `frame=${state.frame}, silhouette=${state.silhouette}${state.avatarDataUrl ? ", image=uploaded" : ", image=none"}` },
+        { k:"Themes", v: [...state.selectedThemes].join(", ") || "—" },
+        { k:"Tags", v: state.tags.join(" ") || "—" },
+        { k:"Following", v: [...state.follows].join(", ") || "—" },
+        { k:"Privacy", v: summarizePrivacy(state.privacy) },
+      ];
+
+      items.forEach(it => {
+        const card = document.createElement("div");
+        card.className = "rounded-xl bg-night-950/40 ring-1 ring-white/10 p-3";
+        card.innerHTML = `
+          <p class="text-xs text-slate-400">${it.k}</p>
+          <p class="text-sm text-slate-100 mt-1 leading-relaxed break-words">${escapeHtml(it.v)}</p>
+        `;
+        reviewBox.appendChild(card);
+      });
+    }
+
+    function summarizePrivacy(p){
+      const bits = [];
+      bits.push(p.isPrivate ? "Private=ON" : "Private=OFF");
+      bits.push(p.hideFollowing ? "HideFollowing=ON" : "HideFollowing=OFF");
+      bits.push(p.spoilerFilter ? "SpoilerFilter=ON" : "SpoilerFilter=OFF");
+      bits.push(p.dmRequests ? "DMRequests=ON" : "DMRequests=OFF");
+      return bits.join(" • ");
+    }
+
+    // ---------- Create flow ----------
+    createBtn?.addEventListener("click", () => {
+      hideError();
+      // Validate all key steps quickly
+      for (let s=1; s<=7; s++){
+        const ok = validateStep(s);
+        if (!ok){
+          goToStep(s);
+          return;
+        }
+      }
+      goToStep(8);
+      openCreateModal();
+    });
+
+    closeModalBtn.addEventListener("click", () => {
+      createModal.classList.add("hidden");
+      closeModalBtn.classList.add("hidden");
+    });
+
+    function openCreateModal(){
+      createModal.classList.remove("hidden");
+      closeModalBtn.classList.add("hidden");
+      createFill.style.width = "0%";
+      createStatus.textContent = "0%";
+      createSub.textContent = "الضباب يلتف حول الاسم…";
+
+      // simulate progress (no async background, just simple timers)
+      let p = 0;
+      const t = setInterval(() => {
+        p += Math.floor(Math.random()*12) + 7;
+        if (p >= 100) p = 100;
+        createFill.style.width = p + "%";
+        createStatus.textContent = p + "%";
+
+        if (p >= 35) createSub.textContent = "ختم الـ House…";
+        if (p >= 70) createSub.textContent = "تطهير السبويلر…";
+        if (p >= 100){
+          clearInterval(t);
+          createSub.textContent = `تم! أهلاً بك، ${state.name || "Traveler"} ✦`;
+          closeModalBtn.classList.remove("hidden");
+        }
+      }, 220);
+    }
+
+    // ---------- Utilities ----------
+    function isValidEmail(email){
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[m]));
+    }
+
+    function chipClass(active){
+      return [
+        "rounded-full px-4 py-2 text-sm ring-1 ring-white/10 transition select-none",
+        active ? "bg-blood-700/70 hover:bg-blood-600/80 shadow-glow text-slate-50" : "bg-night-950/40 hover:bg-night-950/60 text-slate-100"
+      ].join(" ");
+    }
+
+    function cardPickClass(active){
+      return [
+        "rounded-2xl ring-1 ring-white/10 p-4 text-right transition",
+        active ? "bg-blood-700/15 shadow-glow" : "bg-night-900/35 hover:bg-night-900/55"
+      ].join(" ");
+    }
+
+    function roman(n){
+      const map = ["I","II","III","IV","V","VI","VII","VIII","IX","X"];
+      return map[n-1] || String(n);
+    }
+
+    function stripTitle(t){
+      // remove "الطقس X —"
+      return t.replace(/^الطقس\s+[IVX]+\s+—\s*/,"");
+    }
+
+    function phaseSVG(n){
+      // simple moon phases by step number
+      const phases = [
+        "M12 2a10 10 0 1 0 0 20a7 10 0 1 1 0-20Z", // crescent-ish
+        "M12 2a10 10 0 1 0 0 20c-3 0-5.5-4.5-5.5-10S9 2 12 2Z",
+        "M12 2a10 10 0 1 0 0 20c-1.6 0-3-1.4-3.8-3.5C7.2 16.2 6.8 13.3 6.8 12s.4-4.2 1.4-6.5C9 3.4 10.4 2 12 2Z",
+        "M12 2a10 10 0 1 0 0 20a10 10 0 0 1 0-20Z",
+        "M12 2a10 10 0 1 0 0 20c3 0 5.5-4.5 5.5-10S15 2 12 2Z",
+        "M12 2a10 10 0 1 0 0 20c1.6 0 3-1.4 3.8-3.5 1-2.3 1.4-5.2 1.4-6.5s-.4-4.2-1.4-6.5C15 3.4 13.6 2 12 2Z",
+        "M12 2a10 10 0 1 0 0 20a7 10 0 1 0 0-20Z",
+        "M12 2a10 10 0 1 0 0 20a9 10 0 1 0 0-20Z",
+      ];
+      const d = phases[(n-1) % phases.length];
+      return `
+        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" aria-hidden="true">
+          <path d="${d}" stroke="rgba(255,255,255,.65)" stroke-width="1.6"/>
+          <path d="M7 16c2 .8 4.2.7 6-.2" stroke="rgba(225,29,72,.6)" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      `;
+    }
+
+    function miniSigilSVG(role){
+      if (role === "أديب") {
+        return `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" aria-hidden="true">
+          <path d="M7 18c2-1 8-1 10 0V7c-2-1-8-1-10 0v11Z" stroke="rgba(255,255,255,.7)" stroke-width="1.6" />
+          <path d="M9 9h6" stroke="rgba(225,29,72,.8)" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>`;
+      }
+      if (role === "رسام") {
+        return `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" aria-hidden="true">
+          <path d="M4 20h6l10-10a2 2 0 0 0-6-6L4 14v6Z" stroke="rgba(255,255,255,.7)" stroke-width="1.6" />
+          <path d="M13 6l5 5" stroke="rgba(225,29,72,.8)" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>`;
+      }
+      return `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" aria-hidden="true">
+        <path d="M4 4h16v12H7l-3 3V4Z" stroke="rgba(255,255,255,.7)" stroke-width="1.6"/>
+        <path d="M8 9h8" stroke="rgba(225,29,72,.8)" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>`;
+    }
+
+    // ---------- Silhouette SVGs ----------
+    function batSVG(){
+      return `
+        <svg viewBox="0 0 120 120" class="w-20 h-20" aria-hidden="true">
+          <path d="M60 54c6-10 18-18 30-18 7 0 12 2 16 6-2 8-9 14-18 16l-10 2
+                   10 2c9 2 16 8 18 16-4 4-9 6-16 6-12 0-24-8-30-18-6 10-18 18-30 18-7 0-12-2-16-6
+                   2-8 9-14 18-16l10-2-10-2c-9-2-16-8-18-16 4-4 9-6 16-6 12 0 24 8 30 18Z"
+                fill="rgba(255,255,255,.16)" stroke="rgba(225,29,72,.45)" stroke-width="2" />
+          <circle cx="52" cy="56" r="2" fill="rgba(225,29,72,.7)"/>
+          <circle cx="68" cy="56" r="2" fill="rgba(225,29,72,.7)"/>
+        </svg>
+      `;
+    }
+    function roseSVG(){
+      return `
+        <svg viewBox="0 0 120 120" class="w-20 h-20" aria-hidden="true">
+          <path d="M60 28c12 0 22 10 22 22 0 10-7 19-16 21 6 6 8 16 3 24-6 10-20 12-30 5-10-7-12-20-5-30 2-3 5-6 8-8-9-2-16-11-16-21 0-12 10-22 22-22Z"
+                fill="rgba(255,255,255,.14)" stroke="rgba(225,29,72,.45)" stroke-width="2"/>
+          <path d="M60 64v34" stroke="rgba(255,255,255,.25)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M60 80c-10 0-16 6-20 12" stroke="rgba(225,29,72,.35)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M60 80c10 0 16 6 20 12" stroke="rgba(225,29,72,.35)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      `;
+    }
+    function maskSVG(){
+      return `
+        <svg viewBox="0 0 120 120" class="w-20 h-20" aria-hidden="true">
+          <path d="M30 40c10-10 20-14 30-14s20 4 30 14c0 36-18 54-30 54S30 76 30 40Z"
+                fill="rgba(255,255,255,.14)" stroke="rgba(225,29,72,.45)" stroke-width="2"/>
+          <path d="M45 55c6-6 10-6 15 0" stroke="rgba(255,255,255,.35)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M60 55c6-6 10-6 15 0" stroke="rgba(255,255,255,.35)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M50 74c6 6 14 6 20 0" stroke="rgba(225,29,72,.35)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      `;
+    }
+
+    // ---------- Events: inputs update ----------
+    nameEl.addEventListener("input", () => state.name = nameEl.value.trim());
+    houseEl.addEventListener("change", () => state.house = houseEl.value);
+    emailEl.addEventListener("input", () => state.email = emailEl.value.trim());
+    countryEl.addEventListener("change", () => state.country = countryEl.value);
+    dobEl.addEventListener("change", () => state.dob = dobEl.value);
+    bioEl.addEventListener("input", () => state.bio = bioEl.value.trim());
+
+    // ---------- Small UX: soft warning on step 6 if no follows ----------
+    function softFollowNudge(){
+      if (state.follows.size === 0) {
+        showError("ملاحظة: لم تتابع أي حساب مقترح. يمكنك المتابعة الآن أو تخطي هذه المرحلة.");
+        setTimeout(hideError, 2600);
+      }
+    }
+    // When leaving step 6 forward
+    const originalValidate = validateStep;
+    validateStep = function(step){
+      const ok = originalValidate(step);
+      if (ok && step === 6) softFollowNudge();
+      return ok;
+    };
+
+  </script>
+</body>
+</html>

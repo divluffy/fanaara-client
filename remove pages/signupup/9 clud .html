@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✨ ا 9 clud ل</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
+    
+    * {
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 30%, #f093fb 60%, #ff6b9d 100%);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Animated gradient background */
+    @keyframes gradient-shift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #ff6b9d, #667eea);
+      background-size: 300% 300%;
+      animation: gradient-shift 15s ease infinite;
+      z-index: -1;
+    }
+
+    /* Particles background */
+    .particle {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+      animation: particle-float 4s infinite;
+    }
+
+    @keyframes particle-float {
+      0% { transform: translateY(100vh) scale(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+    }
+
+    /* Sakura petals - enhanced */
+    .sakura {
+      position: fixed;
+      width: 15px;
+      height: 15px;
+      background: linear-gradient(45deg, #ffb3d9, #ffc9e5);
+      border-radius: 50% 0 50% 0;
+      animation: sakura-fall 12s infinite linear;
+      box-shadow: 0 0 10px rgba(255, 182, 193, 0.6);
+      filter: blur(0.5px);
+    }
+
+    @keyframes sakura-fall {
+      0% { 
+        transform: translateY(-10vh) translateX(0) rotate(0deg); 
+        opacity: 0;
+      }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { 
+        transform: translateY(110vh) translateX(100px) rotate(720deg); 
+        opacity: 0;
+      }
+    }
+
+    /* Stars twinkling */
+    .star {
+      position: fixed;
+      width: 3px;
+      height: 3px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 3s infinite;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.5); }
+    }
+
+    /* Speed lines */
+    .speed-line {
+      position: fixed;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+      animation: speed-line 1.5s infinite linear;
+      pointer-events: none;
+    }
+
+    @keyframes speed-line {
+      0% { transform: translateX(-100%); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateX(200vw); opacity: 0; }
+    }
+
+    /* Blobs - enhanced */
+    .blob {
+      position: fixed;
+      border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+      background: linear-gradient(45deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+      animation: blob-morph 8s infinite ease-in-out;
+      filter: blur(40px);
+    }
+
+    @keyframes blob-morph {
+      0%, 100% { 
+        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        transform: translate(0, 0) scale(1) rotate(0deg);
+      }
+      25% { 
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        transform: translate(30px, -30px) scale(1.1) rotate(90deg);
+      }
+      50% { 
+        border-radius: 30% 70% 50% 50% / 50% 60% 40% 60%;
+        transform: translate(-20px, 20px) scale(0.9) rotate(180deg);
+      }
+      75% { 
+        border-radius: 70% 30% 60% 40% / 30% 50% 50% 70%;
+        transform: translate(20px, 30px) scale(1.05) rotate(270deg);
+      }
+    }
+
+    /* Ultra Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 
+        0 8px 32px rgba(31, 38, 135, 0.37),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 0 60px rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(30px) saturate(200%);
+      -webkit-backdrop-filter: blur(30px) saturate(200%);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    /* Magical glow effect */
+    @keyframes magical-glow {
+      0%, 100% { 
+        box-shadow: 0 0 20px rgba(255, 107, 157, 0.5),
+                    0 0 40px rgba(167, 139, 250, 0.3),
+                    inset 0 0 20px rgba(255, 255, 255, 0.1);
+      }
+      50% { 
+        box-shadow: 0 0 40px rgba(255, 107, 157, 0.8),
+                    0 0 80px rgba(167, 139, 250, 0.6),
+                    inset 0 0 30px rgba(255, 255, 255, 0.2);
+      }
+    }
+
+    .magical-glow {
+      animation: magical-glow 2s infinite;
+    }
+
+    /* Step transitions - enhanced */
+    .step-enter {
+      animation: step-slide-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes step-slide-in {
+      0% { 
+        opacity: 0; 
+        transform: translateX(100px) scale(0.8) rotateY(20deg);
+        filter: blur(10px);
+      }
+      100% { 
+        opacity: 1; 
+        transform: translateX(0) scale(1) rotateY(0deg);
+        filter: blur(0);
+      }
+    }
+
+    /* Shake - more dramatic */
+    @keyframes shake-intense {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      10% { transform: translateX(-15px) rotate(-2deg); }
+      20% { transform: translateX(15px) rotate(2deg); }
+      30% { transform: translateX(-15px) rotate(-2deg); }
+      40% { transform: translateX(15px) rotate(2deg); }
+      50% { transform: translateX(-10px) rotate(-1deg); }
+      60% { transform: translateX(10px) rotate(1deg); }
+      70% { transform: translateX(-5px) rotate(-0.5deg); }
+      80% { transform: translateX(5px) rotate(0.5deg); }
+      90% { transform: translateX(-2px) rotate(0deg); }
+    }
+
+    .shake {
+      animation: shake-intense 0.5s ease-in-out;
+    }
+
+    /* Success animations */
+    @keyframes success-burst {
+      0% { 
+        transform: scale(0) rotate(0deg);
+        opacity: 0;
+      }
+      50% { 
+        transform: scale(1.3) rotate(180deg);
+        opacity: 1;
+      }
+      100% { 
+        transform: scale(1) rotate(360deg);
+        opacity: 1;
+      }
+    }
+
+    .success-burst {
+      animation: success-burst 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes rainbow-glow {
+      0% { filter: hue-rotate(0deg) brightness(1.2); }
+      100% { filter: hue-rotate(360deg) brightness(1.2); }
+    }
+
+    .rainbow-glow {
+      animation: rainbow-glow 3s linear infinite;
+    }
+
+    /* Confetti - enhanced */
+    .confetti {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      animation: confetti-burst 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      pointer-events: none;
+    }
+
+    @keyframes confetti-burst {
+      0% { 
+        transform: translateY(0) translateX(0) rotate(0deg) scale(1);
+        opacity: 1;
+      }
+      100% { 
+        transform: translateY(150vh) translateX(var(--x)) rotate(1080deg) scale(0);
+        opacity: 0;
+      }
+    }
+
+    /* Enhanced ripple */
+    .ripple {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ripple::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+      pointer-events: none;
+    }
+
+    .ripple:active::before {
+      width: 400px;
+      height: 400px;
+    }
+
+    /* Pulse effect */
+    @keyframes pulse-glow {
+      0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(255, 107, 157, 0.7);
+      }
+      50% { 
+        box-shadow: 0 0 0 20px rgba(255, 107, 157, 0);
+      }
+    }
+
+    .pulse-glow {
+      animation: pulse-glow 2s infinite;
+    }
+
+    /* Input focus - dramatic */
+    .magic-input {
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .magic-input:focus {
+      transform: scale(1.02);
+      box-shadow: 
+        0 0 0 3px rgba(255, 107, 157, 0.3),
+        0 0 30px rgba(255, 107, 157, 0.5),
+        0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Chip animations */
+    .chip {
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chip::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .chip:hover::before {
+      left: 100%;
+    }
+
+    .chip:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .chip.selected {
+      background: linear-gradient(135deg, #ff6b9d, #c44569, #764ba2);
+      color: white;
+      border-color: transparent;
+      transform: scale(1.1);
+      box-shadow: 0 10px 30px rgba(255, 107, 157, 0.5);
+    }
+
+    /* Avatar hover effects */
+    .avatar-option {
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+
+    .avatar-option:hover {
+      transform: scale(1.15) rotate(5deg);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .avatar-option.selected {
+      transform: scale(1.2);
+      animation: magical-glow 1.5s infinite;
+    }
+
+    /* Creator card - enhanced */
+    .creator-card {
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+
+    .creator-card:hover {
+      transform: translateY(-10px) scale(1.03);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Stagger animations */
+    @keyframes stagger-slide {
+      0% { 
+        opacity: 0; 
+        transform: translateY(30px) translateX(-30px) scale(0.8);
+        filter: blur(5px);
+      }
+      100% { 
+        opacity: 1; 
+        transform: translateY(0) translateX(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    .stagger-item {
+      animation: stagger-slide 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    }
+
+    /* Progress bar */
+    @keyframes progress-shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, 
+        #ff6b9d 0%, 
+        #ffd93d 25%, 
+        #6bcf7f 50%, 
+        #4d9eff 75%, 
+        #c44569 100%);
+      background-size: 200% 100%;
+      animation: progress-shimmer 2s linear infinite;
+      box-shadow: 0 0 20px rgba(255, 107, 157, 0.6);
+    }
+
+    /* Floating labels */
+    @keyframes float-up {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .float-animation {
+      animation: float-up 3s ease-in-out infinite;
+    }
+
+    /* Button hover effects */
+    .mega-button {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .mega-button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .mega-button:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .mega-button:hover {
+      transform: scale(1.1) translateY(-3px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .mega-button:active {
+      transform: scale(0.95);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #ff6b9d, #764ba2);
+      border-radius: 10px;
+      box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #ff8db4, #8b5fc5);
+    }
+
+    /* Logo pulse */
+    @keyframes logo-pulse {
+      0%, 100% { 
+        transform: scale(1) rotate(0deg);
+        filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+      }
+      50% { 
+        transform: scale(1.1) rotate(5deg);
+        filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.8));
+      }
+    }
+
+    .logo-pulse {
+      animation: logo-pulse 2s ease-in-out infinite;
+    }
+
+    /* Stepper icons */
+    .step-icon {
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .step-icon.active {
+      animation: logo-pulse 1.5s ease-in-out infinite;
+    }
+
+    /* Fireworks */
+    @keyframes firework {
+      0% { 
+        transform: translate(0, 0);
+        opacity: 1;
+      }
+      100% { 
+        transform: translate(var(--x), var(--y));
+        opacity: 0;
+      }
+    }
+
+    .firework {
+      position: fixed;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      animation: firework 1s ease-out forwards;
+    }
+
+    /* Character stickers */
+    .sticker {
+      position: fixed;
+      font-size: 48px;
+      animation: sticker-bounce 2s ease-in-out infinite;
+      filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+    }
+
+    @keyframes sticker-bounce {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+      .glass {
+        backdrop-filter: blur(15px);
+      }
+      
+      .blob {
+        filter: blur(30px);
+      }
+    }
+
+    /* Hover glow for interactive elements */
+    .glow-on-hover {
+      transition: all 0.3s ease;
+    }
+
+    .glow-on-hover:hover {
+      filter: brightness(1.2) drop-shadow(0 0 15px currentColor);
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center p-4 min-h-screen">
+  
+  <!-- Enhanced background effects -->
+  <div id="background-effects" class="fixed inset-0 pointer-events-none" style="z-index: 0;">
+    <!-- Blobs -->
+    <div class="blob" style="width: 400px; height: 400px; top: 5%; left: 5%;"></div>
+    <div class="blob" style="width: 300px; height: 300px; top: 50%; right: 10%; animation-delay: 2s;"></div>
+    <div class="blob" style="width: 350px; height: 350px; bottom: 10%; left: 40%; animation-delay: 4s;"></div>
+    
+    <!-- Stars -->
+    <div id="stars-container"></div>
+    
+    <!-- Speed lines -->
+    <div id="speed-lines-container"></div>
+    
+    <!-- Character stickers -->
+    <div class="sticker" style="top: 10%; right: 5%; animation-delay: 0s;">🦊</div>
+    <div class="sticker" style="top: 30%; left: 3%; animation-delay: 0.5s;">✨</div>
+    <div class="sticker" style="bottom: 20%; right: 8%; animation-delay: 1s;">🌸</div>
+    <div class="sticker" style="bottom: 40%; left: 5%; animation-delay: 1.5s;">⚔️</div>
+  </div>
+
+  <!-- Main container -->
+  <div class="relative z-10 w-full max-w-3xl">
+    
+    <!-- Logo/Header -->
+    <div class="text-center mb-8">
+      <div class="inline-block glass-strong rounded-full p-6 mb-4 logo-pulse">
+        <svg class="w-20 h-20 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 18c-3.91-.97-7-5.19-7-9.71V8.3l7-3.5 7 3.5v2c0 4.52-3.09 8.74-7 9.7z"/>
+          <path d="M12 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+        </svg>
+      </div>
+      <h1 class="text-4xl md:text-5xl font-black text-white mb-3 float-animation" style="text-shadow: 0 0 30px rgba(255,255,255,0.5);">
+        ✨ عالم الأنمي السحري ✨
+      </h1>
+      <p class="text-xl text-white text-opacity-95 font-bold">انضم إلى أكبر مجتمع أنمي في الوطن العربي 🎌</p>
+    </div>
+
+    <!-- Enhanced progress stepper -->
+    <div class="glass-strong rounded-3xl p-6 mb-8 magical-glow">
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex-1 flex items-center justify-around" id="stepper"></div>
+      </div>
+      <div class="relative w-full bg-white bg-opacity-20 rounded-full h-4 overflow-hidden">
+        <div id="progress-bar" class="progress-fill h-4 rounded-full transition-all duration-700 ease-out" style="width: 20%"></div>
+      </div>
+      <p class="text-center text-white text-sm mt-3 font-bold" id="progress-text">المرحلة 1 من 5</p>
+    </div>
+
+    <!-- Main form card -->
+    <div class="glass-strong rounded-3xl p-8 md:p-10 mb-8 shadow-2xl">
+      <div id="step-container" class="min-h-[450px]"></div>
+    </div>
+
+    <!-- Enhanced navigation buttons -->
+    <div class="flex gap-4 justify-between">
+      <button id="prev-btn" class="mega-button glass-strong ripple px-10 py-5 rounded-full text-white text-lg font-bold hover:bg-white hover:bg-opacity-30 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
+        <span>◀</span>
+        <span>السابق</span>
+      </button>
+      <button id="next-btn" class="mega-button ripple px-10 py-5 rounded-full text-white text-lg font-black bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 hover:from-pink-600 hover:via-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-2xl pulse-glow flex items-center gap-2">
+        <span>التالي</span>
+        <span>▶</span>
+      </button>
+    </div>
+
+    <!-- Progress percentage -->
+    <div class="text-center mt-6">
+      <p class="text-white text-lg font-bold" id="completion-text">اكتمل 20% من التسجيل 🎯</p>
+    </div>
+  </div>
+
+  <script>
+    // Enhanced data with more variety
+    const mockCreators = [
+      { id: 1, name: 'محمد الأوتاكو المجنون', category: 'Anime', followers: '25K', avatar: '🎭', bio: 'مراجع أنمي شونين وخبير One Piece', verified: true },
+      { id: 2, name: 'سارة ملكة المانجا', category: 'Manga', followers: '18K', avatar: '📚', bio: 'متخصصة في مانجا الرومانسي والشوجو', verified: true },
+      { id: 3, name: 'أحمد صانع المعجزات AMV', category: 'AMV', followers: '32K', avatar: '🎬', bio: 'أفضل صانع AMV في الوطن العربي', verified: true },
+      { id: 4, name: 'ليلى نجمة الكوسبلاي', category: 'Cosplay', followers: '28K', avatar: '✨', bio: 'كوسبلاير محترفة - بطلات الأنمي', verified: true },
+      { id: 5, name: 'يوسف سيد الآيسيكاي', category: 'Anime', followers: '15K', avatar: '🗡️', bio: 'عاشق عوالم الآيسيكاي والفانتازي', verified: false },
+      { id: 6, name: 'نور ساحرة الفانتازي', category: 'Manga', followers: '21K', avatar: '🌟', bio: 'قارئة شغوفة بالمانجا الفانتازية', verified: true },
+      { id: 7, name: 'كريم محارب الميكا', category: 'Anime', followers: '19K', avatar: '🤖', bio: 'متابع متعصب لأنميات الميكا والروبوتات', verified: false },
+      { id: 8, name: 'مريم أميرة الأنمي', category: 'Cosplay', followers: '24K', avatar: '👑', bio: 'كوسبلاي فاخر وتصاميم مذهلة', verified: true }
+    ];
+
+    const mockGenres = [
+      'Shonen', 'Seinen', 'Shoujo', 'Isekai', 'Romance', 'Action', 
+      'Fantasy', 'Slice of Life', 'Mecha', 'Horror', 'Comedy', 'Drama', 
+      'Sports', 'Mystery', 'Psychological', 'Sci-Fi', 'Adventure', 'Supernatural'
+    ];
+
+    const mockAvatars = [
+      { id: 1, emoji: '🦊', label: 'Fox Spirit', gradient: 'from-orange-400 to-red-500' },
+      { id: 2, emoji: '🐉', label: 'Dragon King', gradient: 'from-red-500 to-purple-600' },
+      { id: 3, emoji: '⚔️', label: 'Warrior', gradient: 'from-gray-400 to-gray-600' },
+      { id: 4, emoji: '🌸', label: 'Sakura', gradient: 'from-pink-300 to-pink-500' },
+      { id: 5, emoji: '🎭', label: 'Mask Master', gradient: 'from-purple-400 to-indigo-600' },
+      { id: 6, emoji: '✨', label: 'Magic Star', gradient: 'from-yellow-300 to-pink-400' },
+      { id: 7, emoji: '🌙', label: 'Moon Knight', gradient: 'from-blue-300 to-indigo-500' },
+      { id: 8, emoji: '🔥', label: 'Fire Spirit', gradient: 'from-orange-500 to-red-600' },
+      { id: 9, emoji: '❄️', label: 'Ice Queen', gradient: 'from-cyan-300 to-blue-500' },
+      { id: 10, emoji: '⚡', label: 'Thunder God', gradient: 'from-yellow-400 to-orange-500' },
+      { id: 11, emoji: '🌊', label: 'Ocean Master', gradient: 'from-blue-400 to-cyan-600' },
+      { id: 12, emoji: '🍃', label: 'Wind Sage', gradient: 'from-green-300 to-teal-500' }
+    ];
+
+    const contentTypes = ['Anime', 'Manga', 'Manhwa', 'Manhua', 'Comics', 'Light Novels', 'Webtoons', 'Visual Novels'];
+
+    // State
+    let currentStep = 0;
+    let formData = {
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      country: '',
+      city: '',
+      bio: '',
+      birthdate: '',
+      social: '',
+      avatar: null,
+      uploadedAvatar: null,
+      followedCreators: [],
+      selectedGenres: [],
+      selectedContentTypes: []
+    };
+
+    const steps = [
+      { title: 'التسجيل', icon: '👤', emoji: '🚀' },
+      { title: 'معلوماتك', icon: '📝', emoji: '✍️' },
+      { title: 'الصورة', icon: '🎨', emoji: '🖼️' },
+      { title: 'المبدعين', icon: '⭐', emoji: '👥' },
+      { title: 'الاهتمامات', icon: '💖', emoji: '🎯' }
+    ];
+
+    // Initialize
+    function init() {
+      renderStepper();
+      renderStep();
+      updateButtons();
+      createBackgroundEffects();
+      startParticles();
+    }
+
+    // Create enhanced background effects
+    function createBackgroundEffects() {
+      // Sakura petals
+      for (let i = 0; i < 25; i++) {
+        const sakura = document.createElement('div');
+        sakura.className = 'sakura';
+        sakura.style.left = Math.random() * 100 + '%';
+        sakura.style.animationDelay = Math.random() * 12 + 's';
+        sakura.style.animationDuration = (Math.random() * 6 + 8) + 's';
+        sakura.style.width = (Math.random() * 10 + 10) + 'px';
+        sakura.style.height = sakura.style.width;
+        document.getElementById('background-effects').appendChild(sakura);
+      }
+
+      // Stars
+      const starsContainer = document.getElementById('stars-container');
+      for (let i = 0; i < 50; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 3 + 's';
+        starsContainer.appendChild(star);
+      }
+
+      // Speed lines
+      const speedContainer = document.getElementById('speed-lines-container');
+      setInterval(() => {
+        if (Math.random() > 0.7) {
+          const line = document.createElement('div');
+          line.className = 'speed-line';
+          line.style.top = Math.random() * 100 + '%';
+          line.style.width = (Math.random() * 200 + 100) + 'px';
+          line.style.animationDuration = (Math.random() * 0.5 + 1) + 's';
+          speedContainer.appendChild(line);
+          setTimeout(() => line.remove(), 2000);
+        }
+      }, 500);
+    }
+
+    // Particle system
+    function startParticles() {
+      setInterval(() => {
+        if (Math.random() > 0.8) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          const colors = ['#ff6b9d', '#c44569', '#ffa502', '#6bcf7f', '#4d9eff', '#a29bfe'];
+          particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.width = (Math.random() * 8 + 3) + 'px';
+          particle.style.height = particle.style.width;
+          particle.style.animationDelay = '0s';
+          particle.style.animationDuration = (Math.random() * 2 + 3) + 's';
+          document.getElementById('background-effects').appendChild(particle);
+          setTimeout(() => particle.remove(), 5000);
+        }
+      }, 300);
+    }
+
+    // Render stepper with animations
+    function renderStepper() {
+      const stepper = document.getElementById('stepper');
+      stepper.innerHTML = steps.map((step, i) => `
+        <div class="text-center flex-1">
+          <div class="step-icon inline-flex items-center justify-center w-14 h-14 rounded-full text-2xl font-black transition-all duration-500 ${
+            i === currentStep 
+              ? 'bg-gradient-to-br from-pink-400 to-purple-600 text-white scale-110 active shadow-lg' 
+              : i < currentStep 
+                ? 'bg-gradient-to-br from-green-400 to-emerald-600 text-white' 
+                : 'bg-white bg-opacity-20 text-white'
+          }">
+            ${i < currentStep ? '✓' : step.icon}
+          </div>
+          <p class="text-xs md:text-sm text-white font-bold mt-2 ${i === currentStep ? 'scale-110' : ''}">${step.title}</p>
+        </div>
+      `).join('');
+    }
+
+    // Update progress
+    function updateProgress() {
+      const progress = ((currentStep + 1) / steps.length) * 100;
+      document.getElementById('progress-bar').style.width = progress + '%';
+      document.getElementById('progress-text').textContent = `المرحلة ${currentStep + 1} من ${steps.length}`;
+      document.getElementById('completion-text').textContent = `اكتمل ${Math.round(progress)}% من التسجيل ${progress > 80 ? '🎉' : '🎯'}`;
+    }
+
+    // Render current step
+    function renderStep() {
+      const container = document.getElementById('step-container');
+      container.innerHTML = '';
+      
+      const stepDiv = document.createElement('div');
+      stepDiv.className = 'step-enter';
+
+      switch(currentStep) {
+        case 0: stepDiv.innerHTML = renderStep1(); break;
+        case 1: stepDiv.innerHTML = renderStep2(); break;
+        case 2: stepDiv.innerHTML = renderStep3(); break;
+        case 3: stepDiv.innerHTML = renderStep4(); break;
+        case 4: stepDiv.innerHTML = renderStep5(); break;
+      }
+
+      container.appendChild(stepDiv);
+      attachEventListeners();
+    }
+
+    // Step 1: Basic info
+    function renderStep1() {
+      return `
+        <div class="space-y-6">
+          <div class="text-center mb-6">
+            <div class="text-6xl mb-3 float-animation">🚀</div>
+            <h2 class="text-3xl font-black text-white mb-2">لنبدأ الرحلة!</h2>
+            <p class="text-white text-opacity-90">أنشئ حسابك وانطلق في عالم الأنمي</p>
+          </div>
+
+          <div class="space-y-5">
+            <div>
+              <label class="block text-white font-bold mb-3 text-lg flex items-center gap-2">
+                <span>👤</span>
+                <span>اسم المستخدم</span>
+              </label>
+              <input type="text" id="username" value="${formData.username}" 
+                class="magic-input w-full px-5 py-4 rounded-2xl bg-white bg-opacity-20 text-white text-lg placeholder-white placeholder-opacity-60 border-2 border-white border-opacity-30 focus:outline-none focus:border-pink-400 transition-all font-bold"
+                placeholder="اختر اسماً أسطورياً 💫">
+              <p class="text-red-300 text-sm mt-2 hidden font-bold" id="username-error"></p>
+            </div>
+            
+            <div>
+              <label class="block text-white font-bold mb-3 text-lg flex items-center gap-2">
+                <span>📧</span>
+                <span>البريد الإلكتروني</span>
+              </label>
+              <input type="email" id="email" value="${formData.email}"
+                class="magic-input w-full px-5 py-4 rounded-2xl bg-white bg-opacity-20 text-white text-lg placeholder-white placeholder-opacity-60 border-2 border-white border-opacity-30 focus:outline-none focus:border-pink-400 transition-all font-bold"
+                placeholder="your.epic@email.com">
+              <p class="text-red-300 text-sm mt-2 hidden font-bold" id="email-error"></p>
+            </div>
+
+            <div>
+              <label class="block text-white font-bold mb-3 text-lg flex items-center gap-2">
+                <span>🔒</span>
+                <span>كلمة المرور</span>
+              </label>
+              <div class="relative">
+                <input type="password" id="password" value="${formData.password}"
+                  class="magic-input w-full px-5 py-4 rounded-2xl bg-white bg-opacity-20 text-white text-lg placeholder-white placeholder-opacity-60 border-2 border-white border-opacity-30 focus:outline-none focus:border-pink-400 transition-all font-bold"
+                  placeholder="••••••••">
+                <button type="button" onclick="togglePassword('password')" class="absolute left-4 top-1/2 -translate-y-1/2 text-2xl hover:scale-125 transition-transform glow-on-hover">
+                  👁️
+                </button>
+              </div>
+              <p class="text-red-300 text-sm mt-2 hidden font-bold" id="password-error"></p>
+            </div>
+
+            <div>
+              <label class="block text-white font-bold mb-3 text-lg flex items-center gap-2">
+                <span>🔐</span>
+                <span>تأكيد كلمة المرور</span>
+              </label>
+              <div class="relative">
+                <input type="password" id="confirmPassword" value="${formData.confirmPassword}"
+                  class="magic-input w-full px-5 py-4 rounded-2xl bg-white bg-opacity-20 text-white text-lg placeholder-white placeholder-opacity-60 border-2 border-white border-opacity-30 focus:outline-none focus:border-pink-400 transition-all font-bold"
+                  placeholder="••••••••">
+                <button type="button" onclick="togglePassword('confirmPassword')" class="absolute left-4 top-1/2 -translate-y-1/2 text-2xl hover:scale-125 transition-transform glow-on-hover">
+                  👁️
+                </button>
+              </div>
+              <p class="text-red-300 text-sm mt-2 hidden font-bold" id="confirmPassword-error"></p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Step 2: General info
+    function renderStep2() {
+      return `
+        <div class="space-y-6">
+          <div class="text-center mb-6">
+            <div class="text-6xl mb-3 float-animation">✍️</div>
+            <h2 class="text-3xl font-black text-white mb-2">أخبرنا المزيد عنك</h2>
+            <p class="text-white text-opacity-90">لنتعرف على شخصيتك الرائعة</p>
+          </div>
+
+          <div class="space-y-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label class="block text-white font-bold mb-3 flex items-center gap-2">
+                  <span>🌍</span>
+                  <span>الدولة</span>
+                </label>
+                <input type="text" id="country" value="${formData.country}"
+                  class="magic-input w-full px-5 py-4 rounded-2xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border-2 border-white border-opacity-30 focus:outline-none focus:border-pink-400 transition-all font-bold"
+                  placeholder="مصر 🇪🇬">
+              </div>
+              <div>
+                <label class="block text-white font-bold mb-3 flex items-center gap-2">
+                  <span>🏙️</span>
+                  <span>المدينة</span>
+                </label>
+                <input type="text" id="city" value="${formData.city}"
+                  class="magic-input w-full px-5 py-4 rounded-2xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border-2 border-white border-opacity-30 focus:outline-none focus:border-pink-400 transition-all font-bold"
+                  placeholder="القاهرة">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-white font-bold mb-3 flex items-center gap-2">
+                <span>💬</span>
+                <span>نبذة عنك</span>
+              </label>
+              <textarea id="bio" rows="4" 
+                class="magic-input w-full px-5 py-4 rounded-2xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border-2 border-white border-opacity-30 focus:outline-none focus:border-pink-400 transition-all resize-none font-bold"
+                placeholder="أخبرنا قصتك مع الأنمي... هل أنت من محبي الشونين؟ الإيسيكاي؟ 🎌">${formData.bio}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label class="block text-white font-bold mb-3 flex items-center gap-2">
+                  <span>🎂</span>
+                  <span>تاريخ الميلاد (اختياري)</span>
+                </label>
+                <input type="date" id="birthdate" value="${formData.birthdate}"
+                  class="magic-input w-full px-5 py-4 rounded-2xl bg-white bg-opacity-20 text-white border-2 border-white border-opacity-30 focus:outline-none focus:border-pink-400 transition-all font-bold">
+              </div>
+              <div>
+                <label class="block text-white font-bold mb-3 flex items-center gap-2">
+                  <span>🐦</span>
+                  <span>تويتر/X (اختياري)</span>
+                </label>
+                <input type="text" id="social" value="${formData.social}"
+                  class="magic-input w-full px-5 py-4 rounded-2xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border-2 border-white border-opacity-30 focus:outline-none focus:border-pink-400 transition-all font-bold"
+                  placeholder="@your_handle">
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Step 3: Avatar
+    function renderStep3() {
+      return `
+        <div class="space-y-6">
+          <div class="text-center mb-6">
+            <div class="text-6xl mb-3 float-animation">🖼️</div>
+            <h2 class="text-3xl font-black text-white mb-2">اختر مظهرك الأسطوري</h2>
+            <p class="text-white text-opacity-90">صورتك الشخصية تعكس شخصيتك</p>
+          </div>
+          
+          <div class="mb-8">
+            <label class="block">
+              <div class="glass-strong rounded-3xl p-10 cursor-pointer hover:scale-105 transition-all duration-300 magical-glow text-center">
+                <div class="text-7xl mb-4">📸</div>
+                <p class="text-white text-xl font-bold mb-2">انقر لرفع صورتك</p>
+                <p class="text-white text-opacity-70">أو اختر أفاتار من الخيارات المذهلة أدناه ✨</p>
+              </div>
+              <input type="file" id="avatar-upload" accept="image/*" class="hidden">
+            </label>
+          </div>
+
+          <div id="avatar-preview" class="mb-8 hidden">
+            <div class="text-center">
+              <div class="inline-block relative">
+                <img id="preview-img" class="w-40 h-40 rounded-full border-4 border-white shadow-2xl magical-glow">
+                <button onclick="removeUploadedAvatar()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl hover:scale-125 transition-transform shadow-lg">
+                  ×
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="text-2xl font-black text-white mb-6 text-center flex items-center justify-center gap-2">
+            <span>⭐</span>
+            <span>أو اختر أفاتار جاهز</span>
+            <span>⭐</span>
+          </h3>
+          <div class="grid grid-cols-3 md:grid-cols-4 gap-4">
+            ${mockAvatars.map(av => `
+              <div class="avatar-option glass-strong rounded-3xl p-5 text-center cursor-pointer ${formData.avatar === av.id ? 'selected ring-4 ring-pink-400' : ''}"
+                onclick="selectAvatar(${av.id})">
+                <div class="text-5xl mb-3">${av.emoji}</div>
+                <p class="text-white text-sm font-bold">${av.label}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Step 4: Follow creators
+    function renderStep4() {
+      return `
+        <div class="space-y-6">
+          <div class="text-center mb-6">
+            <div class="text-6xl mb-3 float-animation">👥</div>
+            <h2 class="text-3xl font-black text-white mb-2">تابع نجوم المجتمع</h2>
+            <p class="text-white text-opacity-90">ابدأ رحلتك بمتابعة أفضل المبدعين</p>
+          </div>
+          
+          <div class="glass-strong rounded-2xl p-4 mb-6">
+            <input type="text" id="creator-search" placeholder="🔍 ابحث عن مبدعينك المفضلين..."
+              class="magic-input w-full px-5 py-4 rounded-xl bg-white bg-opacity-20 text-white text-lg placeholder-white placeholder-opacity-70 border-2 border-white border-opacity-30 focus:outline-none focus:border-pink-400 transition-all font-bold">
+          </div>
+
+          <div class="flex gap-3 mb-6 overflow-x-auto pb-3">
+            <button onclick="filterCreators('all')" class="chip glass-strong px-6 py-3 rounded-full text-white font-bold text-sm whitespace-nowrap hover:scale-110 transition-all">الكل 🌟</button>
+            <button onclick="filterCreators('Anime')" class="chip glass-strong px-6 py-3 rounded-full text-white font-bold text-sm whitespace-nowrap hover:scale-110 transition-all">Anime 📺</button>
+            <button onclick="filterCreators('Manga')" class="chip glass-strong px-6 py-3 rounded-full text-white font-bold text-sm whitespace-nowrap hover:scale-110 transition-all">Manga 📖</button>
+            <button onclick="filterCreators('Cosplay')" class="chip glass-strong px-6 py-3 rounded-full text-white font-bold text-sm whitespace-nowrap hover:scale-110 transition-all">Cosplay 👗</button>
+            <button onclick="filterCreators('AMV')" class="chip glass-strong px-6 py-3 rounded-full text-white font-bold text-sm whitespace-nowrap hover:scale-110 transition-all">AMV 🎥</button>
+          </div>
+
+          <div id="creators-list" class="space-y-4 max-h-96 overflow-y-auto pr-2">
+            ${mockCreators.map((creator, i) => `
+              <div class="creator-card stagger-item glass-strong rounded-2xl p-5 flex items-center gap-4" style="animation-delay: ${i * 0.08}s">
+                <div class="text-5xl">${creator.avatar}</div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-white font-black text-lg">${creator.name}</h3>
+                    ${creator.verified ? '<span class="text-blue-400 text-xl">✓</span>' : ''}
+                  </div>
+                  <p class="text-white text-opacity-80 text-sm mb-1">${creator.bio}</p>
+                  <p class="text-pink-300 font-bold text-xs">👥 ${creator.followers} متابع</p>
+                </div>
+                <button onclick="toggleFollow(${creator.id})" 
+                  class="mega-button ripple px-6 py-3 rounded-full text-sm font-black transition-all shadow-lg ${
+                    formData.followedCreators.includes(creator.id) 
+                      ? 'bg-white text-purple-600' 
+                      : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white pulse-glow'
+                  }">
+                  ${formData.followedCreators.includes(creator.id) ? '✓ متابع' : '+ متابعة'}
+                </button>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="text-center mt-6 glass-strong rounded-2xl p-4">
+            <p class="text-white font-bold text-lg">
+              ${formData.followedCreators.length > 0 
+                ? `رائع! لقد تابعت ${formData.followedCreators.length} مبدع 🎉` 
+                : 'ابدأ بمتابعة بعض المبدعين الرائعين! 🌟'}
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    // Step 5: Interests
+    function renderStep5() {
+      const profileComplete = calculateProfileCompletion();
+      return `
+        <div class="space-y-6">
+          <div class="text-center mb-6">
+            <div class="text-6xl mb-3 float-animation">🎯</div>
+            <h2 class="text-3xl font-black text-white mb-2">اهتماماتك المفضلة</h2>
+            <p class="text-white text-opacity-90">اختر ما يعجبك وسنخصص تجربتك</p>
+          </div>
+
+          <div class="glass-strong rounded-3xl p-6 mb-8 magical-glow">
+            <div class="flex justify-between items-center mb-4">
+              <p class="text-white font-black text-lg">اكتمال ملفك الشخصي</p>
+              <p class="text-white font-black text-2xl">${profileComplete}%</p>
+            </div>
+            <div class="relative w-full bg-white bg-opacity-20 rounded-full h-5 overflow-hidden">
+              <div class="progress-fill h-5 rounded-full transition-all duration-1000" style="width: ${profileComplete}%"></div>
+            </div>
+            ${profileComplete === 100 ? '<p class="text-center text-white font-bold mt-3 text-lg">🎊 مبروك! ملفك كامل 100% 🎊</p>' : ''}
+          </div>
+
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-2xl font-black text-white mb-4 flex items-center gap-2">
+                <span>📚</span>
+                <span>أنواع المحتوى</span>
+              </h3>
+              <div class="flex flex-wrap gap-3">
+                ${contentTypes.map(type => `
+                  <button onclick="toggleContentType('${type}')" 
+                    class="chip glass-strong px-6 py-3 rounded-full text-white font-bold ${formData.selectedContentTypes.includes(type) ? 'selected' : ''}">
+                    ${type}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-2xl font-black text-white mb-4 flex items-center gap-2">
+                <span>💖</span>
+                <span>التصنيفات المفضلة</span>
+              </h3>
+              <div class="flex flex-wrap gap-3">
+                ${mockGenres.map(genre => `
+                  <button onclick="toggleGenre('${genre}')" 
+                    class="chip glass-strong px-6 py-3 rounded-full text-white font-bold ${formData.selectedGenres.includes(genre) ? 'selected' : ''}">
+                    ${genre}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center mt-8 glass-strong rounded-2xl p-6">
+            <p class="text-white font-bold text-lg">
+              ${formData.selectedGenres.length > 0 || formData.selectedContentTypes.length > 0
+                ? `اخترت ${formData.selectedGenres.length + formData.selectedContentTypes.length} عنصر من اهتماماتك! 🌟`
+                : 'اختر اهتماماتك لنعرف ماذا نعرض لك! 🎯'}
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    // Calculate profile completion
+    function calculateProfileCompletion() {
+      let score = 0;
+      if (formData.username) score += 15;
+      if (formData.email) score += 15;
+      if (formData.password) score += 15;
+      if (formData.country) score += 10;
+      if (formData.bio) score += 10;
+      if (formData.avatar || formData.uploadedAvatar) score += 15;
+      score += Math.min(10, formData.followedCreators.length * 2);
+      score += Math.min(10, formData.selectedGenres.length);
+      return Math.min(100, score);
+    }
+
+    // Event listeners
+    function attachEventListeners() {
+      const username = document.getElementById('username');
+      const email = document.getElementById('email');
+      const password = document.getElementById('password');
+      const confirmPassword = document.getElementById('confirmPassword');
+      const country = document.getElementById('country');
+      const city = document.getElementById('city');
+      const bio = document.getElementById('bio');
+      const birthdate = document.getElementById('birthdate');
+      const social = document.getElementById('social');
+
+      if (username) username.addEventListener('input', (e) => formData.username = e.target.value);
+      if (email) email.addEventListener('input', (e) => formData.email = e.target.value);
+      if (password) password.addEventListener('input', (e) => formData.password = e.target.value);
+      if (confirmPassword) confirmPassword.addEventListener('input', (e) => formData.confirmPassword = e.target.value);
+      if (country) country.addEventListener('input', (e) => formData.country = e.target.value);
+      if (city) city.addEventListener('input', (e) => formData.city = e.target.value);
+      if (bio) bio.addEventListener('input', (e) => formData.bio = e.target.value);
+      if (birthdate) birthdate.addEventListener('input', (e) => formData.birthdate = e.target.value);
+      if (social) social.addEventListener('input', (e) => formData.social = e.target.value);
+
+      const avatarUpload = document.getElementById('avatar-upload');
+      if (avatarUpload) {
+        avatarUpload.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              formData.uploadedAvatar = event.target.result;
+              formData.avatar = null;
+              document.getElementById('avatar-preview').classList.remove('hidden');
+              document.getElementById('preview-img').src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      const creatorSearch = document.getElementById('creator-search');
+      if (creatorSearch) {
+        creatorSearch.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase();
+          const filtered = mockCreators.filter(c => 
+            c.name.toLowerCase().includes(query) || 
+            c.bio.toLowerCase().includes(query) ||
+            c.category.toLowerCase().includes(query)
+          );
+          renderCreatorsList(filtered);
+        });
+      }
+    }
+
+    // Toggle password
+    window.togglePassword = function(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    };
+
+    // Validate step 1
+    function validateStep1() {
+      let valid = true;
+      const usernameError = document.getElementById('username-error');
+      const emailError = document.getElementById('email-error');
+      const passwordError = document.getElementById('password-error');
+      const confirmPasswordError = document.getElementById('confirmPassword-error');
+
+      usernameError.classList.add('hidden');
+      emailError.classList.add('hidden');
+      passwordError.classList.add('hidden');
+      confirmPasswordError.classList.add('hidden');
+
+      if (!formData.username || formData.username.length < 3) {
+        usernameError.textContent = '❌ اسم المستخدم يجب أن يكون 3 أحرف على الأقل';
+        usernameError.classList.remove('hidden');
+        document.getElementById('username').classList.add('shake');
+        setTimeout(() => document.getElementById('username').classList.remove('shake'), 500);
+        valid = false;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!formData.email || !emailRegex.test(formData.email)) {
+        emailError.textContent = '❌ البريد الإلكتروني غير صحيح';
+        emailError.classList.remove('hidden');
+        document.getElementById('email').classList.add('shake');
+        setTimeout(() => document.getElementById('email').classList.remove('shake'), 500);
+        valid = false;
+      }
+
+      if (!formData.password || formData.password.length < 6) {
+        passwordError.textContent = '❌ كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+        passwordError.classList.remove('hidden');
+        document.getElementById('password').classList.add('shake');
+        setTimeout(() => document.getElementById('password').classList.remove('shake'), 500);
+        valid = false;
+      }
+
+      if (formData.password !== formData.confirmPassword) {
+        confirmPasswordError.textContent = '❌ كلمة المرور غير متطابقة';
+        confirmPasswordError.classList.remove('hidden');
+        document.getElementById('confirmPassword').classList.add('shake');
+        setTimeout(() => document.getElementById('confirmPassword').classList.remove('shake'), 500);
+        valid = false;
+      }
+
+      return valid;
+    }
+
+    // Remove uploaded avatar
+    window.removeUploadedAvatar = function() {
+      formData.uploadedAvatar = null;
+      document.getElementById('avatar-preview').classList.add('hidden');
+    };
+
+    // Select avatar
+    window.selectAvatar = function(id) {
+      formData.avatar = id;
+      formData.uploadedAvatar = null;
+      renderStep();
+    };
+
+    // Toggle follow
+    window.toggleFollow = function(id) {
+      const index = formData.followedCreators.indexOf(id);
+      if (index > -1) {
+        formData.followedCreators.splice(index, 1);
+      } else {
+        formData.followedCreators.push(id);
+      }
+      renderStep();
+    };
+
+    // Filter creators
+    window.filterCreators = function(category) {
+      const filtered = category === 'all' 
+        ? mockCreators 
+        : mockCreators.filter(c => c.category === category);
+      renderCreatorsList(filtered);
+    };
+
+    // Render creators list
+    function renderCreatorsList(creators) {
+      const list = document.getElementById('creators-list');
+      list.innerHTML = creators.map((creator, i) => `
+        <div class="creator-card stagger-item glass-strong rounded-2xl p-5 flex items-center gap-4" style="animation-delay: ${i * 0.08}s">
+          <div class="text-5xl">${creator.avatar}</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <h3 class="text-white font-black text-lg">${creator.name}</h3>
+              ${creator.verified ? '<span class="text-blue-400 text-xl">✓</span>' : ''}
+            </div>
+            <p class="text-white text-opacity-80 text-sm mb-1">${creator.bio}</p>
+            <p class="text-pink-300 font-bold text-xs">👥 ${creator.followers} متابع</p>
+          </div>
+          <button onclick="toggleFollow(${creator.id})" 
+            class="mega-button ripple px-6 py-3 rounded-full text-sm font-black transition-all shadow-lg ${
+              formData.followedCreators.includes(creator.id) 
+                ? 'bg-white text-purple-600' 
+                : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white pulse-glow'
+            }">
+            ${formData.followedCreators.includes(creator.id) ? '✓ متابع' : '+ متابعة'}
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Toggle genre
+    window.toggleGenre = function(genre) {
+      const index = formData.selectedGenres.indexOf(genre);
+      if (index > -1) {
+        formData.selectedGenres.splice(index, 1);
+      } else {
+        formData.selectedGenres.push(genre);
+      }
+      renderStep();
+    };
+
+    // Toggle content type
+    window.toggleContentType = function(type) {
+      const index = formData.selectedContentTypes.indexOf(type);
+      if (index > -1) {
+        formData.selectedContentTypes.splice(index, 1);
+      } else {
+        formData.selectedContentTypes.push(type);
+      }
+      renderStep();
+    };
+
+    // Navigation
+    document.getElementById('prev-btn').addEventListener('click', () => {
+      if (currentStep > 0) {
+        currentStep--;
+        renderStepper();
+        renderStep();
+        updateButtons();
+        updateProgress();
+      }
+    });
+
+    document.getElementById('next-btn').addEventListener('click', () => {
+      if (currentStep === 0 && !validateStep1()) {
+        return;
+      }
+
+      if (currentStep < steps.length - 1) {
+        currentStep++;
+        renderStepper();
+        renderStep();
+        updateButtons();
+        updateProgress();
+      } else {
+        showSuccessScreen();
+      }
+    });
+
+    // Update buttons
+    function updateButtons() {
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+
+      prevBtn.disabled = currentStep === 0;
+      nextBtn.innerHTML = currentStep === steps.length - 1 
+        ? '<span>إنشاء الحساب</span><span>🎉</span>' 
+        : '<span>التالي</span><span>▶</span>';
+    }
+
+    // Show success screen with fireworks
+    function showSuccessScreen() {
+      const container = document.getElementById('step-container');
+      container.innerHTML = `
+        <div class="text-center py-12 success-burst">
+          <div class="text-9xl mb-8 rainbow-glow">🎊</div>
+          <h2 class="text-4xl md:text-5xl font-black text-white mb-6 float-animation">تم إنشاء حسابك بنجاح!</h2>
+          <p class="text-2xl text-white text-opacity-95 mb-10 font-bold">مرحباً بك في عائلتنا يا ${formData.username}! 🌸✨</p>
+          
+          <div class="glass-strong rounded-3xl p-8 mb-10 magical-glow max-w-md mx-auto">
+            <p class="text-white text-xl font-bold mb-6">ملخص رحلتك الرائعة:</p>
+            <div class="space-y-4 text-white text-opacity-90 text-lg">
+              <div class="flex items-center justify-between">
+                <span>✨ المبدعين المتابعين:</span>
+                <span class="font-black">${formData.followedCreators.length}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>💖 التصنيفات المفضلة:</span>
+                <span class="font-black">${formData.selectedGenres.length}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>📚 أنواع المحتوى:</span>
+                <span class="font-black">${formData.selectedContentTypes.length}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>🎯 اكتمال الملف:</span>
+                <span class="font-black text-green-300">${calculateProfileCompletion()}%</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="goToDashboard()" class="mega-button ripple px-12 py-6 rounded-full text-white text-xl font-black bg-gradient-to-r from-green-400 via-emerald-500 to-teal-600 hover:from-green-500 hover:via-emerald-600 hover:to-teal-700 transition-all duration-300 shadow-2xl pulse-glow">
+            🚀 انطلق إلى لوحة التحكم 🚀
+          </button>
+          
+          <p class="text-white text-opacity-80 mt-8 text-lg">استعد لتجربة أنمي لا تُنسى! 🎌</p>
+        </div>
+      `;
+
+      // Create massive confetti
+      createEnhancedConfetti();
+      
+      // Create fireworks
+      createFireworks();
+      
+      // Hide navigation buttons
+      document.getElementById('prev-btn').classList.add('hidden');
+      document.getElementById('next-btn').classList.add('hidden');
+      
+      // Update progress to 100%
+      document.getElementById('progress-bar').style.width = '100%';
+      document.getElementById('progress-text').textContent = 'مكتمل! 🎉';
+      document.getElementById('completion-text').textContent = 'مبروك! اكتمل التسجيل 100% 🎊';
+    }
+
+    // Enhanced confetti effect
+    function createEnhancedConfetti() {
+      const colors = ['#ff6b9d', '#c44569', '#ffa502', '#ff6348', '#a29bfe', '#6c5ce7', '#00b894', '#fdcb6e', '#e84393'];
+      const shapes = ['○', '●', '◆', '■', '★', '▲', '♥', '✦'];
+      
+      for (let i = 0; i < 120; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+          confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.left = Math.random() * 100 + '%';
+          confetti.style.top = '-20px';
+          confetti.style.fontSize = (Math.random() * 20 + 15) + 'px';
+          confetti.style.setProperty('--x', (Math.random() * 400 - 200) + 'px');
+          confetti.style.animationDuration = (Math.random() * 2 + 3) + 's';
+          confetti.style.animationDelay = (Math.random() * 0.5) + 's';
+          document.body.appendChild(confetti);
+          
+          setTimeout(() => confetti.remove(), 5000);
+        }, i * 30);
+      }
+    }
+
+    // Fireworks effect
+    function createFireworks() {
+      const colors = ['#ff6b9d', '#ffd93d', '#6bcf7f', '#4d9eff', '#a29bfe'];
+      
+      for (let i = 0; i < 8; i++) {
+        setTimeout(() => {
+          const x = Math.random() * window.innerWidth;
+          const y = Math.random() * window.innerHeight * 0.5;
+          
+          for (let j = 0; j < 30; j++) {
+            const particle = document.createElement('div');
+            particle.className = 'firework';
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            
+            const angle = (Math.PI * 2 * j) / 30;
+            const velocity = Math.random() * 100 + 100;
+            const xMove = Math.cos(angle) * velocity;
+            const yMove = Math.sin(angle) * velocity;
+            
+            particle.style.setProperty('--x', xMove + 'px');
+            particle.style.setProperty('--y', yMove + 'px');
+            
+            document.body.appendChild(particle);
+            setTimeout(() => particle.remove(), 1000);
+          }
+        }, i * 400);
+      }
+    }
+
+    // Go to dashboard
+    window.goToDashboard = function() {
+      // Create one final burst
+      createEnhancedConfetti();
+      
+      setTimeout(() => {
+        alert('🎊✨ مبروك! سيتم الانتقال إلى لوحة التحكم...\n\nاستعد لتجربة أنمي لا تُنسى! 🎌');
+        location.reload();
+      }, 500);
+    };
+
+    // Initialize app
+    init();
+  </script>
+</body>
+</html>

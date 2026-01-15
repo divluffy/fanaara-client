@@ -1,0 +1,1543 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title> 1 gpt</title>
+  <style>
+    :root{
+      --bg0:#070815;
+      --bg1:#0b0f2b;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.10);
+      --text:#e9ecff;
+      --muted:rgba(233,236,255,.72);
+      --line: rgba(255,255,255,.12);
+
+      --p1:#7c3aed;   /* violet */
+      --p2:#22d3ee;   /* cyan */
+      --p3:#fb7185;   /* pink */
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+
+      --radius: 22px;
+      --shadow: 0 30px 80px rgba(0,0,0,.55);
+      --glow: 0 0 0 1px rgba(255,255,255,.10), 0 0 40px rgba(124,58,237,.22);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(124,58,237,.35), transparent 60%),
+                  radial-gradient(1200px 800px at 85% 20%, rgba(34,211,238,.25), transparent 55%),
+                  radial-gradient(900px 700px at 70% 92%, rgba(251,113,133,.18), transparent 60%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      color:var(--text);
+      overflow-x:hidden;
+    }
+
+    /* --- Anime-ish ambient background (scanlines + particles) --- */
+    .scanlines{
+      position:fixed; inset:0; pointer-events:none;
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(255,255,255,.045) 0px,
+        rgba(255,255,255,.045) 1px,
+        transparent 2px,
+        transparent 6px
+      );
+      mix-blend-mode: overlay;
+      opacity:.28;
+      transform: translateZ(0);
+    }
+
+    .halftone{
+      position:fixed; inset:-40px; pointer-events:none;
+      background-image:
+        radial-gradient(rgba(255,255,255,.09) 1px, transparent 1px);
+      background-size: 10px 10px;
+      opacity:.07;
+      filter: blur(.2px);
+      transform: rotate(-7deg) scale(1.08);
+    }
+
+    .particles{
+      position:fixed; inset:0; pointer-events:none;
+      overflow:hidden;
+    }
+    .particle{
+      position:absolute;
+      width: 6px; height: 6px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), rgba(255,255,255,0));
+      opacity:.25;
+      animation: floatUp linear infinite;
+      filter: drop-shadow(0 0 12px rgba(34,211,238,.25));
+    }
+    @keyframes floatUp{
+      from{ transform: translate3d(0, 20vh, 0) scale(.8); }
+      to  { transform: translate3d(10vw, -120vh, 0) scale(1.25); }
+    }
+
+    /* --- Layout --- */
+    .wrap{
+      min-height:100%;
+      display:grid;
+      place-items:center;
+      padding: 28px 16px 40px;
+      position:relative;
+    }
+
+    .shell{
+      width:min(980px, 100%);
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 18px;
+      align-items:stretch;
+    }
+
+    @media (max-width: 920px){
+      .shell{ grid-template-columns: 1fr; }
+    }
+
+    .hero{
+      border-radius: var(--radius);
+      padding: 26px 22px;
+      background: linear-gradient(135deg, rgba(124,58,237,.22), rgba(34,211,238,.10) 45%, rgba(251,113,133,.10));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+      isolation:isolate;
+    }
+
+    .hero:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(700px 320px at 20% 10%, rgba(34,211,238,.18), transparent 60%),
+        radial-gradient(600px 350px at 90% 35%, rgba(251,113,133,.16), transparent 60%),
+        radial-gradient(800px 500px at 40% 92%, rgba(124,58,237,.20), transparent 65%);
+      z-index:-1;
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      margin-bottom: 14px;
+    }
+    .logo{
+      width:44px; height:44px; border-radius: 14px;
+      background:
+        linear-gradient(135deg, rgba(124,58,237,1), rgba(34,211,238,1));
+      box-shadow: 0 12px 30px rgba(124,58,237,.25), 0 12px 30px rgba(34,211,238,.18);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo:after{
+      content:"";
+      position:absolute; inset:-30%;
+      background: conic-gradient(from 210deg, rgba(255,255,255,.0), rgba(255,255,255,.55), rgba(255,255,255,0));
+      animation: sheen 4.2s linear infinite;
+      opacity:.55;
+    }
+    @keyframes sheen{
+      from{ transform: rotate(0deg); }
+      to  { transform: rotate(360deg); }
+    }
+
+    .brand h1{
+      font-size: 18px;
+      margin:0;
+      letter-spacing:.2px;
+    }
+    .brand p{
+      margin:2px 0 0;
+      color:var(--muted);
+      font-size: 13px;
+    }
+
+    .hero h2{
+      margin: 12px 0 8px;
+      font-size: clamp(22px, 2.6vw, 30px);
+      line-height:1.15;
+    }
+    .hero .sub{
+      margin:0 0 16px;
+      color:var(--muted);
+      line-height:1.8;
+      font-size: 14px;
+    }
+
+    .pillRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top: 18px;
+    }
+    .pill{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      padding: 10px 12px;
+      border-radius: 999px;
+      color: rgba(233,236,255,.88);
+      font-size: 13px;
+      backdrop-filter: blur(10px);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+      transition: transform .2s ease, border-color .2s ease;
+    }
+    .pill:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.26);
+    }
+    .dot{
+      width:10px; height:10px; border-radius:99px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), rgba(255,255,255,0)),
+                  linear-gradient(135deg, var(--p2), var(--p1));
+      box-shadow: 0 0 18px rgba(34,211,238,.25);
+    }
+
+    /* --- Wizard Card --- */
+    .card{
+      border-radius: var(--radius);
+      padding: 22px;
+      background: rgba(10,12,30,.55);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      position:relative;
+      overflow:hidden;
+    }
+    .card:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(700px 350px at 30% 0%, rgba(124,58,237,.20), transparent 60%),
+                  radial-gradient(600px 350px at 100% 50%, rgba(34,211,238,.12), transparent 60%);
+      opacity:.8;
+      z-index:-1;
+    }
+
+    .topRow{
+      display:flex; gap:14px; align-items:flex-start; justify-content:space-between;
+      margin-bottom: 12px;
+    }
+    .stepsTitle{
+      display:flex; flex-direction:column; gap:4px;
+    }
+    .stepsTitle h3{ margin:0; font-size: 16px; }
+    .stepsTitle span{ color:var(--muted); font-size: 12.5px; }
+
+    .progressWrap{
+      width: min(290px, 42vw);
+      text-align:left;
+    }
+    .progressBar{
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.18);
+    }
+    .progressFill{
+      height:100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--p1), var(--p2), var(--p3));
+      border-radius: 999px;
+      box-shadow: 0 0 24px rgba(124,58,237,.25);
+      transition: width .45s cubic-bezier(.2,.9,.2,1);
+    }
+    .stepDots{
+      display:flex; gap:10px; justify-content:flex-end;
+      margin-top: 10px;
+    }
+    .sDot{
+      width: 11px; height: 11px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.20);
+      background: rgba(255,255,255,.08);
+      transition: transform .25s ease, background .25s ease, border-color .25s ease;
+    }
+    .sDot.active{
+      background: linear-gradient(135deg, var(--p2), var(--p1));
+      border-color: rgba(255,255,255,.35);
+      transform: scale(1.18);
+      box-shadow: 0 0 18px rgba(34,211,238,.22);
+    }
+    .sDot.done{
+      background: rgba(52,211,153,.18);
+      border-color: rgba(52,211,153,.55);
+    }
+
+    /* Form */
+    form{ margin-top: 14px; }
+    .step{
+      display:none;
+      animation: in .45s ease both;
+    }
+    .step.active{ display:block; }
+    @keyframes in{
+      from{ opacity:0; transform: translateY(10px); filter: blur(3px); }
+      to  { opacity:1; transform: translateY(0);  filter: blur(0); }
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 520px){
+      .grid{ grid-template-columns: 1fr; }
+      .progressWrap{ width: 100%; }
+      .topRow{ flex-direction:column; align-items:stretch; }
+      .stepDots{ justify-content:flex-start; }
+    }
+
+    label{
+      display:block;
+      font-size: 13px;
+      color: rgba(233,236,255,.92);
+      margin-bottom: 7px;
+    }
+
+    .field{
+      position:relative;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius: 16px;
+      padding: 10px 12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    .field:focus-within{
+      border-color: rgba(34,211,238,.42);
+      box-shadow: 0 0 0 4px rgba(34,211,238,.10), 0 0 40px rgba(124,58,237,.16);
+      transform: translateY(-1px);
+    }
+    .field input, .field textarea, .field select{
+      width:100%;
+      border:0;
+      outline:none;
+      background:transparent;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .field textarea{ min-height: 90px; resize: vertical; }
+
+    .hint{
+      margin: 8px 4px 0;
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height:1.5;
+    }
+
+    .row{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      margin-top: 14px;
+      flex-wrap:wrap;
+    }
+
+    .btns{
+      display:flex;
+      gap:10px;
+      margin-top: 16px;
+      justify-content:space-between;
+    }
+    .btn{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 11px 14px;
+      border-radius: 16px;
+      cursor:pointer;
+      font-weight: 700;
+      font-size: 14px;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      user-select:none;
+    }
+    .btn:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.24);
+      background: rgba(255,255,255,.08);
+    }
+    .btn:active{ transform: translateY(0); }
+    .btn[disabled]{ opacity:.55; cursor:not-allowed; transform:none; }
+
+    .btnPrimary{
+      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(34,211,238,.90));
+      border-color: rgba(255,255,255,.18);
+      box-shadow: 0 18px 50px rgba(124,58,237,.22), 0 18px 50px rgba(34,211,238,.14);
+    }
+    .btnPrimary:hover{
+      background: linear-gradient(135deg, rgba(124,58,237,1), rgba(34,211,238,1));
+      border-color: rgba(255,255,255,.28);
+    }
+
+    .mini{
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .inline{
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      margin-top: 10px;
+    }
+    .badge{
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(233,236,255,.9);
+    }
+    .badge.ok{
+      border-color: rgba(52,211,153,.50);
+      background: rgba(52,211,153,.12);
+      color: rgba(52,211,153,.95);
+    }
+    .badge.warn{
+      border-color: rgba(251,191,36,.55);
+      background: rgba(251,191,36,.12);
+      color: rgba(251,191,36,.98);
+    }
+    .badge.bad{
+      border-color: rgba(251,113,133,.55);
+      background: rgba(251,113,133,.12);
+      color: rgba(251,113,133,.98);
+    }
+
+    /* Password strength */
+    .meter{
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+      flex:1;
+    }
+    .meter > i{
+      display:block; height:100%; width:0%;
+      background: linear-gradient(90deg, var(--bad), var(--warn), var(--ok));
+      transition: width .25s ease;
+    }
+
+    /* Chips */
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top: 4px;
+    }
+    .chip{
+      position:relative;
+    }
+    .chip input{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+    }
+    .chip label{
+      margin:0;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      color: rgba(233,236,255,.9);
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+      user-select:none;
+    }
+    .chip label:hover{ transform: translateY(-2px); border-color: rgba(255,255,255,.26); }
+    .chip input:checked + label{
+      border-color: rgba(34,211,238,.45);
+      background: linear-gradient(135deg, rgba(34,211,238,.16), rgba(124,58,237,.16));
+      box-shadow: 0 0 0 4px rgba(34,211,238,.08);
+    }
+
+    /* Avatar picker */
+    .avatarGrid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 520px){
+      .avatarGrid{ grid-template-columns: repeat(2, 1fr); }
+    }
+    .avatar{
+      position:relative;
+    }
+    .avatar input{
+      position:absolute; opacity:0; pointer-events:none;
+    }
+    .avatarCard{
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      padding: 12px;
+      cursor:pointer;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+      overflow:hidden;
+    }
+    .avatarCard:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.26);
+    }
+    .avatar input:checked + .avatarCard{
+      border-color: rgba(251,113,133,.55);
+      background: linear-gradient(135deg, rgba(251,113,133,.14), rgba(34,211,238,.10));
+      box-shadow: 0 0 0 4px rgba(251,113,133,.08);
+    }
+    .avatarPreview{
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.25);
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+    }
+    .avatarName{
+      margin: 10px 0 0;
+      font-size: 13px;
+      color: rgba(233,236,255,.90);
+      text-align:center;
+    }
+
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 12px;
+      align-items:start;
+    }
+    @media (max-width: 740px){
+      .twoCol{ grid-template-columns: 1fr; }
+    }
+
+    .profileCard{
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      padding: 12px;
+    }
+    .miniProfile{
+      display:flex;
+      gap: 12px;
+      align-items:center;
+    }
+    .pfp{
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.28);
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,.22);
+    }
+    .miniProfile strong{
+      display:block;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+    .miniProfile span{
+      display:block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .toast{
+      margin-top: 12px;
+      border-radius: 16px;
+      padding: 10px 12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: rgba(233,236,255,.9);
+      font-size: 13px;
+      line-height:1.6;
+    }
+
+    .error{
+      display:none;
+      margin-top: 10px;
+      border-radius: 16px;
+      padding: 10px 12px;
+      border:1px solid rgba(251,113,133,.55);
+      background: rgba(251,113,133,.12);
+      color: rgba(255,220,226,.95);
+      font-size: 13px;
+      line-height:1.6;
+    }
+    .error.show{ display:block; }
+
+    /* Success overlay */
+    .overlay{
+      position:fixed; inset:0;
+      background: rgba(3,4,14,.75);
+      display:none;
+      place-items:center;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+    }
+    .overlay.show{ display:grid; }
+    .success{
+      width: min(620px, calc(100% - 32px));
+      border-radius: 26px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(10,12,30,.68);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      position:relative;
+      overflow:hidden;
+    }
+    .success:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(700px 380px at 20% 10%, rgba(52,211,153,.18), transparent 60%),
+        radial-gradient(680px 360px at 90% 40%, rgba(34,211,238,.16), transparent 60%),
+        radial-gradient(700px 420px at 50% 110%, rgba(124,58,237,.20), transparent 65%);
+      z-index:-1;
+    }
+    .success h4{ margin: 6px 0 6px; font-size: 20px; }
+    .success p{ margin: 0 0 14px; color: var(--muted); line-height:1.8; }
+
+    .confetti{
+      position:absolute; inset:-20px;
+      pointer-events:none;
+      overflow:hidden;
+    }
+    .conf{
+      position:absolute;
+      width: 10px; height: 16px;
+      border-radius: 3px;
+      opacity:.9;
+      transform: translateY(-40px) rotate(0deg);
+      animation: confFall linear forwards;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.25));
+    }
+    @keyframes confFall{
+      to{
+        transform: translateY(680px) rotate(540deg);
+        opacity: 0.95;
+      }
+    }
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      .particle, .logo:after, .step{ animation: none !important; }
+      .progressFill{ transition:none !important; }
+      .btn, .pill, .chip label, .avatarCard{ transition:none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="halftone"></div>
+  <div class="scanlines"></div>
+  <div class="particles" id="particles"></div>
+
+  <main class="wrap">
+    <section class="shell">
+      <aside class="hero">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>Anime/Comics Hub</h1>
+            <p>اصنع هويتك… وادخل عالم الفاندوم ✨</p>
+          </div>
+        </div>
+
+        <h2>إنشاء حساب بستايل أنمي/مانغا — على مراحل سريعة</h2>
+        <p class="sub">
+          اختر اسمك، جهّز ملفك، حدّد اهتماماتك، واختر أفاتار يخليك “Protagonist” من أول يوم.
+          التصميم حديث، متجاوب، وحركاته ناعمة — مناسب لمجتمع عشاق الأنمي والقصص المصورة.
+        </p>
+
+        <div class="pillRow">
+          <div class="pill"><span class="dot"></span> عدة مراحل مع شريط تقدم</div>
+          <div class="pill"><span class="dot"></span> تحقّق فوري + قوة كلمة المرور</div>
+          <div class="pill"><span class="dot"></span> أفاتارات أنمي (SVG) بدون صور خارجية</div>
+          <div class="pill"><span class="dot"></span> تخزين تجريبي في LocalStorage</div>
+        </div>
+
+        <div class="toast" style="margin-top:16px">
+          💡 نصيحة: جرّب اسم مستخدم مثل <b>luffy_gear5</b> أو <b>manga_sensei</b> وشوف حالة التوفر!
+        </div>
+      </aside>
+
+      <section class="card" aria-label="نموذج إنشاء الحساب">
+        <div class="topRow">
+          <div class="stepsTitle">
+            <h3 id="stepTitle">المرحلة 1: بيانات الدخول</h3>
+            <span id="stepSubtitle">خلّينا نبدأ بأهم الأساسيات.</span>
+          </div>
+
+          <div class="progressWrap">
+            <div class="progressBar" aria-label="شريط التقدم" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="progressFill" id="progressFill"></div>
+            </div>
+            <div class="stepDots" aria-label="مؤشر المراحل">
+              <div class="sDot active" id="dot0" title="1"></div>
+              <div class="sDot" id="dot1" title="2"></div>
+              <div class="sDot" id="dot2" title="3"></div>
+              <div class="sDot" id="dot3" title="4"></div>
+            </div>
+          </div>
+        </div>
+
+        <form id="wizard" novalidate>
+          <!-- STEP 1 -->
+          <section class="step active" data-step="0">
+            <div class="grid">
+              <div>
+                <label for="email">البريد الإلكتروني</label>
+                <div class="field">
+                  <input id="email" name="email" type="email" autocomplete="email" placeholder="name@domain.com" required />
+                </div>
+                <div class="hint">سنستخدمه لتأكيد الحساب (تجريبيًا هنا).</div>
+              </div>
+
+              <div>
+                <label for="username">اسم المستخدم</label>
+                <div class="field">
+                  <input id="username" name="username" type="text" inputmode="latin" autocomplete="username"
+                         minlength="3" maxlength="20"
+                         pattern="^[a-zA-Z0-9_]+$"
+                         placeholder="مثال: manga_sensei" required />
+                </div>
+                <div class="inline">
+                  <div class="mini">مسموح: حروف/أرقام/ _ فقط</div>
+                  <span class="badge" id="userStatus">—</span>
+                </div>
+              </div>
+
+              <div>
+                <label for="password">كلمة المرور</label>
+                <div class="field">
+                  <input id="password" name="password" type="password" autocomplete="new-password"
+                         minlength="8" placeholder="••••••••" required />
+                </div>
+                <div class="inline">
+                  <div class="meter" aria-label="مؤشر قوة كلمة المرور">
+                    <i id="pwFill"></i>
+                  </div>
+                  <span class="badge" id="pwLabel">ضعيفة</span>
+                </div>
+                <div class="hint">يفضل 10+ أحرف مع أرقام ورموز.</div>
+              </div>
+
+              <div>
+                <label for="confirm">تأكيد كلمة المرور</label>
+                <div class="field">
+                  <input id="confirm" name="confirm" type="password" autocomplete="new-password" placeholder="••••••••" required />
+                </div>
+                <div class="hint" id="matchHint">تأكد أنها مطابقة.</div>
+              </div>
+            </div>
+
+            <div class="error" id="err0"></div>
+          </section>
+
+          <!-- STEP 2 -->
+          <section class="step" data-step="1">
+            <div class="grid">
+              <div>
+                <label for="displayName">اسم العرض</label>
+                <div class="field">
+                  <input id="displayName" name="displayName" type="text" maxlength="30" placeholder="مثال: لوفي / نيكو روبن" required />
+                </div>
+                <div class="hint">هذا الاسم يظهر في الملف والتعليقات.</div>
+              </div>
+
+              <div>
+                <label for="birthday">تاريخ الميلاد (اختياري)</label>
+                <div class="field">
+                  <input id="birthday" name="birthday" type="date" />
+                </div>
+                <div class="hint">للاحتفال بعيد ميلادك داخل المجتمع 🎉</div>
+              </div>
+
+              <div style="grid-column:1/-1">
+                <label for="bio">نبذة قصيرة</label>
+                <div class="field">
+                  <textarea id="bio" name="bio" maxlength="180" placeholder="اكتب شيئًا لطيفًا… مثال: عاشق للمانغا، أقرأ الفصل فور نزوله!"></textarea>
+                </div>
+                <div class="hint"><span id="bioCount">0</span>/180</div>
+              </div>
+            </div>
+
+            <div class="error" id="err1"></div>
+          </section>
+
+          <!-- STEP 3 -->
+          <section class="step" data-step="2">
+            <div class="twoCol">
+              <div>
+                <label>اهتماماتك (اختر 1 على الأقل)</label>
+                <div class="chips" id="chips">
+                  <div class="chip"><input id="c1" type="checkbox" name="tags" value="Shonen"><label for="c1">شونِن ⚡</label></div>
+                  <div class="chip"><input id="c2" type="checkbox" name="tags" value="Seinen"><label for="c2">سينِن 🖤</label></div>
+                  <div class="chip"><input id="c3" type="checkbox" name="tags" value="Isekai"><label for="c3">إيسيكاي 🌌</label></div>
+                  <div class="chip"><input id="c4" type="checkbox" name="tags" value="SliceOfLife"><label for="c4">سلايس أوف لايف ☕</label></div>
+                  <div class="chip"><input id="c5" type="checkbox" name="tags" value="Romance"><label for="c5">رومانس 💘</label></div>
+                  <div class="chip"><input id="c6" type="checkbox" name="tags" value="Horror"><label for="c6">رعب 👁️</label></div>
+                  <div class="chip"><input id="c7" type="checkbox" name="tags" value="Comics"><label for="c7">Comics 🦸</label></div>
+                  <div class="chip"><input id="c8" type="checkbox" name="tags" value="Manga"><label for="c8">مانغا 📖</label></div>
+                  <div class="chip"><input id="c9" type="checkbox" name="tags" value="Manhwa"><label for="c9">مانهوا 🔥</label></div>
+                </div>
+
+                <div class="row">
+                  <div>
+                    <label for="notif">تفضيل التنبيهات</label>
+                    <div class="field">
+                      <select id="notif" name="notif" required>
+                        <option value="all">كل شيء (فصول/نقاشات/أصدقاء)</option>
+                        <option value="chapters">فصول وإصدارات فقط</option>
+                        <option value="friends">تفاعل الأصدقاء فقط</option>
+                        <option value="quiet">هادئ</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style="min-width:220px">
+                    <label for="privacy">الخصوصية</label>
+                    <div class="field">
+                      <select id="privacy" name="privacy" required>
+                        <option value="public">عام</option>
+                        <option value="friends">للأصدقاء</option>
+                        <option value="private">خاص</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="error" id="err2"></div>
+              </div>
+
+              <aside class="profileCard">
+                <div class="miniProfile">
+                  <div class="pfp" id="miniPfp" aria-hidden="true"></div>
+                  <div>
+                    <strong id="miniName">—</strong>
+                    <span id="miniUser">@—</span>
+                  </div>
+                </div>
+                <div class="toast">
+                  🎴 بناء الملف: كل اختيار هنا يساعدنا نقترح لك نقاشات/سلاسل تناسب ذوقك.
+                  (التوصيات هنا شكلية)
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <!-- STEP 4 -->
+          <section class="step" data-step="3">
+            <div class="twoCol">
+              <div>
+                <label>اختر أفاتار (اضغط للتحديد)</label>
+                <div class="avatarGrid" id="avatarGrid"></div>
+
+                <div class="row">
+                  <div style="flex:1; min-width:220px">
+                    <label for="accent">لون الستايل (Accent)</label>
+                    <div class="field">
+                      <select id="accent" name="accent">
+                        <option value="violet">بنفسجي (Violet)</option>
+                        <option value="cyan">سماوي (Cyan)</option>
+                        <option value="pink">وردي (Pink)</option>
+                        <option value="emerald">زمردي (Emerald)</option>
+                      </select>
+                    </div>
+                    <div class="hint">يؤثر على الإضاءات في المعاينة.</div>
+                  </div>
+
+                  <div style="flex:1; min-width:220px">
+                    <label for="tos">
+                      <span>الشروط</span>
+                    </label>
+                    <div class="field" style="gap:12px">
+                      <input id="tos" name="tos" type="checkbox" required style="width:20px;height:20px" />
+                      <span style="font-size:13px;color:rgba(233,236,255,.9);line-height:1.5">
+                        أوافق على الشروط وسياسة الخصوصية (تجريبيًا)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="error" id="err3"></div>
+              </div>
+
+              <aside class="profileCard">
+                <div class="miniProfile">
+                  <div class="pfp" id="finalPfp" aria-hidden="true"></div>
+                  <div>
+                    <strong id="finalName">—</strong>
+                    <span id="finalUser">@—</span>
+                  </div>
+                </div>
+                <div class="toast" id="finalToast">
+                  ✨ المعاينة النهائية… بمجرد الضغط على “إنشاء الحساب” سنحفظ البيانات في LocalStorage (تجربة).
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <div class="btns">
+            <button class="btn" type="button" id="backBtn">⬅ رجوع</button>
+            <button class="btn btnPrimary" type="button" id="nextBtn">التالي ➜</button>
+          </div>
+
+          <div class="hint" style="margin-top:10px">
+            ملاحظة: هذا نموذج Frontend فقط (لا يوجد إرسال حقيقي للسيرفر).
+          </div>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <!-- Success Overlay -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="تم إنشاء الحساب">
+    <div class="success">
+      <div class="confetti" id="confetti"></div>
+      <div class="brand" style="margin-bottom:10px">
+        <div class="logo" aria-hidden="true" style="width:38px;height:38px;border-radius:14px"></div>
+        <div>
+          <h1 style="font-size:16px;margin:0">Anime/Comics Hub</h1>
+          <p style="margin:2px 0 0;color:var(--muted);font-size:12.5px">Welcome to the fandom.</p>
+        </div>
+      </div>
+      <h4>تم إنشاء الحساب بنجاح ✅</h4>
+      <p id="successText">جاهز تدخل عالم النقاشات والفصول!</p>
+
+      <div class="profileCard">
+        <div class="miniProfile">
+          <div class="pfp" id="successPfp" aria-hidden="true"></div>
+          <div>
+            <strong id="successName">—</strong>
+            <span id="successUser">@—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="btns" style="margin-top:14px">
+        <button class="btn" type="button" id="closeOverlay">إغلاق</button>
+        <button class="btn btnPrimary" type="button" id="resetAll">إنشاء حساب جديد</button>
+      </div>
+      <div class="hint" style="margin-top:10px">
+        تم حفظ بياناتك تجريبيًا داخل <b>localStorage</b> باسم <b>animeHub_signup</b>.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ------------------------------
+    // Small ambient particles
+    // ------------------------------
+    (function spawnParticles(){
+      const root = document.getElementById('particles');
+      const count = 22;
+      for(let i=0;i<count;i++){
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const left = Math.random()*100;
+        const delay = Math.random()*6;
+        const dur = 10 + Math.random()*10;
+        const size = 4 + Math.random()*6;
+        p.style.left = left + 'vw';
+        p.style.animationDelay = (-delay) + 's';
+        p.style.animationDuration = dur + 's';
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.top = (70 + Math.random()*60) + 'vh';
+        root.appendChild(p);
+      }
+    })();
+
+    // ------------------------------
+    // Avatar SVGs (inline, no external assets)
+    // ------------------------------
+    function avatarSVG(kind, accent){
+      // accent is a CSS color string
+      const hair = accent;
+      const cheek = "rgba(251,113,133,.9)";
+      const eye = "rgba(233,236,255,.95)";
+      const outline = "rgba(255,255,255,.20)";
+
+      const common = (inner) => `
+        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bg" x1="0" x2="1">
+              <stop offset="0" stop-color="rgba(124,58,237,.55)"/>
+              <stop offset="1" stop-color="rgba(34,211,238,.45)"/>
+            </linearGradient>
+            <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="0.35"/>
+            </filter>
+          </defs>
+          <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#bg)"/>
+          <circle cx="60" cy="64" r="33" fill="rgba(0,0,0,.22)"/>
+          ${inner}
+          <rect x="6" y="6" width="108" height="108" rx="24" fill="none" stroke="${outline}" />
+        </svg>
+      `;
+
+      if(kind === "shonen"){
+        return common(`
+          <path d="M26 55c6-22 20-33 34-33s28 11 34 33c-12-6-24-10-34-10S38 49 26 55z" fill="${hair}" filter="url(#soft)"/>
+          <circle cx="60" cy="66" r="28" fill="rgba(233,236,255,.92)"/>
+          <path d="M42 60c4-6 10-8 18-6" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M78 60c-4-6-10-8-18-6" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <ellipse cx="49" cy="70" rx="7" ry="9" fill="rgba(0,0,0,.55)"/>
+          <ellipse cx="71" cy="70" rx="7" ry="9" fill="rgba(0,0,0,.55)"/>
+          <circle cx="47" cy="68" r="2.4" fill="${eye}"/>
+          <circle cx="69" cy="68" r="2.4" fill="${eye}"/>
+          <path d="M54 83c4 4 8 4 12 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="40" cy="80" r="4.2" fill="${cheek}" opacity=".55"/>
+          <circle cx="80" cy="80" r="4.2" fill="${cheek}" opacity=".55"/>
+        `);
+      }
+      if(kind === "mystic"){
+        return common(`
+          <path d="M20 60c8-30 24-40 40-40s32 10 40 40c-10-10-24-14-40-14S30 50 20 60z" fill="${hair}" />
+          <circle cx="60" cy="66" r="28" fill="rgba(233,236,255,.92)"/>
+          <path d="M38 66c5-3 10-3 15 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M67 66c5-3 10-3 15 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M52 88c6 4 10 4 16 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M60 52l6 10-6 4-6-4z" fill="rgba(0,0,0,.25)"/>
+          <circle cx="33" cy="78" r="3.8" fill="${cheek}" opacity=".45"/>
+          <circle cx="87" cy="78" r="3.8" fill="${cheek}" opacity=".45"/>
+          <path d="M60 22c10 4 16 10 18 18-8-4-14-6-18-6s-10 2-18 6c2-8 8-14 18-18z" fill="rgba(255,255,255,.22)"/>
+        `);
+      }
+      if(kind === "cyber"){
+        return common(`
+          <path d="M22 58c4-20 16-36 38-36s34 16 38 36c-12-8-26-12-38-12S34 50 22 58z" fill="${hair}" />
+          <circle cx="60" cy="66" r="28" fill="rgba(233,236,255,.92)"/>
+          <rect x="38" y="62" width="44" height="12" rx="6" fill="rgba(0,0,0,.45)"/>
+          <circle cx="52" cy="68" r="4.2" fill="${eye}"/>
+          <circle cx="68" cy="68" r="4.2" fill="${eye}"/>
+          <path d="M52 90c6 2 10 2 16 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M26 40h20" stroke="rgba(34,211,238,.9)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M74 40h20" stroke="rgba(251,113,133,.9)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M28 94c10 6 22 8 32 8s22-2 32-8" stroke="rgba(0,0,0,.18)" stroke-width="6" stroke-linecap="round"/>
+        `);
+      }
+      // default: "slice"
+      return common(`
+        <path d="M24 58c6-26 20-38 36-38s30 12 36 38c-12-6-24-10-36-10S36 52 24 58z" fill="${hair}" />
+        <circle cx="60" cy="66" r="28" fill="rgba(233,236,255,.92)"/>
+        <circle cx="50" cy="70" r="6.8" fill="rgba(0,0,0,.55)"/>
+        <circle cx="70" cy="70" r="6.8" fill="rgba(0,0,0,.55)"/>
+        <circle cx="48" cy="68" r="2.3" fill="${eye}"/>
+        <circle cx="68" cy="68" r="2.3" fill="${eye}"/>
+        <path d="M54 82c4 6 8 6 12 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M44 60c4-4 8-6 16-5" stroke="rgba(0,0,0,.28)" stroke-width="3.6" stroke-linecap="round"/>
+        <path d="M76 60c-4-4-8-6-16-5" stroke="rgba(0,0,0,.28)" stroke-width="3.6" stroke-linecap="round"/>
+        <circle cx="40" cy="79" r="4" fill="${cheek}" opacity=".5"/>
+        <circle cx="80" cy="79" r="4" fill="${cheek}" opacity=".5"/>
+      `);
+    }
+
+    function accentToColor(value){
+      switch(value){
+        case "cyan": return "rgba(34,211,238,.95)";
+        case "pink": return "rgba(251,113,133,.95)";
+        case "emerald": return "rgba(52,211,153,.95)";
+        default: return "rgba(124,58,237,.98)"; // violet
+      }
+    }
+
+    // ------------------------------
+    // Wizard logic
+    // ------------------------------
+    const wizard = document.getElementById('wizard');
+    const steps = Array.from(document.querySelectorAll('.step'));
+    const backBtn = document.getElementById('backBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressFill = document.getElementById('progressFill');
+    const stepTitle = document.getElementById('stepTitle');
+    const stepSubtitle = document.getElementById('stepSubtitle');
+    const dots = [0,1,2,3].map(i => document.getElementById('dot'+i));
+    const progressbar = document.querySelector('[role="progressbar"]');
+
+    const titles = [
+      ["المرحلة 1: بيانات الدخول","خلّينا نبدأ بأهم الأساسيات."],
+      ["المرحلة 2: ملفك الشخصي","خليه يعبّر عن ذوقك في الأنمي والمانغا."],
+      ["المرحلة 3: اهتماماتك","اختياراتك = توصيات أذكى لاحقًا."],
+      ["المرحلة 4: اللمسة الأخيرة","أفاتار + لون + موافقة… وبس!"]
+    ];
+
+    let current = 0;
+
+    function setStep(i){
+      current = i;
+      steps.forEach((s, idx)=> s.classList.toggle('active', idx===i));
+      backBtn.style.visibility = (i===0) ? 'hidden' : 'visible';
+
+      const pct = Math.round((i)/(steps.length-1)*100);
+      progressFill.style.width = pct + "%";
+      progressbar.setAttribute('aria-valuenow', String(pct));
+
+      stepTitle.textContent = titles[i][0];
+      stepSubtitle.textContent = titles[i][1];
+
+      dots.forEach((d, idx)=>{
+        d.classList.toggle('active', idx===i);
+        d.classList.toggle('done', idx<i);
+      });
+
+      // Update button label
+      nextBtn.textContent = (i===steps.length-1) ? "إنشاء الحساب ✨" : "التالي ➜";
+
+      // Sync preview cards
+      syncMiniProfile();
+      syncFinalPreview();
+      // Clear errors when entering a step
+      const err = document.getElementById('err'+i);
+      if(err) err.classList.remove('show');
+    }
+
+    backBtn.addEventListener('click', ()=>{
+      if(current>0) setStep(current-1);
+    });
+
+    nextBtn.addEventListener('click', async ()=>{
+      const ok = await validateStep(current);
+      if(!ok) return;
+      if(current < steps.length-1) setStep(current+1);
+      else submitWizard();
+    });
+
+    // ------------------------------
+    // Field behaviors
+    // ------------------------------
+    const bio = document.getElementById('bio');
+    const bioCount = document.getElementById('bioCount');
+    bio.addEventListener('input', ()=> bioCount.textContent = String(bio.value.length));
+
+    // Password strength + confirm match
+    const pw = document.getElementById('password');
+    const cf = document.getElementById('confirm');
+    const pwFill = document.getElementById('pwFill');
+    const pwLabel = document.getElementById('pwLabel');
+    const matchHint = document.getElementById('matchHint');
+
+    function pwScore(v){
+      let s = 0;
+      if(v.length >= 8) s += 25;
+      if(v.length >= 12) s += 15;
+      if(/[A-Z]/.test(v)) s += 15;
+      if(/[a-z]/.test(v)) s += 15;
+      if(/[0-9]/.test(v)) s += 15;
+      if(/[^A-Za-z0-9]/.test(v)) s += 15;
+      return Math.min(100, s);
+    }
+    function updatePwUI(){
+      const s = pwScore(pw.value);
+      pwFill.style.width = s + "%";
+
+      let label = "ضعيفة";
+      let cls = "bad";
+      if(s >= 70){ label="قوية"; cls="ok"; }
+      else if(s >= 45){ label="متوسطة"; cls="warn"; }
+
+      pwLabel.textContent = label;
+      pwLabel.className = "badge " + cls;
+
+      const match = (cf.value.length===0) ? null : (pw.value === cf.value);
+      if(match === null){
+        matchHint.textContent = "تأكد أنها مطابقة.";
+        matchHint.style.color = "var(--muted)";
+      }else if(match){
+        matchHint.textContent = "مطابقة ✅";
+        matchHint.style.color = "rgba(52,211,153,.95)";
+      }else{
+        matchHint.textContent = "غير مطابقة ❌";
+        matchHint.style.color = "rgba(251,113,133,.95)";
+      }
+    }
+    pw.addEventListener('input', updatePwUI);
+    cf.addEventListener('input', updatePwUI);
+
+    // Username availability simulation
+    const username = document.getElementById('username');
+    const userStatus = document.getElementById('userStatus');
+    let userCheckTimer = null;
+    let userCheckPending = false;
+    let userAvailable = false;
+
+    const reserved = new Set(["admin","root","support","moderator","owner","anime","manga","naruto","luffy","onepiece"]);
+
+    function setUserStatus(text, cls){
+      userStatus.textContent = text;
+      userStatus.className = "badge " + (cls || "");
+    }
+
+    function validateUsernameFormat(v){
+      if(v.length < 3) return "قصير جدًا";
+      if(v.length > 20) return "طويل جدًا";
+      if(!/^[a-zA-Z0-9_]+$/.test(v)) return "حروف/أرقام/_ فقط";
+      return null;
+    }
+
+    function checkUsername(){
+      const v = username.value.trim();
+      const formatErr = validateUsernameFormat(v);
+      userAvailable = false;
+
+      if(!v){
+        setUserStatus("—","");
+        return;
+      }
+      if(formatErr){
+        setUserStatus(formatErr,"bad");
+        return;
+      }
+
+      // Simulate async check
+      userCheckPending = true;
+      nextBtn.disabled = true;
+      setUserStatus("يفحص…","warn");
+
+      clearTimeout(userCheckTimer);
+      userCheckTimer = setTimeout(()=>{
+        userCheckPending = false;
+        const low = v.toLowerCase();
+        const taken = reserved.has(low) || low.endsWith("_official") || low.endsWith("0");
+        userAvailable = !taken;
+
+        if(userAvailable) setUserStatus("متاح ✅","ok");
+        else setUserStatus("محجوز ❌","bad");
+
+        nextBtn.disabled = false;
+      }, 550 + Math.random()*500);
+    }
+
+    username.addEventListener('input', checkUsername);
+    document.getElementById('displayName').addEventListener('input', syncMiniProfile);
+
+    // Mini profile (step 3)
+    const miniPfp = document.getElementById('miniPfp');
+    const miniName = document.getElementById('miniName');
+    const miniUser = document.getElementById('miniUser');
+
+    // Final preview (step 4 + success)
+    const finalPfp = document.getElementById('finalPfp');
+    const finalName = document.getElementById('finalName');
+    const finalUser = document.getElementById('finalUser');
+    const accent = document.getElementById('accent');
+
+    function syncMiniProfile(){
+      const dn = document.getElementById('displayName').value.trim();
+      const un = username.value.trim();
+      miniName.textContent = dn || "اسم العرض…";
+      miniUser.textContent = un ? ("@" + un) : "@username";
+      // Use current chosen avatar for preview (or default)
+      const svg = getSelectedAvatarSVG();
+      miniPfp.innerHTML = svg;
+    }
+
+    function syncFinalPreview(){
+      const dn = document.getElementById('displayName').value.trim();
+      const un = username.value.trim();
+      finalName.textContent = dn || "اسم العرض…";
+      finalUser.textContent = un ? ("@" + un) : "@username";
+      finalPfp.innerHTML = getSelectedAvatarSVG();
+    }
+
+    // ------------------------------
+    // Avatar picker UI
+    // ------------------------------
+    const avatarGrid = document.getElementById('avatarGrid');
+    const avatarOptions = [
+      { id:"av_shonen", kind:"shonen", label:"Shonen Hero" },
+      { id:"av_mystic", kind:"mystic", label:"Mystic Mage" },
+      { id:"av_cyber",  kind:"cyber",  label:"Cyber Rider" },
+      { id:"av_slice",  kind:"slice",  label:"Slice Buddy" }
+    ];
+
+    function buildAvatars(){
+      avatarGrid.innerHTML = "";
+      const acc = accentToColor(accent.value);
+
+      avatarOptions.forEach((a, idx)=>{
+        const wrap = document.createElement('div');
+        wrap.className = "avatar";
+        const input = document.createElement('input');
+        input.type = "radio";
+        input.name = "avatar";
+        input.id = a.id;
+        input.value = a.kind;
+        if(idx===0) input.checked = true;
+
+        const card = document.createElement('label');
+        card.className = "avatarCard";
+        card.setAttribute('for', a.id);
+
+        const preview = document.createElement('div');
+        preview.className = "avatarPreview";
+        preview.innerHTML = avatarSVG(a.kind, acc);
+
+        const name = document.createElement('div');
+        name.className = "avatarName";
+        name.textContent = a.label;
+
+        card.appendChild(preview);
+        card.appendChild(name);
+
+        wrap.appendChild(input);
+        wrap.appendChild(card);
+
+        avatarGrid.appendChild(wrap);
+
+        input.addEventListener('change', ()=>{
+          syncMiniProfile();
+          syncFinalPreview();
+        });
+      });
+    }
+
+    function getSelectedAvatarKind(){
+      const picked = document.querySelector('input[name="avatar"]:checked');
+      return picked ? picked.value : "shonen";
+    }
+
+    function getSelectedAvatarSVG(){
+      const acc = accentToColor(accent.value);
+      return avatarSVG(getSelectedAvatarKind(), acc);
+    }
+
+    accent.addEventListener('change', ()=>{
+      buildAvatars();          // redraw thumbs with new accent
+      syncMiniProfile();
+      syncFinalPreview();
+    });
+
+    buildAvatars();
+    syncMiniProfile();
+    syncFinalPreview();
+
+    // ------------------------------
+    // Validation per step
+    // ------------------------------
+    function showErr(stepIndex, msg){
+      const box = document.getElementById('err'+stepIndex);
+      if(!box) return;
+      box.textContent = msg;
+      box.classList.add('show');
+    }
+
+    async function validateStep(i){
+      // Always close any pending async state
+      const email = document.getElementById('email');
+      const displayName = document.getElementById('displayName');
+      const notif = document.getElementById('notif');
+      const privacy = document.getElementById('privacy');
+      const tos = document.getElementById('tos');
+
+      if(i===0){
+        // Basic validity
+        if(!email.checkValidity()){
+          showErr(0, "تحقق من البريد الإلكتروني.");
+          email.focus();
+          return false;
+        }
+
+        const un = username.value.trim();
+        const fmt = validateUsernameFormat(un);
+        if(!un || fmt){
+          showErr(0, "اسم المستخدم غير صالح: " + (fmt || "مطلوب."));
+          username.focus();
+          return false;
+        }
+
+        // Wait for async check if pending
+        if(userCheckPending){
+          showErr(0, "انتظر لحظة… يتم فحص اسم المستخدم.");
+          return false;
+        }
+        // If not checked yet, trigger and ask to retry
+        if(userStatus.textContent === "—"){
+          checkUsername();
+          showErr(0, "اضغط مرة أخرى بعد ظهور نتيجة توفر اسم المستخدم.");
+          return false;
+        }
+        if(!userAvailable){
+          showErr(0, "اسم المستخدم محجوز. جرّب اسمًا آخر.");
+          username.focus();
+          return false;
+        }
+
+        if(!pw.checkValidity()){
+          showErr(0, "كلمة المرور يجب أن تكون 8 أحرف على الأقل.");
+          pw.focus();
+          return false;
+        }
+        if(pw.value !== cf.value){
+          showErr(0, "تأكيد كلمة المرور غير مطابق.");
+          cf.focus();
+          return false;
+        }
+        return true;
+      }
+
+      if(i===1){
+        if(!displayName.value.trim()){
+          showErr(1, "اسم العرض مطلوب.");
+          displayName.focus();
+          return false;
+        }
+        return true;
+      }
+
+      if(i===2){
+        const checked = Array.from(document.querySelectorAll('input[name="tags"]:checked'));
+        if(checked.length < 1){
+          showErr(2, "اختر اهتمامًا واحدًا على الأقل.");
+          return false;
+        }
+        if(!notif.checkValidity() || !privacy.checkValidity()){
+          showErr(2, "اختر تفضيلات التنبيهات والخصوصية.");
+          return false;
+        }
+        return true;
+      }
+
+      if(i===3){
+        if(!tos.checked){
+          showErr(3, "يجب الموافقة على الشروط لإكمال إنشاء الحساب.");
+          tos.focus();
+          return false;
+        }
+        return true;
+      }
+
+      return true;
+    }
+
+    // ------------------------------
+    // Submit (demo)
+    // ------------------------------
+    const overlay = document.getElementById('overlay');
+    const closeOverlay = document.getElementById('closeOverlay');
+    const resetAll = document.getElementById('resetAll');
+
+    const successPfp = document.getElementById('successPfp');
+    const successName = document.getElementById('successName');
+    const successUser = document.getElementById('successUser');
+    const successText = document.getElementById('successText');
+
+    function collectData(){
+      const tags = Array.from(document.querySelectorAll('input[name="tags"]:checked')).map(x=>x.value);
+      return {
+        email: document.getElementById('email').value.trim(),
+        username: username.value.trim(),
+        displayName: document.getElementById('displayName').value.trim(),
+        birthday: document.getElementById('birthday').value || null,
+        bio: document.getElementById('bio').value.trim(),
+        tags,
+        notif: document.getElementById('notif').value,
+        privacy: document.getElementById('privacy').value,
+        avatar: getSelectedAvatarKind(),
+        accent: accent.value,
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    function confettiBurst(){
+      const confetti = document.getElementById('confetti');
+      confetti.innerHTML = "";
+      const colors = [
+        "rgba(124,58,237,.95)", "rgba(34,211,238,.95)",
+        "rgba(251,113,133,.95)", "rgba(52,211,153,.95)",
+        "rgba(251,191,36,.95)", "rgba(233,236,255,.9)"
+      ];
+      const n = 44;
+      for(let i=0;i<n;i++){
+        const c = document.createElement('div');
+        c.className = "conf";
+        c.style.left = (Math.random()*100) + "%";
+        c.style.top = (-10 - Math.random()*40) + "px";
+        c.style.background = colors[Math.floor(Math.random()*colors.length)];
+        c.style.animationDuration = (1.2 + Math.random()*1.4) + "s";
+        c.style.animationDelay = (Math.random()*0.2) + "s";
+        c.style.transform = `translateY(-40px) rotate(${Math.random()*180}deg)`;
+        confetti.appendChild(c);
+      }
+    }
+
+    function submitWizard(){
+      const data = collectData();
+
+      // Save demo
+      try{
+        localStorage.setItem("animeHub_signup", JSON.stringify(data));
+      }catch(e){
+        console.warn("localStorage failed:", e);
+      }
+
+      // Fill success UI
+      successPfp.innerHTML = getSelectedAvatarSVG();
+      successName.textContent = data.displayName || "—";
+      successUser.textContent = "@" + (data.username || "—");
+
+      const tagText = data.tags.slice(0,4).join(" • ") + (data.tags.length>4 ? " …" : "");
+      successText.textContent = `أهلاً ${data.displayName || ""}! اهتماماتك: ${tagText || "—"} 🎌`;
+
+      overlay.classList.add('show');
+      confettiBurst();
+
+      // dev hint in console
+      console.log("Signup payload (demo):", data);
+    }
+
+    closeOverlay.addEventListener('click', ()=> overlay.classList.remove('show'));
+
+    resetAll.addEventListener('click', ()=>{
+      overlay.classList.remove('show');
+      wizard.reset();
+      // Reset UI bits
+      bioCount.textContent = "0";
+      setUserStatus("—","");
+      pwFill.style.width = "0%";
+      pwLabel.textContent = "ضعيفة";
+      pwLabel.className = "badge bad";
+      matchHint.textContent = "تأكد أنها مطابقة.";
+      matchHint.style.color = "var(--muted)";
+      userAvailable = false;
+      userCheckPending = false;
+      buildAvatars();
+      setStep(0);
+      syncMiniProfile();
+      syncFinalPreview();
+    });
+
+    // Allow Esc to close overlay
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === "Escape" && overlay.classList.contains('show')){
+        overlay.classList.remove('show');
+      }
+    });
+
+    // Init
+    setStep(0);
+    updatePwUI();
+  </script>
+</body>
+</html>

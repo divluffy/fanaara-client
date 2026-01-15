@@ -1,0 +1,2533 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>KizunaVerse — Power Up Signup</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          boxShadow: {
+            glow: "0 0 0 1px rgba(255,255,255,.08), 0 10px 40px rgba(0,0,0,.6)",
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root{
+      --bg0:#050816;
+      --bg1:#090a1a;
+      --ink:#e7ecff;
+      --muted:rgba(231,236,255,.7);
+      --edge:rgba(255,255,255,.12);
+      --edge2:rgba(255,255,255,.08);
+      --p:#8b5cf6;
+      --c:#22d3ee;
+      --y:#fbbf24;
+      --r:#fb7185;
+      --g:#34d399;
+      --sceneA: rgba(139,92,246,.24);
+      --sceneB: rgba(34,211,238,.16);
+      --sceneC: rgba(251,191,36,.14);
+      --sceneD: rgba(251,113,133,.12);
+      --sceneE: rgba(52,211,153,.12);
+      --rad: 22px;
+    }
+
+    html,body{height:100%;}
+    body{
+      background:
+        radial-gradient(1200px 800px at 80% -10%, rgba(139,92,246,.35), transparent 55%),
+        radial-gradient(900px 700px at 10% 10%, rgba(34,211,238,.18), transparent 55%),
+        radial-gradient(900px 700px at 40% 120%, rgba(251,191,36,.12), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: var(--ink);
+      overflow-x:hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Scene engine */
+    .scene{
+      position:relative;
+      border-radius: var(--rad);
+      overflow:hidden;
+      background:
+        radial-gradient(1000px 700px at 30% 20%, var(--sceneA), transparent 60%),
+        radial-gradient(900px 700px at 70% 40%, var(--sceneB), transparent 60%),
+        radial-gradient(800px 600px at 30% 90%, var(--sceneC), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+    }
+    .scene::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,.12), transparent 50%),
+        radial-gradient(circle at 90% 10%, rgba(255,255,255,.10), transparent 48%),
+        radial-gradient(circle at 60% 110%, rgba(255,255,255,.08), transparent 45%);
+      filter: blur(10px);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .scene::after{
+      content:"";
+      position:absolute; inset:-60px;
+      background:
+        repeating-linear-gradient(110deg,
+          rgba(255,255,255,.09) 0px,
+          rgba(255,255,255,.09) 1px,
+          transparent 1px,
+          transparent 14px);
+      transform: rotate(-6deg);
+      opacity:.12;
+      pointer-events:none;
+      animation: speeddrift 10s linear infinite;
+      mask-image: radial-gradient(closest-side at 40% 40%, black 35%, transparent 75%);
+    }
+
+    @keyframes speeddrift{
+      0%{transform: translate3d(0,0,0) rotate(-6deg);}
+      100%{transform: translate3d(-160px,60px,0) rotate(-6deg);}
+    }
+
+    /* Section-specific overlays */
+    .scene[data-scene="identity"] .scene-overlay{
+      background:
+        radial-gradient(circle at 30% 50%, rgba(139,92,246,.55), transparent 55%),
+        radial-gradient(circle at 60% 50%, rgba(34,211,238,.25), transparent 55%),
+        conic-gradient(from 180deg at 50% 55%, rgba(255,255,255,.16), transparent 55%, rgba(255,255,255,.10));
+      opacity:.9;
+    }
+    .scene[data-scene="avatar"] .scene-overlay{
+      background:
+        radial-gradient(circle at 50% 55%, rgba(34,211,238,.22), transparent 55%),
+        radial-gradient(circle at 55% 55%, rgba(139,92,246,.26), transparent 55%),
+        radial-gradient(circle at 50% 55%, rgba(255,255,255,.10), transparent 35%),
+        repeating-radial-gradient(circle at 50% 55%,
+          rgba(255,255,255,.12) 0px,
+          rgba(255,255,255,.12) 1px,
+          transparent 1px,
+          transparent 18px);
+      opacity:.85;
+      animation: ringpulse 3.8s ease-in-out infinite;
+    }
+    @keyframes ringpulse{
+      0%,100%{transform: scale(1); filter: blur(0px);}
+      50%{transform: scale(1.03); filter: blur(.6px);}
+    }
+
+    .scene[data-scene="follow"] .scene-overlay{
+      background:
+        radial-gradient(circle at 20% 30%, rgba(251,113,133,.18), transparent 55%),
+        radial-gradient(circle at 70% 40%, rgba(34,211,238,.16), transparent 55%),
+        radial-gradient(circle at 60% 110%, rgba(255,255,255,.08), transparent 50%),
+        repeating-linear-gradient(180deg, rgba(255,255,255,.08) 0px, rgba(255,255,255,.08) 1px, transparent 1px, transparent 22px);
+      opacity:.7;
+    }
+    .scene[data-scene="interests"] .scene-overlay{
+      background:
+        radial-gradient(circle at 40% 20%, rgba(139,92,246,.22), transparent 55%),
+        radial-gradient(circle at 70% 35%, rgba(34,211,238,.16), transparent 55%),
+        radial-gradient(circle at 40% 90%, rgba(251,191,36,.12), transparent 55%),
+        radial-gradient(circle at 10% 70%, rgba(255,255,255,.12), transparent 45%),
+        repeating-radial-gradient(circle at 50% 50%,
+          rgba(255,255,255,.10) 0px,
+          rgba(255,255,255,.10) 1px,
+          transparent 1px,
+          transparent 20px);
+      opacity:.75;
+      animation: orbit 9.5s linear infinite;
+      transform-origin: 50% 50%;
+    }
+    @keyframes orbit{
+      0%{transform: rotate(0deg);}
+      100%{transform: rotate(360deg);}
+    }
+
+    .scene-overlay{
+      position:absolute; inset:-2px;
+      pointer-events:none;
+      mix-blend-mode: screen;
+      filter: blur(0px);
+    }
+
+    /* Form card vibe */
+    .glass{
+      background: rgba(8,12,28,.55);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 18px 70px rgba(0,0,0,.55);
+      border-radius: 24px;
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+    .card-inner{
+      background:
+        radial-gradient(900px 400px at 20% 0%, rgba(139,92,246,.16), transparent 55%),
+        radial-gradient(700px 350px at 90% 10%, rgba(34,211,238,.12), transparent 55%),
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    }
+
+    .field{
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      outline: none;
+      width:100%;
+      color: var(--ink);
+      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .field:focus{
+      border-color: rgba(34,211,238,.55);
+      box-shadow: 0 0 0 4px rgba(34,211,238,.12);
+      background: rgba(255,255,255,.08);
+      transform: translateY(-1px);
+    }
+    .hint{ color: rgba(231,236,255,.72); font-size:.875rem; }
+    .error{ color: rgba(251,113,133,.95); font-size:.875rem; }
+    .ok{ color: rgba(52,211,153,.95); font-size:.875rem; }
+
+    /* Buttons */
+    .btn{
+      position:relative;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      padding:.85rem 1rem;
+      transition: transform .14s ease, box-shadow .14s ease, background .14s ease, border-color .14s ease;
+      user-select:none;
+      overflow:hidden;
+    }
+    .btn:hover{ background: rgba(255,255,255,.08); }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+    .btn-primary{
+      border-color: rgba(34,211,238,.35);
+      background:
+        radial-gradient(120% 120% at 0% 0%, rgba(34,211,238,.24), transparent 55%),
+        radial-gradient(120% 120% at 100% 0%, rgba(139,92,246,.22), transparent 55%),
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      box-shadow: 0 0 0 1px rgba(34,211,238,.14) inset;
+    }
+    .btn-primary:hover{
+      box-shadow: 0 0 0 1px rgba(34,211,238,.20) inset, 0 14px 40px rgba(0,0,0,.35);
+    }
+    .btn-ghost{
+      border-color: rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+    }
+    .btn-danger{
+      border-color: rgba(251,113,133,.35);
+      background: rgba(251,113,133,.08);
+    }
+
+    /* Ripple */
+    .ripple{
+      position:absolute;
+      border-radius:999px;
+      transform: translate(-50%,-50%);
+      pointer-events:none;
+      background: radial-gradient(circle, rgba(255,255,255,.35), rgba(255,255,255,0) 60%);
+      width: 12px; height:12px;
+      animation: ripple .55s ease-out forwards;
+      mix-blend-mode: screen;
+    }
+    @keyframes ripple{
+      0%{opacity:.0; transform: translate(-50%,-50%) scale(.2);}
+      15%{opacity:.9;}
+      100%{opacity:0; transform: translate(-50%,-50%) scale(14);}
+    }
+
+    /* Progress gauge */
+    .gauge{
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+    }
+    .gauge > div{
+      height:100%;
+      width: 0%;
+      border-radius:999px;
+      background:
+        linear-gradient(90deg, rgba(34,211,238,.85), rgba(139,92,246,.9), rgba(251,191,36,.78));
+      box-shadow: 0 0 20px rgba(34,211,238,.35);
+      transition: width .45s cubic-bezier(.2,.9,.2,1);
+    }
+
+    /* Step transitions */
+    .step{
+      position:relative;
+      will-change: transform, opacity, filter;
+    }
+    .step.hidden{display:none;}
+    .step.enter{
+      animation: stepIn .44s cubic-bezier(.2,.9,.2,1) both;
+    }
+    .step.exit{
+      animation: stepOut .22s ease both;
+    }
+    @keyframes stepIn{
+      from{opacity:0; transform: translateY(10px) scale(.985); filter: blur(6px);}
+      to{opacity:1; transform: translateY(0) scale(1); filter: blur(0);}
+    }
+    @keyframes stepOut{
+      from{opacity:1; transform: translateY(0) scale(1); filter: blur(0);}
+      to{opacity:0; transform: translateY(-6px) scale(.99); filter: blur(4px);}
+    }
+
+    /* Transition wipe overlay */
+    #wipe{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:50;
+      opacity:0;
+    }
+    #wipe.active{
+      opacity:1;
+      animation: wipe .46s cubic-bezier(.2,.9,.2,1) both;
+    }
+    @keyframes wipe{
+      0%{
+        clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+        filter: blur(0px);
+      }
+      55%{
+        clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%);
+        filter: blur(0px);
+      }
+      100%{
+        clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+        filter: blur(1px);
+      }
+    }
+    #wipe .wipe-bg{
+      position:absolute; inset:-40px;
+      background:
+        repeating-linear-gradient(115deg,
+          rgba(255,255,255,.16) 0px,
+          rgba(255,255,255,.16) 2px,
+          transparent 2px,
+          transparent 14px),
+        radial-gradient(800px 600px at 30% 50%, rgba(34,211,238,.22), transparent 60%),
+        radial-gradient(700px 500px at 70% 30%, rgba(139,92,246,.24), transparent 60%),
+        linear-gradient(180deg, rgba(5,8,22,.92), rgba(5,8,22,.92));
+      opacity:.95;
+      transform: rotate(-4deg);
+    }
+
+    /* Sparkles */
+    .sparkle{
+      position:fixed;
+      width: 6px; height:6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.95);
+      box-shadow: 0 0 14px rgba(34,211,238,.65);
+      pointer-events:none;
+      z-index:60;
+      animation: sparkle 520ms ease-out forwards;
+    }
+    @keyframes sparkle{
+      0%{ transform: translate3d(0,0,0) scale(.8); opacity:.0;}
+      15%{ opacity:1;}
+      100%{ transform: translate3d(var(--dx), var(--dy), 0) scale(0); opacity:0;}
+    }
+
+    /* Chips */
+    .chip{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      border-radius: 999px;
+      padding:.45rem .8rem;
+      cursor:pointer;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .chip:hover{ background: rgba(255,255,255,.07); }
+    .chip:active{ transform: scale(.98); }
+    .chip.on{
+      border-color: rgba(34,211,238,.35);
+      background:
+        radial-gradient(120% 120% at 0% 0%, rgba(34,211,238,.18), transparent 60%),
+        radial-gradient(120% 120% at 100% 0%, rgba(139,92,246,.16), transparent 60%),
+        rgba(255,255,255,.06);
+      box-shadow: 0 0 0 1px rgba(34,211,238,.10) inset;
+    }
+
+    /* Avatar cards */
+    .avatar-card{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      border-radius: 18px;
+      transition: transform .14s ease, border-color .14s ease, background .14s ease, box-shadow .14s ease;
+      cursor:pointer;
+      overflow:hidden;
+      position:relative;
+    }
+    .avatar-card:hover{ background: rgba(255,255,255,.06); transform: translateY(-1px); }
+    .avatar-card.on{
+      border-color: rgba(34,211,238,.45);
+      box-shadow: 0 0 0 1px rgba(34,211,238,.12) inset, 0 18px 50px rgba(0,0,0,.35);
+      background:
+        radial-gradient(120% 120% at 0% 0%, rgba(34,211,238,.12), transparent 55%),
+        radial-gradient(120% 120% at 100% 0%, rgba(139,92,246,.12), transparent 55%),
+        rgba(255,255,255,.04);
+    }
+    .avatar-badge{
+      position:absolute;
+      top:.6rem;
+      inset-inline-end:.6rem;
+      font-size:.75rem;
+      padding:.25rem .55rem;
+      border-radius:999px;
+      background: rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.10);
+      color: rgba(231,236,255,.92);
+      backdrop-filter: blur(8px);
+    }
+
+    /* Upload cropper */
+    .crop-frame{
+      width: 220px; height:220px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.10), transparent 55%),
+        rgba(255,255,255,.04);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.07) inset;
+      overflow:hidden;
+      position:relative;
+      touch-action: none;
+    }
+    .crop-img{
+      position:absolute;
+      left:50%; top:50%;
+      transform: translate(-50%,-50%) scale(1);
+      will-change: transform;
+      user-select:none;
+      -webkit-user-drag:none;
+      pointer-events:none;
+    }
+    .crop-grid{
+      position:absolute; inset:0;
+      background:
+        linear-gradient(90deg, transparent 33.333%, rgba(255,255,255,.10) 33.333%, rgba(255,255,255,.10) 34%, transparent 34%, transparent 66.666%, rgba(255,255,255,.10) 66.666%, rgba(255,255,255,.10) 67%, transparent 67%),
+        linear-gradient(0deg, transparent 33.333%, rgba(255,255,255,.10) 33.333%, rgba(255,255,255,.10) 34%, transparent 34%, transparent 66.666%, rgba(255,255,255,.10) 66.666%, rgba(255,255,255,.10) 67%, transparent 67%);
+      opacity:.35;
+      pointer-events:none;
+      mask-image: radial-gradient(circle at 50% 50%, black 58%, transparent 62%);
+    }
+
+    /* Confetti */
+    .confetti{
+      position:fixed;
+      top:-20px;
+      width:10px; height:16px;
+      border-radius: 3px;
+      background: rgba(255,255,255,.9);
+      opacity:.95;
+      z-index:70;
+      pointer-events:none;
+      animation: fall var(--t) linear forwards;
+      transform: translate3d(0,0,0) rotate(var(--rot));
+      filter: drop-shadow(0 10px 10px rgba(0,0,0,.35));
+    }
+    @keyframes fall{
+      to{
+        transform: translate3d(var(--x), 120vh, 0) rotate(calc(var(--rot) + 360deg));
+        opacity:0;
+      }
+    }
+
+    /* Reduced motion + Motion off */
+    @media (prefers-reduced-motion: reduce){
+      *{ animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+    }
+    body.motion-off *{
+      animation-duration: .001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    /* Safe area for sticky actions */
+    .safe-pad{
+      padding-bottom: calc(env(safe-area-inset-bottom) + .75rem);
+    }
+
+    /* Dir tweaks */
+    [dir="rtl"] .dir-flip{ transform: scaleX(-1); }
+  </style>
+</head>
+<body class="min-h-screen">
+  <!-- Transition wipe -->
+  <div id="wipe" aria-hidden="true">
+    <div class="wipe-bg"></div>
+  </div>
+
+  <header class="mx-auto max-w-6xl px-4 pt-5 pb-3">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-2xl border border-white/10 bg-white/5 grid place-items-center shadow-glow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="opacity-95">
+            <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2L12 2z" stroke="rgba(231,236,255,.92)" stroke-width="1.6"/>
+            <path d="M5 19c2.2-1.1 4.6-1.7 7-1.7s4.8.6 7 1.7" stroke="rgba(34,211,238,.55)" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="text-lg font-semibold tracking-tight">KizunaVerse</div>
+          <div class="text-xs text-white/60 -mt-0.5">Power Up Signup</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="btnDir" class="btn btn-ghost text-sm px-3 py-2">
+          <span class="inline-flex items-center gap-2">
+            <span class="opacity-90">RTL</span>
+            <span class="text-white/60">/</span>
+            <span class="opacity-75">LTR</span>
+          </span>
+        </button>
+        <button id="btnMotion" class="btn btn-ghost text-sm px-3 py-2">
+          <span class="inline-flex items-center gap-2">
+            <svg class="h-4 w-4 opacity-90" viewBox="0 0 24 24" fill="none">
+              <path d="M21 7v10M3 7v10" stroke="rgba(231,236,255,.85)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M7 9l4 3-4 3M17 9l-4 3 4 3" stroke="rgba(34,211,238,.65)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="motionLabel" class="opacity-90">الحركة: ON</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 pb-28 md:pb-8">
+    <div class="grid gap-4 md:grid-cols-2 md:gap-6 items-stretch">
+      <!-- LEFT: Scene / Copy / Gauge -->
+      <aside class="scene relative min-h-[220px] md:min-h-[620px] p-4 md:p-6" id="leftScene" data-scene="identity">
+        <div class="scene-overlay"></div>
+
+        <!-- Mobile top mini-bar vibe -->
+        <div class="absolute top-0 left-0 right-0 h-2 md:hidden bg-gradient-to-r from-cyan-400/30 via-violet-400/35 to-amber-300/30"></div>
+
+        <div class="relative z-10 flex h-full flex-col justify-between gap-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="max-w-[36ch]">
+              <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80">
+                <span class="h-1.5 w-1.5 rounded-full bg-cyan-300/80 shadow-[0_0_18px_rgba(34,211,238,.8)]"></span>
+                <span id="leftBadge">شحن الهوية</span>
+              </div>
+              <h1 id="leftTitle" class="mt-3 text-xl md:text-3xl font-semibold tracking-tight leading-tight">
+                اشحن طاقتك… وابدأ رحلتك
+              </h1>
+              <p id="leftCopy" class="mt-2 text-sm md:text-base text-white/70">
+                خطوات قصيرة — إحساس سينمائي. كل اختيار يرفع “Power Gauge”.
+              </p>
+            </div>
+
+            <div class="hidden md:flex items-center gap-2">
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/75">
+                <div class="flex items-center gap-2">
+                  <span class="inline-block h-2 w-2 rounded-full bg-amber-300/80"></span>
+                  <span id="leftMini">توهج خفيف • سرعة</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Illustration / HUD -->
+          <div class="relative flex-1 min-h-[120px] md:min-h-[340px]">
+            <div class="absolute inset-0 rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+              <svg id="sceneSVG" viewBox="0 0 800 420" class="w-full h-full opacity-[.92]" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="rgba(34,211,238,.55)"/>
+                    <stop offset="0.5" stop-color="rgba(139,92,246,.55)"/>
+                    <stop offset="1" stop-color="rgba(251,191,36,.35)"/>
+                  </linearGradient>
+                  <radialGradient id="rg" cx="50%" cy="55%" r="65%">
+                    <stop offset="0" stop-color="rgba(255,255,255,.18)"/>
+                    <stop offset="1" stop-color="rgba(255,255,255,0)"/>
+                  </radialGradient>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="5" result="b"/>
+                    <feColorMatrix in="b" type="matrix"
+                      values="1 0 0 0 0
+                              0 1 0 0 0
+                              0 0 1 0 0
+                              0 0 0 .9 0" result="c"/>
+                    <feMerge>
+                      <feMergeNode in="c"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+
+                <!-- Speed lines -->
+                <g opacity=".22">
+                  <path d="M-20 80 L340 -20" stroke="url(#g1)" stroke-width="3"/>
+                  <path d="M10 160 L420 -20" stroke="url(#g1)" stroke-width="2"/>
+                  <path d="M-60 240 L410 -20" stroke="url(#g1)" stroke-width="2"/>
+                  <path d="M50 360 L520 -20" stroke="url(#g1)" stroke-width="2"/>
+                  <path d="M240 420 L740 40" stroke="url(#g1)" stroke-width="2"/>
+                </g>
+
+                <!-- Portal / rings -->
+                <g filter="url(#glow)">
+                  <circle cx="430" cy="230" r="130" fill="rgba(34,211,238,.05)"/>
+                  <circle cx="430" cy="230" r="110" fill="none" stroke="rgba(34,211,238,.25)" stroke-width="2"/>
+                  <circle cx="430" cy="230" r="86" fill="none" stroke="rgba(139,92,246,.22)" stroke-width="2" stroke-dasharray="10 10"/>
+                  <circle cx="430" cy="230" r="56" fill="none" stroke="rgba(251,191,36,.18)" stroke-width="2"/>
+                  <circle cx="430" cy="230" r="150" fill="url(#rg)"/>
+                </g>
+
+                <!-- HUD frame -->
+                <g opacity=".85">
+                  <path d="M90 70 H280" stroke="rgba(255,255,255,.16)" stroke-width="2" />
+                  <path d="M90 70 V120" stroke="rgba(255,255,255,.16)" stroke-width="2" />
+                  <path d="M710 350 H520" stroke="rgba(255,255,255,.16)" stroke-width="2" />
+                  <path d="M710 350 V300" stroke="rgba(255,255,255,.16)" stroke-width="2" />
+                </g>
+              </svg>
+            </div>
+
+            <div class="absolute -bottom-2 left-2 right-2 md:left-4 md:right-4">
+              <div class="rounded-2xl border border-white/10 bg-black/25 backdrop-blur px-4 py-3">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-xs text-white/65">Power Gauge</div>
+                    <div id="leftGaugeLabel" class="text-sm font-medium">بداية الشحن</div>
+                  </div>
+                  <div class="text-xs text-white/70 tabular-nums" id="leftGaugePct">0%</div>
+                </div>
+                <div class="mt-2 gauge">
+                  <div id="leftGaugeFill"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hidden md:flex items-center justify-between gap-3">
+            <div class="text-xs text-white/60">بدون إطالة… انتقالات سريعة + لمسات شرر ✨</div>
+            <div class="text-xs text-white/60">تقدر توقف الحركة من الزر بالأعلى</div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- RIGHT: Form Card -->
+      <section class="glass relative">
+        <div class="card-inner p-4 md:p-6">
+          <!-- Top gauge + title -->
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div id="stepKicker" class="text-xs text-white/65">Power Gauge يتصاعد مع كل خطوة</div>
+              <div id="stepTitle" class="mt-1 text-lg md:text-xl font-semibold tracking-tight">Quick Identity</div>
+              <div id="stepSub" class="mt-1 text-sm text-white/70">خلّينا نبدأ بسرعة وبسلاسة.</div>
+            </div>
+            <div class="flex flex-col items-end gap-2">
+              <div class="text-xs text-white/70 tabular-nums" id="rightGaugePct">0%</div>
+              <div class="w-28 md:w-32 gauge">
+                <div id="rightGaugeFill"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 border-t border-white/10"></div>
+
+          <div id="stepContainer" class="mt-4">
+            <!-- STEP 0: Identity -->
+            <div class="step" data-step="0">
+              <div class="grid gap-3">
+                <div class="grid gap-2">
+                  <label class="text-sm text-white/75">الاسم</label>
+                  <input id="name" class="field px-4 py-3" placeholder="مثال: Luffy Dev" autocomplete="name" />
+                  <div class="flex items-center justify-between">
+                    <div id="nameMsg" class="hint">اسمك هو أول هالة تظهر للناس.</div>
+                    <div class="text-xs text-white/50" id="nameOk"></div>
+                  </div>
+                </div>
+
+                <div class="grid gap-2">
+                  <label class="text-sm text-white/75">البريد</label>
+                  <input id="email" class="field px-4 py-3" placeholder="you@domain.com" autocomplete="email" inputmode="email" />
+                  <div id="emailMsg" class="hint">لن نزعجك — فقط إشعارات مهمة.</div>
+                </div>
+
+                <div class="grid gap-2">
+                  <label class="text-sm text-white/75">كلمة المرور</label>
+                  <div class="relative">
+                    <input id="password" class="field px-4 py-3 pe-14" placeholder="••••••••" type="password" autocomplete="new-password" />
+                    <button id="togglePass" class="btn btn-ghost absolute top-1/2 -translate-y-1/2 inset-inline-end-2 px-3 py-2 text-xs">
+                      إظهار
+                    </button>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="flex-1">
+                      <div class="gauge h-2">
+                        <div id="passStrengthFill" style="width:0%"></div>
+                      </div>
+                    </div>
+                    <div class="text-xs text-white/70 tabular-nums" id="passStrengthLabel">0/4</div>
+                  </div>
+                  <div id="passMsg" class="hint">نقترح 8+ أحرف + رقم + رمز.</div>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div class="flex items-start gap-3">
+                    <div class="mt-0.5 h-9 w-9 rounded-2xl bg-white/5 border border-white/10 grid place-items-center">
+                      <svg class="h-5 w-5 opacity-90" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 3l2.5 5.5L20 10l-5.5 1.5L12 17l-2.5-5.5L4 10l5.5-1.5L12 3z" stroke="rgba(34,211,238,.7)" stroke-width="1.6"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="text-sm font-medium">نقطة سريعة</div>
+                      <div id="identityNote" class="text-sm text-white/70 mt-1">
+                        لما تكمل البيانات الأساسية… هنشغّل انتقال “Speedline”.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="step0Err" class="error hidden"></div>
+
+                <!-- Desktop actions -->
+                <div class="hidden md:flex items-center justify-between gap-2 pt-2">
+                  <button class="btn btn-ghost w-32 opacity-60 cursor-not-allowed" disabled>السابق</button>
+                  <div class="flex items-center gap-2">
+                    <button id="next0" class="btn btn-primary w-44">اشحن وانتقل</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 1: Username + Bio -->
+            <div class="step hidden" data-step="1">
+              <div class="grid gap-3">
+                <div class="grid gap-2">
+                  <label class="text-sm text-white/75">اسم المستخدم</label>
+                  <div class="relative">
+                    <input id="username" class="field px-4 py-3 pe-24" placeholder="مثال: nova_ninja" autocomplete="username" />
+                    <div class="absolute top-1/2 -translate-y-1/2 inset-inline-end-2 text-xs px-2 py-1 rounded-full border border-white/10 bg-black/25 backdrop-blur">
+                      <span id="userStatus" class="text-white/70">جاهز</span>
+                    </div>
+                  </div>
+                  <div id="userMsg" class="hint">هنعمل تحقق سريع (محاكاة) عشان التميز.</div>
+                </div>
+
+                <div class="grid gap-2">
+                  <label class="text-sm text-white/75">نبذة قصيرة</label>
+                  <textarea id="bio" class="field px-4 py-3 min-h-[110px] resize-none" maxlength="160" placeholder="سطرين… مين أنت داخل عالم الأنمي/الكوميكس؟"></textarea>
+                  <div class="flex items-center justify-between">
+                    <div id="bioMsg" class="hint">خليها خفيفة… وتطلع هالتك.</div>
+                    <div class="text-xs text-white/60 tabular-nums"><span id="bioCount">0</span>/160</div>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div class="text-sm font-medium">لمسة “شبه مطلوبة”</div>
+                  <div class="text-sm text-white/70 mt-1">
+                    تقدر تكملها دلوقتي عشان البروفايل يبقى أقوى… أو <button id="skip1Inline" class="underline decoration-white/30 hover:decoration-white/60">تخطي الآن</button>.
+                  </div>
+                </div>
+
+                <div id="step1Err" class="error hidden"></div>
+
+                <!-- Desktop actions -->
+                <div class="hidden md:flex items-center justify-between gap-2 pt-2">
+                  <button id="prev1" class="btn btn-ghost w-32">السابق</button>
+                  <div class="flex items-center gap-2">
+                    <button id="skip1" class="btn btn-ghost w-32">تخطي الآن</button>
+                    <button id="next1" class="btn btn-primary w-44">ثبت الهوية</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 2: Avatar Studio -->
+            <div class="step hidden" data-step="2">
+              <div class="grid gap-3">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="text-sm font-medium">Avatar Studio</div>
+                      <div class="text-sm text-white/70 mt-1">دي بصمتك… اختار archetype أو ركّب واحد جديد.</div>
+                    </div>
+                    <div class="text-xs rounded-full border border-white/10 bg-black/20 px-3 py-1">
+                      <span class="text-white/60">الحالة:</span>
+                      <span id="avatarReady" class="ms-1 text-white/85">لم يتم التأكيد</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex flex-wrap gap-2">
+                  <button class="btn btn-ghost px-4 py-2 text-sm" data-tab="suggested">Suggested</button>
+                  <button class="btn btn-ghost px-4 py-2 text-sm" data-tab="mix">Mix & Match</button>
+                  <button class="btn btn-ghost px-4 py-2 text-sm" data-tab="upload">Upload</button>
+                </div>
+
+                <!-- Suggested -->
+                <div id="tab-suggested" class="grid gap-3">
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="presetGrid"></div>
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="text-sm text-white/70">
+                      اختر واحد… هنفجر شرر بسيط عند الاختيار ✨
+                    </div>
+                    <button id="confirmPreset" class="btn btn-primary px-4 py-2 text-sm">استخدم هذا</button>
+                  </div>
+                </div>
+
+                <!-- Mix -->
+                <div id="tab-mix" class="hidden grid gap-3">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+                      <div class="text-sm font-medium">المولّد الطبقي</div>
+                      <div class="mt-2 grid gap-2">
+                        <div class="grid grid-cols-2 gap-2">
+                          <div>
+                            <label class="text-xs text-white/70">Hair (8)</label>
+                            <select id="mixHair" class="field px-3 py-2 mt-1">
+                              <option value="0">Arc</option><option value="1">Spikes</option><option value="2">Wave</option><option value="3">Bob</option>
+                              <option value="4">Long</option><option value="5">Twin</option><option value="6">Helmet</option><option value="7">Hood</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label class="text-xs text-white/70">Eyes (8)</label>
+                            <select id="mixEyes" class="field px-3 py-2 mt-1">
+                              <option value="0">Calm</option><option value="1">Sharp</option><option value="2">Spark</option><option value="3">Cyborg</option>
+                              <option value="4">Cute</option><option value="5">Mystic</option><option value="6">Mask</option><option value="7">Glare</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                          <div>
+                            <label class="text-xs text-white/70">Outfit (6)</label>
+                            <select id="mixOutfit" class="field px-3 py-2 mt-1">
+                              <option value="0">Hero Suit</option><option value="1">Rival Coat</option><option value="2">Mage Robe</option>
+                              <option value="3">Ninja Gear</option><option value="4">Pilot</option><option value="5">Detective</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label class="text-xs text-white/70">Aura (6)</label>
+                            <select id="mixAura" class="field px-3 py-2 mt-1">
+                              <option value="0">Pulse</option><option value="1">Rings</option><option value="2">Flare</option>
+                              <option value="3">Glitch</option><option value="4">Streak</option><option value="5">Halo</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div class="flex gap-2 pt-1">
+                          <button id="mixRandom" class="btn btn-ghost flex-1 text-sm">Randomize</button>
+                          <button id="mixConfirm" class="btn btn-primary flex-1 text-sm">تأكيد</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+                      <div class="text-sm font-medium">Preview</div>
+                      <div class="mt-2 rounded-2xl border border-white/10 bg-black/25 overflow-hidden grid place-items-center min-h-[260px]">
+                        <div id="mixPreview" class="w-56 h-56"></div>
+                      </div>
+                      <div class="mt-2 text-xs text-white/65">
+                        كل تأكيد يرفع “Power Gauge” + هالة خفيفة.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Upload -->
+                <div id="tab-upload" class="hidden grid gap-3">
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <div class="text-sm font-medium">Custom Upload</div>
+                        <div class="text-sm text-white/70 mt-1">ارفع صورة… قصّها وخلّيها جاهزة.</div>
+                      </div>
+                      <label class="btn btn-ghost px-4 py-2 text-sm cursor-pointer">
+                        <input id="file" type="file" accept="image/*" class="hidden" />
+                        اختيار ملف
+                      </label>
+                    </div>
+
+                    <div class="mt-3 grid gap-3 sm:grid-cols-2 items-center">
+                      <div class="grid place-items-center">
+                        <div class="crop-frame" id="cropFrame" aria-label="Crop preview">
+                          <img id="cropImg" class="crop-img hidden" alt="Preview" />
+                          <div class="crop-grid"></div>
+                        </div>
+                        <div class="mt-2 text-xs text-white/60">اسحب للتحريك • Zoom للتقريب</div>
+                      </div>
+
+                      <div class="grid gap-2">
+                        <div class="rounded-2xl border border-white/10 bg-black/20 p-3">
+                          <div class="text-xs text-white/70">Zoom</div>
+                          <input id="zoom" type="range" min="1" max="3" value="1" step="0.01" class="w-full mt-2" />
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                          <button id="shapeCircle" class="btn btn-ghost text-sm">دائرة</button>
+                          <button id="shapeSquare" class="btn btn-ghost text-sm">مربع</button>
+                        </div>
+
+                        <button id="mockBg" class="btn btn-ghost text-sm">Remove Background (Mock): OFF</button>
+
+                        <div class="grid grid-cols-2 gap-2">
+                          <button id="resetCrop" class="btn btn-ghost text-sm">Reset</button>
+                          <button id="cropSave" class="btn btn-primary text-sm">Crop & Save</button>
+                        </div>
+
+                        <div id="uploadMsg" class="hint">التخفيض “Mock” يعمل كـ mask ناعم على الأطراف.</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <canvas id="canvas" class="hidden"></canvas>
+                </div>
+
+                <div id="step2Err" class="error hidden"></div>
+
+                <!-- Desktop actions -->
+                <div class="hidden md:flex items-center justify-between gap-2 pt-2">
+                  <button id="prev2" class="btn btn-ghost w-32">السابق</button>
+                  <div class="flex items-center gap-2">
+                    <button id="next2" class="btn btn-primary w-44">ثبّت الأفاتار</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 3: Follow Starter Pack -->
+            <div class="step hidden" data-step="3">
+              <div class="grid gap-3">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="text-sm font-medium">Follow Starter Pack</div>
+                      <div class="text-sm text-white/70 mt-1">اختر 3 “Senpai Creators” (Mock) عشان البداية تكون ممتعة.</div>
+                    </div>
+                    <div class="text-xs rounded-full border border-white/10 bg-black/20 px-3 py-1">
+                      <span class="text-white/60">Selected:</span>
+                      <span id="followCount" class="ms-1 text-white/85">0</span><span class="text-white/60">/3</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                  <button class="btn btn-ghost px-4 py-2 text-sm" data-followtab="Anime">Anime</button>
+                  <button class="btn btn-ghost px-4 py-2 text-sm" data-followtab="Manga">Manga</button>
+                  <button class="btn btn-ghost px-4 py-2 text-sm" data-followtab="Reviews">Reviews</button>
+                  <button class="btn btn-ghost px-4 py-2 text-sm" data-followtab="Cosplay">Cosplay</button>
+                  <button class="btn btn-ghost px-4 py-2 text-sm" data-followtab="AMV">AMV</button>
+                </div>
+
+                <div class="grid gap-2">
+                  <input id="followSearch" class="field px-4 py-3" placeholder="ابحث عن Creator…" />
+                  <div class="hint">اختياري ممتع — تقدر <button id="skip3Inline" class="underline decoration-white/30 hover:decoration-white/60">تخطي الآن</button>.</div>
+                </div>
+
+                <div class="grid gap-2 sm:grid-cols-2" id="creatorGrid"></div>
+
+                <div id="step3Err" class="error hidden"></div>
+
+                <!-- Desktop actions -->
+                <div class="hidden md:flex items-center justify-between gap-2 pt-2">
+                  <button id="prev3" class="btn btn-ghost w-32">السابق</button>
+                  <div class="flex items-center gap-2">
+                    <button id="skip3" class="btn btn-ghost w-32">تخطي الآن</button>
+                    <button id="next3" class="btn btn-primary w-44">واصل</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 4: Interests -->
+            <div class="step hidden" data-step="4">
+              <div class="grid gap-3">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="text-sm font-medium">Interests</div>
+                      <div class="text-sm text-white/70 mt-1">اختار اهتماماتك… ورتّب Top 3 عشان التوصيات تبقى قوية.</div>
+                    </div>
+                    <div class="text-xs rounded-full border border-white/10 bg-black/20 px-3 py-1">
+                      <span class="text-white/60">Profile Power:</span>
+                      <span id="profilePower" class="ms-1 text-white/85">0%</span>
+                    </div>
+                  </div>
+                  <div class="mt-2 gauge h-2">
+                    <div id="profilePowerFill" style="width:0%"></div>
+                  </div>
+                </div>
+
+                <div class="grid gap-2">
+                  <div class="text-sm font-medium">Formats</div>
+                  <div class="flex flex-wrap gap-2" id="formats"></div>
+                </div>
+
+                <div class="grid gap-2">
+                  <div class="text-sm font-medium">Genres</div>
+                  <div class="flex flex-wrap gap-2" id="genres"></div>
+                  <div class="hint">اختار 3 على الأقل… وبعدين رتّب Top 3.</div>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div class="flex items-center justify-between">
+                    <div class="text-sm font-medium">Top 3</div>
+                    <div class="text-xs text-white/60">↑↓ لتغيير الأولوية</div>
+                  </div>
+                  <div id="top3" class="mt-2 grid gap-2"></div>
+                  <div id="top3Hint" class="hint mt-2">اختر 3 Genres عشان يظهروا هنا.</div>
+                </div>
+
+                <div id="step4Err" class="error hidden"></div>
+
+                <!-- Desktop actions -->
+                <div class="hidden md:flex items-center justify-between gap-2 pt-2">
+                  <button id="prev4" class="btn btn-ghost w-32">السابق</button>
+                  <div class="flex items-center gap-2">
+                    <button id="finish" class="btn btn-primary w-44">Power Up</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUCCESS -->
+            <div class="step hidden" data-step="5" id="successStep">
+              <div class="grid gap-3">
+                <div class="rounded-3xl border border-white/10 bg-white/5 p-5 overflow-hidden relative">
+                  <div class="absolute inset-0 opacity-80 pointer-events-none"
+                       style="background:
+                         radial-gradient(800px 400px at 20% 0%, rgba(34,211,238,.22), transparent 55%),
+                         radial-gradient(700px 350px at 90% 20%, rgba(139,92,246,.22), transparent 55%),
+                         radial-gradient(700px 350px at 60% 120%, rgba(251,191,36,.14), transparent 55%);"></div>
+                  <div class="relative">
+                    <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/80">
+                      <span class="h-1.5 w-1.5 rounded-full bg-green-300/85 shadow-[0_0_18px_rgba(52,211,153,.8)]"></span>
+                      <span>Power Unlocked!</span>
+                    </div>
+
+                    <h2 class="mt-3 text-2xl md:text-3xl font-semibold tracking-tight">تمت العملية ✦</h2>
+                    <p class="mt-2 text-sm md:text-base text-white/70">
+                      تم شحن بروفايلك… والآن تقدر تدخل العالم.
+                    </p>
+
+                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <div class="text-xs text-white/60">Seal</div>
+                        <div class="mt-2 flex items-center gap-3">
+                          <div class="h-14 w-14 rounded-2xl border border-white/10 bg-white/5 grid place-items-center">
+                            <svg viewBox="0 0 64 64" class="h-10 w-10 opacity-95">
+                              <defs>
+                                <linearGradient id="sealG" x1="0" y1="0" x2="1" y2="1">
+                                  <stop offset="0" stop-color="rgba(34,211,238,.9)"/>
+                                  <stop offset="0.55" stop-color="rgba(139,92,246,.9)"/>
+                                  <stop offset="1" stop-color="rgba(251,191,36,.75)"/>
+                                </linearGradient>
+                              </defs>
+                              <path d="M32 6l7 12 14 3-10 10 2 14-13-6-13 6 2-14-10-10 14-3 7-12z" fill="url(#sealG)" opacity=".9"/>
+                              <path d="M22 34l6 6 14-16" stroke="rgba(5,8,22,.95)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                          </div>
+                          <div>
+                            <div class="text-sm font-medium">Energy Stamp</div>
+                            <div class="text-xs text-white/70">تم تفعيل بصمة الهالة.</div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <div class="text-xs text-white/60">Loadout</div>
+                        <div class="mt-2 text-sm text-white/80">
+                          <div class="flex justify-between"><span class="text-white/60">Username</span><span id="sumUser">—</span></div>
+                          <div class="flex justify-between mt-1"><span class="text-white/60">Top 3</span><span id="sumTop3">—</span></div>
+                          <div class="flex justify-between mt-1"><span class="text-white/60">Following</span><span id="sumFollowing">0</span></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                      <button id="go" class="btn btn-primary flex-1">ادخل المنصة</button>
+                      <button id="edit" class="btn btn-ghost flex-1">تعديل اختياراتي</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="text-xs text-white/60 text-center">إذا كانت الحركة مزعجة… أوقفها من الأعلى.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile sticky actions -->
+        <div class="md:hidden fixed left-0 right-0 bottom-0 z-40 safe-pad">
+          <div class="mx-auto max-w-6xl px-4">
+            <div class="rounded-2xl border border-white/10 bg-black/35 backdrop-blur-xl px-3 py-3 shadow-[0_20px_90px_rgba(0,0,0,.75)]">
+              <div class="flex items-center justify-between gap-2">
+                <button id="mPrev" class="btn btn-ghost w-28">السابق</button>
+                <button id="mSkip" class="btn btn-ghost w-28">تخطي</button>
+                <button id="mNext" class="btn btn-primary flex-1">التالي</button>
+              </div>
+              <div class="mt-2 text-[11px] text-white/55">
+                تلميح: اسحب يمين/يسار للتنقل (اختياري).
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // ---------- Utilities ----------
+    const $ = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+    const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+    const prefersReduced = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function addRipple(e){
+      const btn = e.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      const x = (e.clientX ?? (rect.left + rect.width/2)) - rect.left;
+      const y = (e.clientY ?? (rect.top + rect.height/2)) - rect.top;
+      const sp = document.createElement("span");
+      sp.className = "ripple";
+      sp.style.left = x + "px";
+      sp.style.top = y + "px";
+      btn.appendChild(sp);
+      setTimeout(()=>sp.remove(), 650);
+    }
+
+    function sparkleBurst(x, y, n=10){
+      if (document.body.classList.contains("motion-off") || prefersReduced()) return;
+      for(let i=0;i<n;i++){
+        const s = document.createElement("div");
+        s.className = "sparkle";
+        const ang = Math.random()*Math.PI*2;
+        const dist = 10 + Math.random()*34;
+        s.style.left = x + "px";
+        s.style.top = y + "px";
+        s.style.setProperty("--dx", (Math.cos(ang)*dist) + "px");
+        s.style.setProperty("--dy", (Math.sin(ang)*dist) + "px");
+        s.style.opacity = (0.6 + Math.random()*0.4).toFixed(2);
+        document.body.appendChild(s);
+        setTimeout(()=>s.remove(), 650);
+      }
+    }
+
+    function triggerWipe(){
+      const wipe = $("#wipe");
+      if (document.body.classList.contains("motion-off") || prefersReduced()) return;
+      wipe.classList.remove("active");
+      // force reflow
+      void wipe.offsetWidth;
+      wipe.classList.add("active");
+      setTimeout(()=>wipe.classList.remove("active"), 520);
+    }
+
+    function setGauge(pct){
+      const p = clamp(pct, 0, 100);
+      $("#leftGaugeFill").style.width = p + "%";
+      $("#rightGaugeFill").style.width = p + "%";
+      $("#leftGaugePct").textContent = Math.round(p) + "%";
+      $("#rightGaugePct").textContent = Math.round(p) + "%";
+      $("#leftGaugeLabel").textContent = p < 35 ? "الشحن يبدأ" : p < 70 ? "الهالة ترتفع" : "الطاقة على وشك الانفجار";
+    }
+
+    // ---------- State ----------
+    const steps = [
+      {
+        scene: "identity",
+        title: "Quick Identity",
+        sub: "خلّينا نبدأ بسرعة وبسلاسة.",
+        badge: "شحن الهوية",
+        copy: "الأساسيات: اسم + بريد + كلمة مرور قوية.",
+        mini: "بوابة طاقة • خطوط سرعة"
+      },
+      {
+        scene: "identity",
+        title: "Username + Bio",
+        sub: "لمسات بسيطة ترفع قوة البروفايل.",
+        badge: "تثبيت الاسم",
+        copy: "اسم مستخدم فريد + نبذة قصيرة (تقدر تتخطى).",
+        mini: "تحقق سريع • سلاسة"
+      },
+      {
+        scene: "avatar",
+        title: "Avatar Studio",
+        sub: "أهم خطوة: بصمتك البصرية.",
+        badge: "صناعة الأفاتار",
+        copy: "Suggested / Mix & Match / Upload — اختر وفعّل الهالة.",
+        mini: "HUD glow • Aura rings"
+      },
+      {
+        scene: "follow",
+        title: "Follow Starter Pack",
+        sub: "اختياري ممتع: اختار 3 creators.",
+        badge: "بداية الفريق",
+        copy: "Follow cards + Tabs + بحث — تقدر تتخطى.",
+        mini: "Sparkles • Floating cards"
+      },
+      {
+        scene: "interests",
+        title: "Interests",
+        sub: "حدد الاهتمامات ورتّب Top 3.",
+        badge: "تجميع النجوم",
+        copy: "Chips + ترتيب أولوية + Profile Power.",
+        mini: "Galaxy • Orbit chips"
+      }
+    ];
+
+    const state = {
+      step: 0,
+      motionOff: false,
+      dir: "rtl",
+      data: {
+        name: "",
+        email: "",
+        password: "",
+        username: "",
+        bio: "",
+        avatar: { type: "preset", id: null, svg: null, dataUrl: null },
+        avatarConfirmed: false,
+        following: new Set(),
+        followTab: "Anime",
+        followSearch: "",
+        formats: new Set(),
+        genres: new Set(),
+        top3: []
+      },
+      usernameCheck: { status: "idle", ok: false, last: "" },
+      autoTimer: null,
+      swipe: { active: false, x0: 0, y0: 0 }
+    };
+
+    // ---------- Motion + Dir toggles ----------
+    function applyMotion(){
+      document.body.classList.toggle("motion-off", state.motionOff);
+      $("#motionLabel").textContent = "الحركة: " + (state.motionOff ? "OFF" : "ON");
+      localStorage.setItem("kv_motionOff", state.motionOff ? "1" : "0");
+    }
+    function applyDir(){
+      document.documentElement.dir = state.dir;
+      localStorage.setItem("kv_dir", state.dir);
+    }
+
+    $("#btnMotion").addEventListener("click", (e)=>{
+      addRipple(e);
+      state.motionOff = !state.motionOff;
+      applyMotion();
+    });
+
+    $("#btnDir").addEventListener("click", (e)=>{
+      addRipple(e);
+      state.dir = (state.dir === "rtl") ? "ltr" : "rtl";
+      applyDir();
+      // refresh tiny UI that depends on dir
+      render();
+    });
+
+    // ---------- Validation ----------
+    function validEmail(s){
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s).trim());
+    }
+    function passStrength(pw){
+      pw = String(pw || "");
+      let score = 0;
+      if (pw.length >= 8) score++;
+      if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+      if (/\d/.test(pw)) score++;
+      if (/[^A-Za-z0-9]/.test(pw)) score++;
+      return score; // 0..4
+    }
+    function validateStep0(){
+      const name = $("#name").value.trim();
+      const email = $("#email").value.trim();
+      const pw = $("#password").value;
+
+      state.data.name = name;
+      state.data.email = email;
+      state.data.password = pw;
+
+      $("#nameOk").textContent = name.length >= 2 ? "✓" : "";
+      $("#nameMsg").className = (name.length >= 2) ? "ok" : "hint";
+      $("#nameMsg").textContent = (name.length >= 2) ? "هالة الاسم جاهزة." : "اسمك هو أول هالة تظهر للناس.";
+
+      if (email.length === 0){
+        $("#emailMsg").className = "hint";
+        $("#emailMsg").textContent = "لن نزعجك — فقط إشعارات مهمة.";
+      } else if (!validEmail(email)){
+        $("#emailMsg").className = "error";
+        $("#emailMsg").textContent = "البريد مش واضح… جرّب صيغة صحيحة.";
+      } else {
+        $("#emailMsg").className = "ok";
+        $("#emailMsg").textContent = "تمام — البريد مضبوط.";
+      }
+
+      const s = passStrength(pw);
+      $("#passStrengthLabel").textContent = `${s}/4`;
+      $("#passStrengthFill").style.width = (s*25) + "%";
+      if (pw.length === 0){
+        $("#passMsg").className = "hint";
+        $("#passMsg").textContent = "نقترح 8+ أحرف + رقم + رمز.";
+      } else if (s <= 1){
+        $("#passMsg").className = "error";
+        $("#passMsg").textContent = "ضعيفة… زوّد طول/تنويع.";
+      } else if (s === 2){
+        $("#passMsg").className = "hint";
+        $("#passMsg").textContent = "كويسة… بس نقدر نخليها أقوى.";
+      } else {
+        $("#passMsg").className = "ok";
+        $("#passMsg").textContent = "قوية — طاقة محترمة.";
+      }
+
+      const ok = (name.length >= 2) && validEmail(email) && (s >= 3);
+      return { ok, msg: ok ? "" : "كمّل الاسم + بريد صحيح + كلمة مرور أقوى (3/4)."};
+    }
+
+    const takenUsernames = new Set(["admin","root","support","kizuna","hero","rival","nova_ninja","mecha_pilot"]);
+    async function checkUsernameAvailability(u){
+      const baseDelay = 650 + Math.floor(Math.random()*650);
+      await sleep(baseDelay);
+      // mock: reject short/invalid and taken list
+      if (!/^[a-zA-Z0-9_]{3,16}$/.test(u)) return { ok:false, reason:"صيغة غير مناسبة (3-16 أحرف/أرقام/_)."};
+      if (takenUsernames.has(u.toLowerCase())) return { ok:false, reason:"محجوز… جرّب نسخة مختلفة."};
+      // mock: sometimes "busy"
+      if (Math.random() < 0.06) return { ok:false, reason:"الخادم مشغول… جرّب مرة تانية."};
+      return { ok:true, reason:"متاح — ممتاز!" };
+    }
+
+    function validateStep1({allowEmpty=false}={}){
+      const u = $("#username").value.trim();
+      const bio = $("#bio").value || "";
+      state.data.username = u;
+      state.data.bio = bio;
+
+      $("#bioCount").textContent = String(bio.length);
+
+      if (allowEmpty && u.length === 0){
+        return { ok:true, msg:"" };
+      }
+
+      if (u.length === 0) return { ok:false, msg:"اكتب اسم مستخدم… أو اضغط تخطي." };
+      if (!state.usernameCheck.ok || state.usernameCheck.last !== u) return { ok:false, msg:"استنى التحقق يخلص ويطلع متاح." };
+      return { ok:true, msg:"" };
+    }
+
+    function validateStep2(){
+      if (!state.data.avatarConfirmed) return { ok:false, msg:"اختار/ثبّت أفاتار عشان نكمل." };
+      return { ok:true, msg:"" };
+    }
+
+    function validateStep3(){
+      // optional
+      return { ok:true, msg:"" };
+    }
+
+    function validateStep4(){
+      const formatsOk = state.data.formats.size >= 1;
+      const genresOk = state.data.genres.size >= 3;
+      const topOk = state.data.top3.length === 3;
+      const ok = formatsOk && genresOk && topOk;
+      let msg = "";
+      if (!formatsOk) msg = "اختار Format واحد على الأقل.";
+      else if (!genresOk) msg = "اختار 3 Genres على الأقل.";
+      else if (!topOk) msg = "رتّب Top 3.";
+      return { ok, msg };
+    }
+
+    // ---------- Step navigation ----------
+    function stepPct(s){
+      // 5 steps (0..4). success=5
+      const total = 5;
+      if (s <= 0) return 0;
+      if (s >= total) return 100;
+      return Math.round((s / total) * 100);
+    }
+
+    function setLeftScene(scene){
+      const el = $("#leftScene");
+      el.dataset.scene = scene;
+    }
+
+    function setLeftCopy(idx){
+      const meta = steps[idx] || steps[0];
+      $("#leftBadge").textContent = meta.badge;
+      $("#leftTitle").textContent = idx === 2 ? "اصنع بصمتك… الهالة تبدأ من الوجه" :
+                                  idx === 3 ? "كوّن فريق البداية… بدون تعقيد" :
+                                  idx === 4 ? "ارسم خريطة اهتماماتك…" :
+                                  idx === 1 ? "ثبت اسمك… خلي وجودك مميز" :
+                                              "اشحن طاقتك… وابدأ رحلتك";
+      $("#leftCopy").textContent = meta.copy;
+      $("#leftMini").textContent = meta.mini;
+      setLeftScene(meta.scene);
+    }
+
+    function setHeader(idx){
+      if (idx <= 4){
+        $("#stepTitle").textContent = steps[idx].title;
+        $("#stepSub").textContent = steps[idx].sub;
+        $("#stepKicker").textContent = "Power Gauge يتصاعد مع كل خطوة";
+      } else {
+        $("#stepTitle").textContent = "Success";
+        $("#stepSub").textContent = "تم الشحن بالكامل.";
+        $("#stepKicker").textContent = "Power Gauge: MAX";
+      }
+    }
+
+    function showStep(next){
+      const current = state.step;
+      if (next === current) return;
+
+      const curEl = $(`.step[data-step="${current}"]`);
+      const nextEl = $(`.step[data-step="${next}"]`);
+
+      if (curEl){
+        curEl.classList.remove("enter");
+        curEl.classList.add("exit");
+      }
+
+      if (nextEl){
+        nextEl.classList.remove("hidden");
+        nextEl.classList.remove("exit");
+        nextEl.classList.add("enter");
+      }
+
+      setTimeout(()=>{
+        if (curEl){
+          curEl.classList.add("hidden");
+          curEl.classList.remove("exit");
+        }
+        if (nextEl){
+          nextEl.classList.remove("enter");
+        }
+      }, 260);
+    }
+
+    function updateStickyButtons(){
+      const s = state.step;
+      const prevDisabled = (s === 0);
+      const isSuccess = (s === 5);
+      const canSkip = (s === 1 || s === 3);
+      const nextLabel =
+        isSuccess ? "تم" :
+        s === 0 ? "اشحن" :
+        s === 1 ? "التالي" :
+        s === 2 ? "ثبّت" :
+        s === 3 ? "التالي" :
+        s === 4 ? "Power Up" : "التالي";
+
+      $("#mPrev").disabled = prevDisabled || isSuccess;
+      $("#mPrev").classList.toggle("opacity-60", prevDisabled || isSuccess);
+      $("#mPrev").classList.toggle("cursor-not-allowed", prevDisabled || isSuccess);
+
+      $("#mSkip").disabled = !canSkip || isSuccess;
+      $("#mSkip").classList.toggle("opacity-60", !canSkip || isSuccess);
+      $("#mSkip").classList.toggle("cursor-not-allowed", !canSkip || isSuccess);
+
+      $("#mNext").disabled = isSuccess;
+      $("#mNext").textContent = nextLabel;
+    }
+
+    function clearAuto(){
+      if (state.autoTimer) clearTimeout(state.autoTimer);
+      state.autoTimer = null;
+    }
+
+    function scheduleAutoAdvance(checkFn, delay=650){
+      clearAuto();
+      state.autoTimer = setTimeout(()=>{
+        const res = checkFn();
+        if (res && res.ok) goNext({auto:true});
+      }, delay);
+    }
+
+    function goToStep(next, {auto=false}={}){
+      next = clamp(next, 0, 5);
+      if (next === state.step) return;
+
+      if (!auto) triggerWipe();
+      state.step = next;
+
+      const pct = stepPct(next);
+      setGauge(pct);
+      updateStickyButtons();
+
+      if (next <= 4){
+        setLeftCopy(next);
+        setHeader(next);
+      } else {
+        setLeftScene("avatar");
+        $("#leftBadge").textContent = "تم فتح الطاقة";
+        $("#leftTitle").textContent = "Power Unlocked!";
+        $("#leftCopy").textContent = "جاهز تدخل… وتبني عالمك.";
+        $("#leftMini").textContent = "Confetti • ختم الطاقة";
+        setHeader(next);
+      }
+
+      showStep(next);
+      renderOptionalScenes(next);
+      clearAuto();
+
+      // On success, launch confetti (if allowed)
+      if (next === 5) launchConfetti();
+    }
+
+    function showErr(id, msg){
+      const el = $(id);
+      if (!msg){
+        el.classList.add("hidden");
+        el.textContent = "";
+      } else {
+        el.classList.remove("hidden");
+        el.textContent = msg;
+      }
+    }
+
+    function goNext({auto=false}={}){
+      clearAuto();
+      const s = state.step;
+
+      if (s === 0){
+        const v = validateStep0();
+        showErr("#step0Err", v.ok ? "" : v.msg);
+        if (!v.ok) return;
+        goToStep(1, {auto});
+        return;
+      }
+      if (s === 1){
+        const v = validateStep1({allowEmpty:false});
+        showErr("#step1Err", v.ok ? "" : v.msg);
+        if (!v.ok) return;
+        goToStep(2, {auto});
+        return;
+      }
+      if (s === 2){
+        const v = validateStep2();
+        showErr("#step2Err", v.ok ? "" : v.msg);
+        if (!v.ok) return;
+        goToStep(3, {auto});
+        return;
+      }
+      if (s === 3){
+        goToStep(4, {auto});
+        return;
+      }
+      if (s === 4){
+        const v = validateStep4();
+        showErr("#step4Err", v.ok ? "" : v.msg);
+        if (!v.ok) return;
+        fillSummary();
+        goToStep(5, {auto});
+        return;
+      }
+    }
+
+    function goPrev(){
+      clearAuto();
+      const s = state.step;
+      if (s === 0 || s === 5) return;
+      triggerWipe();
+      goToStep(s-1, {auto:false});
+    }
+
+    function goSkip(){
+      clearAuto();
+      const s = state.step;
+      if (s === 1){
+        // allow skipping username/bio
+        $("#username").value = "";
+        $("#bio").value = "";
+        state.data.username = "";
+        state.data.bio = "";
+        state.usernameCheck = { status:"idle", ok:false, last:"" };
+        $("#userStatus").textContent = "تم التخطي";
+        $("#userStatus").className = "text-white/70";
+        goToStep(2, {auto:false});
+      } else if (s === 3){
+        goToStep(4, {auto:false});
+      }
+    }
+
+    // ---------- Wire action buttons ----------
+    // Desktop step buttons
+    $("#next0").addEventListener("click", (e)=>{ addRipple(e); goNext(); });
+    $("#prev1").addEventListener("click", (e)=>{ addRipple(e); goPrev(); });
+    $("#next1").addEventListener("click", (e)=>{ addRipple(e); goNext(); });
+    $("#skip1").addEventListener("click", (e)=>{ addRipple(e); goSkip(); });
+    $("#skip1Inline").addEventListener("click", (e)=>{ e.preventDefault(); sparkleBurst(e.clientX, e.clientY, 8); goSkip(); });
+
+    $("#prev2").addEventListener("click", (e)=>{ addRipple(e); goPrev(); });
+    $("#next2").addEventListener("click", (e)=>{ addRipple(e); goNext(); });
+
+    $("#prev3").addEventListener("click", (e)=>{ addRipple(e); goPrev(); });
+    $("#next3").addEventListener("click", (e)=>{ addRipple(e); goNext(); });
+    $("#skip3").addEventListener("click", (e)=>{ addRipple(e); goSkip(); });
+    $("#skip3Inline").addEventListener("click", (e)=>{ e.preventDefault(); sparkleBurst(e.clientX, e.clientY, 8); goSkip(); });
+
+    $("#prev4").addEventListener("click", (e)=>{ addRipple(e); goPrev(); });
+    $("#finish").addEventListener("click", (e)=>{ addRipple(e); goNext(); });
+
+    // Mobile sticky actions
+    $("#mPrev").addEventListener("click", (e)=>{ addRipple(e); goPrev(); });
+    $("#mSkip").addEventListener("click", (e)=>{ addRipple(e); goSkip(); });
+    $("#mNext").addEventListener("click", (e)=>{ addRipple(e); goNext(); });
+
+    // Success actions
+    $("#edit").addEventListener("click", (e)=>{ addRipple(e); goToStep(4); });
+    $("#go").addEventListener("click", (e)=>{ addRipple(e); sparkleBurst(e.clientX, e.clientY, 18); alert("✅ (Mock) دخول للمنصة — اربطها بصفحتك/راوتينج لاحقًا."); });
+
+    // ---------- Inputs + Auto-advance ----------
+    $("#togglePass").addEventListener("click", (e)=>{
+      addRipple(e);
+      const inp = $("#password");
+      const on = inp.type === "password";
+      inp.type = on ? "text" : "password";
+      $("#togglePass").textContent = on ? "إخفاء" : "إظهار";
+    });
+
+    function onIdentityInput(){
+      const v = validateStep0();
+      showErr("#step0Err", "");
+      if (v.ok){
+        $("#identityNote").textContent = "شحن كامل… انتقال سينمائي بعد لحظة.";
+        scheduleAutoAdvance(()=>validateStep0(), 650);
+      } else {
+        $("#identityNote").textContent = "لما تكمل البيانات الأساسية… هنشغّل انتقال “Speedline”.";
+        clearAuto();
+      }
+    }
+    ["input","blur"].forEach(ev=>{
+      $("#name").addEventListener(ev, onIdentityInput);
+      $("#email").addEventListener(ev, onIdentityInput);
+      $("#password").addEventListener(ev, onIdentityInput);
+    });
+
+    // Username async check
+    let userCheckToken = 0;
+    async function runUsernameCheck(){
+      const u = $("#username").value.trim();
+      state.data.username = u;
+      showErr("#step1Err","");
+
+      $("#userStatus").textContent = "…";
+      $("#userStatus").className = "text-white/70";
+      state.usernameCheck = { status:"loading", ok:false, last:u };
+
+      const my = ++userCheckToken;
+      const res = await checkUsernameAvailability(u);
+      if (my !== userCheckToken) return;
+
+      if (res.ok){
+        state.usernameCheck = { status:"ok", ok:true, last:u };
+        $("#userStatus").textContent = "متاح";
+        $("#userStatus").className = "text-emerald-300";
+        $("#userMsg").className = "ok";
+        $("#userMsg").textContent = res.reason;
+        // auto-advance gently if user intentionally filled username
+        scheduleAutoAdvance(()=>validateStep1({allowEmpty:false}), 700);
+      } else {
+        state.usernameCheck = { status:"bad", ok:false, last:u };
+        $("#userStatus").textContent = "غير متاح";
+        $("#userStatus").className = "text-rose-300";
+        $("#userMsg").className = "error";
+        $("#userMsg").textContent = res.reason;
+        clearAuto();
+      }
+    }
+
+    $("#username").addEventListener("input", ()=>{
+      const u = $("#username").value.trim();
+      $("#userStatus").textContent = (u.length ? "يتم التحقق…" : "جاهز");
+      $("#userStatus").className = "text-white/70";
+      $("#userMsg").className = "hint";
+      $("#userMsg").textContent = "هنعمل تحقق سريع (محاكاة) عشان التميز.";
+      state.usernameCheck = { status:"idle", ok:false, last:u };
+      clearAuto();
+
+      // debounce
+      if (state._userDeb) clearTimeout(state._userDeb);
+      state._userDeb = setTimeout(()=>{
+        if (u.length >= 3) runUsernameCheck();
+      }, 420);
+    });
+    $("#username").addEventListener("blur", ()=>{
+      const u = $("#username").value.trim();
+      if (u.length >= 3) runUsernameCheck();
+    });
+
+    $("#bio").addEventListener("input", ()=>{
+      state.data.bio = $("#bio").value || "";
+      $("#bioCount").textContent = String(state.data.bio.length);
+    });
+
+    // ---------- Avatar generation ----------
+    function randFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+    const palettes = [
+      { a:"#22d3ee", b:"#8b5cf6", c:"#fbbf24", d:"#fb7185" },
+      { a:"#60a5fa", b:"#a78bfa", c:"#34d399", d:"#fb7185" },
+      { a:"#2dd4bf", b:"#f472b6", c:"#fde047", d:"#93c5fd" },
+      { a:"#34d399", b:"#22d3ee", c:"#a78bfa", d:"#fda4af" },
+      { a:"#fbbf24", b:"#60a5fa", c:"#a78bfa", d:"#22d3ee" },
+    ];
+
+    const hairPaths = [
+      `M18 30c6-16 52-18 60 4 2 6 2 12 2 12H18s-2-8 0-16z`,  // arc
+      `M18 38c8-24 16-26 22-16 6-10 14-10 20 0 6-8 14-6 18 8 2 6 2 16 2 16H18s-2-10 0-8z`, // spikes
+      `M18 34c8-18 20-18 26-8 8-10 20-10 26 6 4 10 4 18 4 18H18s-2-8 0-16z`, // wave
+      `M18 38c8-14 54-14 62 0 2 4 2 10 2 10H18s-2-6 0-10z`, // bob
+      `M18 36c8-18 56-18 62 6 2 8 0 24 0 24H18s-2-18 0-30z`, // long
+      `M18 38c10-18 22-18 28-6 6-12 18-12 26 2 4 8 6 12 6 12H18s-2-4 0-8z`, // twin
+      `M18 38c4-14 60-14 64 0 2 6 2 14 2 14H18s-2-8 0-14z`, // helmet
+      `M18 42c8-22 56-22 64 0 2 6 0 18 0 18H18s-2-12 0-18z`, // hood
+    ];
+
+    const eyeVariants = [
+      (c)=>`<g opacity=".95"><path d="M34 54c4-3 10-3 14 0" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M72 54c4-3 10-3 14 0" stroke="${c}" stroke-width="3" stroke-linecap="round"/></g>`,
+      (c)=>`<g opacity=".95"><path d="M32 54c6-6 14-6 20 0" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M70 54c6-6 14-6 20 0" stroke="${c}" stroke-width="3" stroke-linecap="round"/></g>`,
+      (c)=>`<g><circle cx="42" cy="54" r="4" fill="${c}"/><circle cx="80" cy="54" r="4" fill="${c}"/><circle cx="44" cy="52" r="1.2" fill="rgba(255,255,255,.9)"/><circle cx="82" cy="52" r="1.2" fill="rgba(255,255,255,.9)"/></g>`,
+      (c)=>`<g opacity=".95"><rect x="34" y="50" width="16" height="8" rx="4" fill="${c}"/><rect x="72" y="50" width="16" height="8" rx="4" fill="${c}"/><path d="M50 54h22" stroke="rgba(255,255,255,.3)" stroke-width="2"/></g>`,
+      (c)=>`<g><path d="M34 54c4-6 12-6 16 0" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M72 54c4-6 12-6 16 0" stroke="${c}" stroke-width="3" stroke-linecap="round"/><circle cx="42" cy="54" r="2" fill="${c}"/><circle cx="80" cy="54" r="2" fill="${c}"/></g>`,
+      (c)=>`<g><path d="M32 54c6-8 18-8 24 0" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M68 54c6-8 18-8 24 0" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M42 54l2-2 2 2-2 2z" fill="rgba(255,255,255,.8)"/><path d="M80 54l2-2 2 2-2 2z" fill="rgba(255,255,255,.8)"/></g>`,
+      (c)=>`<g opacity=".95"><path d="M30 54h28" stroke="${c}" stroke-width="4" stroke-linecap="round"/><path d="M66 54h28" stroke="${c}" stroke-width="4" stroke-linecap="round"/></g>`,
+      (c)=>`<g><path d="M34 54c6-4 12-4 18 0" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M72 54c6-4 12-4 18 0" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M34 48h18" stroke="rgba(255,255,255,.25)" stroke-width="2" stroke-linecap="round"/><path d="M72 48h18" stroke="rgba(255,255,255,.25)" stroke-width="2" stroke-linecap="round"/></g>`,
+    ];
+
+    const outfitVariants = [
+      (c)=>`<path d="M26 110c10-20 22-26 38-26s28 6 38 26v18H26v-18z" fill="${c}" opacity=".9"/>`,
+      (c)=>`<path d="M22 108c10-18 24-24 42-24s32 6 42 24v20H22v-20z" fill="${c}" opacity=".85"/><path d="M56 84l-16 44" stroke="rgba(255,255,255,.25)" stroke-width="3"/>`,
+      (c)=>`<path d="M26 112c10-22 24-28 38-28s28 6 38 28v16H26v-16z" fill="${c}" opacity=".85"/><path d="M36 104h56" stroke="rgba(255,255,255,.22)" stroke-width="3" stroke-linecap="round"/>`,
+      (c)=>`<path d="M24 112c8-18 24-28 40-28s32 10 40 28v16H24v-16z" fill="${c}" opacity=".86"/><path d="M46 88c2 8 2 16 0 24" stroke="rgba(0,0,0,.25)" stroke-width="3" stroke-linecap="round"/>`,
+      (c)=>`<path d="M24 110c8-20 26-28 40-28s32 8 40 28v18H24v-18z" fill="${c}" opacity=".82"/><path d="M34 120h68" stroke="rgba(255,255,255,.22)" stroke-width="3" stroke-linecap="round"/>`,
+      (c)=>`<path d="M26 112c10-22 24-28 38-28s28 6 38 28v16H26v-16z" fill="${c}" opacity=".85"/><path d="M52 92h24" stroke="rgba(255,255,255,.25)" stroke-width="3" stroke-linecap="round"/><circle cx="76" cy="92" r="3" fill="rgba(255,255,255,.35)"/>`,
+    ];
+
+    const auraVariants = [
+      (p)=>`<g opacity=".75"><circle cx="64" cy="66" r="58" fill="none" stroke="${p.a}" stroke-width="3"/><circle cx="64" cy="66" r="50" fill="none" stroke="${p.b}" stroke-width="2" stroke-dasharray="10 8"/></g>`,
+      (p)=>`<g opacity=".8"><circle cx="64" cy="66" r="58" fill="none" stroke="${p.b}" stroke-width="2"/><circle cx="64" cy="66" r="42" fill="none" stroke="${p.c}" stroke-width="3"/><circle cx="64" cy="66" r="28" fill="none" stroke="${p.a}" stroke-width="2" stroke-dasharray="6 7"/></g>`,
+      (p)=>`<g opacity=".85"><path d="M10 66c14-34 94-34 108 0" fill="none" stroke="${p.c}" stroke-width="4" stroke-linecap="round"/><path d="M10 70c14 34 94 34 108 0" fill="none" stroke="${p.a}" stroke-width="3" stroke-linecap="round"/></g>`,
+      (p)=>`<g opacity=".8"><rect x="8" y="10" width="112" height="112" rx="20" fill="none" stroke="${p.a}" stroke-width="2" stroke-dasharray="7 6"/><path d="M14 20h30" stroke="${p.b}" stroke-width="3"/><path d="M84 114h30" stroke="${p.c}" stroke-width="3"/></g>`,
+      (p)=>`<g opacity=".8"><path d="M6 30L40 6" stroke="${p.a}" stroke-width="3"/><path d="M122 30L88 6" stroke="${p.b}" stroke-width="3"/><path d="M6 102l34 24" stroke="${p.c}" stroke-width="3"/><path d="M122 102l-34 24" stroke="${p.d}" stroke-width="3"/></g>`,
+      (p)=>`<g opacity=".78"><circle cx="64" cy="66" r="58" fill="rgba(255,255,255,.06)"/><circle cx="64" cy="66" r="58" fill="none" stroke="${p.a}" stroke-width="2"/><circle cx="64" cy="66" r="52" fill="none" stroke="${p.b}" stroke-width="2"/><circle cx="64" cy="66" r="46" fill="none" stroke="${p.c}" stroke-width="2"/></g>`,
+    ];
+
+    function buildAvatarSVG({hair=0, eyes=0, outfit=0, aura=0, palette=palettes[0], seed=0}={}){
+      const p = palette;
+      const skin = "rgba(231,236,255,.16)";
+      const faceShade = "rgba(0,0,0,.18)";
+      const eyeC = "rgba(231,236,255,.92)";
+      const outfitC = `rgba(255,255,255,.10)`;
+      const primary = p.a;
+      const secondary = p.b;
+
+      const hairFill = `url(#hairG${seed})`;
+      const outfitFill = `url(#outG${seed})`;
+
+      return `
+      <svg viewBox="0 0 128 128" class="w-full h-full">
+        <defs>
+          <linearGradient id="hairG${seed}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="${secondary}" stop-opacity=".95"/>
+            <stop offset="1" stop-color="${primary}" stop-opacity=".9"/>
+          </linearGradient>
+          <linearGradient id="outG${seed}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="${p.c}" stop-opacity=".75"/>
+            <stop offset="1" stop-color="${p.b}" stop-opacity=".6"/>
+          </linearGradient>
+          <radialGradient id="hl${seed}" cx="35%" cy="25%" r="70%">
+            <stop offset="0" stop-color="rgba(255,255,255,.35)"/>
+            <stop offset="1" stop-color="rgba(255,255,255,0)"/>
+          </radialGradient>
+        </defs>
+
+        ${auraVariants[aura % auraVariants.length](p)}
+
+        <g>
+          <path d="M64 22c26 0 40 16 40 36s-14 46-40 46-40-26-40-46 14-36 40-36z" fill="${skin}" />
+          <path d="M64 28c20 0 32 12 32 28s-12 36-32 36-32-20-32-36 12-28 32-28z" fill="rgba(255,255,255,.06)"/>
+          <path d="M48 72c10 10 22 10 32 0" stroke="rgba(255,255,255,.18)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M44 46c8-8 32-8 40 0" fill="none" stroke="rgba(0,0,0,.20)" stroke-width="4" stroke-linecap="round" opacity=".75"/>
+          ${eyeVariants[eyes % eyeVariants.length](eyeC)}
+          <path d="M60 64c2 2 6 2 8 0" stroke="rgba(0,0,0,.25)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="50" cy="60" r="3" fill="rgba(255,255,255,.14)"/>
+          <circle cx="78" cy="60" r="3" fill="rgba(255,255,255,.14)"/>
+        </g>
+
+        <g>
+          <path d="${hairPaths[hair % hairPaths.length]}" fill="${hairFill}" opacity=".96"/>
+          <path d="M18 46c10-10 70-10 80 0" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M20 40c12-8 66-8 78 0" fill="none" stroke="rgba(0,0,0,.20)" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+          <circle cx="46" cy="30" r="18" fill="url(#hl${seed})" opacity=".6"/>
+        </g>
+
+        <g>
+          ${outfitVariants[outfit % outfitVariants.length](outfitFill)}
+          <path d="M26 112h76" stroke="rgba(255,255,255,.14)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M44 100h40" stroke="rgba(0,0,0,.18)" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+        </g>
+      </svg>`;
+    }
+
+    const presets = [
+      { id:"hero", label:"Hero", tags:["Brave","Bright"], hair:1, eyes:2, outfit:0, aura:0 },
+      { id:"rival", label:"Rival", tags:["Sharp","Cool"], hair:0, eyes:1, outfit:1, aura:3 },
+      { id:"mage", label:"Mage", tags:["Mystic","Calm"], hair:4, eyes:5, outfit:2, aura:1 },
+      { id:"ninja", label:"Ninja", tags:["Silent","Fast"], hair:7, eyes:6, outfit:3, aura:4 },
+      { id:"pilot", label:"Mecha Pilot", tags:["Tech","Bold"], hair:6, eyes:3, outfit:4, aura:3 },
+      { id:"idol", label:"Idol", tags:["Spark","Cute"], hair:5, eyes:4, outfit:0, aura:5 },
+      { id:"detective", label:"Detective", tags:["Clue","Style"], hair:3, eyes:7, outfit:5, aura:2 },
+      { id:"wanderer", label:"Wanderer", tags:["Chill","Glow"], hair:2, eyes:0, outfit:2, aura:0 },
+    ];
+
+    let selectedPresetId = presets[0].id;
+
+    function renderPresets(){
+      const grid = $("#presetGrid");
+      grid.innerHTML = "";
+      presets.forEach((p, idx)=>{
+        const pal = palettes[idx % palettes.length];
+        const svg = buildAvatarSVG({ hair:p.hair, eyes:p.eyes, outfit:p.outfit, aura:p.aura, palette:pal, seed: idx+1 });
+        const card = document.createElement("div");
+        card.className = "avatar-card p-3";
+        card.dataset.preset = p.id;
+        card.innerHTML = `
+          <div class="avatar-badge">${p.label}</div>
+          <div class="rounded-2xl border border-white/10 bg-black/25 overflow-hidden grid place-items-center h-32">
+            <div class="w-24 h-24">${svg}</div>
+          </div>
+          <div class="mt-2 flex flex-wrap gap-1">
+            ${p.tags.map(t=>`<span class="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-white/70">${t}</span>`).join("")}
+          </div>
+        `;
+        card.addEventListener("click", (e)=>{
+          $$(".avatar-card", grid).forEach(x=>x.classList.remove("on"));
+          card.classList.add("on");
+          selectedPresetId = p.id;
+          state.data.avatar = { type:"preset", id:p.id, svg, dataUrl:null };
+          state.data.avatarConfirmed = false;
+          $("#avatarReady").textContent = "اخترت — لم يتم التأكيد";
+          const r = card.getBoundingClientRect();
+          sparkleBurst(r.left + r.width*0.6, r.top + r.height*0.35, 12);
+        });
+        grid.appendChild(card);
+      });
+
+      // highlight default
+      const first = grid.querySelector(`[data-preset="${selectedPresetId}"]`);
+      if (first) first.classList.add("on");
+      const def = presets.find(x=>x.id===selectedPresetId);
+      state.data.avatar = {
+        type:"preset",
+        id:selectedPresetId,
+        svg: buildAvatarSVG({ hair:def.hair, eyes:def.eyes, outfit:def.outfit, aura:def.aura, palette:palettes[0], seed: 1 }),
+        dataUrl:null
+      };
+      state.data.avatarConfirmed = false;
+      $("#avatarReady").textContent = "اخترت — لم يتم التأكيد";
+    }
+
+    $("#confirmPreset").addEventListener("click", (e)=>{
+      addRipple(e);
+      state.data.avatarConfirmed = true;
+      $("#avatarReady").textContent = "مؤكد ✓";
+      $("#avatarReady").className = "ms-1 text-emerald-300";
+      sparkleBurst(e.clientX, e.clientY, 14);
+      scheduleAutoAdvance(()=>validateStep2(), 520);
+    });
+
+    // Tabs
+    function setAvatarTab(tab){
+      $$('#tab-suggested, #tab-mix, #tab-upload').forEach(el=>el.classList.add("hidden"));
+      $('#tab-' + tab).classList.remove("hidden");
+      // style tab buttons
+      $$('[data-tab]').forEach(b=>{
+        b.classList.remove("btn-primary");
+        b.classList.add("btn-ghost");
+      });
+      const btn = $(`[data-tab="${tab}"]`);
+      if (btn){
+        btn.classList.remove("btn-ghost");
+        btn.classList.add("btn-primary");
+      }
+    }
+    $$('[data-tab]').forEach(btn=>{
+      btn.addEventListener("click", (e)=>{
+        addRipple(e);
+        setAvatarTab(btn.dataset.tab);
+      });
+    });
+
+    // Mix preview
+    let mixSeed = 100;
+    function updateMixPreview(){
+      const hair = +$("#mixHair").value;
+      const eyes = +$("#mixEyes").value;
+      const outfit = +$("#mixOutfit").value;
+      const aura = +$("#mixAura").value;
+      const pal = palettes[(hair + eyes + outfit + aura) % palettes.length];
+      const svg = buildAvatarSVG({ hair, eyes, outfit, aura, palette: pal, seed: mixSeed });
+      $("#mixPreview").innerHTML = svg;
+      state.data.avatar = { type:"mix", id:`mix-${hair}${eyes}${outfit}${aura}`, svg, dataUrl:null };
+      state.data.avatarConfirmed = false;
+      $("#avatarReady").textContent = "جاهز للتأكيد";
+      $("#avatarReady").className = "ms-1 text-white/85";
+    }
+    ["change","input"].forEach(ev=>{
+      $("#mixHair").addEventListener(ev, updateMixPreview);
+      $("#mixEyes").addEventListener(ev, updateMixPreview);
+      $("#mixOutfit").addEventListener(ev, updateMixPreview);
+      $("#mixAura").addEventListener(ev, updateMixPreview);
+    });
+    $("#mixRandom").addEventListener("click", (e)=>{
+      addRipple(e);
+      $("#mixHair").value = String(Math.floor(Math.random()*8));
+      $("#mixEyes").value = String(Math.floor(Math.random()*8));
+      $("#mixOutfit").value = String(Math.floor(Math.random()*6));
+      $("#mixAura").value = String(Math.floor(Math.random()*6));
+      mixSeed++;
+      updateMixPreview();
+      sparkleBurst(e.clientX, e.clientY, 10);
+    });
+    $("#mixConfirm").addEventListener("click", (e)=>{
+      addRipple(e);
+      state.data.avatarConfirmed = true;
+      $("#avatarReady").textContent = "مؤكد ✓";
+      $("#avatarReady").className = "ms-1 text-emerald-300";
+      sparkleBurst(e.clientX, e.clientY, 16);
+      scheduleAutoAdvance(()=>validateStep2(), 520);
+    });
+
+    // ---------- Upload cropper ----------
+    const crop = {
+      img: $("#cropImg"),
+      frame: $("#cropFrame"),
+      zoom: 1,
+      ox: 0, oy: 0,
+      drag: false,
+      px: 0, py: 0,
+      shape: "circle",
+      mockBg: false,
+      naturalW: 0, naturalH: 0
+    };
+
+    function setCropShape(shape){
+      crop.shape = shape;
+      crop.frame.style.borderRadius = (shape === "circle") ? "999px" : "24px";
+      crop.frame.querySelector(".crop-grid").style.maskImage =
+        (shape === "circle")
+        ? "radial-gradient(circle at 50% 50%, black 58%, transparent 62%)"
+        : "none";
+      $("#shapeCircle").classList.toggle("btn-primary", shape==="circle");
+      $("#shapeSquare").classList.toggle("btn-primary", shape==="square");
+      $("#shapeCircle").classList.toggle("btn-ghost", shape!=="circle");
+      $("#shapeSquare").classList.toggle("btn-ghost", shape!=="square");
+    }
+
+    function applyCropTransform(){
+      if (crop.img.classList.contains("hidden")) return;
+      const t = `translate(calc(-50% + ${crop.ox}px), calc(-50% + ${crop.oy}px)) scale(${crop.zoom})`;
+      crop.img.style.transform = t;
+    }
+
+    $("#zoom").addEventListener("input", ()=>{
+      crop.zoom = parseFloat($("#zoom").value);
+      applyCropTransform();
+    });
+
+    $("#shapeCircle").addEventListener("click", (e)=>{ addRipple(e); setCropShape("circle"); });
+    $("#shapeSquare").addEventListener("click", (e)=>{ addRipple(e); setCropShape("square"); });
+
+    $("#mockBg").addEventListener("click", (e)=>{
+      addRipple(e);
+      crop.mockBg = !crop.mockBg;
+      $("#mockBg").textContent = "Remove Background (Mock): " + (crop.mockBg ? "ON" : "OFF");
+      $("#uploadMsg").textContent = crop.mockBg
+        ? "ON: mask ناعم + blur edge خفيف (Mock)."
+        : "OFF: قص عادي بدون mask.";
+    });
+
+    $("#resetCrop").addEventListener("click", (e)=>{
+      addRipple(e);
+      crop.zoom = 1; crop.ox = 0; crop.oy = 0;
+      $("#zoom").value = "1";
+      applyCropTransform();
+      sparkleBurst(e.clientX, e.clientY, 8);
+    });
+
+    $("#file").addEventListener("change", ()=>{
+      const f = $("#file").files && $("#file").files[0];
+      if (!f) return;
+      const url = URL.createObjectURL(f);
+      crop.img.onload = ()=>{
+        crop.img.classList.remove("hidden");
+        crop.naturalW = crop.img.naturalWidth;
+        crop.naturalH = crop.img.naturalHeight;
+        crop.zoom = 1; crop.ox = 0; crop.oy = 0;
+        $("#zoom").value = "1";
+        applyCropTransform();
+
+        // mark avatar type but not confirmed
+        state.data.avatar = { type:"upload", id:"upload", svg:null, dataUrl:null };
+        state.data.avatarConfirmed = false;
+        $("#avatarReady").textContent = "صورة جاهزة للقص";
+        $("#avatarReady").className = "ms-1 text-white/85";
+      };
+      crop.img.src = url;
+    });
+
+    function pointerToFrame(e){
+      const rect = crop.frame.getBoundingClientRect();
+      const x = (e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0) - rect.left;
+      const y = (e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0) - rect.top;
+      return { x, y, rect };
+    }
+
+    crop.frame.addEventListener("pointerdown", (e)=>{
+      if (crop.img.classList.contains("hidden")) return;
+      crop.drag = true;
+      crop.frame.setPointerCapture(e.pointerId);
+      crop.px = e.clientX; crop.py = e.clientY;
+    });
+    crop.frame.addEventListener("pointermove", (e)=>{
+      if (!crop.drag) return;
+      const dx = e.clientX - crop.px;
+      const dy = e.clientY - crop.py;
+      crop.px = e.clientX; crop.py = e.clientY;
+      crop.ox += dx;
+      crop.oy += dy;
+      // clamp a bit so it doesn't disappear entirely
+      crop.ox = clamp(crop.ox, -160, 160);
+      crop.oy = clamp(crop.oy, -160, 160);
+      applyCropTransform();
+    });
+    crop.frame.addEventListener("pointerup", ()=>{
+      crop.drag = false;
+    });
+    crop.frame.addEventListener("pointercancel", ()=>{
+      crop.drag = false;
+    });
+
+    $("#cropSave").addEventListener("click", (e)=>{
+      addRipple(e);
+      if (crop.img.classList.contains("hidden")) {
+        showErr("#step2Err", "ارفع صورة أولاً.");
+        return;
+      }
+      showErr("#step2Err", "");
+
+      // Draw to canvas
+      const size = 512;
+      const canvas = $("#canvas");
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext("2d");
+
+      // Compute image placement relative to frame
+      const frameSize = crop.frame.clientWidth; // 220
+      const scale = crop.zoom;
+
+      // Determine how the on-screen image maps: we use the img natural size and the CSS transform.
+      // We'll emulate by fitting image to cover the frame at zoom=1, then applying zoom and offset.
+      const imgW = crop.naturalW, imgH = crop.naturalH;
+      const coverScale = Math.max(frameSize / imgW, frameSize / imgH);
+      const drawScale = coverScale * scale;
+
+      const drawW = imgW * drawScale;
+      const drawH = imgH * drawScale;
+
+      // Center + offset in frame pixels
+      const cx = frameSize/2 + crop.ox;
+      const cy = frameSize/2 + crop.oy;
+
+      const sx = cx - drawW/2;
+      const sy = cy - drawH/2;
+
+      // Map to canvas coords
+      const k = size / frameSize;
+      const dx = sx * k;
+      const dy = sy * k;
+      const dw = drawW * k;
+      const dh = drawH * k;
+
+      ctx.clearRect(0,0,size,size);
+
+      if (crop.shape === "circle"){
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(size/2, size/2, size/2, 0, Math.PI*2);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(crop.img, dx, dy, dw, dh);
+
+        if (crop.mockBg){
+          // Feather mask (mock background removal): radial alpha falloff at edges
+          const grd = ctx.createRadialGradient(size/2, size/2, size*0.28, size/2, size/2, size*0.5);
+          grd.addColorStop(0, "rgba(255,255,255,1)");
+          grd.addColorStop(0.82, "rgba(255,255,255,1)");
+          grd.addColorStop(1, "rgba(255,255,255,0)");
+          ctx.globalCompositeOperation = "destination-in";
+          ctx.fillStyle = grd;
+          ctx.fillRect(0,0,size,size);
+          ctx.globalCompositeOperation = "source-over";
+
+          // subtle edge glow
+          ctx.globalAlpha = 0.22;
+          ctx.strokeStyle = "rgba(34,211,238,.9)";
+          ctx.lineWidth = 8;
+          ctx.beginPath();
+          ctx.arc(size/2, size/2, size/2 - 4, 0, Math.PI*2);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+
+        ctx.restore();
+      } else {
+        // square with radius
+        const r = 56;
+        ctx.save();
+        ctx.beginPath();
+        roundRect(ctx, 0,0,size,size,r);
+        ctx.clip();
+        ctx.drawImage(crop.img, dx, dy, dw, dh);
+
+        if (crop.mockBg){
+          // edge vignette (mock)
+          const grd = ctx.createRadialGradient(size/2, size/2, size*0.25, size/2, size/2, size*0.6);
+          grd.addColorStop(0, "rgba(255,255,255,1)");
+          grd.addColorStop(0.78, "rgba(255,255,255,1)");
+          grd.addColorStop(1, "rgba(255,255,255,0)");
+          ctx.globalCompositeOperation = "destination-in";
+          ctx.fillStyle = grd;
+          ctx.fillRect(0,0,size,size);
+          ctx.globalCompositeOperation = "source-over";
+        }
+        ctx.restore();
+      }
+
+      const dataUrl = canvas.toDataURL("image/png");
+      state.data.avatar = { type:"upload", id:"upload", svg:null, dataUrl };
+      state.data.avatarConfirmed = true;
+      $("#avatarReady").textContent = "مؤكد ✓";
+      $("#avatarReady").className = "ms-1 text-emerald-300";
+      sparkleBurst(e.clientX, e.clientY, 18);
+
+      scheduleAutoAdvance(()=>validateStep2(), 520);
+    });
+
+    function roundRect(ctx, x, y, w, h, r){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.moveTo(x+rr, y);
+      ctx.arcTo(x+w, y, x+w, y+h, rr);
+      ctx.arcTo(x+w, y+h, x, y+h, rr);
+      ctx.arcTo(x, y+h, x, y, rr);
+      ctx.arcTo(x, y, x+w, y, rr);
+      ctx.closePath();
+    }
+
+    // ---------- Follow starter pack ----------
+    const creators = [
+      { id:"senpai_spark", name:"SenpaiSpark", tag:"Anime", vibe:"Hype edits + speedlines", lvl:"S+" },
+      { id:"panel_wizard", name:"PanelWizard", tag:"Manga", vibe:"Layout breakdowns", lvl:"A" },
+      { id:"frameforger", name:"FrameForger", tag:"Reviews", vibe:"No-spoiler reviews", lvl:"A+" },
+      { id:"cosmic_cos", name:"CosmicCos", tag:"Cosplay", vibe:"Glow builds", lvl:"S" },
+      { id:"amv_rush", name:"AMVRush", tag:"AMV", vibe:"Sync mastery", lvl:"S+" },
+      { id:"ink_runner", name:"InkRunner", tag:"Manga", vibe:"Speed sketch logs", lvl:"A" },
+      { id:"meta_recap", name:"MetaRecap", tag:"Reviews", vibe:"Weekly digests", lvl:"A" },
+      { id:"anime_arc", name:"AnimeArc", tag:"Anime", vibe:"Arcs & theories", lvl:"A+" },
+    ];
+
+    function creatorCard(c){
+      const on = state.data.following.has(c.id);
+      const el = document.createElement("div");
+      el.className = "rounded-2xl border border-white/10 bg-white/5 p-3";
+      el.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex items-start gap-3">
+            <div class="h-11 w-11 rounded-2xl border border-white/10 bg-black/25 grid place-items-center overflow-hidden">
+              <div class="w-9 h-9">${buildAvatarSVG({
+                hair: (c.id.length*2)%8,
+                eyes: (c.id.length*3)%8,
+                outfit: (c.id.length)%6,
+                aura: (c.id.length*5)%6,
+                palette: palettes[(c.id.length)%palettes.length],
+                seed: 200 + c.id.length
+              })}</div>
+            </div>
+            <div>
+              <div class="text-sm font-medium">${c.name}</div>
+              <div class="text-xs text-white/65 mt-0.5">${c.vibe}</div>
+              <div class="mt-1 flex flex-wrap gap-1">
+                <span class="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-black/20 text-white/70">${c.tag}</span>
+                <span class="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-black/20 text-white/70">LV ${c.lvl}</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn ${on ? "btn-ghost" : "btn-primary"} px-3 py-2 text-xs" data-follow="${c.id}">
+            ${on ? "Following" : "Follow"}
+          </button>
+        </div>
+      `;
+      el.querySelector(`[data-follow="${c.id}"]`).addEventListener("click", (e)=>{
+        addRipple(e);
+        const was = state.data.following.has(c.id);
+        if (!was && state.data.following.size >= 3){
+          showErr("#step3Err", "الحد الأقصى 3. شيل واحد الأول.");
+          return;
+        }
+        showErr("#step3Err", "");
+        if (was) state.data.following.delete(c.id);
+        else state.data.following.add(c.id);
+
+        const rect = e.currentTarget.getBoundingClientRect();
+        sparkleBurst(rect.left + rect.width/2, rect.top + rect.height/2, 10);
+
+        renderCreators();
+        if (state.data.following.size === 3){
+          // Auto-advance when full pack chosen
+          scheduleAutoAdvance(()=>({ok:true}), 700);
+        }
+      });
+      return el;
+    }
+
+    function renderCreators(){
+      const grid = $("#creatorGrid");
+      const tab = state.data.followTab;
+      const q = (state.data.followSearch || "").toLowerCase().trim();
+      const list = creators.filter(c=>{
+        const okTab = (tab ? c.tag === tab : true);
+        const okQ = !q || c.name.toLowerCase().includes(q) || c.vibe.toLowerCase().includes(q);
+        return okTab && okQ;
+      });
+
+      grid.innerHTML = "";
+      list.forEach(c=>grid.appendChild(creatorCard(c)));
+
+      $("#followCount").textContent = String(state.data.following.size);
+      updateStickyButtons();
+    }
+
+    $$("[data-followtab]").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{
+        addRipple(e);
+        state.data.followTab = btn.dataset.followtab;
+        // style
+        $$("[data-followtab]").forEach(b=>{
+          b.classList.remove("btn-primary"); b.classList.add("btn-ghost");
+        });
+        btn.classList.remove("btn-ghost"); btn.classList.add("btn-primary");
+        renderCreators();
+      });
+    });
+
+    $("#followSearch").addEventListener("input", ()=>{
+      state.data.followSearch = $("#followSearch").value || "";
+      renderCreators();
+    });
+
+    // ---------- Interests ----------
+    const formatList = ["Anime","Manga","Manhwa","Comics","LN"];
+    const genreList = ["Shonen","Seinen","Isekai","Fantasy","Sci-Fi","Romance","Sports","Horror","Comedy","Mystery","Slice-of-Life","Adventure","Drama","Music","Mecha","Supernatural"];
+
+    function makeChip(label, set, container, onChange){
+      const b = document.createElement("button");
+      b.className = "chip text-sm";
+      b.textContent = label;
+      b.addEventListener("click", (e)=>{
+        addRipple(e);
+        if (set.has(label)) set.delete(label);
+        else set.add(label);
+
+        // keep top3 consistent
+        if (!set.has(label)){
+          state.data.top3 = state.data.top3.filter(x=>x!==label);
+        } else {
+          // auto-add to top3 if space and it's a genre set
+          if (container.id === "genres"){
+            if (state.data.top3.length < 3 && !state.data.top3.includes(label)) state.data.top3.push(label);
+          }
+        }
+        onChange();
+      });
+      container.appendChild(b);
+      return b;
+    }
+
+    function renderChips(){
+      const formatsEl = $("#formats");
+      const genresEl = $("#genres");
+      formatsEl.innerHTML = "";
+      genresEl.innerHTML = "";
+
+      formatList.forEach(l=>makeChip(l, state.data.formats, formatsEl, ()=>{ renderInterests(); }));
+      genreList.forEach(l=>makeChip(l, state.data.genres, genresEl, ()=>{ renderInterests(); }));
+
+      renderInterests();
+    }
+
+    function calcProfilePower(){
+      // weight: formats up to 25, genres up to 45, top3 ready 30
+      const f = clamp(state.data.formats.size, 0, 3) / 3 * 25;
+      const g = clamp(state.data.genres.size, 0, 8) / 8 * 45;
+      const t = (state.data.top3.length === 3) ? 30 : (state.data.top3.length / 3 * 30);
+      return Math.round(f + g + t);
+    }
+
+    function renderTop3(){
+      const el = $("#top3");
+      const hint = $("#top3Hint");
+      el.innerHTML = "";
+
+      // Ensure top3 only contains selected genres
+      state.data.top3 = state.data.top3.filter(x=>state.data.genres.has(x));
+      // If fewer than 3 and there are selected genres, auto-fill
+      for (const g of state.data.genres){
+        if (state.data.top3.length >= 3) break;
+        if (!state.data.top3.includes(g)) state.data.top3.push(g);
+      }
+      if (state.data.top3.length > 3) state.data.top3 = state.data.top3.slice(0,3);
+
+      if (state.data.top3.length === 0){
+        hint.classList.remove("hidden");
+        return;
+      }
+      hint.classList.add("hidden");
+
+      state.data.top3.forEach((g, idx)=>{
+        const row = document.createElement("div");
+        row.className = "rounded-2xl border border-white/10 bg-black/20 p-3 flex items-center justify-between gap-2";
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="h-8 w-8 rounded-xl border border-white/10 bg-white/5 grid place-items-center text-xs font-semibold">${idx+1}</div>
+            <div class="text-sm font-medium">${g}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-ghost px-3 py-2 text-xs" data-up="${idx}">↑</button>
+            <button class="btn btn-ghost px-3 py-2 text-xs" data-down="${idx}">↓</button>
+          </div>
+        `;
+        row.querySelector(`[data-up="${idx}"]`).addEventListener("click", (e)=>{
+          addRipple(e);
+          if (idx === 0) return;
+          const a = state.data.top3[idx-1];
+          state.data.top3[idx-1] = state.data.top3[idx];
+          state.data.top3[idx] = a;
+          sparkleBurst(e.clientX, e.clientY, 8);
+          renderInterests();
+        });
+        row.querySelector(`[data-down="${idx}"]`).addEventListener("click", (e)=>{
+          addRipple(e);
+          if (idx === state.data.top3.length - 1) return;
+          const a = state.data.top3[idx+1];
+          state.data.top3[idx+1] = state.data.top3[idx];
+          state.data.top3[idx] = a;
+          sparkleBurst(e.clientX, e.clientY, 8);
+          renderInterests();
+        });
+        el.appendChild(row);
+      });
+    }
+
+    function renderInterests(){
+      // update chip classes
+      $$("#formats .chip").forEach(ch=>{
+        ch.classList.toggle("on", state.data.formats.has(ch.textContent));
+      });
+      $$("#genres .chip").forEach(ch=>{
+        ch.classList.toggle("on", state.data.genres.has(ch.textContent));
+      });
+
+      renderTop3();
+
+      const p = calcProfilePower();
+      $("#profilePower").textContent = p + "%";
+      $("#profilePowerFill").style.width = p + "%";
+
+      // If requirements met, auto-finish gently
+      const v = validateStep4();
+      if (state.step === 4){
+        showErr("#step4Err", "");
+        if (v.ok){
+          scheduleAutoAdvance(()=>validateStep4(), 720);
+        } else {
+          clearAuto();
+        }
+      }
+    }
+
+    // ---------- Scenes tweaks per step ----------
+    function renderOptionalScenes(stepIdx){
+      // Slightly adjust scene SVG intensity/position without heavy DOM ops
+      const svg = $("#sceneSVG");
+      if (!svg) return;
+      svg.style.opacity = (stepIdx === 2) ? ".98" : (stepIdx === 4) ? ".88" : ".92";
+    }
+
+    // ---------- Success summary + confetti ----------
+    function fillSummary(){
+      $("#sumUser").textContent = state.data.username ? ("@" + state.data.username) : "—";
+      $("#sumTop3").textContent = state.data.top3.length ? state.data.top3.join(" • ") : "—";
+      $("#sumFollowing").textContent = String(state.data.following.size);
+    }
+
+    function launchConfetti(){
+      if (document.body.classList.contains("motion-off") || prefersReduced()) return;
+      // clear existing
+      $$(".confetti").forEach(x=>x.remove());
+      const n = 46;
+      for (let i=0;i<n;i++){
+        const d = document.createElement("div");
+        d.className = "confetti";
+        const left = Math.random()*100;
+        const drift = (Math.random()*2 - 1) * 120;
+        const t = 3.2 + Math.random()*1.6;
+        const rot = (Math.random()*2 - 1) * 160;
+        d.style.left = left + "vw";
+        d.style.setProperty("--x", drift + "px");
+        d.style.setProperty("--t", t + "s");
+        d.style.setProperty("--rot", rot + "deg");
+        d.style.background = `linear-gradient(180deg,
+          rgba(34,211,238,.9),
+          rgba(139,92,246,.9),
+          rgba(251,191,36,.85))`;
+        d.style.opacity = (0.75 + Math.random()*0.25).toFixed(2);
+        document.body.appendChild(d);
+        setTimeout(()=>d.remove(), (t*1000)+200);
+      }
+    }
+
+    // ---------- Swipe navigation (optional) ----------
+    const swipeArea = $(".glass");
+    swipeArea.addEventListener("touchstart", (e)=>{
+      if (state.step === 5) return;
+      const t = e.touches[0];
+      state.swipe.active = true;
+      state.swipe.x0 = t.clientX;
+      state.swipe.y0 = t.clientY;
+    }, {passive:true});
+
+    swipeArea.addEventListener("touchmove", (e)=>{
+      if (!state.swipe.active) return;
+      const t = e.touches[0];
+      const dx = t.clientX - state.swipe.x0;
+      const dy = t.clientY - state.swipe.y0;
+      if (Math.abs(dy) > 42) state.swipe.active = false; // allow scroll
+      // no preventDefault
+    }, {passive:true});
+
+    swipeArea.addEventListener("touchend", (e)=>{
+      if (!state.swipe.active) return;
+      state.swipe.active = false;
+      const t = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : null;
+      if (!t) return;
+      const dx = t.clientX - state.swipe.x0;
+      const dy = t.clientY - state.swipe.y0;
+      if (Math.abs(dy) > 55) return;
+      if (Math.abs(dx) < 70) return;
+
+      // left swipe => next, right swipe => prev (works fine in both dirs)
+      if (dx < 0) {
+        // attempt next
+        goNext({auto:false});
+      } else {
+        goPrev();
+      }
+    }, {passive:true});
+
+    // ---------- Render / Init ----------
+    function render(){
+      setLeftCopy(state.step <= 4 ? state.step : 4);
+      setHeader(state.step);
+      setGauge(stepPct(state.step));
+      updateStickyButtons();
+      validateStep0(); // update UI instantly
+      $("#bioCount").textContent = String(($("#bio").value || "").length);
+
+      // highlight default follow tab
+      const activeFollow = $(`[data-followtab="${state.data.followTab}"]`);
+      if (activeFollow){
+        $$("[data-followtab]").forEach(b=>{ b.classList.remove("btn-primary"); b.classList.add("btn-ghost"); });
+        activeFollow.classList.remove("btn-ghost");
+        activeFollow.classList.add("btn-primary");
+      }
+    }
+
+    // Scene changes by step number
+    function syncScene(){
+      if (state.step <= 4) $("#leftScene").dataset.scene = steps[state.step].scene;
+      else $("#leftScene").dataset.scene = "avatar";
+    }
+
+    // Ensure correct tab defaults
+    setAvatarTab("suggested");
+
+    // Load prefs
+    (function initPrefs(){
+      state.motionOff = localStorage.getItem("kv_motionOff") === "1";
+      state.dir = localStorage.getItem("kv_dir") || "rtl";
+      applyMotion();
+      applyDir();
+    })();
+
+    // Build content
+    renderPresets();
+    updateMixPreview();
+    setCropShape("circle");
+
+    renderCreators();
+    renderChips();
+
+    // Step init
+    goToStep(0);
+
+    // Hide all steps except current (just in case)
+    $$(".step").forEach(el=>{
+      const n = +el.dataset.step;
+      if (n !== state.step) el.classList.add("hidden");
+    });
+
+    // Global ripple binding
+    $$(".btn").forEach(b=>{
+      b.addEventListener("click", addRipple);
+    });
+
+    // Next on Enter for step 0/1
+    document.addEventListener("keydown", (e)=>{
+      if (e.key !== "Enter") return;
+      if (state.step === 0 && (document.activeElement === $("#name") || document.activeElement === $("#email") || document.activeElement === $("#password"))){
+        e.preventDefault();
+        goNext();
+      }
+      if (state.step === 1 && (document.activeElement === $("#username"))){
+        e.preventDefault();
+        goNext();
+      }
+    });
+
+    // Update some UI when stepping into avatar step
+    const observer = new MutationObserver(()=>{
+      if (state.step === 2){
+        $("#avatarReady").textContent = state.data.avatarConfirmed ? "مؤكد ✓" : "لم يتم التأكيد";
+        $("#avatarReady").className = state.data.avatarConfirmed ? "ms-1 text-emerald-300" : "ms-1 text-white/85";
+      }
+    });
+    observer.observe($("#stepContainer"), {subtree:true, attributes:true, attributeFilter:["class"]});
+
+    // Also allow clicking Next on avatar step to enforce validation
+    // and show friendly error if needed
+    function touchUpAvatarIfNeeded(){
+      if (state.step !== 2) return;
+      const v = validateStep2();
+      showErr("#step2Err", v.ok ? "" : v.msg);
+    }
+    $("#next2").addEventListener("click", touchUpAvatarIfNeeded);
+    $("#mNext").addEventListener("click", touchUpAvatarIfNeeded);
+
+    // When user navigates to step 1, re-render creators & interests if needed
+    render();
+  </script>
+</body>
+</html>

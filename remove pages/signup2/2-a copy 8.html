@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تسجيل حساب • مجتمع الأنمي والكوميكس</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Arabic font (optional but nice) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg-1:#FFF7FB;
+      --bg-2:#F2FBFF;
+      --surface:rgba(255,255,255,.86);
+      --stroke:rgba(15,23,42,.08);
+      --text:#0f172a;
+
+      /* Secondary theme (default: "نسخة البنات") */
+      --accent:#fb7185;      /* rose */
+      --accent-2:#a78bfa;    /* violet */
+      --mint:#34d399;        /* emerald */
+      --sky:#38bdf8;         /* sky */
+
+      --chip:#fff;
+      --chip-stroke:rgba(15,23,42,.10);
+
+      --decor-1: rgba(251,113,133,.35);
+      --decor-2: rgba(56,189,248,.30);
+      --decor-3: rgba(52,211,153,.28);
+      --decor-4: rgba(167,139,250,.28);
+    }
+
+    /* "نسخة الأولاد" تغيّر الألوان الثانوية والزخارف فقط */
+    [data-theme="boys"]{
+      --accent:#38bdf8;      /* sky */
+      --accent-2:#22c55e;    /* green */
+      --mint:#60a5fa;        /* blue */
+      --sky:#a78bfa;         /* violet */
+
+      --decor-1: rgba(56,189,248,.35);
+      --decor-2: rgba(34,197,94,.26);
+      --decor-3: rgba(96,165,250,.28);
+      --decor-4: rgba(167,139,250,.28);
+    }
+
+    html,body{height:100%;}
+    body{font-family:"Cairo", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans Arabic", "Apple Color Emoji","Segoe UI Emoji"; color:var(--text);}
+
+    /* Soft glass modal */
+    .glass{
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--stroke);
+      box-shadow:
+        0 18px 60px rgba(15,23,42,.12),
+        0 2px 0 rgba(255,255,255,.55) inset;
+    }
+
+    /* Steps animation */
+    .step{
+      opacity:0;
+      transform: translateX(-12px) scale(.995);
+      pointer-events:none;
+      transition: opacity .28s ease, transform .28s ease;
+    }
+    .step.active{
+      opacity:1;
+      transform: translateX(0) scale(1);
+      pointer-events:auto;
+    }
+
+    /* Controls */
+    .card{
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.75);
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .card:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(15,23,42,.10);
+    }
+    .selectable[aria-pressed="true"]{
+      border-color: color-mix(in srgb, var(--accent) 55%, rgba(15,23,42,.10));
+      box-shadow: 0 16px 34px rgba(15,23,42,.12);
+      background:
+        linear-gradient(0deg, rgba(255,255,255,.88), rgba(255,255,255,.88)),
+        radial-gradient(1200px 600px at 90% 10%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 55%),
+        radial-gradient(900px 500px at 10% 90%, color-mix(in srgb, var(--accent-2) 18%, transparent), transparent 55%);
+    }
+
+    .chip{
+      border: 1px solid var(--chip-stroke);
+      background: var(--chip);
+      transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+    }
+    .chip[aria-pressed="true"]{
+      border-color: color-mix(in srgb, var(--accent) 60%, rgba(15,23,42,.10));
+      box-shadow: 0 10px 18px rgba(15,23,42,.10);
+      transform: translateY(-1px);
+    }
+
+    .toggle{
+      border:1px solid rgba(15,23,42,.12);
+      background: rgba(255,255,255,.75);
+    }
+    .seg button[aria-pressed="true"]{
+      background: color-mix(in srgb, var(--accent) 18%, white);
+      border-color: color-mix(in srgb, var(--accent) 60%, rgba(15,23,42,.10));
+    }
+
+    /* Decorative inline SVG coloring */
+    .decor-fill-1{ fill: var(--decor-1); }
+    .decor-fill-2{ fill: var(--decor-2); }
+    .decor-fill-3{ fill: var(--decor-3); }
+    .decor-fill-4{ fill: var(--decor-4); }
+    .accent-text{ color: var(--accent); }
+    .accent-bg{ background: color-mix(in srgb, var(--accent) 14%, white); }
+    .accent-border{ border-color: color-mix(in srgb, var(--accent) 48%, rgba(15,23,42,.12)); }
+
+    /* Smooth stage height */
+    #stage{ transition: height .22s ease; }
+
+    /* Focus */
+    :focus-visible{
+      outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent);
+      outline-offset: 2px;
+      border-radius: 14px;
+    }
+  </style>
+</head>
+
+<body data-theme="girls" class="min-h-screen">
+  <!-- Background -->
+  <div class="min-h-screen flex items-center justify-center p-4 sm:p-8"
+       style="background:
+        radial-gradient(900px 520px at 10% 10%, rgba(251,113,133,.18), transparent 55%),
+        radial-gradient(900px 520px at 90% 20%, rgba(56,189,248,.18), transparent 55%),
+        radial-gradient(900px 520px at 20% 90%, rgba(52,211,153,.16), transparent 55%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));">
+
+    <!-- Floating decorations -->
+    <div aria-hidden="true" class="pointer-events-none fixed inset-0 overflow-hidden">
+      <!-- top-left -->
+      <svg class="absolute -top-8 -left-10 w-56 h-56 opacity-70" viewBox="0 0 200 200">
+        <circle class="decor-fill-2" cx="70" cy="70" r="52"/>
+        <circle class="decor-fill-4" cx="130" cy="40" r="26"/>
+        <circle class="decor-fill-1" cx="150" cy="120" r="32"/>
+      </svg>
+
+      <!-- top-right sparkles -->
+      <svg class="absolute -top-10 -right-10 w-64 h-64 opacity-75" viewBox="0 0 240 240">
+        <path class="decor-fill-1" d="M120 24l10 46 46 10-46 10-10 46-10-46-46-10 46-10z"/>
+        <path class="decor-fill-2" d="M190 110l7 30 30 7-30 7-7 30-7-30-30-7 30-7z"/>
+        <path class="decor-fill-3" d="M60 140l6 26 26 6-26 6-6 26-6-26-26-6 26-6z"/>
+      </svg>
+
+      <!-- bottom-left hearts -->
+      <svg class="absolute -bottom-16 -left-10 w-72 h-72 opacity-70" viewBox="0 0 260 260">
+        <path class="decor-fill-1" d="M128 224s-78-48-94-92c-14-40 16-76 56-76 18 0 32 8 38 18 6-10 20-18 38-18 40 0 70 36 56 76-16 44-94 92-94 92z"/>
+        <path class="decor-fill-4" d="M202 86l6 18 18 6-18 6-6 18-6-18-18-6 18-6z"/>
+      </svg>
+
+      <!-- bottom-right stars -->
+      <svg class="absolute -bottom-10 -right-10 w-64 h-64 opacity-75" viewBox="0 0 240 240">
+        <path class="decor-fill-2" d="M120 36l16 54 54 16-54 16-16 54-16-54-54-16 54-16z"/>
+        <circle class="decor-fill-3" cx="72" cy="168" r="18"/>
+        <circle class="decor-fill-1" cx="190" cy="170" r="14"/>
+      </svg>
+    </div>
+
+    <!-- Modal -->
+    <div role="dialog" aria-modal="true" class="glass w-full max-w-4xl rounded-3xl overflow-hidden">
+      <!-- Header -->
+      <div class="px-5 sm:px-8 pt-6 pb-4 border-b border-slate-900/5">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl accent-bg flex items-center justify-center border border-slate-900/5">
+              <!-- cute logo (sparkle) -->
+              <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      d="M12 2l1.7 6.2L20 10l-6.3 1.8L12 18l-1.7-6.2L4 10l6.3-1.8z"
+                      style="color:var(--accent)"/>
+              </svg>
+            </div>
+            <div>
+              <div class="text-lg sm:text-xl font-bold leading-tight">
+                إنشاء حساب جديد ✨
+              </div>
+              <div class="text-slate-600 text-sm sm:text-base">
+                خطوات خفيفة ولطيفة… بدون تحقق، فقط اختياراتك.
+              </div>
+            </div>
+          </div>
+
+          <button type="button" id="closeBtn"
+                  class="shrink-0 rounded-2xl px-3 py-2 text-slate-700 hover:bg-white/70 border border-slate-900/10">
+            إغلاق
+          </button>
+        </div>
+
+        <!-- Progress -->
+        <div class="mt-5 flex items-center gap-3">
+          <div class="text-sm text-slate-600 whitespace-nowrap">
+            <span class="font-semibold" id="stepLabel">الخطوة 1</span>
+            <span class="mx-1">/</span>
+            <span>10</span>
+          </div>
+
+          <div class="flex-1">
+            <div class="h-2 rounded-full bg-slate-900/5 overflow-hidden">
+              <div id="progressBar" class="h-full rounded-full"
+                   style="width:10%; background: linear-gradient(90deg, var(--accent), var(--accent-2));"></div>
+            </div>
+
+            <div class="mt-3 flex items-center justify-between gap-1" id="dots" aria-hidden="true">
+              <!-- dots injected by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="px-5 sm:px-8 py-6">
+        <div id="stage" class="relative">
+          <!-- STEP 1 -->
+          <section class="step active" data-step="1">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-xl sm:text-2xl font-bold">ماذا تريد من المنصة؟</h2>
+                <p class="text-slate-600 mt-1">اختر واحد أو أكثر — خلي التجربة تفصّل عليك 💫</p>
+              </div>
+              <svg class="hidden sm:block w-16 h-16" viewBox="0 0 64 64" aria-hidden="true">
+                <path class="decor-fill-1" d="M32 6l4 16 16 4-16 4-4 16-4-16-16-4 16-4z"/>
+                <circle class="decor-fill-2" cx="50" cy="46" r="6"/>
+              </svg>
+            </div>
+
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <!-- Cards -->
+              <button class="card selectable rounded-2xl p-4 text-right" type="button" aria-pressed="false" data-multi>
+                <div class="flex items-center justify-between">
+                  <span class="font-bold">أصدقاء</span>
+                  <span class="text-xl">🤝</span>
+                </div>
+                <div class="text-sm text-slate-600 mt-2">تعرف على ناس يشاركونك نفس الذوق.</div>
+              </button>
+
+              <button class="card selectable rounded-2xl p-4 text-right" type="button" aria-pressed="false" data-multi>
+                <div class="flex items-center justify-between">
+                  <span class="font-bold">توصيات</span>
+                  <span class="text-xl">🎯</span>
+                </div>
+                <div class="text-sm text-slate-600 mt-2">اقتراحات أنمي/مانجا مناسبة لك.</div>
+              </button>
+
+              <button class="card selectable rounded-2xl p-4 text-right" type="button" aria-pressed="false" data-multi>
+                <div class="flex items-center justify-between">
+                  <span class="font-bold">مناقشات</span>
+                  <span class="text-xl">💬</span>
+                </div>
+                <div class="text-sm text-slate-600 mt-2">نقاشات نظيفة ومرتبة عن الحلقات.</div>
+              </button>
+
+              <button class="card selectable rounded-2xl p-4 text-right" type="button" aria-pressed="false" data-multi>
+                <div class="flex items-center justify-between">
+                  <span class="font-bold">فن</span>
+                  <span class="text-xl">🎨</span>
+                </div>
+                <div class="text-sm text-slate-600 mt-2">رسومات، فانبوتس، ودفعات إلهام.</div>
+              </button>
+
+              <button class="card selectable rounded-2xl p-4 text-right" type="button" aria-pressed="false" data-multi>
+                <div class="flex items-center justify-between">
+                  <span class="font-bold">كوسبلاي</span>
+                  <span class="text-xl">🧵</span>
+                </div>
+                <div class="text-sm text-slate-600 mt-2">نصائح ولقطات وتجارب كوسبلايرز.</div>
+              </button>
+            </div>
+
+            <div class="mt-6 rounded-2xl p-4 border border-slate-900/10 bg-white/60">
+              <div class="flex items-center gap-2 text-slate-700">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        d="M12 3l1.2 5 5 1.2-5 1.2-1.2 5-1.2-5-5-1.2 5-1.2z"/>
+                </svg>
+                <span class="text-sm">معلومة لطيفة: تقدر تغيّر اهتماماتك لاحقًا من الإعدادات.</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 2 -->
+          <section class="step" data-step="2">
+            <h2 class="text-xl sm:text-2xl font-bold">البريد وكلمة المرور</h2>
+            <p class="text-slate-600 mt-1">خلّينا نجهز حسابك بسرعة…</p>
+
+            <div class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+                <label class="block text-sm font-semibold text-slate-700">البريد الإلكتروني</label>
+                <input type="email" class="mt-2 w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 focus:border-transparent"
+                       placeholder="name@example.com" />
+                <p class="mt-2 text-xs text-slate-500">بدون تحقق — فقط أدخل أي شيء الآن.</p>
+              </div>
+
+              <div class="rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+                <label class="block text-sm font-semibold text-slate-700">كلمة المرور</label>
+                <input type="password" class="mt-2 w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 focus:border-transparent"
+                       placeholder="••••••••" />
+                <div class="mt-3 flex items-center justify-between text-xs text-slate-500">
+                  <span>نصيحة كيوت: خليها سهلة عليك وتقدر تغيرها لاحقًا.</span>
+                  <span class="accent-text font-semibold">★</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="card rounded-2xl p-4">
+                <div class="font-semibold">خصوصية</div>
+                <div class="text-sm text-slate-600 mt-1">نركّز على مجتمع لطيف، بدون إزعاج.</div>
+              </div>
+              <div class="card rounded-2xl p-4">
+                <div class="font-semibold">تجربة سلسة</div>
+                <div class="text-sm text-slate-600 mt-1">تقدر تكمل الآن وتظبط التفاصيل لاحقًا.</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 3 -->
+          <section class="step" data-step="3">
+            <h2 class="text-xl sm:text-2xl font-bold">بيانات بسيطة عنك</h2>
+            <p class="text-slate-600 mt-1">اسم عرض + عمر (+16) + بلد</p>
+
+            <div class="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div class="rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+                <label class="block text-sm font-semibold text-slate-700">اسم العرض</label>
+                <input type="text" class="mt-2 w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 focus:border-transparent"
+                       placeholder="مثال: ملك_المانجا" />
+                <p class="mt-2 text-xs text-slate-500">يظهر للناس داخل المجتمع.</p>
+              </div>
+
+              <div class="rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+                <label class="block text-sm font-semibold text-slate-700">العمر (+16)</label>
+                <input type="number" min="16" class="mt-2 w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 focus:border-transparent"
+                       placeholder="16" />
+                <div class="mt-2 text-xs text-slate-500 flex items-center gap-2">
+                  <span class="inline-flex w-6 h-6 rounded-full accent-bg items-center justify-center">🔒</span>
+                  <span>مجرد تفضيل — بدون تحقق.</span>
+                </div>
+              </div>
+
+              <div class="rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+                <label class="block text-sm font-semibold text-slate-700">البلد</label>
+                <select class="mt-2 w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3 focus:border-transparent">
+                  <option>السعودية</option>
+                  <option>الإمارات</option>
+                  <option>مصر</option>
+                  <option>الأردن</option>
+                  <option>المغرب</option>
+                  <option>الجزائر</option>
+                  <option>تونس</option>
+                  <option>العراق</option>
+                  <option>لبنان</option>
+                  <option>فلسطين</option>
+                  <option>أخرى</option>
+                </select>
+                <p class="mt-2 text-xs text-slate-500">يساعدنا في الاقتراحات المحلية (لو تحب).</p>
+              </div>
+            </div>
+
+            <div class="mt-5 rounded-2xl p-4 border border-slate-900/10 bg-white/60">
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-sm text-slate-700">
+                  <span class="font-semibold">لمسة لطيفة:</span> اسم عرضك ممكن يكون بالعربي أو بالإنجليزي أو مكس!
+                </div>
+                <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        d="M12 2l1.7 6.2L20 10l-6.3 1.8L12 18l-1.7-6.2L4 10l6.3-1.8z"
+                        style="color:var(--accent-2)"/>
+                </svg>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 4 -->
+          <section class="step" data-step="4">
+            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+              <div>
+                <h2 class="text-xl sm:text-2xl font-bold">الستايل والطاقة</h2>
+                <p class="text-slate-600 mt-1">اختيار نسخة الأولاد/البنات يغيّر الألوان والزخارف فقط.</p>
+              </div>
+
+              <!-- Theme toggle -->
+              <div class="toggle rounded-2xl p-2 flex items-center gap-2 self-start seg">
+                <button type="button" id="themeGirls" class="px-4 py-2 rounded-2xl border border-slate-900/10 text-sm font-semibold"
+                        aria-pressed="true">نسخة البنات</button>
+                <button type="button" id="themeBoys" class="px-4 py-2 rounded-2xl border border-slate-900/10 text-sm font-semibold"
+                        aria-pressed="false">نسخة الأولاد</button>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <div class="font-bold text-slate-800 mb-2">أنت من أي طاقة؟</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <button class="card selectable rounded-2xl p-4 text-right" type="button" aria-pressed="false" data-single="energy">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold">هادئ</span>
+                    <span>🌙</span>
+                  </div>
+                  <div class="text-sm text-slate-600 mt-2">لطيف، تفضّل الهدوء والـ vibes.</div>
+                </button>
+
+                <button class="card selectable rounded-2xl p-4 text-right" type="button" aria-pressed="false" data-single="energy">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold">مرح</span>
+                    <span>🎈</span>
+                  </div>
+                  <div class="text-sm text-slate-600 mt-2">ضحك، ميمز، وتفاعل سريع.</div>
+                </button>
+
+                <button class="card selectable rounded-2xl p-4 text-right" type="button" aria-pressed="false" data-single="energy">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold">حماسي</span>
+                    <span>⚡</span>
+                  </div>
+                  <div class="text-sm text-slate-600 mt-2">تحديات، حماس، ومناقشات نار.</div>
+                </button>
+
+                <button class="card selectable rounded-2xl p-4 text-right" type="button" aria-pressed="false" data-single="energy">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold">غامض</span>
+                    <span>🕯️</span>
+                  </div>
+                  <div class="text-sm text-slate-600 mt-2">تحليلات عميقة وذوق فريد.</div>
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-6 rounded-2xl p-4 border border-slate-900/10 bg-white/60">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex w-10 h-10 rounded-2xl items-center justify-center accent-bg border border-slate-900/10">💖</span>
+                <div>
+                  <div class="font-semibold">ملاحظة</div>
+                  <div class="text-sm text-slate-600">تقدر تغيّر النسخة والطاقة لاحقًا… لا تقلق.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 5 -->
+          <section class="step" data-step="5">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-xl sm:text-2xl font-bold">الأفاتار</h2>
+                <p class="text-slate-600 mt-1">اختر من المعرض (12) أو ارفع صورة اختيارياً.</p>
+              </div>
+              <svg class="hidden sm:block w-14 h-14" viewBox="0 0 64 64" aria-hidden="true">
+                <path class="decor-fill-3" d="M32 8c10 0 18 8 18 18 0 8-5 14-12 17 8 2 14 7 14 13H10c0-6 6-11 14-13-7-3-12-9-12-17 0-10 8-18 20-18z"/>
+              </svg>
+            </div>
+
+            <!-- Avatar grid -->
+            <div class="mt-5 grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3" id="avatarGrid">
+              <!-- 12 avatar buttons injected by JS -->
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+                <div class="font-semibold">رفع صورة (اختياري)</div>
+                <p class="text-sm text-slate-600 mt-1">إذا تحب صورة خاصة فيك — تمام.</p>
+                <input type="file" accept="image/*"
+                       class="mt-3 w-full rounded-2xl border border-slate-900/10 bg-white px-4 py-3" />
+              </div>
+
+              <div class="rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+                <div class="font-semibold">تلميح كيوت</div>
+                <p class="text-sm text-slate-600 mt-1">اختيار الأفاتار يساعدنا في اقتراح ستايلات متناسقة داخل المجتمع.</p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span class="chip px-3 py-2 rounded-2xl text-sm" aria-pressed="true">⭐ لطيف</span>
+                  <span class="chip px-3 py-2 rounded-2xl text-sm" aria-pressed="false">✨ بسيط</span>
+                  <span class="chip px-3 py-2 rounded-2xl text-sm" aria-pressed="false">💫 فخم</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 6 -->
+          <section class="step" data-step="6">
+            <h2 class="text-xl sm:text-2xl font-bold">اهتمامات الأنمي</h2>
+            <p class="text-slate-600 mt-1">اختر Genres + أفضل وقت للمشاهدة</p>
+
+            <div class="mt-5 rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+              <div class="font-semibold mb-2">Genres</div>
+              <div class="flex flex-wrap gap-2">
+                <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">شونِن</button>
+                <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">سينِن</button>
+                <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">شوجو</button>
+                <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">إيسيكاي</button>
+                <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">ميكا</button>
+                <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">Slice of Life</button>
+                <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">فانتازيا</button>
+                <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">رومانسي</button>
+                <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">رعب</button>
+                <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">رياضة</button>
+                <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">خيال علمي</button>
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+              <div class="font-semibold mb-2">أفضل وقت للمشاهدة</div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 seg">
+                <button class="card selectable rounded-2xl p-3 text-center" type="button" aria-pressed="false" data-single="watchtime">🌙 ليل</button>
+                <button class="card selectable rounded-2xl p-3 text-center" type="button" aria-pressed="false" data-single="watchtime">☀️ صباح</button>
+                <button class="card selectable rounded-2xl p-3 text-center" type="button" aria-pressed="false" data-single="watchtime">🍵 عصر</button>
+                <button class="card selectable rounded-2xl p-3 text-center" type="button" aria-pressed="false" data-single="watchtime">🎉 عطلة</button>
+              </div>
+              <p class="text-xs text-slate-500 mt-2">نستخدمها لاقتراح “جلسات مشاهدة” مناسبة.</p>
+            </div>
+          </section>
+
+          <!-- STEP 7 -->
+          <section class="step" data-step="7">
+            <h2 class="text-xl sm:text-2xl font-bold">اهتمامات المانجا والكوميكس</h2>
+            <p class="text-slate-600 mt-1">اختيارات + نوع المنشورات اللي تحبها</p>
+
+            <div class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+                <div class="font-semibold mb-2">تقرأ أكثر من…</div>
+                <div class="flex flex-wrap gap-2">
+                  <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">مانجا</button>
+                  <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">مانهوا</button>
+                  <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">ويب تون</button>
+                  <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">كوميكس (Marvel/DC)</button>
+                  <button class="chip px-3 py-2 rounded-2xl text-sm" type="button" aria-pressed="false">روايات خفيفة</button>
+                </div>
+              </div>
+
+              <div class="rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+                <div class="font-semibold mb-2">نوع المنشورات اللي يهمك</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button class="card selectable rounded-2xl p-3 text-right" type="button" aria-pressed="false" data-multi>
+                    <div class="font-semibold">مراجعات</div>
+                    <div class="text-xs text-slate-600 mt-1">رأيك مهم، ونبغى نسمعه.</div>
+                  </button>
+                  <button class="card selectable rounded-2xl p-3 text-right" type="button" aria-pressed="false" data-multi>
+                    <div class="font-semibold">ميمز</div>
+                    <div class="text-xs text-slate-600 mt-1">ضحكة سريعة وسط اليوم.</div>
+                  </button>
+                  <button class="card selectable rounded-2xl p-3 text-right" type="button" aria-pressed="false" data-multi>
+                    <div class="font-semibold">تحليلات</div>
+                    <div class="text-xs text-slate-600 mt-1">تفاصيل + نظريات + رموز.</div>
+                  </button>
+                  <button class="card selectable rounded-2xl p-3 text-right" type="button" aria-pressed="false" data-multi>
+                    <div class="font-semibold">رسومات</div>
+                    <div class="text-xs text-slate-600 mt-1">فنون… فنون… فنون 🎨</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-5 rounded-2xl p-4 border border-slate-900/10 bg-white/60">
+              <div class="text-sm text-slate-700 flex items-center gap-2">
+                <span class="inline-flex w-8 h-8 rounded-2xl items-center justify-center accent-bg border border-slate-900/10">🧠</span>
+                <span>لو تحب التحليلات، بنعطيك موضوعات أسبوعية ممتعة.</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 8 -->
+          <section class="step" data-step="8">
+            <h2 class="text-xl sm:text-2xl font-bold">متابعة سريعة</h2>
+            <p class="text-slate-600 mt-1">قائمة مقترحات (6) — زر متابعة فقط.</p>
+
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" id="followGrid">
+              <!-- injected by JS -->
+            </div>
+
+            <div class="mt-5 rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <div class="font-semibold">تبغى أكثر؟</div>
+                  <div class="text-sm text-slate-600">بعد التسجيل بنقترح ناس وكوميونيتيز إضافية.</div>
+                </div>
+                <svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        d="M12 21s-7-4.3-8.6-8.2C2 9.3 4.6 6 8 6c1.6 0 3 .7 4 2 1-1.3 2.4-2 4-2 3.4 0 6 3.3 4.6 6.8C19 16.7 12 21 12 21z"
+                        style="color:var(--accent)"/>
+                </svg>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 9 -->
+          <section class="step" data-step="9">
+            <h2 class="text-xl sm:text-2xl font-bold">تفضيلات المحتوى</h2>
+            <p class="text-slate-600 mt-1">فلتر السبويلر + ما يظهر أكثر في الصفحة الرئيسية</p>
+
+            <div class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <div class="font-semibold">فلتر السبويلر</div>
+                    <div class="text-sm text-slate-600 mt-1">أخفي/أظهر محتوى السبويلر حسب رغبتك.</div>
+                  </div>
+
+                  <!-- Spoiler toggle -->
+                  <button id="spoilerToggle" type="button"
+                          class="rounded-2xl px-3 py-2 border border-slate-900/10 bg-white/80 text-sm font-semibold"
+                          aria-pressed="true">
+                    مفعّل ✅
+                  </button>
+                </div>
+
+                <div class="mt-4 flex gap-2 flex-wrap">
+                  <span class="chip px-3 py-2 rounded-2xl text-sm" aria-pressed="true">🙈 يحجب السبويلر</span>
+                  <span class="chip px-3 py-2 rounded-2xl text-sm" aria-pressed="false">🔔 تنبيه قبل العرض</span>
+                </div>
+              </div>
+
+              <div class="rounded-2xl p-4 bg-white/70 border border-slate-900/10">
+                <div class="font-semibold mb-2">إيش تحب يظهر أكثر؟</div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 seg" id="feedPref">
+                  <button class="card selectable rounded-2xl p-3 text-center" type="button" aria-pressed="true" data-single="feed">جديد</button>
+                  <button class="card selectable rounded-2xl p-3 text-center" type="button" aria-pressed="false" data-single="feed">ترند</button>
+                  <button class="card selectable rounded-2xl p-3 text-center" type="button" aria-pressed="false" data-single="feed">حسب المتابعة</button>
+                </div>
+
+                <div class="mt-3 text-xs text-slate-500">
+                  مافيه صح أو غلط — هذا بس يظبط ترتيب المحتوى.
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-5 rounded-2xl p-4 border border-slate-900/10 bg-white/60">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex w-10 h-10 rounded-2xl items-center justify-center accent-bg border border-slate-900/10">🧁</span>
+                <div>
+                  <div class="font-semibold">آخر لمسة</div>
+                  <div class="text-sm text-slate-600">خلصنا تقريبًا… خطوة وحدة وتبدأ المغامرة.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 10 -->
+          <section class="step" data-step="10">
+            <div class="text-center">
+              <div class="mx-auto w-20 h-20 rounded-3xl accent-bg border border-slate-900/10 flex items-center justify-center">
+                <!-- success svg -->
+                <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        d="M20 6L9 17l-5-5"
+                        style="color:var(--accent)"/>
+                </svg>
+              </div>
+
+              <h2 class="mt-5 text-2xl sm:text-3xl font-extrabold">أنت جاهز! 🎉</h2>
+              <p class="mt-2 text-slate-600 max-w-xl mx-auto">
+                جهزنا ستايلك وتفضيلاتك… الآن زر واحد وندخلك عالم الأنمي والكوميكس بكل نعومة ✨
+              </p>
+
+              <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto">
+                <div class="card rounded-2xl p-4 text-right">
+                  <div class="font-semibold">اقتراحات أذكى</div>
+                  <div class="text-sm text-slate-600 mt-1">حسب ذوقك وطاقتك.</div>
+                </div>
+                <div class="card rounded-2xl p-4 text-right">
+                  <div class="font-semibold">مجتمع لطيف</div>
+                  <div class="text-sm text-slate-600 mt-1">قواعد واضحة وتفاعل محترم.</div>
+                </div>
+                <div class="card rounded-2xl p-4 text-right">
+                  <div class="font-semibold">محتوى ممتع</div>
+                  <div class="text-sm text-slate-600 mt-1">مراجعات، ميمز، وتحليلات.</div>
+                </div>
+              </div>
+
+              <div class="mt-6 text-sm text-slate-500">
+                بالضغط على <span class="font-semibold">إنشاء الحساب</span> سيتم إنهاء المعالج (بدون إرسال فعلي هنا).
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- Footer nav -->
+      <div class="px-5 sm:px-8 pb-6">
+        <div class="flex items-center justify-between gap-3">
+          <button type="button" id="prevBtn"
+                  class="rounded-2xl px-4 py-3 border border-slate-900/10 bg-white/70 hover:bg-white text-slate-800 font-semibold">
+            السابق
+          </button>
+
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 hidden sm:inline">تنقّل فقط عبر السابق/التالي</span>
+            <svg class="hidden sm:inline" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    d="M12 3l1.2 5 5 1.2-5 1.2-1.2 5-1.2-5-5-1.2 5-1.2z"
+                    style="color:var(--accent-2)"/>
+            </svg>
+          </div>
+
+          <button type="button" id="nextBtn"
+                  class="rounded-2xl px-5 py-3 font-bold text-white shadow-sm"
+                  style="background: linear-gradient(90deg, var(--accent), var(--accent-2));">
+            التالي
+          </button>
+
+          <button type="button" id="createBtn"
+                  class="hidden rounded-2xl px-5 py-3 font-bold text-white shadow-sm"
+                  style="background: linear-gradient(90deg, var(--accent), var(--accent-2));">
+            إنشاء الحساب
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Helpers ----------
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    // ---------- Progress dots ----------
+    const dotsWrap = document.getElementById('dots');
+    const totalSteps = 10;
+    for(let i=1;i<=totalSteps;i++){
+      const dot = document.createElement('div');
+      dot.className = "h-2.5 w-2.5 rounded-full bg-slate-900/10";
+      dot.dataset.dot = String(i);
+      dotsWrap.appendChild(dot);
+    }
+
+    // ---------- Steps ----------
+    let step = 1;
+    const steps = $$('[data-step]');
+    const stage = document.getElementById('stage');
+
+    const stepLabel = document.getElementById('stepLabel');
+    const progressBar = document.getElementById('progressBar');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const createBtn = document.getElementById('createBtn');
+
+    function syncStageHeight(){
+      const active = steps.find(s => Number(s.dataset.step) === step);
+      if(!active) return;
+      // make sure height animates nicely
+      requestAnimationFrame(() => {
+        stage.style.height = active.offsetHeight + "px";
+      });
+    }
+
+    function updateProgressUI(){
+      stepLabel.textContent = "الخطوة " + step;
+      progressBar.style.width = (step / totalSteps * 100) + "%";
+
+      $$('[data-dot]', dotsWrap).forEach(d => {
+        const n = Number(d.dataset.dot);
+        const isActive = n <= step;
+        d.style.background = isActive
+          ? "linear-gradient(90deg, var(--accent), var(--accent-2))"
+          : "rgba(15,23,42,.10)";
+        d.style.opacity = isActive ? "1" : ".6";
+      });
+
+      prevBtn.disabled = (step === 1);
+      prevBtn.classList.toggle('opacity-50', step === 1);
+      prevBtn.classList.toggle('cursor-not-allowed', step === 1);
+
+      const isLast = (step === totalSteps);
+      nextBtn.classList.toggle('hidden', isLast);
+      createBtn.classList.toggle('hidden', !isLast);
+    }
+
+    function showStep(n){
+      step = Math.min(totalSteps, Math.max(1, n));
+      steps.forEach(s => {
+        const isActive = Number(s.dataset.step) === step;
+        s.classList.toggle('active', isActive);
+        s.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+      });
+      updateProgressUI();
+      syncStageHeight();
+    }
+
+    prevBtn.addEventListener('click', () => showStep(step - 1));
+    nextBtn.addEventListener('click', () => showStep(step + 1));
+
+    createBtn.addEventListener('click', () => {
+      // no real submit — just a friendly finish
+      createBtn.textContent = "تم! 🚀";
+      createBtn.disabled = true;
+      createBtn.classList.add('opacity-80');
+      // tiny confetti-ish sparkle (DOM only)
+      const burst = document.createElement('div');
+      burst.className = "fixed inset-0 pointer-events-none";
+      burst.innerHTML = `
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="rounded-3xl px-6 py-4 bg-white/80 border border-slate-900/10 shadow-xl text-center">
+            <div class="text-xl font-extrabold">تم إنشاء التجربة بنجاح ✨</div>
+            <div class="text-slate-600 mt-1">(واجهة فقط — بدون إرسال بيانات)</div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(burst);
+      setTimeout(() => burst.remove(), 1400);
+    });
+
+    // ---------- Close button (soft close) ----------
+    document.getElementById('closeBtn').addEventListener('click', () => {
+      // Just hide modal container (still single file demo)
+      document.querySelector('[role="dialog"]').classList.add('scale-[.99]','opacity-0');
+      setTimeout(() => {
+        document.querySelector('[role="dialog"]').closest('.glass').style.display = 'none';
+      }, 180);
+    });
+
+    // ---------- Selectables (cards + chips) ----------
+    function togglePressed(el, force=null){
+      const current = el.getAttribute('aria-pressed') === 'true';
+      const next = (force === null) ? !current : !!force;
+      el.setAttribute('aria-pressed', String(next));
+    }
+
+    // Card behavior:
+    // - data-single="group" => only one active in that group
+    // - data-multi => toggle freely
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if(!btn) return;
+
+      if(btn.classList.contains('chip')){
+        togglePressed(btn);
+        return;
+      }
+
+      if(btn.classList.contains('selectable')){
+        const group = btn.dataset.single;
+        if(group){
+          // single-select group
+          $$(`.selectable[data-single="${group}"]`).forEach(b => b.setAttribute('aria-pressed','false'));
+          btn.setAttribute('aria-pressed','true');
+        }else{
+          // multi by default
+          togglePressed(btn);
+        }
+      }
+    });
+
+    // ---------- Theme Toggle (Step 4) ----------
+    const themeGirls = document.getElementById('themeGirls');
+    const themeBoys = document.getElementById('themeBoys');
+
+    function setTheme(theme){
+      document.body.setAttribute('data-theme', theme);
+      const isGirls = theme === 'girls';
+      themeGirls.setAttribute('aria-pressed', String(isGirls));
+      themeBoys.setAttribute('aria-pressed', String(!isGirls));
+    }
+
+    themeGirls.addEventListener('click', () => setTheme('girls'));
+    themeBoys.addEventListener('click', () => setTheme('boys'));
+
+    // ---------- Avatar Gallery (12 SVG) ----------
+    const avatarGrid = document.getElementById('avatarGrid');
+
+    const avatarSVG = (i) => {
+      // Simple cute variations
+      const cheeks = (i % 3 === 0);
+      const glasses = (i % 4 === 0);
+      const hair = (i % 2 === 0);
+
+      return `
+      <svg viewBox="0 0 120 120" class="w-full h-full">
+        <defs>
+          <linearGradient id="g${i}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="var(--accent)"/>
+            <stop offset="1" stop-color="var(--accent-2)"/>
+          </linearGradient>
+        </defs>
+
+        <!-- background blob -->
+        <path d="M20 48c6-18 22-30 40-30s34 12 40 30c8 24-2 52-22 60-12 6-24 6-36 0C22 100 12 72 20 48z"
+              fill="url(#g${i})" opacity=".18"/>
+
+        <!-- face -->
+        <circle cx="60" cy="62" r="34" fill="white" opacity=".95" stroke="rgba(15,23,42,.10)" stroke-width="2"/>
+        ${hair ? `<path d="M28 58c6-18 20-28 32-28s26 10 32 28c-7-6-16-10-32-10s-25 4-32 10z"
+                 fill="url(#g${i})" opacity=".55"/>` : ''}
+
+        <!-- eyes -->
+        <circle cx="48" cy="62" r="3.4" fill="rgba(15,23,42,.75)"/>
+        <circle cx="72" cy="62" r="3.4" fill="rgba(15,23,42,.75)"/>
+        <path d="M52 72c5 5 11 5 16 0" fill="none" stroke="rgba(15,23,42,.55)" stroke-width="3" stroke-linecap="round"/>
+
+        ${cheeks ? `
+          <circle cx="40" cy="70" r="4.5" fill="var(--accent)" opacity=".18"/>
+          <circle cx="80" cy="70" r="4.5" fill="var(--accent)" opacity=".18"/>
+        ` : ''}
+
+        ${glasses ? `
+          <rect x="38" y="56" width="18" height="14" rx="6" fill="none" stroke="rgba(15,23,42,.35)" stroke-width="2"/>
+          <rect x="64" y="56" width="18" height="14" rx="6" fill="none" stroke="rgba(15,23,42,.35)" stroke-width="2"/>
+          <path d="M56 63h8" stroke="rgba(15,23,42,.35)" stroke-width="2" stroke-linecap="round"/>
+        ` : ''}
+
+        <!-- tiny spark -->
+        <path d="M95 28l3 10 10 3-10 3-3 10-3-10-10-3 10-3z" fill="var(--accent)" opacity=".25"/>
+      </svg>`;
+    };
+
+    let selectedAvatar = 1;
+    for(let i=1;i<=12;i++){
+      const btn = document.createElement('button');
+      btn.type = "button";
+      btn.className = "card selectable rounded-2xl aspect-square p-2 flex items-center justify-center";
+      btn.setAttribute('aria-pressed', i === selectedAvatar ? "true" : "false");
+      btn.dataset.single = "avatar";
+      btn.innerHTML = `<div class="w-full h-full rounded-2xl overflow-hidden">${avatarSVG(i)}</div>`;
+      avatarGrid.appendChild(btn);
+    }
+
+    // ---------- Follow suggestions (Step 8) ----------
+    const followGrid = document.getElementById('followGrid');
+    const suggestions = [
+      { name: "نادي الإيسيكاي", desc: "نقاشات عوالم ثانية وميكانيكيات السرد.", icon:"🌀" },
+      { name: "محطة الميمز", desc: "ميمز يومية بدون إحراج.", icon:"😂" },
+      { name: "فنّانين لطيفين", desc: "رسومات + تحديات أسبوعية.", icon:"🎨" },
+      { name: "مراجعات بلا سبويلر", desc: "أذكى مراجعات مع احترام المشاهد.", icon:"🛡️" },
+      { name: "ورشة كوسبلاي", desc: "خامات، خياطة، ولقطات.", icon:"🧵" },
+      { name: "زاوية التحليلات", desc: "تفكيك رموز وقراءات عميقة.", icon:"🧠" },
+    ];
+
+    function followCard(item){
+      const wrap = document.createElement('div');
+      wrap.className = "card rounded-2xl p-4 text-right";
+      wrap.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="font-bold">${item.name}</div>
+            <div class="text-sm text-slate-600 mt-1">${item.desc}</div>
+          </div>
+          <div class="w-10 h-10 rounded-2xl accent-bg border border-slate-900/10 flex items-center justify-center text-lg">${item.icon}</div>
+        </div>
+        <div class="mt-4 flex items-center justify-between gap-3">
+          <div class="text-xs text-slate-500">اقتراح لطيف ✨</div>
+          <button type="button" class="followBtn rounded-2xl px-4 py-2 border border-slate-900/10 bg-white/80 font-semibold text-sm"
+                  aria-pressed="false">
+            متابعة
+          </button>
+        </div>
+      `;
+      const btn = wrap.querySelector('.followBtn');
+      btn.addEventListener('click', () => {
+        const pressed = btn.getAttribute('aria-pressed') === 'true';
+        btn.setAttribute('aria-pressed', String(!pressed));
+        btn.textContent = pressed ? 'متابعة' : 'تمت المتابعة ✓';
+        btn.style.borderColor = !pressed ? "color-mix(in srgb, var(--accent) 55%, rgba(15,23,42,.12))" : "rgba(15,23,42,.10)";
+        btn.style.background = !pressed ? "color-mix(in srgb, var(--accent) 14%, white)" : "rgba(255,255,255,.8)";
+      });
+      return wrap;
+    }
+
+    suggestions.forEach(s => followGrid.appendChild(followCard(s)));
+
+    // ---------- Spoiler toggle (Step 9) ----------
+    const spoilerToggle = document.getElementById('spoilerToggle');
+    spoilerToggle.addEventListener('click', () => {
+      const isOn = spoilerToggle.getAttribute('aria-pressed') === 'true';
+      spoilerToggle.setAttribute('aria-pressed', String(!isOn));
+      spoilerToggle.textContent = !isOn ? "مفعّل ✅" : "غير مفعّل ❗";
+      spoilerToggle.style.background = !isOn
+        ? "color-mix(in srgb, var(--accent) 12%, white)"
+        : "rgba(255,255,255,.80)";
+      spoilerToggle.style.borderColor = !isOn
+        ? "color-mix(in srgb, var(--accent) 55%, rgba(15,23,42,.12))"
+        : "rgba(15,23,42,.10)";
+    });
+
+    // ---------- Init & responsive height ----------
+    window.addEventListener('resize', syncStageHeight);
+    showStep(1);
+  </script>
+</body>
+</html>

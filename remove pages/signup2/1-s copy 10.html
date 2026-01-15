@@ -1,0 +1,1836 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Magical Girl Pastel — التسجيل (خطوات)</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Smooth UI + cute micro-interactions */
+    :root{
+      --bg1:#fff1fb;
+      --bg2:#eef7ff;
+      --bg3:#f4fff4;
+      --ink:#2b2250;
+      --muted:#6b5a8f;
+      --ring:#ff78c7;
+      --glow:#ffd6f0;
+      --card: rgba(255,255,255,.72);
+    }
+    html,body{height:100%}
+    body{
+      font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans Arabic", "Noto Kufi Arabic", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 700px at 10% 10%, rgba(255,120,199,.18), transparent 60%),
+        radial-gradient(900px 600px at 90% 20%, rgba(131,210,255,.22), transparent 55%),
+        radial-gradient(900px 700px at 40% 95%, rgba(170,255,195,.18), transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+      overflow-x:hidden;
+    }
+    /* Floating sparkles background (SVG shapes) */
+    .floating{
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      opacity:.9;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,.06));
+    }
+    .float{
+      position:absolute;
+      animation: drift 12s linear infinite;
+      opacity:.45;
+    }
+    @keyframes drift{
+      0%{ transform: translate3d(0,0,0) rotate(0deg) scale(1); }
+      50%{ transform: translate3d(20px, -40px, 0) rotate(10deg) scale(1.03); }
+      100%{ transform: translate3d(0,-120px,0) rotate(0deg) scale(1); }
+    }
+
+    /* Card look */
+    .glass{
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.55);
+      box-shadow:
+        0 12px 30px rgba(35,24,69,.08),
+        0 2px 0 rgba(255,255,255,.5) inset;
+    }
+
+    /* Inputs */
+    .input{
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(140, 109, 190, .22);
+      outline: none;
+      transition: box-shadow .2s ease, transform .15s ease, border-color .2s ease;
+    }
+    .input:focus{
+      border-color: rgba(255,120,199,.65);
+      box-shadow: 0 0 0 5px rgba(255,120,199,.18);
+      transform: translateY(-1px);
+    }
+
+    /* Chips */
+    .chip{
+      border: 1px solid rgba(140,109,190,.22);
+      background: rgba(255,255,255,.7);
+      transition: transform .12s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+      user-select:none;
+    }
+    .chip:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(35,24,69,.08);
+    }
+    .chip[data-selected="true"]{
+      border-color: rgba(255,120,199,.7);
+      background:
+        linear-gradient(135deg, rgba(255,120,199,.24), rgba(131,210,255,.18), rgba(170,255,195,.18));
+      box-shadow: 0 0 0 5px rgba(255,120,199,.12);
+    }
+
+    /* Cute error bubble */
+    .error-bubble{
+      background: rgba(255, 77, 124, .10);
+      border: 1px solid rgba(255, 77, 124, .28);
+      color: #7a1533;
+    }
+    .hint-bubble{
+      background: rgba(131,210,255,.12);
+      border: 1px solid rgba(131,210,255,.26);
+      color: #234063;
+    }
+
+    /* Step transitions + sparkle */
+    .step{
+      display:none;
+      animation: popIn .35s ease both;
+    }
+    .step.active{display:block}
+    @keyframes popIn{
+      from{ opacity:0; transform: translateY(10px) scale(.99); }
+      to{ opacity:1; transform: translateY(0) scale(1); }
+    }
+
+    .sparkle-layer{
+      position:absolute; inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      border-radius: 1.5rem;
+    }
+    .sparkle{
+      position:absolute;
+      width:12px; height:12px;
+      opacity:0;
+      animation: sparkle .65s ease forwards;
+      filter: drop-shadow(0 10px 18px rgba(255,120,199,.18));
+    }
+    @keyframes sparkle{
+      0%{ transform: translate3d(var(--x), var(--y), 0) scale(.6) rotate(0deg); opacity:0; }
+      20%{ opacity:.9; }
+      100%{ transform: translate3d(calc(var(--x) + var(--dx)), calc(var(--y) + var(--dy)), 0) scale(1.25) rotate(35deg); opacity:0; }
+    }
+
+    /* Magic wand progress bar */
+    .wand{
+      position:relative;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.55);
+      border: 1px solid rgba(140,109,190,.22);
+      overflow:hidden;
+      box-shadow: 0 10px 22px rgba(35,24,69,.08);
+    }
+    .wand::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(circle at 20% 50%, rgba(255,120,199,.22), transparent 35%),
+                  radial-gradient(circle at 70% 50%, rgba(131,210,255,.18), transparent 40%);
+      opacity:.9;
+    }
+    .wandFill{
+      position:absolute; top:0; bottom:0;
+      left:0;
+      width:0%;
+      background: linear-gradient(90deg,
+        rgba(255,120,199,.85),
+        rgba(131,210,255,.85),
+        rgba(170,255,195,.85)
+      );
+      border-radius: 999px;
+      box-shadow: 0 0 0 5px rgba(255,120,199,.10);
+      transition: width .35s ease;
+    }
+    .wandTip{
+      position:absolute;
+      top:50%;
+      transform: translateY(-50%);
+      width: 42px; height: 42px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.80);
+      border: 1px solid rgba(255,120,199,.35);
+      box-shadow: 0 14px 28px rgba(35,24,69,.10);
+      display:grid; place-items:center;
+      transition: right .35s ease;
+    }
+    .wandTip .inner{
+      width: 30px; height: 30px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,120,199,.25), rgba(131,210,255,.20), rgba(170,255,195,.18));
+      border: 1px solid rgba(140,109,190,.18);
+      display:grid; place-items:center;
+    }
+
+    .toggle{
+      width: 46px; height: 26px;
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(140,109,190,.22);
+      border-radius: 999px;
+      position:relative;
+      transition: background .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .toggle::after{
+      content:"";
+      position:absolute;
+      top:50%;
+      transform: translateY(-50%);
+      right: 3px;
+      width: 20px; height: 20px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(140,109,190,.22);
+      box-shadow: 0 10px 16px rgba(35,24,69,.10);
+      transition: right .2s ease, background .2s ease;
+    }
+    .toggle[data-on="true"]{
+      background: rgba(255,120,199,.18);
+      border-color: rgba(255,120,199,.35);
+      box-shadow: 0 0 0 5px rgba(255,120,199,.12);
+    }
+    .toggle[data-on="true"]::after{ right: 23px; }
+
+    /* Dark mode (cute night) */
+    body[data-theme="night"]{
+      --ink:#f7f2ff;
+      --muted:#d6c9ff;
+      --card: rgba(24, 18, 45, .62);
+      background:
+        radial-gradient(1200px 700px at 10% 10%, rgba(255,120,199,.20), transparent 60%),
+        radial-gradient(900px 600px at 90% 20%, rgba(131,210,255,.18), transparent 55%),
+        radial-gradient(900px 700px at 40% 95%, rgba(170,255,195,.14), transparent 55%),
+        linear-gradient(135deg, #0f0b1f, #151132, #0e1a2a);
+    }
+    body[data-theme="night"] .input{ background: rgba(255,255,255,.10); color: var(--ink); }
+    body[data-theme="night"] .glass{ border-color: rgba(255,255,255,.14); }
+    body[data-theme="night"] .chip{ background: rgba(255,255,255,.10); }
+    body[data-theme="night"] .wand{ background: rgba(255,255,255,.10); }
+    body[data-theme="night"] .wandTip{ background: rgba(255,255,255,.12); }
+    body[data-theme="night"] .toggle{ background: rgba(255,255,255,.10); }
+    body[data-theme="night"] .hint-bubble{ background: rgba(131,210,255,.10); border-color: rgba(131,210,255,.22); color: #cfe9ff; }
+    body[data-theme="night"] .error-bubble{ background: rgba(255, 77, 124, .12); border-color: rgba(255, 77, 124, .28); color: #ffd2df; }
+
+    /* Avatar preview frame */
+    .frame{
+      position:relative;
+      border-radius: 999px;
+      width: 140px; height: 140px;
+      display:grid; place-items:center;
+      box-shadow: 0 18px 40px rgba(35,24,69,.12);
+      border: 2px solid rgba(255,255,255,.65);
+      overflow:hidden;
+      background: rgba(255,255,255,.35);
+    }
+    .frameInner{
+      width: 110px; height: 110px;
+      border-radius: 999px;
+      display:grid; place-items:center;
+      background: rgba(255,255,255,.55);
+      border: 1px solid rgba(140,109,190,.20);
+      overflow:hidden;
+    }
+    .softShadow{ box-shadow: 0 12px 30px rgba(35,24,69,.10); }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <!-- floating background -->
+  <div class="floating" aria-hidden="true">
+    <!-- stars + hearts -->
+    <svg class="float" style="right:6%; top:14%; width:90px; height:90px; animation-duration: 14s;" viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ff78c7" stop-opacity=".85"/>
+          <stop offset="1" stop-color="#83d2ff" stop-opacity=".75"/>
+        </linearGradient>
+      </defs>
+      <path fill="url(#g1)" d="M50 6 L61 35 L92 38 L67 57 L75 88 L50 71 L25 88 L33 57 L8 38 L39 35 Z"/>
+    </svg>
+
+    <svg class="float" style="left:8%; top:30%; width:74px; height:74px; animation-duration: 16s;" viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#aaffc3" stop-opacity=".85"/>
+          <stop offset="1" stop-color="#ff78c7" stop-opacity=".70"/>
+        </linearGradient>
+      </defs>
+      <path fill="url(#g2)" d="M50 86 C25 70 10 55 10 38 C10 26 19 18 31 18 C39 18 46 22 50 28 C54 22 61 18 69 18 C81 18 90 26 90 38 C90 55 75 70 50 86 Z"/>
+    </svg>
+
+    <svg class="float" style="right:18%; bottom:16%; width:110px; height:110px; animation-duration: 18s;" viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#83d2ff" stop-opacity=".85"/>
+          <stop offset="1" stop-color="#ffd6f0" stop-opacity=".80"/>
+        </linearGradient>
+      </defs>
+      <path fill="url(#g3)" d="M50 8 L58 34 L85 35 L63 52 L70 80 L50 64 L30 80 L37 52 L15 35 L42 34 Z"/>
+    </svg>
+
+    <svg class="float" style="left:16%; bottom:10%; width:86px; height:86px; animation-duration: 15s;" viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="g4" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ffd6f0" stop-opacity=".90"/>
+          <stop offset="1" stop-color="#83d2ff" stop-opacity=".70"/>
+        </linearGradient>
+      </defs>
+      <path fill="url(#g4)" d="M50 12 L57 38 L84 39 L62 55 L69 82 L50 66 L31 82 L38 55 L16 39 L43 38 Z"/>
+    </svg>
+  </div>
+
+  <main class="relative z-10">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <!-- Header -->
+      <header class="flex flex-col gap-4 sm:gap-5">
+        <div class="flex items-start justify-between gap-4">
+          <div class="space-y-1">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass">
+              <span class="text-sm font-semibold">✨ Magical Girl Pastel</span>
+              <span class="text-xs opacity-80">تسجيل لطيف جدًا • خطوة بخطوة</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              أهلاً بك يا بطلة السحر! 🌙💖
+            </h1>
+            <p class="text-sm sm:text-base opacity-80 max-w-2xl">
+              خلّينا نصنع هويتك داخل المجتمع: اسم + لقب سحري + أفاتار + اهتمامات… وبالأخير تبدأ المغامرة!
+            </p>
+          </div>
+
+          <!-- Theme toggle -->
+          <div class="glass rounded-2xl p-3 sm:p-4 flex items-center gap-3 softShadow">
+            <div class="text-right">
+              <div class="text-sm font-bold">وضع ليلي</div>
+              <div class="text-xs opacity-75">Moonlight Mode</div>
+            </div>
+            <button id="nightToggle" type="button" class="toggle" data-on="false" aria-label="Toggle night mode"></button>
+          </div>
+        </div>
+
+        <!-- Magic wand progress -->
+        <section class="glass rounded-3xl p-4 sm:p-5 relative overflow-hidden">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold">عصا التقدم السحرية</span>
+              <span id="stepLabel" class="text-xs opacity-75">الخطوة 1 من 8</span>
+            </div>
+            <div class="text-xs opacity-75" id="progressHint">✨ لمعة صغيرة عند كل انتقال</div>
+          </div>
+
+          <div class="mt-3 relative">
+            <div class="wand" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div id="wandFill" class="wandFill"></div>
+              <div id="wandTip" class="wandTip" style="right: calc(100% - 21px);" aria-hidden="true">
+                <div class="inner">
+                  <svg width="18" height="18" viewBox="0 0 100 100" aria-hidden="true">
+                    <path fill="rgba(255,120,199,.9)" d="M50 8 L58 34 L85 35 L63 52 L70 80 L50 64 L30 80 L37 52 L15 35 L42 34 Z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-2 text-xs opacity-80">
+              <span class="px-2 py-1 rounded-full glass">🌟 سريع</span>
+              <span class="px-2 py-1 rounded-full glass">💗 لطيف</span>
+              <span class="px-2 py-1 rounded-full glass">🪄 تفاعلات صغيرة</span>
+              <span class="px-2 py-1 rounded-full glass">📱 Responsive</span>
+            </div>
+          </div>
+        </section>
+      </header>
+
+      <!-- Layout: left form + right summary preview -->
+      <div class="mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Form panel -->
+        <section class="lg:col-span-8">
+          <div id="card" class="glass rounded-[2rem] p-4 sm:p-6 relative">
+            <div id="sparkleLayer" class="sparkle-layer" aria-hidden="true"></div>
+
+            <!-- top actions -->
+            <div class="flex items-center justify-between gap-3">
+              <div class="text-sm font-bold">لوحة التسجيل ✨</div>
+              <div class="flex items-center gap-2">
+                <button id="btnBackTop" type="button" class="px-3 py-2 rounded-2xl glass text-sm font-semibold hover:translate-y-[-1px] transition disabled:opacity-50 disabled:cursor-not-allowed">
+                  رجوع
+                </button>
+                <button id="btnNextTop" type="button" class="px-3 py-2 rounded-2xl bg-white/70 border border-white/60 text-sm font-extrabold shadow-sm hover:translate-y-[-1px] transition">
+                  التالي ✨
+                </button>
+              </div>
+            </div>
+
+            <div id="globalError" class="mt-4 hidden error-bubble rounded-2xl px-4 py-3 text-sm"></div>
+
+            <!-- Steps -->
+            <form id="form" class="mt-4 sm:mt-5 space-y-6" autocomplete="on">
+              <!-- STEP 1 -->
+              <div class="step active" data-step="1">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 class="text-lg sm:text-xl font-extrabold">1) الاسم داخل المجتمع + لقب سحري</h2>
+                    <p class="text-sm opacity-80 mt-1">اختاري اسمًا لطيفًا، ثم لقبي نفسك بلقب سحري من الـchips 🌸</p>
+                  </div>
+                  <div class="hidden sm:block glass rounded-2xl px-3 py-2 text-xs">
+                    💡 مثال: <span class="font-bold">LunaSora</span> + <span class="font-bold">Star Guardian</span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <label class="block">
+                    <span class="text-sm font-semibold">اسمك داخل المجتمع</span>
+                    <input id="communityName" class="input mt-2 w-full rounded-2xl px-4 py-3 text-sm" placeholder="مثال: pastelLuffy" />
+                    <div id="errCommunityName" class="mt-2 hidden error-bubble rounded-2xl px-3 py-2 text-xs"></div>
+                  </label>
+
+                  <label class="block">
+                    <span class="text-sm font-semibold">اللقب السحري (اختيار واحد)</span>
+                    <input id="magicalTitle" class="input mt-2 w-full rounded-2xl px-4 py-3 text-sm" placeholder="سيُملأ تلقائيًا عند الاختيار" readonly />
+                    <div id="errMagicalTitle" class="mt-2 hidden error-bubble rounded-2xl px-3 py-2 text-xs"></div>
+                  </label>
+                </div>
+
+                <div class="mt-3 glass rounded-3xl p-4">
+                  <div class="text-sm font-bold">Chips الألقاب السحرية</div>
+                  <div id="titleChips" class="mt-3 flex flex-wrap gap-2">
+                    <!-- injected -->
+                  </div>
+                  <div class="mt-3 text-xs opacity-80">
+                    ✨ تلميح: اختاري لقبًا يعكس طاقتك داخل المجتمع (مراجعات / رسم / كوسبلاي / نقاشات…)
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 2 -->
+              <div class="step" data-step="2">
+                <h2 class="text-lg sm:text-xl font-extrabold">2) Email + Password</h2>
+                <p class="text-sm opacity-80 mt-1">بنصائح كلمة مرور آمنة + زر إظهار/إخفاء 🗝️</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <label class="block">
+                    <span class="text-sm font-semibold">Email</span>
+                    <input id="email" type="email" class="input mt-2 w-full rounded-2xl px-4 py-3 text-sm" placeholder="you@magic.world" autocomplete="email" />
+                    <div id="errEmail" class="mt-2 hidden error-bubble rounded-2xl px-3 py-2 text-xs"></div>
+                  </label>
+
+                  <div class="block">
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm font-semibold">Password</span>
+                      <button id="togglePass" type="button" class="text-xs font-bold px-3 py-1 rounded-full glass hover:translate-y-[-1px] transition">
+                        إظهار 👀
+                      </button>
+                    </div>
+                    <input id="password" type="password" class="input mt-2 w-full rounded-2xl px-4 py-3 text-sm" placeholder="••••••••" autocomplete="new-password" />
+                    <div id="errPassword" class="mt-2 hidden error-bubble rounded-2xl px-3 py-2 text-xs"></div>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="hint-bubble rounded-3xl p-4">
+                    <div class="text-sm font-bold">تلميحات كلمة مرور آمنة ✨</div>
+                    <ul class="mt-2 text-sm leading-7">
+                      <li id="pwLen">• 8 أحرف أو أكثر</li>
+                      <li id="pwMix">• حروف + أرقام</li>
+                      <li id="pwSym">• رمز واحد على الأقل (مثل ! @ #)</li>
+                    </ul>
+                  </div>
+                  <div class="glass rounded-3xl p-4">
+                    <div class="text-sm font-bold">قوة كلمة المرور 💪</div>
+                    <div class="mt-3 wand h-4" aria-hidden="true">
+                      <div id="pwBar" class="wandFill" style="width:0%"></div>
+                    </div>
+                    <div id="pwStrengthText" class="mt-2 text-xs opacity-80">ابدئي بالكتابة…</div>
+                    <div class="mt-3 text-xs opacity-75">💖 لا تقلقي — سنذكّرك بلطف إذا كانت ضعيفة.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 3 -->
+              <div class="step" data-step="3">
+                <h2 class="text-lg sm:text-xl font-extrabold">3) معلومات شخصية</h2>
+                <p class="text-sm opacity-80 mt-1">Pronouns اختياري + بلد/مدينة + نبذة “فقاعة يوميات” 🫧</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <label class="block">
+                    <span class="text-sm font-semibold">Pronouns (اختياري)</span>
+                    <input id="pronouns" class="input mt-2 w-full rounded-2xl px-4 py-3 text-sm" placeholder="مثال: she/her أو he/him أو they/them" />
+                  </label>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <label class="block">
+                      <span class="text-sm font-semibold">البلد</span>
+                      <input id="country" class="input mt-2 w-full rounded-2xl px-4 py-3 text-sm" placeholder="مثال: فلسطين" />
+                      <div id="errCountry" class="mt-2 hidden error-bubble rounded-2xl px-3 py-2 text-xs"></div>
+                    </label>
+                    <label class="block">
+                      <span class="text-sm font-semibold">المدينة</span>
+                      <input id="city" class="input mt-2 w-full rounded-2xl px-4 py-3 text-sm" placeholder="مثال: القدس" />
+                      <div id="errCity" class="mt-2 hidden error-bubble rounded-2xl px-3 py-2 text-xs"></div>
+                    </label>
+                  </div>
+                </div>
+
+                <label class="block mt-4">
+                  <span class="text-sm font-semibold">نبذة “فقاعة يوميات”</span>
+                  <textarea id="diaryBubble" class="input mt-2 w-full rounded-3xl px-4 py-3 text-sm min-h-[120px]" placeholder="اكتبي 1-2 سطر عن مزاجك/ذوقك/هدفك داخل المجتمع…"></textarea>
+                  <div class="mt-2 flex items-center justify-between text-xs opacity-75">
+                    <span id="diaryCount">0 / 160</span>
+                    <span>🫧 خليها لطيفة وخفيفة!</span>
+                  </div>
+                  <div id="errDiary" class="mt-2 hidden error-bubble rounded-2xl px-3 py-2 text-xs"></div>
+                </label>
+              </div>
+
+              <!-- STEP 4 -->
+              <div class="step" data-step="4">
+                <h2 class="text-lg sm:text-xl font-extrabold">4) اختيار أفاتار — Magic Wardrobe</h2>
+                <p class="text-sm opacity-80 mt-1">اختاري إطار + لون + شكل… والـpreview يتغير فورًا 🎀</p>
+
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div class="glass rounded-3xl p-4">
+                    <div class="text-sm font-bold">Preview</div>
+                    <div class="mt-4 flex items-center justify-center">
+                      <div id="avatarFrame" class="frame">
+                        <div id="avatarFrameDeco" class="absolute inset-0 opacity-90"></div>
+                        <div id="avatarInner" class="frameInner">
+                          <!-- avatar svg -->
+                          <svg id="avatarSvg" width="84" height="84" viewBox="0 0 100 100" aria-hidden="true">
+                            <defs>
+                              <linearGradient id="faceGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="rgba(255,255,255,.95)"/>
+                                <stop offset="1" stop-color="rgba(255,255,255,.75)"/>
+                              </linearGradient>
+                            </defs>
+                            <circle cx="50" cy="50" r="44" fill="url(#faceGrad)" stroke="rgba(140,109,190,.18)" stroke-width="2"/>
+                            <circle cx="36" cy="46" r="5" fill="rgba(35,24,69,.65)"/>
+                            <circle cx="64" cy="46" r="5" fill="rgba(35,24,69,.65)"/>
+                            <path d="M36 67 C44 74 56 74 64 67" fill="none" stroke="rgba(255,120,199,.75)" stroke-width="4" stroke-linecap="round"/>
+                            <path id="avatarShape" d="" fill="none"/>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mt-4 text-xs opacity-80 text-center">
+                      ✨ هذا مجرد “سحر بسيط” — يمكنك تغييره لاحقًا داخل الإعدادات
+                    </div>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div class="glass rounded-3xl p-4">
+                      <div class="text-sm font-bold">الإطار (Frame)</div>
+                      <div id="frameChips" class="mt-3 flex flex-wrap gap-2"></div>
+                      <div id="errFrame" class="mt-3 hidden error-bubble rounded-2xl px-3 py-2 text-xs"></div>
+                    </div>
+
+                    <div class="glass rounded-3xl p-4">
+                      <div class="text-sm font-bold">لون السحر</div>
+                      <div class="mt-3 flex flex-wrap gap-2" id="colorChips"></div>
+                    </div>
+
+                    <div class="glass rounded-3xl p-4">
+                      <div class="text-sm font-bold">شكل إضافي (داخل الوجه)</div>
+                      <div id="shapeChips" class="mt-3 flex flex-wrap gap-2"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 5 -->
+              <div class="step" data-step="5">
+                <h2 class="text-lg sm:text-xl font-extrabold">5) اهتمامات أنمي/مانجا/كوميكس</h2>
+                <p class="text-sm opacity-80 mt-1">Checklist مع بحث + اختيار سريع “Top picks” 📚✨</p>
+
+                <div class="mt-4 glass rounded-3xl p-4">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="text-sm font-bold">ابحثي عن اهتماماتك</div>
+                    <div class="w-full sm:w-[320px]">
+                      <input id="interestSearch" class="input w-full rounded-2xl px-4 py-3 text-sm" placeholder="ابحث: شونين، رومانس، Webtoon..." />
+                    </div>
+                  </div>
+
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    <button id="topPicksBtn" type="button" class="px-3 py-2 rounded-2xl glass text-sm font-bold hover:translate-y-[-1px] transition">
+                      اختيار سريع: Top picks ⭐
+                    </button>
+                    <button id="clearInterestsBtn" type="button" class="px-3 py-2 rounded-2xl glass text-sm font-bold hover:translate-y-[-1px] transition">
+                      مسح الاختيار 🫧
+                    </button>
+                    <div class="text-xs opacity-75 self-center">اختاري 3 على الأقل</div>
+                  </div>
+
+                  <div id="interestsList" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <!-- injected -->
+                  </div>
+
+                  <div id="errInterests" class="mt-4 hidden error-bubble rounded-2xl px-3 py-2 text-xs"></div>
+                </div>
+              </div>
+
+              <!-- STEP 6 -->
+              <div class="step" data-step="6">
+                <h2 class="text-lg sm:text-xl font-extrabold">6) متابعة مستخدمين — أصدقاء السحر</h2>
+                <p class="text-sm opacity-80 mt-1">قائمة مع فلاتر (رسامين/مراجعين/كوسبلاي) 🤝✨</p>
+
+                <div class="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div class="glass rounded-3xl p-4 lg:col-span-1">
+                    <div class="text-sm font-bold">فلاتر</div>
+                    <div class="mt-3 space-y-2">
+                      <button class="filterBtn chip px-3 py-2 rounded-2xl text-sm font-bold w-full text-right" type="button" data-filter="all" data-selected="true">🌈 الكل</button>
+                      <button class="filterBtn chip px-3 py-2 rounded-2xl text-sm font-bold w-full text-right" type="button" data-filter="artist">🎨 رسامين</button>
+                      <button class="filterBtn chip px-3 py-2 rounded-2xl text-sm font-bold w-full text-right" type="button" data-filter="reviewer">📝 مراجعين</button>
+                      <button class="filterBtn chip px-3 py-2 rounded-2xl text-sm font-bold w-full text-right" type="button" data-filter="cosplay">🧵 كوسبلاي</button>
+                    </div>
+
+                    <div class="mt-4 hint-bubble rounded-3xl p-4 text-sm">
+                      💖 تلميح: تابعي 2 على الأقل — حتى يطلع لك “Feed” دافئ من البداية!
+                    </div>
+
+                    <div id="errFollows" class="mt-4 hidden error-bubble rounded-2xl px-3 py-2 text-xs"></div>
+                  </div>
+
+                  <div class="glass rounded-3xl p-4 lg:col-span-2">
+                    <div class="flex items-center justify-between gap-3">
+                      <div class="text-sm font-bold">قائمة أصدقاء السحر</div>
+                      <div class="text-xs opacity-75"><span id="followCount">0</span> متابَعين</div>
+                    </div>
+                    <div class="mt-3">
+                      <input id="followSearch" class="input w-full rounded-2xl px-4 py-3 text-sm" placeholder="ابحثي عن اسم… (مثال: Momo, Rina)" />
+                    </div>
+
+                    <div id="friendsList" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <!-- injected -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 7 -->
+              <div class="step" data-step="7">
+                <h2 class="text-lg sm:text-xl font-extrabold">7) تفضيلات التجربة</h2>
+                <p class="text-sm opacity-80 mt-1">Feed حسب (أنمي/مانجا/كوميكس) + تفعيل الوضع الليلي 🌙</p>
+
+                <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div class="glass rounded-3xl p-4">
+                    <div class="text-sm font-bold">فلترة الـFeed الافتراضية</div>
+                    <p class="text-xs opacity-75 mt-1">اختاري 1-3، والـFeed يبدأ من هناك.</p>
+
+                    <div class="mt-3 space-y-2">
+                      <label class="flex items-center justify-between gap-3 px-3 py-3 rounded-2xl border border-white/50 bg-white/40">
+                        <div class="flex items-center gap-2">
+                          <span>🎬</span><span class="text-sm font-semibold">أنمي</span>
+                        </div>
+                        <input id="feedAnime" type="checkbox" class="h-4 w-4 accent-pink-400" />
+                      </label>
+                      <label class="flex items-center justify-between gap-3 px-3 py-3 rounded-2xl border border-white/50 bg-white/40">
+                        <div class="flex items-center gap-2">
+                          <span>📖</span><span class="text-sm font-semibold">مانجا</span>
+                        </div>
+                        <input id="feedManga" type="checkbox" class="h-4 w-4 accent-pink-400" />
+                      </label>
+                      <label class="flex items-center justify-between gap-3 px-3 py-3 rounded-2xl border border-white/50 bg-white/40">
+                        <div class="flex items-center gap-2">
+                          <span>🗯️</span><span class="text-sm font-semibold">كوميكس</span>
+                        </div>
+                        <input id="feedComics" type="checkbox" class="h-4 w-4 accent-pink-400" />
+                      </label>
+                    </div>
+
+                    <div id="errFeed" class="mt-3 hidden error-bubble rounded-2xl px-3 py-2 text-xs"></div>
+                  </div>
+
+                  <div class="glass rounded-3xl p-4">
+                    <div class="flex items-center justify-between gap-3">
+                      <div>
+                        <div class="text-sm font-bold">الوضع الليلي</div>
+                        <div class="text-xs opacity-75">تقدري تفعليه هنا أو من أعلى الصفحة</div>
+                      </div>
+                      <button id="nightToggle2" type="button" class="toggle" data-on="false" aria-label="Toggle night mode (secondary)"></button>
+                    </div>
+
+                    <div class="mt-4 hint-bubble rounded-3xl p-4 text-sm">
+                      🌙 إذا تحبي ألوان هادئة بالليل، فعّليه — وسيتم حفظه كتفضيل.
+                    </div>
+
+                    <div class="mt-4 glass rounded-3xl p-4">
+                      <div class="text-sm font-bold">لمسة لطيفة</div>
+                      <p class="text-xs opacity-75 mt-1">عند الانتقال للخطوة الأخيرة، ستظهر “sparkle burst” أكبر ✨</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 8 -->
+              <div class="step" data-step="8">
+                <h2 class="text-lg sm:text-xl font-extrabold">8) التأكيد النهائي</h2>
+                <p class="text-sm opacity-80 mt-1">بطاقة جميلة تعرض كل اختياراتك + زر “ابدأ المغامرة” 🚀💖</p>
+
+                <div class="mt-4 glass rounded-[2rem] p-5 sm:p-6 relative overflow-hidden">
+                  <div class="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-pink-200/25 blur-2xl"></div>
+                  <div class="absolute -bottom-16 -right-16 w-56 h-56 rounded-full bg-sky-200/25 blur-2xl"></div>
+
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-12 h-12 rounded-2xl glass grid place-items-center">
+                        <svg width="28" height="28" viewBox="0 0 100 100" aria-hidden="true">
+                          <path fill="rgba(255,120,199,.9)" d="M50 8 L58 34 L85 35 L63 52 L70 80 L50 64 L30 80 L37 52 L15 35 L42 34 Z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <div class="text-sm font-extrabold">بطاقة السحر الخاصة بك</div>
+                        <div class="text-xs opacity-75">راجعي كل شيء قبل البداية</div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                      <button id="btnBackFinal" type="button" class="px-3 py-2 rounded-2xl glass text-sm font-semibold hover:translate-y-[-1px] transition">
+                        رجوع
+                      </button>
+                      <button id="btnStart" type="button" class="px-4 py-2 rounded-2xl bg-white/75 border border-white/60 text-sm font-extrabold shadow-sm hover:translate-y-[-1px] transition">
+                        ابدأ المغامرة ✨🪄
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="glass rounded-3xl p-4">
+                      <div class="text-sm font-bold">الهوية</div>
+                      <div class="mt-2 text-sm leading-7">
+                        <div>👤 الاسم: <span id="sumName" class="font-extrabold"></span></div>
+                        <div>🎀 اللقب: <span id="sumTitle" class="font-extrabold"></span></div>
+                        <div>🏷️ Pronouns: <span id="sumPronouns" class="font-semibold opacity-90"></span></div>
+                      </div>
+                    </div>
+
+                    <div class="glass rounded-3xl p-4">
+                      <div class="text-sm font-bold">الموقع + فقاعة اليوميات</div>
+                      <div class="mt-2 text-sm leading-7">
+                        <div>📍 <span id="sumPlace" class="font-extrabold"></span></div>
+                        <div class="mt-2 p-3 rounded-2xl bg-white/40 border border-white/50">
+                          🫧 <span id="sumDiary" class="opacity-90"></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="glass rounded-3xl p-4">
+                      <div class="text-sm font-bold">Magic Wardrobe</div>
+                      <div class="mt-3 flex items-center gap-4">
+                        <div class="scale-[.9] origin-right">
+                          <div id="sumAvatarFrame" class="frame" style="width:110px;height:110px;">
+                            <div id="sumAvatarFrameDeco" class="absolute inset-0 opacity-90"></div>
+                            <div class="frameInner" style="width:86px;height:86px;">
+                              <svg id="sumAvatarSvg" width="68" height="68" viewBox="0 0 100 100" aria-hidden="true">
+                                <defs>
+                                  <linearGradient id="faceGrad2" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0" stop-color="rgba(255,255,255,.95)"/>
+                                    <stop offset="1" stop-color="rgba(255,255,255,.75)"/>
+                                  </linearGradient>
+                                </defs>
+                                <circle cx="50" cy="50" r="44" fill="url(#faceGrad2)" stroke="rgba(140,109,190,.18)" stroke-width="2"/>
+                                <circle cx="36" cy="46" r="5" fill="rgba(35,24,69,.65)"/>
+                                <circle cx="64" cy="46" r="5" fill="rgba(35,24,69,.65)"/>
+                                <path d="M36 67 C44 74 56 74 64 67" fill="none" stroke="rgba(255,120,199,.75)" stroke-width="4" stroke-linecap="round"/>
+                                <path id="sumAvatarShape" d="" fill="none"/>
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="text-sm leading-7">
+                          <div>🖼️ الإطار: <span id="sumFrame" class="font-extrabold"></span></div>
+                          <div>🎨 اللون: <span id="sumColor" class="font-extrabold"></span></div>
+                          <div>🔮 الشكل: <span id="sumShape" class="font-extrabold"></span></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="glass rounded-3xl p-4">
+                      <div class="text-sm font-bold">الاهتمامات + الأصدقاء + الـFeed</div>
+                      <div class="mt-2 text-sm leading-7">
+                        <div>📚 اهتمامات: <span id="sumInterests" class="font-semibold"></span></div>
+                        <div class="mt-2">🤝 متابَعين: <span id="sumFollows" class="font-semibold"></span></div>
+                        <div class="mt-2">🧭 Feed: <span id="sumFeed" class="font-semibold"></span></div>
+                        <div class="mt-2">🌙 الوضع الليلي: <span id="sumNight" class="font-semibold"></span></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="finalError" class="mt-4 hidden error-bubble rounded-2xl px-4 py-3 text-sm"></div>
+                </div>
+              </div>
+
+              <!-- Bottom nav -->
+              <div class="pt-2 flex items-center justify-between gap-3">
+                <button id="btnBack" type="button" class="px-4 py-3 rounded-2xl glass text-sm font-semibold hover:translate-y-[-1px] transition disabled:opacity-50 disabled:cursor-not-allowed">
+                  رجوع
+                </button>
+
+                <div class="flex items-center gap-2">
+                  <button id="btnSaveDraft" type="button" class="px-4 py-3 rounded-2xl glass text-sm font-bold hover:translate-y-[-1px] transition">
+                    حفظ كمسودة 🫧
+                  </button>
+                  <button id="btnNext" type="button" class="px-4 py-3 rounded-2xl bg-white/75 border border-white/60 text-sm font-extrabold shadow-sm hover:translate-y-[-1px] transition">
+                    التالي ✨
+                  </button>
+                </div>
+              </div>
+
+              <div class="text-xs opacity-70 text-center">
+                بدون صور خارجية ✅ — فقط SVG وتدرجات. كل شيء يعمل في صفحة واحدة.
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Side summary -->
+        <aside class="lg:col-span-4">
+          <div class="glass rounded-[2rem] p-4 sm:p-5 sticky top-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm font-extrabold">ملخص سريع</div>
+                <div class="text-xs opacity-75">يتحدث تلقائيًا مع كل تغيير</div>
+              </div>
+              <div class="px-3 py-1 rounded-full glass text-xs" id="miniStep">1/8</div>
+            </div>
+
+            <div class="mt-4 space-y-3 text-sm">
+              <div class="glass rounded-2xl p-3">
+                <div class="text-xs opacity-75">👤 الاسم</div>
+                <div id="miniName" class="font-extrabold">—</div>
+              </div>
+              <div class="glass rounded-2xl p-3">
+                <div class="text-xs opacity-75">🎀 اللقب</div>
+                <div id="miniTitle" class="font-extrabold">—</div>
+              </div>
+              <div class="glass rounded-2xl p-3">
+                <div class="text-xs opacity-75">📍 الموقع</div>
+                <div id="miniPlace" class="font-semibold">—</div>
+              </div>
+              <div class="glass rounded-2xl p-3">
+                <div class="text-xs opacity-75">📚 الاهتمامات</div>
+                <div id="miniInterests" class="font-semibold">—</div>
+              </div>
+              <div class="glass rounded-2xl p-3">
+                <div class="text-xs opacity-75">🤝 المتابعة</div>
+                <div id="miniFollows" class="font-semibold">—</div>
+              </div>
+            </div>
+
+            <div class="mt-4 hint-bubble rounded-3xl p-4 text-sm">
+              💖 “رسائل الأخطاء” هنا لطيفة… بس راح تكون صارمة قليلًا عشان تحمي حسابك!
+            </div>
+
+            <div class="mt-4 glass rounded-3xl p-4">
+              <div class="text-sm font-extrabold">زر سحري صغير</div>
+              <button id="btnSparkleDemo" type="button" class="mt-3 w-full px-4 py-3 rounded-2xl bg-white/75 border border-white/60 text-sm font-extrabold hover:translate-y-[-1px] transition">
+                جرّب Sparkle ✨
+              </button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="mt-8 pb-8 text-center text-xs opacity-70">
+        ✨ Magical Girl Pastel UI — جاهزة للدمج لاحقًا مع Next.js / Nest.js (API).
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    // -----------------------------
+    // State
+    // -----------------------------
+    const state = {
+      step: 1,
+      total: 8,
+
+      // step 1
+      communityName: "",
+      magicalTitle: "",
+
+      // step 2
+      email: "",
+      password: "",
+      showPassword: false,
+
+      // step 3
+      pronouns: "",
+      country: "",
+      city: "",
+      diaryBubble: "",
+
+      // step 4
+      avatar: {
+        frame: "Starlight Halo",
+        color: "Pink Aurora",
+        shape: "Star Cheek"
+      },
+
+      // step 5
+      interests: new Set(),
+
+      // step 6
+      follows: new Set(),
+      followFilter: "all",
+      followSearch: "",
+
+      // step 7
+      feed: { anime:false, manga:false, comics:false },
+      nightMode: false
+    };
+
+    // -----------------------------
+    // Data
+    // -----------------------------
+    const magicalTitles = [
+      "Star Guardian", "Moonlight Whisper", "Pastel Paladin", "Heart Alchemist",
+      "Sparkle Archivist", "Cosmic Reviewer", "Ribbon Ranger", "Dream Illustrator",
+      "Cherry Blossom Knight", "Celestial Cosplayer", "Gentle Storm", "Aurora Keeper"
+    ];
+
+    const frames = [
+      { key:"Starlight Halo", icon:"⭐" },
+      { key:"Heart Crown", icon:"💗" },
+      { key:"Crystal Ring", icon:"💎" },
+      { key:"Ribbon Orbit", icon:"🎀" }
+    ];
+
+    const colors = [
+      { key:"Pink Aurora", a:"#ff78c7", b:"#ffd6f0" },
+      { key:"Sky Sorbet", a:"#83d2ff", b:"#eef7ff" },
+      { key:"Mint Spell", a:"#aaffc3", b:"#f4fff4" },
+      { key:"Lavender Mist", a:"#c9b5ff", b:"#fff1fb" }
+    ];
+
+    const shapes = [
+      { key:"Star Cheek", d:"M50 20 L54 30 L65 31 L56 38 L59 49 L50 43 L41 49 L44 38 L35 31 L46 30 Z" },
+      { key:"Heart Cheek", d:"M50 58 C41 54 36 49 36 44 C36 40 39 37 43 37 C46 37 49 39 50 41 C51 39 54 37 57 37 C61 37 64 40 64 44 C64 49 59 54 50 58 Z" },
+      { key:"Moon Wink", d:"M61 30 C55 30 50 35 50 41 C50 49 56 55 64 55 C67 55 70 54 72 52 C69 58 63 62 56 62 C46 62 38 54 38 44 C38 35 44 28 52 27 C55 26 58 27 61 30 Z" },
+      { key:"Spark Dot", d:"M50 50 m-6 0 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0" }
+    ];
+
+    const interestsCatalog = [
+      // Anime
+      { id:"shonen", label:"أنمي شونين", tags:["anime"] },
+      { id:"slice", label:"Slice of Life", tags:["anime"] },
+      { id:"fantasy", label:"فانتازيا", tags:["anime","manga"] },
+      { id:"isekai", label:"Isekai", tags:["anime","manga"] },
+      { id:"mecha", label:"Mecha", tags:["anime"] },
+      { id:"sports", label:"Sports Anime", tags:["anime"] },
+      // Manga
+      { id:"seinen", label:"مانجا سينين", tags:["manga"] },
+      { id:"shoujo", label:"شوجو رومانس", tags:["manga","anime"] },
+      { id:"webtoon", label:"Webtoon", tags:["manga","comics"] },
+      { id:"manhwa", label:"Manhwa", tags:["manga"] },
+      { id:"oneshot", label:"One-shot", tags:["manga"] },
+      // Comics
+      { id:"superhero", label:"Superhero Comics", tags:["comics"] },
+      { id:"indie", label:"Indie Comics", tags:["comics"] },
+      { id:"graphic", label:"Graphic Novels", tags:["comics"] },
+      { id:"mystery", label:"Mystery", tags:["comics","manga"] },
+      // Cross
+      { id:"romance", label:"رومانس", tags:["anime","manga","comics"] },
+      { id:"horror", label:"رعب لطيف؟ (Spooky)", tags:["anime","manga","comics"] },
+      { id:"comedy", label:"كوميديا", tags:["anime","manga","comics"] },
+      { id:"worldbuilding", label:"Worldbuilding", tags:["anime","manga","comics"] },
+      { id:"art", label:"فن ورسم", tags:["anime","manga","comics"] },
+      { id:"reviews", label:"مراجعات وتحليل", tags:["anime","manga","comics"] },
+      { id:"cosplay", label:"كوسبلاي", tags:["anime","manga","comics"] }
+    ];
+
+    const topPicks = ["romance","comedy","worldbuilding","art","reviews"];
+
+    const friendsCatalog = [
+      { id:"momo", name:"MomoSketch", role:"artist", blurb:"رسم شخصيات + بورتريه لطيف", badge:"🎨" },
+      { id:"rina", name:"RinaReviews", role:"reviewer", blurb:"تحليل حلقات بدون حرق", badge:"📝" },
+      { id:"kira", name:"KiraCos", role:"cosplay", blurb:"كوسبلاي + خياطة + حيل تصوير", badge:"🧵" },
+      { id:"hana", name:"HanaInk", role:"artist", blurb:"مانجا-ستايل وتلوين باستيل", badge:"🎨" },
+      { id:"sora", name:"SoraSpoilerFree", role:"reviewer", blurb:"مراجعات نظيفة ولطيفة", badge:"📝" },
+      { id:"yuki", name:"YukiWardrobe", role:"cosplay", blurb:"أفكار إكسسوارات سحرية", badge:"🧵" },
+      { id:"rei", name:"ReiPanel", role:"reviewer", blurb:"تحليل كوميكس + توصيات", badge:"📝" },
+      { id:"lili", name:"LiliLines", role:"artist", blurb:"خطوط نظيفة + نجوم صغيرة", badge:"🎨" }
+    ];
+
+    // -----------------------------
+    // Helpers
+    // -----------------------------
+    const $ = (id) => document.getElementById(id);
+
+    function setText(id, text){ $(id).textContent = text; }
+    function show(id){ $(id).classList.remove("hidden"); }
+    function hide(id){ $(id).classList.add("hidden"); }
+
+    function cuteError(msg){
+      // gentle phrasing
+      return "💔 هممم... " + msg + " ✨";
+    }
+    function cuteOk(msg){
+      return "💖 " + msg + " ✨";
+    }
+
+    function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+
+    function progressPercent(){
+      return Math.round(((state.step - 1) / (state.total - 1)) * 100);
+    }
+
+    function sparkleBurst(intensity = 14){
+      const layer = $("sparkleLayer");
+      const rect = layer.getBoundingClientRect();
+
+      const shapes = [
+        // star
+        `<svg viewBox="0 0 100 100" width="12" height="12" aria-hidden="true">
+          <path fill="rgba(255,120,199,.85)" d="M50 8 L58 34 L85 35 L63 52 L70 80 L50 64 L30 80 L37 52 L15 35 L42 34 Z"/>
+        </svg>`,
+        // heart
+        `<svg viewBox="0 0 100 100" width="12" height="12" aria-hidden="true">
+          <path fill="rgba(131,210,255,.85)" d="M50 86 C25 70 10 55 10 38 C10 26 19 18 31 18 C39 18 46 22 50 28 C54 22 61 18 69 18 C81 18 90 26 90 38 C90 55 75 70 50 86 Z"/>
+        </svg>`
+      ];
+
+      for(let i=0;i<intensity;i++){
+        const el = document.createElement("div");
+        el.className = "sparkle";
+        el.innerHTML = shapes[i % shapes.length];
+
+        const x = Math.random() * rect.width;
+        const y = Math.random() * rect.height;
+
+        const dx = (Math.random() * 120 - 60) + "px";
+        const dy = (Math.random() * -140 - 30) + "px";
+
+        el.style.setProperty("--x", x + "px");
+        el.style.setProperty("--y", y + "px");
+        el.style.setProperty("--dx", dx);
+        el.style.setProperty("--dy", dy);
+        el.style.left = "0px";
+        el.style.top = "0px";
+
+        layer.appendChild(el);
+        setTimeout(()=> el.remove(), 800);
+      }
+    }
+
+    // -----------------------------
+    // Render chips / lists
+    // -----------------------------
+    function renderTitleChips(){
+      const wrap = $("titleChips");
+      wrap.innerHTML = "";
+      magicalTitles.forEach(t => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip px-3 py-2 rounded-2xl text-sm font-bold";
+        btn.textContent = "✨ " + t;
+        btn.dataset.selected = (state.magicalTitle === t) ? "true":"false";
+        btn.addEventListener("click", () => {
+          state.magicalTitle = t;
+          $("magicalTitle").value = t;
+          renderTitleChips();
+          updateMini();
+          sparkleBurst(10);
+        });
+        wrap.appendChild(btn);
+      });
+    }
+
+    function renderFrameChips(){
+      const wrap = $("frameChips");
+      wrap.innerHTML = "";
+      frames.forEach(f => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip px-3 py-2 rounded-2xl text-sm font-bold";
+        btn.textContent = `${f.icon} ${f.key}`;
+        btn.dataset.selected = (state.avatar.frame === f.key) ? "true":"false";
+        btn.addEventListener("click", () => {
+          state.avatar.frame = f.key;
+          renderFrameChips();
+          renderAvatar();
+          updateMini();
+          sparkleBurst(10);
+        });
+        wrap.appendChild(btn);
+      });
+    }
+
+    function renderColorChips(){
+      const wrap = $("colorChips");
+      wrap.innerHTML = "";
+      colors.forEach(c => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip px-3 py-2 rounded-2xl text-sm font-bold flex items-center gap-2";
+        btn.dataset.selected = (state.avatar.color === c.key) ? "true":"false";
+        btn.innerHTML = `
+          <span class="inline-block w-4 h-4 rounded-full" style="background: linear-gradient(135deg, ${c.a}, ${c.b}); border:1px solid rgba(140,109,190,.18)"></span>
+          <span>${c.key}</span>
+        `;
+        btn.addEventListener("click", () => {
+          state.avatar.color = c.key;
+          renderColorChips();
+          renderAvatar();
+          updateMini();
+          sparkleBurst(10);
+        });
+        wrap.appendChild(btn);
+      });
+    }
+
+    function renderShapeChips(){
+      const wrap = $("shapeChips");
+      wrap.innerHTML = "";
+      shapes.forEach(s => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip px-3 py-2 rounded-2xl text-sm font-bold";
+        btn.textContent = "🔮 " + s.key;
+        btn.dataset.selected = (state.avatar.shape === s.key) ? "true":"false";
+        btn.addEventListener("click", () => {
+          state.avatar.shape = s.key;
+          renderShapeChips();
+          renderAvatar();
+          updateMini();
+          sparkleBurst(10);
+        });
+        wrap.appendChild(btn);
+      });
+    }
+
+    function renderInterests(){
+      const q = $("interestSearch").value.trim().toLowerCase();
+      const wrap = $("interestsList");
+      wrap.innerHTML = "";
+
+      const filtered = interestsCatalog.filter(x => {
+        if(!q) return true;
+        return x.label.toLowerCase().includes(q) || x.id.toLowerCase().includes(q) || x.tags.join(" ").includes(q);
+      });
+
+      filtered.forEach(item => {
+        const id = "int_" + item.id;
+        const checked = state.interests.has(item.id);
+
+        const row = document.createElement("label");
+        row.className = "flex items-center justify-between gap-3 px-3 py-3 rounded-2xl border border-white/50 bg-white/40 hover:translate-y-[-1px] transition";
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-xs px-2 py-1 rounded-full glass">${item.tags[0]}</span>
+            <span class="text-sm font-semibold">${item.label}</span>
+          </div>
+          <input id="${id}" type="checkbox" class="h-4 w-4 accent-pink-400" ${checked ? "checked":""} />
+        `;
+        row.querySelector("input").addEventListener("change", (e) => {
+          if(e.target.checked) state.interests.add(item.id);
+          else state.interests.delete(item.id);
+          updateMini();
+        });
+        wrap.appendChild(row);
+      });
+    }
+
+    function renderFriends(){
+      const wrap = $("friendsList");
+      wrap.innerHTML = "";
+
+      const q = state.followSearch.trim().toLowerCase();
+      const list = friendsCatalog.filter(f => {
+        const passFilter = state.followFilter === "all" ? true : f.role === state.followFilter;
+        const passSearch = !q ? true : (f.name.toLowerCase().includes(q) || f.blurb.toLowerCase().includes(q));
+        return passFilter && passSearch;
+      });
+
+      list.forEach(f => {
+        const followed = state.follows.has(f.id);
+
+        const card = document.createElement("div");
+        card.className = "glass rounded-3xl p-4 flex items-start justify-between gap-3 hover:translate-y-[-1px] transition";
+        card.innerHTML = `
+          <div class="flex gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-white/45 border border-white/50 grid place-items-center">
+              <span class="text-xl">${f.badge}</span>
+            </div>
+            <div>
+              <div class="text-sm font-extrabold">${f.name}</div>
+              <div class="text-xs opacity-75">${roleLabel(f.role)}</div>
+              <div class="text-xs opacity-80 mt-1">${f.blurb}</div>
+            </div>
+          </div>
+          <button type="button" class="chip px-3 py-2 rounded-2xl text-sm font-extrabold" data-selected="${followed ? "true":"false"}">
+            ${followed ? "متابعة ✓" : "تابع +"}
+          </button>
+        `;
+
+        card.querySelector("button").addEventListener("click", () => {
+          if(state.follows.has(f.id)) state.follows.delete(f.id);
+          else state.follows.add(f.id);
+          setText("followCount", state.follows.size);
+          updateMini();
+          renderFriends();
+          sparkleBurst(10);
+        });
+
+        wrap.appendChild(card);
+      });
+
+      setText("followCount", state.follows.size);
+    }
+
+    function roleLabel(role){
+      if(role === "artist") return "رسّامة/رسّام";
+      if(role === "reviewer") return "مراجعة/تحليل";
+      if(role === "cosplay") return "كوسبلاي";
+      return "—";
+    }
+
+    // -----------------------------
+    // Avatar rendering
+    // -----------------------------
+    function renderAvatar(){
+      const c = colors.find(x => x.key === state.avatar.color) || colors[0];
+      const frame = state.avatar.frame;
+
+      const frameEl = $("avatarFrameDeco");
+      const sumFrameEl = $("sumAvatarFrameDeco");
+
+      const frameStyle = (name) => {
+        // decorative SVG overlay
+        if(name === "Starlight Halo"){
+          return `
+            <svg viewBox="0 0 100 100" class="w-full h-full">
+              <defs>
+                <linearGradient id="fr1" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="${c.a}" stop-opacity=".65"/>
+                  <stop offset="1" stop-color="${c.b}" stop-opacity=".65"/>
+                </linearGradient>
+              </defs>
+              <circle cx="50" cy="50" r="48" fill="none" stroke="url(#fr1)" stroke-width="6" stroke-dasharray="6 6" />
+              <path d="M50 7 L56 25 L75 26 L60 38 L65 56 L50 45 L35 56 L40 38 L25 26 L44 25 Z" fill="rgba(255,255,255,.35)"/>
+            </svg>
+          `;
+        }
+        if(name === "Heart Crown"){
+          return `
+            <svg viewBox="0 0 100 100" class="w-full h-full">
+              <defs>
+                <linearGradient id="fr2" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="${c.a}" stop-opacity=".65"/>
+                  <stop offset="1" stop-color="${c.b}" stop-opacity=".65"/>
+                </linearGradient>
+              </defs>
+              <circle cx="50" cy="50" r="48" fill="none" stroke="url(#fr2)" stroke-width="6" />
+              <path d="M50 28 C43 24 39 20 39 15 C39 12 41 10 44 10 C46 10 49 12 50 14 C51 12 54 10 56 10 C59 10 61 12 61 15 C61 20 57 24 50 28 Z"
+                    fill="rgba(255,255,255,.45)"/>
+            </svg>
+          `;
+        }
+        if(name === "Crystal Ring"){
+          return `
+            <svg viewBox="0 0 100 100" class="w-full h-full">
+              <defs>
+                <linearGradient id="fr3" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="${c.a}" stop-opacity=".60"/>
+                  <stop offset="1" stop-color="${c.b}" stop-opacity=".60"/>
+                </linearGradient>
+              </defs>
+              <circle cx="50" cy="50" r="48" fill="none" stroke="url(#fr3)" stroke-width="7" stroke-linecap="round"/>
+              <path d="M50 10 L58 22 L50 34 L42 22 Z" fill="rgba(255,255,255,.40)"/>
+              <path d="M90 50 L78 58 L66 50 L78 42 Z" fill="rgba(255,255,255,.30)"/>
+              <path d="M50 90 L42 78 L50 66 L58 78 Z" fill="rgba(255,255,255,.25)"/>
+              <path d="M10 50 L22 42 L34 50 L22 58 Z" fill="rgba(255,255,255,.30)"/>
+            </svg>
+          `;
+        }
+        // Ribbon Orbit
+        return `
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <defs>
+              <linearGradient id="fr4" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="${c.a}" stop-opacity=".65"/>
+                <stop offset="1" stop-color="${c.b}" stop-opacity=".65"/>
+              </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="48" fill="none" stroke="url(#fr4)" stroke-width="6" stroke-dasharray="14 6" />
+            <path d="M30 22 C35 16 44 16 50 22 C56 16 65 16 70 22 C66 28 58 30 50 27 C42 30 34 28 30 22 Z"
+                  fill="rgba(255,255,255,.40)"/>
+          </svg>
+        `;
+      };
+
+      frameEl.innerHTML = frameStyle(frame);
+      sumFrameEl.innerHTML = frameStyle(frame);
+
+      // shape
+      const shape = shapes.find(s => s.key === state.avatar.shape) || shapes[0];
+      $("avatarShape").setAttribute("d", shape.d);
+      $("avatarShape").setAttribute("fill", "rgba(255,120,199,.18)");
+      $("avatarShape").setAttribute("stroke", "rgba(255,120,199,.55)");
+      $("avatarShape").setAttribute("stroke-width", "2");
+
+      $("sumAvatarShape").setAttribute("d", shape.d);
+      $("sumAvatarShape").setAttribute("fill", "rgba(255,120,199,.18)");
+      $("sumAvatarShape").setAttribute("stroke", "rgba(255,120,199,.55)");
+      $("sumAvatarShape").setAttribute("stroke-width", "2");
+
+      // border tone based on color
+      const border = `1px solid rgba(255,255,255,.6)`;
+      $("avatarFrame").style.border = border;
+      $("sumAvatarFrame").style.border = border;
+    }
+
+    // -----------------------------
+    // Validation per step
+    // -----------------------------
+    function clearErrors(){
+      hide("globalError");
+      ["errCommunityName","errMagicalTitle","errEmail","errPassword","errCountry","errCity","errDiary","errFrame","errInterests","errFollows","errFeed","finalError"]
+        .forEach(id => hide(id));
+    }
+
+    function setErr(id, msg){
+      $(id).textContent = cuteError(msg);
+      show(id);
+    }
+
+    function validateStep(step){
+      clearErrors();
+
+      if(step === 1){
+        const name = $("communityName").value.trim();
+        const title = $("magicalTitle").value.trim();
+        let ok = true;
+
+        if(name.length < 3){
+          setErr("errCommunityName", "اسم المجتمع لازم يكون 3 أحرف على الأقل.");
+          ok = false;
+        }
+        if(!/^[\p{L}\p{N}_\-. ]+$/u.test(name)){
+          setErr("errCommunityName", "استخدمي حروف/أرقام/مسافة أو (_) و(-) و(.) فقط.");
+          ok = false;
+        }
+        if(!title){
+          setErr("errMagicalTitle", "اختاري لقبًا سحريًا من الـchips.");
+          ok = false;
+        }
+
+        if(ok){
+          state.communityName = name;
+          state.magicalTitle = title;
+        }
+        return ok;
+      }
+
+      if(step === 2){
+        const email = $("email").value.trim();
+        const pw = $("password").value;
+
+        let ok = true;
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+          setErr("errEmail", "اكتبي Email صحيح (مثال: you@magic.world).");
+          ok = false;
+        }
+
+        const pwScore = passwordScore(pw);
+        if(pwScore < 3){
+          setErr("errPassword", "خليها أقوى شوي: طول + أرقام + رمز ✨");
+          ok = false;
+        }
+
+        if(ok){
+          state.email = email;
+          state.password = pw;
+        }
+        return ok;
+      }
+
+      if(step === 3){
+        const country = $("country").value.trim();
+        const city = $("city").value.trim();
+        const diary = $("diaryBubble").value.trim();
+
+        let ok = true;
+        if(country.length < 2){
+          setErr("errCountry", "اكتبي بلدك (حرفين على الأقل).");
+          ok = false;
+        }
+        if(city.length < 2){
+          setErr("errCity", "اكتبي مدينتك (حرفين على الأقل).");
+          ok = false;
+        }
+        if(diary.length < 10){
+          setErr("errDiary", "فقاعة اليوميات قصيرة جدًا — 10 أحرف على الأقل 🫧");
+          ok = false;
+        }
+        if(diary.length > 160){
+          setErr("errDiary", "فقاعة اليوميات لازم تكون 160 حرف أو أقل.");
+          ok = false;
+        }
+
+        if(ok){
+          state.pronouns = $("pronouns").value.trim();
+          state.country = country;
+          state.city = city;
+          state.diaryBubble = diary;
+        }
+        return ok;
+      }
+
+      if(step === 4){
+        // frame required (always has default), but we'll still validate
+        if(!state.avatar.frame){
+          setErr("errFrame", "اختاري إطار واحد على الأقل.");
+          return false;
+        }
+        return true;
+      }
+
+      if(step === 5){
+        if(state.interests.size < 3){
+          setErr("errInterests", "اختاري 3 اهتمامات على الأقل عشان نبني Feed لطيف لك 💖");
+          return false;
+        }
+        return true;
+      }
+
+      if(step === 6){
+        if(state.follows.size < 2){
+          setErr("errFollows", "تابعي 2 على الأقل — البداية أحلى مع أصدقاء ✨");
+          return false;
+        }
+        return true;
+      }
+
+      if(step === 7){
+        const any = state.feed.anime || state.feed.manga || state.feed.comics;
+        if(!any){
+          setErr("errFeed", "اختاري على الأقل نوع واحد للـFeed (أنمي/مانجا/كوميكس).");
+          return false;
+        }
+        return true;
+      }
+
+      return true;
+    }
+
+    // -----------------------------
+    // Password strength
+    // -----------------------------
+    function passwordScore(pw){
+      let score = 0;
+      if(pw.length >= 8) score++;
+      if(/[A-Za-z\u0600-\u06FF]/.test(pw) && /\d/.test(pw)) score++;
+      if(/[!@#$%^&*()_\-+=\[\]{};:'",.<>/?\\|`~]/.test(pw)) score++;
+      if(pw.length >= 12) score++;
+      return score; // 0..4
+    }
+
+    function updatePasswordUI(){
+      const pw = $("password").value;
+
+      const lenOk = pw.length >= 8;
+      const mixOk = (/[A-Za-z\u0600-\u06FF]/.test(pw) && /\d/.test(pw));
+      const symOk = /[!@#$%^&*()_\-+=\[\]{};:'",.<>/?\\|`~]/.test(pw);
+
+      $("pwLen").style.opacity = lenOk ? "1" : ".55";
+      $("pwMix").style.opacity = mixOk ? "1" : ".55";
+      $("pwSym").style.opacity = symOk ? "1" : ".55";
+
+      const score = passwordScore(pw);
+      const pct = [0, 30, 55, 75, 100][score];
+      $("pwBar").style.width = pct + "%";
+
+      let text = "ابدئي بالكتابة…";
+      if(pw.length){
+        if(score <= 1) text = "قوة: لطيفة… بس ضعيفة 😅";
+        else if(score === 2) text = "قوة: جيدة! 💖";
+        else if(score === 3) text = "قوة: قوية ✨";
+        else text = "قوة: أسطورية! 🌟";
+      }
+      setText("pwStrengthText", text);
+    }
+
+    // -----------------------------
+    // Step nav + UI update
+    // -----------------------------
+    function renderSteps(){
+      document.querySelectorAll(".step").forEach(el => {
+        el.classList.toggle("active", Number(el.dataset.step) === state.step);
+      });
+
+      // Buttons state
+      const isFirst = state.step === 1;
+      const isLast = state.step === state.total;
+
+      $("btnBack").disabled = isFirst;
+      $("btnBackTop").disabled = isFirst;
+
+      $("btnNext").classList.toggle("hidden", isLast);
+      $("btnNextTop").classList.toggle("hidden", isLast);
+      $("btnBackFinal").classList.toggle("hidden", !isLast);
+      $("btnStart").classList.toggle("hidden", !isLast);
+
+      // Progress wand
+      const pct = progressPercent();
+      $("wandFill").style.width = pct + "%";
+      $("wandFill").parentElement.setAttribute("aria-valuenow", String(pct));
+      // Tip position: in RTL, we move right based on remaining
+      // right = (100% - pct) - tipRadius
+      $("wandTip").style.right = `calc(${100 - pct}% - 21px)`;
+
+      setText("stepLabel", `الخطوة ${state.step} من ${state.total}`);
+      setText("miniStep", `${state.step}/${state.total}`);
+
+      // stronger sparkle on final
+      sparkleBurst(state.step === 8 ? 22 : 14);
+
+      if(state.step === 8){
+        buildFinalSummary();
+      }
+    }
+
+    function updateMini(){
+      setText("miniName", state.communityName || "—");
+      setText("miniTitle", state.magicalTitle || "—");
+      const place = (state.country || state.city) ? `${state.country || "—"} • ${state.city || "—"}` : "—";
+      setText("miniPlace", place);
+      setText("miniInterests", state.interests.size ? [...state.interests].slice(0,4).join("، ") + (state.interests.size>4 ? "…" : "") : "—");
+      setText("miniFollows", state.follows.size ? `${state.follows.size} صديق/ة` : "—");
+    }
+
+    function buildFinalSummary(){
+      // identity
+      setText("sumName", state.communityName || "—");
+      setText("sumTitle", state.magicalTitle || "—");
+      setText("sumPronouns", state.pronouns || "—");
+      setText("sumPlace", (state.country && state.city) ? `${state.country} • ${state.city}` : "—");
+      setText("sumDiary", state.diaryBubble || "—");
+
+      // wardrobe
+      setText("sumFrame", state.avatar.frame || "—");
+      setText("sumColor", state.avatar.color || "—");
+      setText("sumShape", state.avatar.shape || "—");
+
+      // interests
+      const interestLabels = [...state.interests]
+        .map(id => (interestsCatalog.find(x=>x.id===id)?.label || id));
+      setText("sumInterests", interestLabels.length ? interestLabels.join("، ") : "—");
+
+      // follows
+      const followNames = [...state.follows]
+        .map(id => (friendsCatalog.find(x=>x.id===id)?.name || id));
+      setText("sumFollows", followNames.length ? followNames.join("، ") : "—");
+
+      // feed
+      const feed = [];
+      if(state.feed.anime) feed.push("أنمي");
+      if(state.feed.manga) feed.push("مانجا");
+      if(state.feed.comics) feed.push("كوميكس");
+      setText("sumFeed", feed.length ? feed.join(" + ") : "—");
+
+      setText("sumNight", state.nightMode ? "مفعل 🌙" : "غير مفعل ☀️");
+
+      // sync avatar preview in summary
+      renderAvatar();
+    }
+
+    function goNext(){
+      if(!validateStep(state.step)){
+        $("globalError").textContent = cuteError("في تفاصيل صغيرة تحتاج لمسة سحر قبل ما نكمل.");
+        show("globalError");
+        sparkleBurst(6);
+        return;
+      }
+      state.step = clamp(state.step + 1, 1, state.total);
+      renderSteps();
+      updateMini();
+    }
+
+    function goBack(){
+      state.step = clamp(state.step - 1, 1, state.total);
+      renderSteps();
+      updateMini();
+    }
+
+    // -----------------------------
+    // Draft save/load (localStorage)
+    // -----------------------------
+    const DRAFT_KEY = "mg_pastel_signup_draft_v1";
+
+    function saveDraft(){
+      const draft = {
+        ...state,
+        interests: [...state.interests],
+        follows: [...state.follows],
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      $("globalError").textContent = cuteOk("تم حفظ المسودة! تقدري ترجعي لها بأي وقت 🫧");
+      show("globalError");
+      sparkleBurst(12);
+      setTimeout(()=> hide("globalError"), 2400);
+    }
+
+    function loadDraft(){
+      try{
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if(!raw) return;
+        const d = JSON.parse(raw);
+
+        // restore
+        state.step = d.step || 1;
+        state.total = 8;
+
+        state.communityName = d.communityName || "";
+        state.magicalTitle = d.magicalTitle || "";
+
+        state.email = d.email || "";
+        state.password = d.password || "";
+        state.showPassword = !!d.showPassword;
+
+        state.pronouns = d.pronouns || "";
+        state.country = d.country || "";
+        state.city = d.city || "";
+        state.diaryBubble = d.diaryBubble || "";
+
+        state.avatar = d.avatar || state.avatar;
+
+        state.interests = new Set(d.interests || []);
+        state.follows = new Set(d.follows || []);
+        state.followFilter = d.followFilter || "all";
+        state.followSearch = d.followSearch || "";
+
+        state.feed = d.feed || state.feed;
+        state.nightMode = !!d.nightMode;
+
+        // populate inputs
+        $("communityName").value = state.communityName;
+        $("magicalTitle").value = state.magicalTitle;
+        $("email").value = state.email;
+        $("password").value = state.password;
+        $("pronouns").value = state.pronouns;
+        $("country").value = state.country;
+        $("city").value = state.city;
+        $("diaryBubble").value = state.diaryBubble;
+
+        $("feedAnime").checked = !!state.feed.anime;
+        $("feedManga").checked = !!state.feed.manga;
+        $("feedComics").checked = !!state.feed.comics;
+
+        setTheme(state.nightMode);
+
+      }catch(e){
+        // ignore
+      }
+    }
+
+    // -----------------------------
+    // Theme toggle
+    // -----------------------------
+    function setTheme(night){
+      state.nightMode = !!night;
+      document.body.setAttribute("data-theme", night ? "night" : "day");
+      $("nightToggle").dataset.on = night ? "true":"false";
+      $("nightToggle2").dataset.on = night ? "true":"false";
+      updateMini();
+    }
+
+    // -----------------------------
+    // Wire events
+    // -----------------------------
+    function wire(){
+      // step nav
+      ["btnNext","btnNextTop"].forEach(id => $(id).addEventListener("click", goNext));
+      ["btnBack","btnBackTop"].forEach(id => $(id).addEventListener("click", goBack));
+      $("btnBackFinal").addEventListener("click", goBack);
+
+      // demo sparkle
+      $("btnSparkleDemo").addEventListener("click", () => sparkleBurst(18));
+
+      // save draft
+      $("btnSaveDraft").addEventListener("click", saveDraft);
+
+      // step1 inputs
+      $("communityName").addEventListener("input", (e)=>{ state.communityName = e.target.value; updateMini(); });
+      // magicalTitle is readonly; set via chips
+
+      // step2
+      $("email").addEventListener("input", (e)=>{ state.email = e.target.value; });
+      $("password").addEventListener("input", ()=>{ updatePasswordUI(); });
+
+      $("togglePass").addEventListener("click", () => {
+        state.showPassword = !state.showPassword;
+        $("password").type = state.showPassword ? "text" : "password";
+        $("togglePass").textContent = state.showPassword ? "إخفاء 🙈" : "إظهار 👀";
+        sparkleBurst(10);
+      });
+
+      // step3
+      $("pronouns").addEventListener("input", (e)=>{ state.pronouns = e.target.value; updateMini(); });
+      $("country").addEventListener("input", (e)=>{ state.country = e.target.value; updateMini(); });
+      $("city").addEventListener("input", (e)=>{ state.city = e.target.value; updateMini(); });
+
+      $("diaryBubble").addEventListener("input", (e)=>{
+        const v = e.target.value;
+        if(v.length > 160) e.target.value = v.slice(0,160);
+        state.diaryBubble = e.target.value;
+        setText("diaryCount", `${state.diaryBubble.length} / 160`);
+        updateMini();
+      });
+
+      // step5
+      $("interestSearch").addEventListener("input", renderInterests);
+      $("topPicksBtn").addEventListener("click", ()=>{
+        topPicks.forEach(id => state.interests.add(id));
+        renderInterests();
+        updateMini();
+        sparkleBurst(16);
+      });
+      $("clearInterestsBtn").addEventListener("click", ()=>{
+        state.interests.clear();
+        renderInterests();
+        updateMini();
+        sparkleBurst(10);
+      });
+
+      // step6 filter buttons
+      document.querySelectorAll(".filterBtn").forEach(btn => {
+        btn.addEventListener("click", ()=>{
+          document.querySelectorAll(".filterBtn").forEach(b=> b.dataset.selected="false");
+          btn.dataset.selected = "true";
+          state.followFilter = btn.dataset.filter;
+          renderFriends();
+          sparkleBurst(10);
+        });
+      });
+
+      $("followSearch").addEventListener("input", (e)=>{
+        state.followSearch = e.target.value;
+        renderFriends();
+      });
+
+      // step7 feed checkboxes
+      $("feedAnime").addEventListener("change", (e)=>{ state.feed.anime = e.target.checked; });
+      $("feedManga").addEventListener("change", (e)=>{ state.feed.manga = e.target.checked; });
+      $("feedComics").addEventListener("change", (e)=>{ state.feed.comics = e.target.checked; });
+
+      // theme toggles
+      const toggles = ["nightToggle","nightToggle2"];
+      toggles.forEach(id=>{
+        $(id).addEventListener("click", ()=>{ setTheme(!state.nightMode); sparkleBurst(12); });
+      });
+
+      // final start
+      $("btnStart").addEventListener("click", ()=>{
+        // validate all quickly
+        const allOk =
+          validateStep(1) &&
+          validateStep(2) &&
+          validateStep(3) &&
+          validateStep(4) &&
+          validateStep(5) &&
+          validateStep(6) &&
+          validateStep(7);
+
+        if(!allOk){
+          $("finalError").textContent = cuteError("في خطوة ناقصة أو اختيار ناقص — ارجعي وصححيها وبترجعي أقوى 💖");
+          show("finalError");
+          sparkleBurst(10);
+          return;
+        }
+
+        hide("finalError");
+        sparkleBurst(28);
+
+        // playful "submit"
+        const payload = {
+          communityName: state.communityName,
+          magicalTitle: state.magicalTitle,
+          email: state.email,
+          password: "(hidden)", // never log real pw
+          pronouns: state.pronouns,
+          country: state.country,
+          city: state.city,
+          diaryBubble: state.diaryBubble,
+          avatar: state.avatar,
+          interests: [...state.interests],
+          follows: [...state.follows],
+          feed: state.feed,
+          nightMode: state.nightMode
+        };
+
+        $("globalError").textContent = cuteOk("تم! 🎉 (هنا عادةً نرسل البيانات للـAPI). افتحي Console لترين الـpayload.");
+        show("globalError");
+
+        console.log("✨ Magical Girl Signup Payload (demo):", payload);
+
+        // optionally clear draft
+        localStorage.removeItem(DRAFT_KEY);
+      });
+    }
+
+    // -----------------------------
+    // Init
+    // -----------------------------
+    function init(){
+      renderTitleChips();
+      renderFrameChips();
+      renderColorChips();
+      renderShapeChips();
+
+      loadDraft();
+
+      // apply loaded values to UI components after load
+      renderTitleChips();
+      renderFrameChips();
+      renderColorChips();
+      renderShapeChips();
+      renderInterests();
+      renderFriends();
+
+      // fill magic title input if loaded
+      $("magicalTitle").value = state.magicalTitle || "";
+
+      // diary counter
+      setText("diaryCount", `${(state.diaryBubble||"").length} / 160`);
+
+      // password ui
+      updatePasswordUI();
+      $("password").type = state.showPassword ? "text" : "password";
+      $("togglePass").textContent = state.showPassword ? "إخفاء 🙈" : "إظهار 👀";
+
+      // set theme
+      setTheme(state.nightMode);
+
+      // render avatar
+      renderAvatar();
+
+      // mini summary
+      updateMini();
+
+      // go to saved step
+      renderSteps();
+
+      // wires
+      wire();
+    }
+
+    init();
+  </script>
+</body>
+</html>

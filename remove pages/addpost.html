@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Floating Add Button → Options → Modal</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind config (animations + colors) -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            keyframes: {
+              pop: {
+                "0%": { transform: "scale(.92)", opacity: "0" },
+                "60%": { transform: "scale(1.02)", opacity: "1" },
+                "100%": { transform: "scale(1)", opacity: "1" },
+              },
+              floaty: {
+                "0%, 100%": { transform: "translateY(0)" },
+                "50%": { transform: "translateY(-6px)" },
+              },
+              shimmer: {
+                "0%": { transform: "translateX(-140%)" },
+                "100%": { transform: "translateX(140%)" },
+              },
+              sheetUp: {
+                "0%": { transform: "translateY(18px)", opacity: "0" },
+                "100%": { transform: "translateY(0)", opacity: "1" },
+              },
+            },
+            animation: {
+              pop: "pop 220ms cubic-bezier(.2,.9,.2,1) both",
+              floaty: "floaty 4s ease-in-out infinite",
+              shimmer: "shimmer 1.8s ease-in-out infinite",
+              sheetUp: "sheetUp 240ms cubic-bezier(.2,.9,.2,1) both",
+            },
+            boxShadow: {
+              glow: "0 0 0 1px rgba(255,255,255,.06), 0 18px 50px rgba(0,0,0,.55)",
+              neon: "0 12px 40px rgba(124,58,237,.45), 0 0 0 1px rgba(255,255,255,.06)",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      /* Tiny extras Tailwind can’t express cleanly */
+      .no-scrollbar::-webkit-scrollbar {
+        width: 0px;
+        height: 0px;
+      }
+      .tap-highlight-none {
+        -webkit-tap-highlight-color: transparent;
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen bg-slate-950 text-slate-100 selection:bg-fuchsia-500/30 selection:text-white">
+    <!-- Background (demo) -->
+    <div class="pointer-events-none fixed inset-0 overflow-hidden">
+      <div class="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-violet-600/20 blur-3xl"></div>
+      <div class="absolute -bottom-48 -right-32 h-[560px] w-[560px] rounded-full bg-cyan-500/15 blur-3xl"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.06),transparent_55%)]"></div>
+      <div class="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(to_right,rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:34px_34px]"></div>
+    </div>
+
+    <main class="relative mx-auto max-w-4xl px-6 py-14">
+      <div class="flex items-start justify-between gap-8">
+        <div>
+          <h1 class="text-3xl font-semibold tracking-tight">
+            Floating “Add” Button Flow
+          </h1>
+          <p class="mt-3 max-w-2xl text-slate-300">
+            Bottom-left add button → options (Post / Swipes / Story) → custom modal.
+            Designed with Tailwind + smooth micro-interactions.
+          </p>
+
+          <div class="mt-10 grid gap-4 sm:grid-cols-2">
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-glow">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/20 ring-1 ring-white/10">
+                  <!-- icon -->
+                  <svg viewBox="0 0 24 24" class="h-5 w-5 text-violet-200" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14" stroke-linecap="round" />
+                  </svg>
+                </span>
+                <div>
+                  <p class="font-medium">Speed-dial style options</p>
+                  <p class="text-sm text-slate-300">Staggered reveal near the FAB.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-glow">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 ring-1 ring-white/10">
+                  <!-- icon -->
+                  <svg viewBox="0 0 24 24" class="h-5 w-5 text-cyan-200" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 7h16M4 12h16M4 17h10" stroke-linecap="round" />
+                  </svg>
+                </span>
+                <div>
+                  <p class="font-medium">Modal + glass UI</p>
+                  <p class="text-sm text-slate-300">Backdrop blur, glow, and focus UX.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hidden lg:block">
+          <div class="relative mt-2 w-[320px] rounded-3xl border border-white/10 bg-white/5 p-5 shadow-glow">
+            <div class="absolute inset-0 overflow-hidden rounded-3xl">
+              <div class="absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-40 blur-sm animate-shimmer"></div>
+            </div>
+            <p class="relative text-sm text-slate-300">
+              Tip: hit <span class="rounded bg-white/10 px-1.5 py-0.5 text-slate-200">Esc</span> to close
+              options or modal.
+            </p>
+            <div class="relative mt-4 flex items-center gap-2 text-xs text-slate-400">
+              <span class="h-2 w-2 rounded-full bg-emerald-400/80"></span>
+              <span>Animations + accessibility basics included</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Click-catcher for options (closes speed-dial if you click outside) -->
+    <div id="optionsBackdrop" class="fixed inset-0 z-40 hidden"></div>
+
+    <!-- FAB + Speed Dial -->
+    <div class="fixed bottom-6 left-6 z-50 tap-highlight-none">
+      <!-- Options (appear above FAB) -->
+      <div id="speedDial" class="mb-3 flex flex-col items-start gap-3 pointer-events-none select-none">
+        <!-- Option: Post -->
+        <button
+          type="button"
+          data-type="post"
+          class="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/10 px-3 py-2 shadow-glow backdrop-blur-xl
+                 opacity-0 translate-y-3 scale-95 transition-all duration-200 ease-out
+                 hover:bg-white/15 hover:border-white/15 hover:-translate-y-0.5
+                 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/80"
+          style="transition-delay: 40ms"
+          aria-label="Create a Post"
+        >
+          <span class="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-violet-500/30 to-fuchsia-500/20 ring-1 ring-white/10">
+            <svg viewBox="0 0 24 24" class="h-5 w-5 text-violet-100" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 6h16M4 12h10M4 18h16" stroke-linecap="round" />
+            </svg>
+          </span>
+          <div class="text-left">
+            <div class="text-sm font-semibold leading-tight">Post</div>
+            <div class="text-xs text-slate-300">Share a normal update</div>
+          </div>
+          <span class="ml-1 inline-flex items-center rounded-lg bg-white/5 px-2 py-1 text-[11px] text-slate-300 ring-1 ring-white/10">
+            Enter
+          </span>
+        </button>
+
+        <!-- Option: Swipes -->
+        <button
+          type="button"
+          data-type="swipes"
+          class="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/10 px-3 py-2 shadow-glow backdrop-blur-xl
+                 opacity-0 translate-y-3 scale-95 transition-all duration-200 ease-out
+                 hover:bg-white/15 hover:border-white/15 hover:-translate-y-0.5
+                 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/80"
+          style="transition-delay: 85ms"
+          aria-label="Create Swipes"
+        >
+          <span class="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-cyan-500/25 to-sky-500/15 ring-1 ring-white/10">
+            <svg viewBox="0 0 24 24" class="h-5 w-5 text-cyan-100" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 7l-4 5 4 5M16 7l4 5-4 5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <div class="text-left">
+            <div class="text-sm font-semibold leading-tight">Swipes</div>
+            <div class="text-xs text-slate-300">Carousel / quick slides</div>
+          </div>
+          <span class="ml-1 inline-flex items-center rounded-lg bg-white/5 px-2 py-1 text-[11px] text-slate-300 ring-1 ring-white/10">
+            ⇢
+          </span>
+        </button>
+
+        <!-- Option: Story -->
+        <button
+          type="button"
+          data-type="story"
+          class="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/10 px-3 py-2 shadow-glow backdrop-blur-xl
+                 opacity-0 translate-y-3 scale-95 transition-all duration-200 ease-out
+                 hover:bg-white/15 hover:border-white/15 hover:-translate-y-0.5
+                 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/80"
+          style="transition-delay: 130ms"
+          aria-label="Create a Story"
+        >
+          <span class="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-lime-500/15 ring-1 ring-white/10">
+            <svg viewBox="0 0 24 24" class="h-5 w-5 text-emerald-100" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 6v6l4 2" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke-linecap="round" />
+            </svg>
+          </span>
+          <div class="text-left">
+            <div class="text-sm font-semibold leading-tight">Story</div>
+            <div class="text-xs text-slate-300">Short-lived highlight</div>
+          </div>
+          <span class="ml-1 inline-flex items-center rounded-lg bg-white/5 px-2 py-1 text-[11px] text-slate-300 ring-1 ring-white/10">
+            24h
+          </span>
+        </button>
+      </div>
+
+      <!-- FAB -->
+      <button
+        id="fab"
+        type="button"
+        class="group relative grid h-14 w-14 place-items-center rounded-2xl shadow-neon
+               bg-gradient-to-br from-violet-600 to-fuchsia-600
+               ring-1 ring-white/15 backdrop-blur
+               transition duration-200 ease-out
+               hover:scale-[1.03] hover:shadow-[0_18px_60px_rgba(124,58,237,.55)]
+               active:scale-[0.98]
+               focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-300/90
+               tap-highlight-none"
+        aria-expanded="false"
+        aria-controls="speedDial"
+        aria-label="Create"
+      >
+        <!-- outer glow ring -->
+        <span class="pointer-events-none absolute -inset-2 rounded-[20px] bg-gradient-to-br from-violet-500/30 to-fuchsia-500/20 blur-xl opacity-60"></span>
+
+        <!-- ripple sheen -->
+        <span class="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+          <span class="absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/25 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100"></span>
+        </span>
+
+        <!-- icon -->
+        <svg id="fabIcon" viewBox="0 0 24 24" class="relative h-6 w-6 text-white transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14" stroke-linecap="round" />
+        </svg>
+
+        <!-- tiny floating dot -->
+        <span class="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(34,211,238,.8)] animate-floaty"></span>
+      </button>
+    </div>
+
+    <!-- Modal -->
+    <div id="modalOverlay" class="fixed inset-0 z-[60] hidden" aria-hidden="true">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+      <div class="relative flex min-h-full items-end justify-center p-4 sm:items-center">
+        <div
+          id="modalPanel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalTitle"
+          class="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white/10 shadow-glow backdrop-blur-xl"
+        >
+          <!-- Top gradient line -->
+          <div class="h-1 w-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400"></div>
+
+          <div class="p-5 sm:p-6">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <span id="modalBadge" class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10">
+                  <!-- icon injected by JS -->
+                </span>
+                <div>
+                  <h2 id="modalTitle" class="text-lg font-semibold tracking-tight">Create</h2>
+                  <p id="modalSubtitle" class="mt-0.5 text-sm text-slate-300">Pick what you want to publish.</p>
+                </div>
+              </div>
+
+              <button
+                id="modalClose"
+                type="button"
+                class="rounded-2xl border border-white/10 bg-white/5 p-2.5 text-slate-200 transition
+                       hover:bg-white/10 hover:border-white/15
+                       focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                aria-label="Close modal"
+              >
+                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 6l12 12M18 6L6 18" stroke-linecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            <form class="mt-5 space-y-4">
+              <div class="grid gap-3 sm:grid-cols-2">
+                <label class="block">
+                  <span class="text-xs font-medium text-slate-300">Title</span>
+                  <input
+                    id="modalTitleInput"
+                    type="text"
+                    placeholder="e.g. New chapter drop!"
+                    class="mt-1 w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-slate-100
+                           placeholder:text-slate-400 outline-none transition
+                           focus:border-violet-400/40 focus:ring-2 focus:ring-violet-400/25"
+                  />
+                </label>
+
+                <label class="block">
+                  <span class="text-xs font-medium text-slate-300">Visibility</span>
+                  <select
+                    id="modalVisibility"
+                    class="mt-1 w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-slate-100
+                           outline-none transition
+                           focus:border-cyan-400/40 focus:ring-2 focus:ring-cyan-400/25"
+                  >
+                    <option>Public</option>
+                    <option>Followers</option>
+                    <option>Close Friends</option>
+                    <option>Private</option>
+                  </select>
+                </label>
+              </div>
+
+              <label class="block">
+                <span class="text-xs font-medium text-slate-300">Caption</span>
+                <textarea
+                  rows="4"
+                  placeholder="Write something fun…"
+                  class="no-scrollbar mt-1 w-full resize-none rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-slate-100
+                         placeholder:text-slate-400 outline-none transition
+                         focus:border-fuchsia-400/40 focus:ring-2 focus:ring-fuchsia-400/20"
+                ></textarea>
+              </label>
+
+              <div class="grid gap-3 sm:grid-cols-2">
+                <label class="block">
+                  <span class="text-xs font-medium text-slate-300">Tags</span>
+                  <input
+                    type="text"
+                    placeholder="#anime #manga #cosplay"
+                    class="mt-1 w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-slate-100
+                           placeholder:text-slate-400 outline-none transition
+                           focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20"
+                  />
+                </label>
+
+                <label class="block">
+                  <span class="text-xs font-medium text-slate-300">Media</span>
+                  <div class="mt-1 flex items-center justify-between gap-3 rounded-2xl border border-dashed border-white/15 bg-black/20 px-4 py-3">
+                    <div class="flex items-center gap-3">
+                      <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 ring-1 ring-white/10">
+                        <svg viewBox="0 0 24 24" class="h-5 w-5 text-slate-200" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M4 16l4-4 4 4 4-4 4 4" stroke-linecap="round" stroke-linejoin="round" />
+                          <path d="M4 7h16v10H4z" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p id="mediaHint" class="text-sm font-medium">Drop image/video</p>
+                        <p class="text-xs text-slate-400">or click to upload</p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-slate-100 ring-1 ring-white/10 transition
+                             hover:bg-white/15 hover:ring-white/15"
+                    >
+                      Upload
+                    </button>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Story-only settings (toggled by JS) -->
+              <div id="storySettings" class="hidden rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="flex items-center justify-between">
+                  <p class="text-sm font-semibold">Story Settings</p>
+                  <span class="text-xs text-slate-400">Optional</span>
+                </div>
+                <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                  <label class="block">
+                    <span class="text-xs font-medium text-slate-300">Duration</span>
+                    <select
+                      class="mt-1 w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-slate-100 outline-none transition
+                             focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20"
+                    >
+                      <option>5 seconds</option>
+                      <option>10 seconds</option>
+                      <option>15 seconds</option>
+                    </select>
+                  </label>
+                  <label class="block">
+                    <span class="text-xs font-medium text-slate-300">Music</span>
+                    <input
+                      type="text"
+                      placeholder="Search track…"
+                      class="mt-1 w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-400 outline-none transition
+                             focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div class="mt-2 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
+                <button
+                  id="modalCancel"
+                  type="button"
+                  class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-200 transition
+                         hover:bg-white/10 hover:border-white/15
+                         focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  id="modalPublish"
+                  type="button"
+                  class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 px-5 py-3 text-sm font-semibold text-white
+                         shadow-neon ring-1 ring-white/10 transition
+                         hover:scale-[1.01] active:scale-[0.99]
+                         focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-300/90"
+                >
+                  <span class="relative z-10">Publish</span>
+                  <span class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    <span class="absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/25 to-transparent blur-sm"></span>
+                  </span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Elements
+      const fab = document.getElementById("fab");
+      const fabIcon = document.getElementById("fabIcon");
+      const speedDial = document.getElementById("speedDial");
+      const optionsBackdrop = document.getElementById("optionsBackdrop");
+
+      const modalOverlay = document.getElementById("modalOverlay");
+      const modalPanel = document.getElementById("modalPanel");
+      const modalClose = document.getElementById("modalClose");
+      const modalCancel = document.getElementById("modalCancel");
+      const modalPublish = document.getElementById("modalPublish");
+
+      const modalTitle = document.getElementById("modalTitle");
+      const modalSubtitle = document.getElementById("modalSubtitle");
+      const modalBadge = document.getElementById("modalBadge");
+      const modalTitleInput = document.getElementById("modalTitleInput");
+      const storySettings = document.getElementById("storySettings");
+      const mediaHint = document.getElementById("mediaHint");
+
+      const optionButtons = Array.from(speedDial.querySelectorAll("button[data-type]"));
+
+      // State
+      let optionsOpen = false;
+      let lastFocusEl = null;
+
+      // Helpers
+      const setOptionsOpen = (open) => {
+        optionsOpen = open;
+        fab.setAttribute("aria-expanded", String(open));
+
+        // Rotate plus into an X feel (without changing the icon)
+        fabIcon.classList.toggle("rotate-45", open);
+
+        // Enable click catcher when open
+        optionsBackdrop.classList.toggle("hidden", !open);
+
+        // Reveal/hide speed dial items with stagger
+        optionButtons.forEach((btn) => {
+          btn.classList.toggle("pointer-events-none", !open);
+          btn.classList.toggle("opacity-0", !open);
+          btn.classList.toggle("translate-y-3", !open);
+          btn.classList.toggle("scale-95", !open);
+
+          btn.classList.toggle("opacity-100", open);
+          btn.classList.toggle("translate-y-0", open);
+          btn.classList.toggle("scale-100", open);
+        });
+      };
+
+      const openModalFor = (type) => {
+        lastFocusEl = document.activeElement;
+
+        // Configure content by type
+        const cfg = {
+          post: {
+            title: "Create Post",
+            subtitle: "Publish a regular update to your community.",
+            badge: `
+              <span class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-violet-500/30 to-fuchsia-500/20 ring-1 ring-white/10">
+                <svg viewBox="0 0 24 24" class="h-5 w-5 text-violet-100" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 6h16M4 12h10M4 18h16" stroke-linecap="round" />
+                </svg>
+              </span>`,
+            media: "Add an image/video",
+            showStorySettings: false,
+          },
+          swipes: {
+            title: "Create Swipes",
+            subtitle: "Build a swipeable carousel (slides / pages).",
+            badge: `
+              <span class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-500/25 to-sky-500/15 ring-1 ring-white/10">
+                <svg viewBox="0 0 24 24" class="h-5 w-5 text-cyan-100" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M8 7l-4 5 4 5M16 7l4 5-4 5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>`,
+            media: "Add slide media",
+            showStorySettings: false,
+          },
+          story: {
+            title: "Create Story",
+            subtitle: "Post a short-lived story with optional settings.",
+            badge: `
+              <span class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500/20 to-lime-500/15 ring-1 ring-white/10">
+                <svg viewBox="0 0 24 24" class="h-5 w-5 text-emerald-100" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 6v6l4 2" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke-linecap="round" />
+                </svg>
+              </span>`,
+            media: "Add story media",
+            showStorySettings: true,
+          },
+        }[type];
+
+        modalTitle.textContent = cfg.title;
+        modalSubtitle.textContent = cfg.subtitle;
+        modalBadge.innerHTML = cfg.badge;
+        mediaHint.textContent = cfg.media;
+
+        storySettings.classList.toggle("hidden", !cfg.showStorySettings);
+
+        // Show modal
+        modalOverlay.classList.remove("hidden");
+        modalOverlay.setAttribute("aria-hidden", "false");
+
+        // Animate panel
+        modalPanel.classList.remove("animate-sheetUp");
+        // force reflow to restart animation
+        void modalPanel.offsetWidth;
+        modalPanel.classList.add("animate-sheetUp");
+
+        // Focus first input
+        setTimeout(() => modalTitleInput.focus(), 30);
+      };
+
+      const closeModal = () => {
+        modalOverlay.classList.add("hidden");
+        modalOverlay.setAttribute("aria-hidden", "true");
+
+        if (lastFocusEl && typeof lastFocusEl.focus === "function") {
+          lastFocusEl.focus();
+        }
+      };
+
+      // Click handlers
+      fab.addEventListener("click", () => setOptionsOpen(!optionsOpen));
+      optionsBackdrop.addEventListener("click", () => setOptionsOpen(false));
+
+      optionButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const type = btn.getAttribute("data-type");
+          setOptionsOpen(false);
+          openModalFor(type);
+        });
+      });
+
+      // Modal close actions
+      modalClose.addEventListener("click", closeModal);
+      modalCancel.addEventListener("click", closeModal);
+
+      // Click outside panel closes modal
+      modalOverlay.addEventListener("click", (e) => {
+        if (e.target === modalOverlay || e.target === modalOverlay.firstElementChild) closeModal();
+      });
+
+      // Publish demo action
+      modalPublish.addEventListener("click", () => {
+        modalPublish.disabled = true;
+        const original = modalPublish.innerHTML;
+        modalPublish.innerHTML = `<span class="relative z-10">Publishing…</span>`;
+        setTimeout(() => {
+          modalPublish.disabled = false;
+          modalPublish.innerHTML = original;
+          closeModal();
+        }, 650);
+      });
+
+      // Keyboard support: ESC closes topmost (modal > options)
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (!modalOverlay.classList.contains("hidden")) return closeModal();
+          if (optionsOpen) return setOptionsOpen(false);
+        }
+      });
+
+      // Start with options closed (ensures correct classes)
+      setOptionsOpen(false);
+    </script>
+  </body>
+</html>

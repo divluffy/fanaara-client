@@ -1,0 +1,2303 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Join the Team — Onboarding</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          keyframes: {
+            floaty: { "0%,100%": { transform: "translateY(0)" }, "50%": { transform: "translateY(-6px)" } },
+            swipe: { "0%": { transform: "translateX(-110%)" }, "40%": { transform: "translateX(0%)" }, "60%": { transform: "translateX(0%)" }, "100%": { transform: "translateX(110%)" } },
+            flash: { "0%": { opacity: 0 }, "10%": { opacity: 1 }, "100%": { opacity: 0 } },
+            dust: { "0%": { transform: "translate3d(0,0,0)", opacity: .0 }, "20%": { opacity: .65 }, "100%": { transform: "translate3d(120px,-80px,0)", opacity: 0 } },
+            pop: { "0%": { transform: "scale(.96)", opacity: 0 }, "100%": { transform: "scale(1)", opacity: 1 } },
+            shimmer: { "0%": { backgroundPosition: "0% 50%" }, "100%": { backgroundPosition: "100% 50%" } },
+            confetti: { "0%": { transform: "translateY(-30px) rotate(0deg)", opacity: 0 }, "10%": { opacity: 1 }, "100%": { transform: "translateY(110px) rotate(220deg)", opacity: 0 } }
+          },
+          animation: {
+            floaty: "floaty 3.2s ease-in-out infinite",
+            swipe: "swipe .9s ease-in-out",
+            flash: "flash .65s ease-out",
+            dust: "dust 1.6s ease-out infinite",
+            pop: "pop .18s ease-out",
+            shimmer: "shimmer 2.8s ease-in-out infinite",
+            confetti: "confetti 1.2s ease-out infinite"
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --bg0:#050816;
+      --bg1:#070d1f;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.09);
+      --stroke: rgba(255,255,255,.12);
+      --stroke2: rgba(255,255,255,.18);
+      --txt: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --muted2: rgba(255,255,255,.55);
+      --acc: #7c3aed;
+      --acc2:#22c55e;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+    }
+    body{
+      background: radial-gradient(1200px 600px at 65% -10%, rgba(124,58,237,.35), transparent 55%),
+                  radial-gradient(1000px 500px at 12% 10%, rgba(34,197,94,.22), transparent 55%),
+                  radial-gradient(900px 520px at 80% 85%, rgba(245,158,11,.14), transparent 55%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: var(--txt);
+      overflow-x: hidden;
+    }
+    /* Stadium glow / stands */
+    .stadium {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      opacity: .9;
+      filter: saturate(1.1);
+    }
+    .stadium::before{
+      content:"";
+      position:absolute; inset:-40px;
+      background:
+        radial-gradient(1200px 540px at 50% 105%, rgba(255,255,255,.08), transparent 62%),
+        radial-gradient(900px 420px at 50% 110%, rgba(255,255,255,.09), transparent 64%),
+        radial-gradient(900px 500px at 50% 120%, rgba(124,58,237,.16), transparent 70%),
+        radial-gradient(900px 440px at 18% 85%, rgba(34,197,94,.10), transparent 70%),
+        radial-gradient(900px 440px at 82% 85%, rgba(245,158,11,.09), transparent 70%),
+        radial-gradient(600px 260px at 50% 25%, rgba(255,255,255,.06), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.03), transparent 35%);
+      filter: blur(0px);
+    }
+    /* Speed lines */
+    .speedlines{
+      position: fixed; inset: -20%;
+      pointer-events: none;
+      z-index: -1;
+      opacity: .18;
+      transform: skewY(-10deg);
+      mix-blend-mode: screen;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.0) 0 18px, rgba(255,255,255,.14) 18px 19px, rgba(255,255,255,.0) 19px 36px);
+      animation: speedmove 7s linear infinite;
+      filter: blur(0.2px);
+    }
+    @keyframes speedmove{
+      from{ transform: skewY(-10deg) translateX(0); }
+      to{ transform: skewY(-10deg) translateX(240px); }
+    }
+    /* Field lines */
+    .fieldlines{
+      position: fixed; left: 0; right: 0; bottom: -120px; height: 340px;
+      pointer-events: none;
+      z-index: -1;
+      opacity: .55;
+      background:
+        radial-gradient(900px 220px at 50% 90%, rgba(34,197,94,.20), transparent 70%),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.0) 0 48px, rgba(255,255,255,.08) 48px 49px),
+        linear-gradient(180deg, transparent, rgba(0,0,0,.55));
+      transform: perspective(700px) rotateX(55deg);
+      filter: blur(0.1px);
+    }
+
+    /* Cards */
+    .glass{
+      background: linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.045));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 20px 80px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+    }
+    .thin-border{ border: 1px solid rgba(255,255,255,.12); }
+    .focus-ring:focus{ outline: none; box-shadow: 0 0 0 4px rgba(124,58,237,.25); border-color: rgba(124,58,237,.55); }
+
+    /* Chips */
+    .chip{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      user-select: none;
+    }
+    .chip:hover{ transform: translateY(-1px); background: rgba(255,255,255,.075); }
+    .chip[aria-pressed="true"]{
+      background: rgba(124,58,237,.22);
+      border-color: rgba(124,58,237,.55);
+    }
+    .chip .tick{ opacity: 0; transform: scale(.9); transition: opacity .12s ease, transform .12s ease; }
+    .chip[aria-pressed="true"] .tick{ opacity: 1; transform: scale(1); }
+
+    /* Toggle */
+    .toggle{
+      width: 52px; height: 30px; border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+      position: relative;
+      transition: background .12s ease, border-color .12s ease;
+    }
+    .toggle::after{
+      content:"";
+      position:absolute; top: 3px; right: 3px;
+      width: 22px; height: 22px; border-radius: 999px;
+      background: rgba(255,255,255,.90);
+      transition: transform .16s ease, background .16s ease;
+    }
+    .toggle[aria-checked="true"]{
+      background: rgba(34,197,94,.22);
+      border-color: rgba(34,197,94,.50);
+    }
+    .toggle[aria-checked="true"]::after{
+      transform: translateX(-22px);
+      background: rgba(255,255,255,.95);
+    }
+
+    /* Scoreboard swipe & whistle flash */
+    #scoreSwipe{
+      position: fixed; top: 14px; left: 0; right: 0;
+      pointer-events: none; z-index: 50;
+      display: none;
+    }
+    .scorebar{
+      margin: 0 auto;
+      width: min(860px, calc(100% - 24px));
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.10), rgba(255,255,255,.06));
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      overflow: hidden;
+    }
+    .scorebar .stripe{
+      background: linear-gradient(90deg, rgba(124,58,237,.0), rgba(124,58,237,.35), rgba(34,197,94,.25), rgba(245,158,11,.25), rgba(124,58,237,.0));
+      background-size: 200% 200%;
+      animation: shimmer 2.4s ease-in-out infinite;
+      opacity: .9;
+    }
+    #whistleFlash{
+      position: fixed; inset: 0;
+      pointer-events: none;
+      background: radial-gradient(900px 360px at 50% 30%, rgba(255,255,255,.95), rgba(255,255,255,.0) 60%),
+                  linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.0));
+      opacity: 0;
+      z-index: 60;
+      display: none;
+    }
+    #whistleFlash.on{ display:block; animation: flash .65s ease-out; }
+
+    /* Cropper overlay frame */
+    .jersey-frame{
+      position: absolute; inset: 0;
+      pointer-events: none;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: inset 0 0 0 2px rgba(124,58,237,.18);
+      overflow: hidden;
+    }
+    .jersey-frame::before{
+      content:"";
+      position:absolute; inset:-20%;
+      background:
+        radial-gradient(220px 220px at 25% 20%, rgba(124,58,237,.20), transparent 60%),
+        radial-gradient(240px 240px at 78% 25%, rgba(34,197,94,.16), transparent 60%),
+        radial-gradient(260px 260px at 60% 90%, rgba(245,158,11,.12), transparent 60%);
+      opacity: .95;
+      filter: blur(0px);
+    }
+    .badge{
+      position:absolute; top: 10px; left: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.45);
+      border: 1px solid rgba(255,255,255,.14);
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+    .numtag{
+      position:absolute; bottom: 10px; right: 10px;
+      padding: 8px 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.45);
+      border: 1px solid rgba(255,255,255,.14);
+      font-weight: 900;
+      font-size: 18px;
+    }
+    .hint{
+      font-size: 12px;
+      color: rgba(255,255,255,.68);
+    }
+
+    /* Confetti bits */
+    .confetti-bit{
+      position:absolute;
+      width: 10px; height: 14px;
+      border-radius: 3px;
+      opacity: 0;
+      animation: confetti 1.2s ease-out infinite;
+      filter: blur(.1px);
+    }
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      .speedlines, .confetti-bit{ animation: none !important; }
+      #scoreSwipe .anim{ animation: none !important; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <div class="stadium"></div>
+  <div class="speedlines"></div>
+  <div class="fieldlines"></div>
+
+  <!-- Scoreboard swipe -->
+  <div id="scoreSwipe">
+    <div class="scorebar anim">
+      <div class="stripe px-4 py-3 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/10 border border-white/15">
+            <!-- whistle icon -->
+            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path>
+              <path d="M12 9v-2a2 2 0 0 1 2 -2h2"></path>
+              <path d="M16 5h3"></path>
+              <path d="M18 5v3"></path>
+            </svg>
+          </span>
+          <div>
+            <div id="swipeTitle" class="text-sm font-extrabold">لوحة النتائج</div>
+            <div id="swipeSub" class="text-xs text-white/75">انتقال سريع…</div>
+          </div>
+        </div>
+        <div class="text-xs text-white/70">
+          <span id="swipeStep">محطة</span>
+          <span class="font-black" id="swipeIdx">1</span>
+          <span>/</span>
+          <span class="font-black">3</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Whistle flash -->
+  <div id="whistleFlash"></div>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="fixed inset-0 z-[70] hidden">
+    <div class="absolute inset-0 bg-black/60"></div>
+
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="glass w-full max-w-2xl rounded-3xl p-5 sm:p-7 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-60 pointer-events-none"
+             style="background:
+              radial-gradient(520px 240px at 20% 10%, rgba(124,58,237,.30), transparent 65%),
+              radial-gradient(520px 240px at 85% 25%, rgba(34,197,94,.22), transparent 65%),
+              radial-gradient(520px 240px at 55% 90%, rgba(245,158,11,.16), transparent 65%);">
+        </div>
+
+        <div class="relative">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center animate-floaty">
+                <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M8 12l2 2l4 -4"></path>
+                  <path d="M12 22c5.523 0 10-4.477 10-10s-4.477-10-10-10s-10 4.477-10 10s4.477 10 10 10z"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="text-2xl sm:text-3xl font-black tracking-tight">You’re In! <span class="text-white/80">🔥</span></div>
+                <div class="text-sm text-white/75 mt-1">بطاقة اللاعب جاهزة — الفريق ينتظرك على خط البداية.</div>
+              </div>
+            </div>
+
+            <button id="closeSuccess" class="focus-ring rounded-2xl px-3 py-2 bg-white/10 border border-white/15 hover:bg-white/15 transition">
+              إغلاق
+            </button>
+          </div>
+
+          <!-- Celebration bar -->
+          <div class="mt-5 rounded-2xl border border-white/15 bg-white/5 overflow-hidden">
+            <div class="h-2 w-full" style="background: linear-gradient(90deg, rgba(124,58,237,.0), rgba(124,58,237,.7), rgba(34,197,94,.7), rgba(245,158,11,.7), rgba(124,58,237,.0));"></div>
+            <div class="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-center justify-between">
+              <div class="text-sm text-white/75">
+                تمت “المحطات الثلاث” ✅ — تقدر تغيّر أي شيء لاحقًا من ملفك.
+              </div>
+              <div class="flex gap-2">
+                <button id="goHome" class="focus-ring rounded-2xl px-4 py-2 bg-white/10 border border-white/15 hover:bg-white/15 transition">
+                  ادخل للملعب
+                </button>
+                <button id="restart" class="focus-ring rounded-2xl px-4 py-2 bg-emerald-500/20 border border-emerald-400/30 hover:bg-emerald-500/25 transition">
+                  تدريب جديد
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Player card -->
+          <div class="mt-5 grid sm:grid-cols-12 gap-4">
+            <div class="sm:col-span-5 glass rounded-3xl p-4 border border-white/12">
+              <div class="flex items-center justify-between">
+                <div class="text-xs text-white/70">PLAYER CARD</div>
+                <div class="text-xs text-white/70">#<span id="successNumber" class="font-black">00</span></div>
+              </div>
+              <div class="mt-3 flex items-center gap-3">
+                <div class="w-16 h-16 rounded-2xl bg-white/10 border border-white/15 overflow-hidden flex items-center justify-center">
+                  <img id="successAvatar" alt="avatar" class="w-full h-full object-cover hidden" />
+                  <div id="successAvatarFallback" class="w-full h-full flex items-center justify-center">
+                    <span class="text-white/60 text-sm">🙂</span>
+                  </div>
+                </div>
+                <div>
+                  <div id="successName" class="text-lg font-black">لاعب</div>
+                  <div class="text-sm text-white/75">
+                    Role: <span id="successRole" class="font-extrabold">—</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 grid grid-cols-3 gap-2 text-xs">
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <div class="text-white/65">Stamina</div>
+                  <div class="font-black text-white/90"><span id="sStat1">78</span>%</div>
+                </div>
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <div class="text-white/65">Focus</div>
+                  <div class="font-black text-white/90"><span id="sStat2">84</span>%</div>
+                </div>
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <div class="text-white/65">Team</div>
+                  <div class="font-black text-white/90"><span id="sStat3">91</span>%</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sm:col-span-7 glass rounded-3xl p-4 border border-white/12 relative overflow-hidden">
+              <div id="confetti" class="absolute inset-0 pointer-events-none"></div>
+              <div class="relative">
+                <div class="text-sm font-extrabold">ملخّص التدريب</div>
+                <div class="mt-2 text-sm text-white/75 leading-relaxed">
+                  <span class="text-white/90 font-bold">الأول:</span> أساسياتك جاهزة.
+                  <span class="text-white/90 font-bold">الثاني:</span> أفاتار + رقم + دور.
+                  <span class="text-white/90 font-bold">الثالث:</span> اهتمامات الفريق مضبوطه.
+                </div>
+
+                <div class="mt-4 grid sm:grid-cols-2 gap-3 text-sm">
+                  <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                    <div class="text-white/65 text-xs">رياضتك</div>
+                    <div id="successSport" class="font-extrabold">—</div>
+                  </div>
+                  <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                    <div class="text-white/65 text-xs">اهتماماتك</div>
+                    <div id="successInterests" class="font-extrabold truncate">—</div>
+                  </div>
+                </div>
+
+                <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="text-xs text-white/70">Ready Check</div>
+                    <div class="text-xs text-white/70"><span class="font-black" id="successReady">100</span>%</div>
+                  </div>
+                  <div class="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
+                    <div id="successBar" class="h-full rounded-full" style="width: 100%; background: linear-gradient(90deg, rgba(124,58,237,.7), rgba(34,197,94,.7), rgba(245,158,11,.7));"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /relative -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="px-4 sm:px-6 pt-5">
+    <div class="mx-auto max-w-7xl flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
+          <!-- simple crest -->
+          <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2l7 4v6c0 5-3 9-7 10c-4-1-7-5-7-10v-6l7-4z"></path>
+            <path d="M9 12l2 2l4-4"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="text-lg sm:text-xl font-black tracking-tight">انضمّ للفريق</div>
+          <div class="text-xs text-white/70">3 محطات تدريب — خفيفة وسريعة 🏟️</div>
+        </div>
+      </div>
+
+      <div class="hidden sm:flex items-center gap-2">
+        <span class="text-xs text-white/65">وضع الملعب:</span>
+        <span class="text-xs font-extrabold px-3 py-1 rounded-full bg-white/10 border border-white/15">ON</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="px-4 sm:px-6 pb-24 sm:pb-10 pt-5">
+    <div class="mx-auto max-w-7xl">
+      <div class="grid lg:grid-cols-12 gap-4 lg:gap-5">
+        <!-- Left: Team Banner -->
+        <aside class="lg:col-span-3 order-1 lg:order-1">
+          <div class="glass rounded-3xl p-4 sm:p-5 relative overflow-hidden">
+            <div class="absolute inset-0 opacity-60 pointer-events-none"
+                 style="background:
+                  radial-gradient(460px 220px at 25% 10%, rgba(124,58,237,.25), transparent 65%),
+                  radial-gradient(380px 220px at 80% 25%, rgba(34,197,94,.18), transparent 65%),
+                  radial-gradient(520px 260px at 50% 120%, rgba(245,158,11,.14), transparent 70%);">
+            </div>
+
+            <div class="relative">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-extrabold">Team Banner</div>
+                <div class="text-xs text-white/65">Mock Stats</div>
+              </div>
+
+              <div class="mt-3 rounded-2xl bg-white/5 border border-white/10 p-3">
+                <label class="block text-xs text-white/70 mb-1">اسم الفريق</label>
+                <input id="teamName" class="focus-ring w-full rounded-2xl bg-white/5 border border-white/10 px-3 py-3 text-sm"
+                       placeholder="مثال: Thunder Squad" value="Thunder Squad"/>
+              </div>
+
+              <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <div class="text-white/65">Rank</div>
+                  <div class="font-black text-white/90">#<span id="rankMock">12</span></div>
+                </div>
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <div class="text-white/65">Win Rate</div>
+                  <div class="font-black text-white/90"><span id="wrMock">63</span>%</div>
+                </div>
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <div class="text-white/65">Streak</div>
+                  <div class="font-black text-white/90"><span id="streakMock">W3</span></div>
+                </div>
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <div class="text-white/65">Fans</div>
+                  <div class="font-black text-white/90"><span id="fansMock">18.4K</span></div>
+                </div>
+              </div>
+
+              <div class="mt-3 rounded-2xl bg-white/5 border border-white/10 p-3">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs text-white/70">Training Progress</div>
+                  <div class="text-xs text-white/70"><span id="overallPct" class="font-black">0</span>%</div>
+                </div>
+                <div class="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
+                  <div id="overallBar" class="h-full rounded-full" style="width:0%; background: linear-gradient(90deg, rgba(124,58,237,.7), rgba(34,197,94,.7), rgba(245,158,11,.7));"></div>
+                </div>
+                <div class="mt-2 flex items-center justify-between text-[11px] text-white/65">
+                  <span>محطة 1</span><span>محطة 2</span><span>محطة 3</span>
+                </div>
+              </div>
+
+              <div class="mt-3 text-xs text-white/70 leading-relaxed">
+                <span class="font-extrabold text-white/85">ملاحظة:</span>
+                كل محطة فيها مهام قصيرة — عشان ما تحسّ بطول الخطوات.
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Center: Form -->
+        <section class="lg:col-span-6 order-2 lg:order-2">
+          <div class="glass rounded-3xl p-4 sm:p-5">
+            <!-- Stepper -->
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
+                  <!-- scoreboard icon -->
+                  <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 7h16"></path>
+                    <path d="M4 17h16"></path>
+                    <path d="M6 7v10"></path>
+                    <path d="M18 7v10"></path>
+                    <path d="M9 10h2"></path>
+                    <path d="M13 10h2"></path>
+                    <path d="M9 14h2"></path>
+                    <path d="M13 14h2"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-sm text-white/70">Training Route</div>
+                  <div id="stationTitle" class="text-lg font-black">محطة 1: الأساسيات</div>
+                </div>
+              </div>
+
+              <div class="text-xs text-white/70">
+                <span class="font-black" id="stationIdx">1</span><span>/3</span>
+              </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-3 gap-2 text-xs">
+              <button class="thin-border rounded-2xl bg-white/5 px-3 py-3 text-right hover:bg-white/10 transition focus-ring"
+                      id="jump1">
+                <div class="flex items-center justify-between">
+                  <span class="font-extrabold">الأساسيات</span>
+                  <span id="chk1" class="text-white/40">○</span>
+                </div>
+                <div class="text-white/60 mt-1">تعريف سريع</div>
+              </button>
+              <button class="thin-border rounded-2xl bg-white/5 px-3 py-3 text-right hover:bg-white/10 transition focus-ring"
+                      id="jump2">
+                <div class="flex items-center justify-between">
+                  <span class="font-extrabold">الهوية</span>
+                  <span id="chk2" class="text-white/40">○</span>
+                </div>
+                <div class="text-white/60 mt-1">أفاتار + دور</div>
+              </button>
+              <button class="thin-border rounded-2xl bg-white/5 px-3 py-3 text-right hover:bg-white/10 transition focus-ring"
+                      id="jump3">
+                <div class="flex items-center justify-between">
+                  <span class="font-extrabold">الفريق</span>
+                  <span id="chk3" class="text-white/40">○</span>
+                </div>
+                <div class="text-white/60 mt-1">متابعة + اهتمامات</div>
+              </button>
+            </div>
+
+            <!-- Station 1 -->
+            <div id="station1" class="mt-5">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-extrabold">Station 1 — الأساسيات</div>
+                <div class="text-xs text-white/65">مهام قصيرة ✅</div>
+              </div>
+
+              <div class="mt-3 grid sm:grid-cols-2 gap-3">
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <label class="block text-xs text-white/70 mb-1">اسم اللاعب (Nick)</label>
+                  <input id="nickname" class="focus-ring w-full rounded-2xl bg-white/5 border border-white/10 px-3 py-3 text-sm"
+                         placeholder="مثال: LuffyDev" />
+                  <div class="hint mt-2">سيظهر على بطاقة اللاعب مباشرة.</div>
+                </div>
+
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <label class="block text-xs text-white/70 mb-1">إيميل (اختياري)</label>
+                  <input id="email" type="email" class="focus-ring w-full rounded-2xl bg-white/5 border border-white/10 px-3 py-3 text-sm"
+                         placeholder="name@domain.com" />
+                  <div class="hint mt-2">لإشعارات الفريق (ممكن تغيره لاحقًا).</div>
+                </div>
+              </div>
+
+              <div class="mt-3 rounded-2xl bg-white/5 border border-white/10 p-3">
+                <div class="flex items-center justify-between gap-2">
+                  <div>
+                    <div class="text-xs text-white/70">اختر الرياضة (Chip)</div>
+                    <div class="text-sm font-extrabold mt-1">إيش ملعبك المفضل؟</div>
+                  </div>
+                  <div id="sportCheck" class="text-xs text-white/55">غير مكتمل</div>
+                </div>
+
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="sport" data-value="كرة قدم" aria-pressed="false" type="button">
+                    <span class="tick">✔</span><span>كرة قدم</span>
+                  </button>
+                  <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="sport" data-value="كرة سلة" aria-pressed="false" type="button">
+                    <span class="tick">✔</span><span>كرة سلة</span>
+                  </button>
+                  <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="sport" data-value="فنون قتالية" aria-pressed="false" type="button">
+                    <span class="tick">✔</span><span>فنون قتالية</span>
+                  </button>
+                  <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="sport" data-value="سباق" aria-pressed="false" type="button">
+                    <span class="tick">✔</span><span>سباق</span>
+                  </button>
+                  <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="sport" data-value="كرة طائرة" aria-pressed="false" type="button">
+                    <span class="tick">✔</span><span>كرة طائرة</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="mt-3 rounded-2xl bg-white/5 border border-white/10 p-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="text-sm font-extrabold">تنبيهات التدريب</div>
+                    <div class="text-xs text-white/65 mt-1">Toggle سريع</div>
+                  </div>
+
+                  <button id="notifToggle" class="toggle focus-ring" role="switch" aria-checked="true" type="button"></button>
+                </div>
+                <div class="mt-2 text-xs text-white/70">توصلك تلميحات وتحديات يومية (تقدر توقفها).</div>
+              </div>
+
+              <!-- Task list -->
+              <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
+                <div class="text-xs text-white/70 mb-2">Completion Check</div>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-center justify-between">
+                    <div class="text-white/80">اكتب اسم اللاعب</div>
+                    <div id="t1a" class="text-white/40">○</div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <div class="text-white/80">اختر الرياضة</div>
+                    <div id="t1b" class="text-white/40">○</div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <div class="text-white/80">تأكيد التنبيهات</div>
+                    <div id="t1c" class="text-white/40">○</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Station 2 -->
+            <div id="station2" class="mt-5 hidden">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-extrabold">Station 2 — الهوية / الأفاتار</div>
+                <div class="text-xs text-white/65">Team Jerseys 🎽</div>
+              </div>
+
+              <div class="mt-3 grid sm:grid-cols-2 gap-3">
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="text-sm font-extrabold">Role</div>
+                      <div class="text-xs text-white/65 mt-1">اختيار سريع</div>
+                    </div>
+                    <div id="roleCheck" class="text-xs text-white/55">غير مكتمل</div>
+                  </div>
+
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="role" data-value="Captain" aria-pressed="false" type="button">
+                      <span class="tick">✔</span><span>Captain</span>
+                    </button>
+                    <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="role" data-value="Strategist" aria-pressed="false" type="button">
+                      <span class="tick">✔</span><span>Strategist</span>
+                    </button>
+                    <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="role" data-value="Speedster" aria-pressed="false" type="button">
+                      <span class="tick">✔</span><span>Speedster</span>
+                    </button>
+                    <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="role" data-value="Sniper" aria-pressed="false" type="button">
+                      <span class="tick">✔</span><span>Sniper</span>
+                    </button>
+                    <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="role" data-value="Anchor" aria-pressed="false" type="button">
+                      <span class="tick">✔</span><span>Anchor</span>
+                    </button>
+                    <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="role" data-value="Playmaker" aria-pressed="false" type="button">
+                      <span class="tick">✔</span><span>Playmaker</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <div class="flex items-center justify-between gap-2">
+                    <div>
+                      <div class="text-sm font-extrabold">Jersey Number</div>
+                      <div class="text-xs text-white/65 mt-1">ينعكس على الأفاتار</div>
+                    </div>
+                    <div class="text-xs text-white/70">#<span id="jerseyNumText" class="font-black">17</span></div>
+                  </div>
+
+                  <div class="mt-3 flex items-center gap-2">
+                    <button id="numMinus" type="button" class="focus-ring rounded-2xl px-4 py-3 bg-white/10 border border-white/15 hover:bg-white/15 transition text-sm">
+                      −
+                    </button>
+                    <input id="jerseyNumber" inputmode="numeric" class="focus-ring w-full rounded-2xl bg-white/5 border border-white/10 px-3 py-3 text-sm text-center"
+                           value="17" />
+                    <button id="numPlus" type="button" class="focus-ring rounded-2xl px-4 py-3 bg-white/10 border border-white/15 hover:bg-white/15 transition text-sm">
+                      +
+                    </button>
+                    <button id="numRandom" type="button" class="focus-ring rounded-2xl px-4 py-3 bg-amber-500/15 border border-amber-400/25 hover:bg-amber-500/20 transition text-sm">
+                      رقم عشوائي
+                    </button>
+                  </div>
+
+                  <div class="mt-2 text-xs text-white/70">
+                    زر “Pick a Jersey Number” = <span class="font-extrabold">رقم عشوائي</span>.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Suggested avatars -->
+              <div class="mt-3 rounded-2xl bg-white/5 border border-white/10 p-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="text-sm font-extrabold">Suggested Avatars</div>
+                    <div class="text-xs text-white/65 mt-1">SVG Portraits — abstract + jersey</div>
+                  </div>
+                  <div id="avatarCheck" class="text-xs text-white/55">غير مكتمل</div>
+                </div>
+
+                <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <!-- Each avatar is a button with inline SVG (number updates via JS) -->
+                  <button type="button" class="focus-ring avatarBtn rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-3 text-right"
+                          data-avatar="a1">
+                    <div class="flex items-center justify-between text-xs text-white/70">
+                      <span class="font-extrabold">Jersey A</span>
+                      <span class="text-white/70">#<span class="aNum">17</span></span>
+                    </div>
+                    <div class="mt-2 rounded-2xl bg-black/20 border border-white/10 overflow-hidden">
+                      <svg viewBox="0 0 200 200" class="w-full h-28">
+                        <defs>
+                          <linearGradient id="g1" x1="0" x2="1">
+                            <stop offset="0" stop-color="#7c3aed" stop-opacity=".9"/>
+                            <stop offset="1" stop-color="#22c55e" stop-opacity=".75"/>
+                          </linearGradient>
+                        </defs>
+                        <rect x="0" y="0" width="200" height="200" fill="rgba(255,255,255,.03)"/>
+                        <!-- speed strokes -->
+                        <path d="M-10 50 L70 20" stroke="rgba(255,255,255,.18)" stroke-width="6" />
+                        <path d="M-10 85 L65 60" stroke="rgba(255,255,255,.12)" stroke-width="5" />
+                        <path d="M-10 120 L55 95" stroke="rgba(255,255,255,.10)" stroke-width="4" />
+                        <!-- head -->
+                        <circle cx="100" cy="78" r="34" fill="rgba(255,255,255,.16)"/>
+                        <path d="M78 82 Q100 62 122 82" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="6" stroke-linecap="round"/>
+                        <!-- jersey -->
+                        <path d="M50 200 L60 120 Q85 108 100 108 Q115 108 140 120 L150 200Z" fill="url(#g1)"/>
+                        <path d="M77 120 Q100 140 123 120" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="10" stroke-linecap="round"/>
+                        <text x="100" y="168" text-anchor="middle" font-size="44" font-weight="900" fill="rgba(255,255,255,.92)" class="aNumText">17</text>
+                      </svg>
+                    </div>
+                  </button>
+
+                  <button type="button" class="focus-ring avatarBtn rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-3 text-right"
+                          data-avatar="a2">
+                    <div class="flex items-center justify-between text-xs text-white/70">
+                      <span class="font-extrabold">Jersey B</span>
+                      <span class="text-white/70">#<span class="aNum">17</span></span>
+                    </div>
+                    <div class="mt-2 rounded-2xl bg-black/20 border border-white/10 overflow-hidden">
+                      <svg viewBox="0 0 200 200" class="w-full h-28">
+                        <defs>
+                          <linearGradient id="g2" x1="0" x2="1">
+                            <stop offset="0" stop-color="#f59e0b" stop-opacity=".9"/>
+                            <stop offset="1" stop-color="#7c3aed" stop-opacity=".75"/>
+                          </linearGradient>
+                        </defs>
+                        <rect width="200" height="200" fill="rgba(255,255,255,.03)"/>
+                        <path d="M210 45 L120 15" stroke="rgba(255,255,255,.18)" stroke-width="6" />
+                        <path d="M210 80 L130 55" stroke="rgba(255,255,255,.12)" stroke-width="5" />
+                        <path d="M210 120 L140 95" stroke="rgba(255,255,255,.10)" stroke-width="4" />
+                        <path d="M70 95 Q100 50 130 95" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="10" stroke-linecap="round"/>
+                        <circle cx="100" cy="78" r="32" fill="rgba(255,255,255,.14)"/>
+                        <path d="M68 200 L62 128 Q85 108 100 108 Q115 108 138 128 L132 200Z" fill="url(#g2)"/>
+                        <text x="100" y="170" text-anchor="middle" font-size="44" font-weight="900" fill="rgba(255,255,255,.92)" class="aNumText">17</text>
+                      </svg>
+                    </div>
+                  </button>
+
+                  <button type="button" class="focus-ring avatarBtn rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-3 text-right"
+                          data-avatar="a3">
+                    <div class="flex items-center justify-between text-xs text-white/70">
+                      <span class="font-extrabold">Jersey C</span>
+                      <span class="text-white/70">#<span class="aNum">17</span></span>
+                    </div>
+                    <div class="mt-2 rounded-2xl bg-black/20 border border-white/10 overflow-hidden">
+                      <svg viewBox="0 0 200 200" class="w-full h-28">
+                        <defs>
+                          <linearGradient id="g3" x1="0" x2="1">
+                            <stop offset="0" stop-color="#22c55e" stop-opacity=".9"/>
+                            <stop offset="1" stop-color="#06b6d4" stop-opacity=".75"/>
+                          </linearGradient>
+                        </defs>
+                        <rect width="200" height="200" fill="rgba(255,255,255,.03)"/>
+                        <path d="M20 160 Q100 110 180 160" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="8"/>
+                        <circle cx="100" cy="78" r="33" fill="rgba(255,255,255,.14)"/>
+                        <path d="M64 200 L54 135 Q80 108 100 108 Q120 108 146 135 L136 200Z" fill="url(#g3)"/>
+                        <path d="M76 128 L124 128" stroke="rgba(255,255,255,.22)" stroke-width="8" stroke-linecap="round"/>
+                        <text x="100" y="170" text-anchor="middle" font-size="44" font-weight="900" fill="rgba(255,255,255,.92)" class="aNumText">17</text>
+                      </svg>
+                    </div>
+                  </button>
+
+                  <button type="button" class="focus-ring avatarBtn rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-3 text-right"
+                          data-avatar="a4">
+                    <div class="flex items-center justify-between text-xs text-white/70">
+                      <span class="font-extrabold">Jersey D</span>
+                      <span class="text-white/70">#<span class="aNum">17</span></span>
+                    </div>
+                    <div class="mt-2 rounded-2xl bg-black/20 border border-white/10 overflow-hidden">
+                      <svg viewBox="0 0 200 200" class="w-full h-28">
+                        <defs>
+                          <linearGradient id="g4" x1="0" x2="1">
+                            <stop offset="0" stop-color="#60a5fa" stop-opacity=".9"/>
+                            <stop offset="1" stop-color="#f59e0b" stop-opacity=".75"/>
+                          </linearGradient>
+                        </defs>
+                        <rect width="200" height="200" fill="rgba(255,255,255,.03)"/>
+                        <path d="M-10 35 L60 65" stroke="rgba(255,255,255,.14)" stroke-width="6"/>
+                        <path d="M-10 65 L55 90" stroke="rgba(255,255,255,.10)" stroke-width="5"/>
+                        <circle cx="100" cy="78" r="33" fill="rgba(255,255,255,.14)"/>
+                        <path d="M60 200 L58 132 Q82 108 100 108 Q118 108 142 132 L140 200Z" fill="url(#g4)"/>
+                        <path d="M100 112 L100 196" stroke="rgba(0,0,0,.22)" stroke-width="10" stroke-linecap="round"/>
+                        <text x="100" y="170" text-anchor="middle" font-size="44" font-weight="900" fill="rgba(255,255,255,.92)" class="aNumText">17</text>
+                      </svg>
+                    </div>
+                  </button>
+
+                  <button type="button" class="focus-ring avatarBtn rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-3 text-right"
+                          data-avatar="a5">
+                    <div class="flex items-center justify-between text-xs text-white/70">
+                      <span class="font-extrabold">Jersey E</span>
+                      <span class="text-white/70">#<span class="aNum">17</span></span>
+                    </div>
+                    <div class="mt-2 rounded-2xl bg-black/20 border border-white/10 overflow-hidden">
+                      <svg viewBox="0 0 200 200" class="w-full h-28">
+                        <defs>
+                          <linearGradient id="g5" x1="0" x2="1">
+                            <stop offset="0" stop-color="#fb7185" stop-opacity=".85"/>
+                            <stop offset="1" stop-color="#7c3aed" stop-opacity=".72"/>
+                          </linearGradient>
+                        </defs>
+                        <rect width="200" height="200" fill="rgba(255,255,255,.03)"/>
+                        <circle cx="100" cy="78" r="33" fill="rgba(255,255,255,.14)"/>
+                        <path d="M70 88 Q100 100 130 88" fill="none" stroke="rgba(255,255,255,.20)" stroke-width="8" stroke-linecap="round"/>
+                        <path d="M58 200 L60 130 Q82 108 100 108 Q118 108 140 130 L142 200Z" fill="url(#g5)"/>
+                        <path d="M78 140 Q100 150 122 140" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="8" stroke-linecap="round"/>
+                        <text x="100" y="170" text-anchor="middle" font-size="44" font-weight="900" fill="rgba(255,255,255,.92)" class="aNumText">17</text>
+                      </svg>
+                    </div>
+                  </button>
+
+                  <button type="button" class="focus-ring avatarBtn rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-3 text-right"
+                          data-avatar="a6">
+                    <div class="flex items-center justify-between text-xs text-white/70">
+                      <span class="font-extrabold">Jersey F</span>
+                      <span class="text-white/70">#<span class="aNum">17</span></span>
+                    </div>
+                    <div class="mt-2 rounded-2xl bg-black/20 border border-white/10 overflow-hidden">
+                      <svg viewBox="0 0 200 200" class="w-full h-28">
+                        <defs>
+                          <linearGradient id="g6" x1="0" x2="1">
+                            <stop offset="0" stop-color="#a3e635" stop-opacity=".85"/>
+                            <stop offset="1" stop-color="#22c55e" stop-opacity=".72"/>
+                          </linearGradient>
+                        </defs>
+                        <rect width="200" height="200" fill="rgba(255,255,255,.03)"/>
+                        <path d="M38 64 Q100 10 162 64" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10" stroke-linecap="round"/>
+                        <circle cx="100" cy="78" r="33" fill="rgba(255,255,255,.14)"/>
+                        <path d="M55 200 L58 132 Q84 108 100 108 Q116 108 142 132 L145 200Z" fill="url(#g6)"/>
+                        <path d="M70 126 L130 126" stroke="rgba(0,0,0,.20)" stroke-width="10" stroke-linecap="round"/>
+                        <text x="100" y="170" text-anchor="middle" font-size="44" font-weight="900" fill="rgba(255,255,255,.92)" class="aNumText">17</text>
+                      </svg>
+                    </div>
+                  </button>
+                </div>
+
+                <div class="mt-2 text-xs text-white/70">
+                  تقدر تختار واحد من المقترحات أو ترفع صورتك + قص + رقم + Badge.
+                </div>
+              </div>
+
+              <!-- Custom upload crop -->
+              <div class="mt-3 rounded-2xl bg-white/5 border border-white/10 p-3">
+                <div class="flex items-center justify-between gap-2">
+                  <div>
+                    <div class="text-sm font-extrabold">Custom Upload</div>
+                    <div class="text-xs text-white/65 mt-1">Upload + crop + zoom + drag</div>
+                  </div>
+                  <div class="text-xs text-white/70">
+                    <span id="animeState" class="px-2 py-1 rounded-full bg-white/10 border border-white/15">Anime: OFF</span>
+                  </div>
+                </div>
+
+                <div class="mt-3 grid sm:grid-cols-12 gap-3">
+                  <div class="sm:col-span-5">
+                    <label class="block text-xs text-white/70 mb-1">اختر صورة</label>
+                    <input id="avatarUpload" type="file" accept="image/*"
+                           class="block w-full text-sm text-white/80
+                                  file:mr-3 file:rounded-2xl file:border-0 file:bg-white/10 file:text-white file:px-4 file:py-3
+                                  hover:file:bg-white/15 transition
+                                  rounded-2xl bg-white/5 border border-white/10 px-3 py-3" />
+                    <div class="hint mt-2">اسحب داخل الإطار لضبط القص. استخدم الزوم.</div>
+
+                    <div class="mt-3 flex items-center gap-2">
+                      <button id="applyCrop" type="button" class="focus-ring w-full rounded-2xl px-4 py-3 bg-emerald-500/20 border border-emerald-400/30 hover:bg-emerald-500/25 transition text-sm">
+                        تثبيت القص على البطاقة
+                      </button>
+                    </div>
+
+                    <div class="mt-2 flex items-center gap-2">
+                      <button id="makeAnime" type="button" class="focus-ring w-full rounded-2xl px-4 py-3 bg-violet-500/20 border border-violet-400/30 hover:bg-violet-500/25 transition text-sm">
+                        Make it Anime (Mock)
+                      </button>
+                      <button id="resetCrop" type="button" class="focus-ring rounded-2xl px-4 py-3 bg-white/10 border border-white/15 hover:bg-white/15 transition text-sm">
+                        Reset
+                      </button>
+                    </div>
+
+                    <div class="mt-3">
+                      <div class="flex items-center justify-between text-xs text-white/70">
+                        <span>Zoom</span><span id="zoomVal" class="font-black">1.00x</span>
+                      </div>
+                      <input id="zoom" type="range" min="0.7" max="2.4" step="0.01" value="1.00" class="w-full mt-2" />
+                    </div>
+                  </div>
+
+                  <div class="sm:col-span-7">
+                    <div class="relative rounded-3xl bg-black/25 border border-white/10 p-3 overflow-hidden">
+                      <div class="flex items-center justify-between text-xs text-white/70 mb-2">
+                        <span class="font-extrabold">Preview (Jersey Frame + Number + Badge)</span>
+                        <span class="text-white/65">Drag • Zoom • Posterize/Outline</span>
+                      </div>
+
+                      <div class="relative rounded-2xl overflow-hidden">
+                        <canvas id="cropCanvas" width="320" height="320" class="w-full h-auto block rounded-2xl bg-white/5"></canvas>
+                        <div class="jersey-frame"></div>
+                        <div class="badge">TEAM</div>
+                        <div class="numtag">#<span id="frameNumber">17</span></div>
+                      </div>
+
+                      <div class="mt-2 text-xs text-white/70">
+                        زر “Make it Anime” يطبق <span class="font-extrabold">posterize + outline</span> عبر Canvas (بدون AI).
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Task list -->
+                <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div class="text-xs text-white/70 mb-2">Completion Check</div>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex items-center justify-between">
+                      <div class="text-white/80">اختيار Role</div>
+                      <div id="t2a" class="text-white/40">○</div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <div class="text-white/80">اختيار أفاتار (مقترح أو رفع)</div>
+                      <div id="t2b" class="text-white/40">○</div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <div class="text-white/80">تحديد رقم القميص</div>
+                      <div id="t2c" class="text-white/40">○</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Station 3 -->
+            <div id="station3" class="mt-5 hidden">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-extrabold">Station 3 — الفريق</div>
+                <div class="text-xs text-white/65">متابعة + اهتمامات</div>
+              </div>
+
+              <div class="mt-3 grid sm:grid-cols-2 gap-3">
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="text-sm font-extrabold">Follow (Mock)</div>
+                      <div class="text-xs text-white/65 mt-1">٣ مفاتيح سريعة</div>
+                    </div>
+                    <div class="text-xs text-white/70">+Boost</div>
+                  </div>
+
+                  <div class="mt-3 space-y-3">
+                    <div class="flex items-center justify-between gap-3 rounded-2xl bg-white/5 border border-white/10 px-3 py-3">
+                      <div>
+                        <div class="font-extrabold text-sm">Trainer Channel</div>
+                        <div class="text-xs text-white/65">نصائح وخطط مباريات</div>
+                      </div>
+                      <button class="toggle focus-ring" role="switch" aria-checked="true" type="button" data-follow="trainer"></button>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3 rounded-2xl bg-white/5 border border-white/10 px-3 py-3">
+                      <div>
+                        <div class="font-extrabold text-sm">Team Highlights</div>
+                        <div class="text-xs text-white/65">لقطات + لحظات حماس</div>
+                      </div>
+                      <button class="toggle focus-ring" role="switch" aria-checked="false" type="button" data-follow="highlights"></button>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3 rounded-2xl bg-white/5 border border-white/10 px-3 py-3">
+                      <div>
+                        <div class="font-extrabold text-sm">Strategy Room</div>
+                        <div class="text-xs text-white/65">تحليل وتكتيك</div>
+                      </div>
+                      <button class="toggle focus-ring" role="switch" aria-checked="false" type="button" data-follow="strategy"></button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="text-sm font-extrabold">Interests (Chips)</div>
+                      <div class="text-xs text-white/65 mt-1">اختر على الأقل واحد</div>
+                    </div>
+                    <div id="interestCheck" class="text-xs text-white/55">غير مكتمل</div>
+                  </div>
+
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="interest" data-value="تحديات يومية" aria-pressed="false" type="button"><span class="tick">✔</span><span>تحديات يومية</span></button>
+                    <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="interest" data-value="Scrims" aria-pressed="false" type="button"><span class="tick">✔</span><span>Scrims</span></button>
+                    <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="interest" data-value="تحليل مباريات" aria-pressed="false" type="button"><span class="tick">✔</span><span>تحليل مباريات</span></button>
+                    <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="interest" data-value="Fitness" aria-pressed="false" type="button"><span class="tick">✔</span><span>Fitness</span></button>
+                    <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="interest" data-value="فريق/صداقات" aria-pressed="false" type="button"><span class="tick">✔</span><span>فريق/صداقات</span></button>
+                    <button class="chip rounded-2xl px-3 py-3 text-sm flex items-center gap-2 focus-ring" data-group="interest" data-value="بطولات" aria-pressed="false" type="button"><span class="tick">✔</span><span>بطولات</span></button>
+                  </div>
+
+                  <div class="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
+                    <span class="font-extrabold text-white/85">تلميح:</span> الاهتمامات تساعد على ترشيح مجموعات وفعاليات مناسبة.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Task list -->
+              <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
+                <div class="text-xs text-white/70 mb-2">Completion Check</div>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-center justify-between">
+                    <div class="text-white/80">متابعة قناة واحدة على الأقل</div>
+                    <div id="t3a" class="text-white/40">○</div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <div class="text-white/80">اختيار اهتمام واحد على الأقل</div>
+                    <div id="t3b" class="text-white/40">○</div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <div class="text-white/80">جاهز للدخول</div>
+                    <div id="t3c" class="text-white/40">○</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Desktop navigation buttons -->
+            <div class="mt-5 hidden sm:flex items-center justify-between gap-2">
+              <button id="backBtn" type="button" class="focus-ring rounded-2xl px-4 py-3 bg-white/10 border border-white/15 hover:bg-white/15 transition text-sm">
+                رجوع
+              </button>
+
+              <div class="flex items-center gap-2">
+                <div class="text-xs text-white/70 hidden md:block">اضغط التالي للانتقال (Scoreboard Swipe + Whistle Flash)</div>
+                <button id="nextBtn" type="button" class="focus-ring rounded-2xl px-5 py-3 bg-violet-500/25 border border-violet-400/35 hover:bg-violet-500/30 transition text-sm font-extrabold">
+                  التالي
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right: Live Profile Card (collapsible on mobile) -->
+        <aside class="lg:col-span-3 order-3 lg:order-3">
+          <!-- Mobile collapsible wrapper -->
+          <details id="profileDetails" class="glass rounded-3xl p-4 sm:p-5 lg:block">
+            <summary class="lg:hidden list-none cursor-pointer select-none">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 12a5 5 0 1 0 -5 -5a5 5 0 0 0 5 5z"></path>
+                      <path d="M4 22a8 8 0 0 1 16 0"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-extrabold">بطاقة اللاعب</div>
+                    <div class="text-xs text-white/65">اضغط للتوسيع</div>
+                  </div>
+                </div>
+                <span class="text-xs text-white/70">Live</span>
+              </div>
+            </summary>
+
+            <div class="mt-3 lg:mt-0">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-extrabold">Live Profile Card</div>
+                <div class="text-xs text-white/65">Auto-update</div>
+              </div>
+
+              <div class="mt-3 rounded-3xl bg-white/5 border border-white/10 p-4 relative overflow-hidden">
+                <div class="absolute inset-0 pointer-events-none opacity-70"
+                     style="background:
+                      radial-gradient(360px 160px at 20% 0%, rgba(124,58,237,.25), transparent 70%),
+                      radial-gradient(360px 160px at 85% 25%, rgba(34,197,94,.18), transparent 70%),
+                      radial-gradient(360px 160px at 55% 110%, rgba(245,158,11,.14), transparent 70%);">
+                </div>
+
+                <div class="relative">
+                  <div class="flex items-center justify-between">
+                    <div class="text-xs text-white/70">PLAYER</div>
+                    <div class="text-xs text-white/70">#<span id="cardNumber" class="font-black">17</span></div>
+                  </div>
+
+                  <div class="mt-3 flex items-center gap-3">
+                    <div class="w-16 h-16 rounded-2xl bg-white/10 border border-white/15 overflow-hidden flex items-center justify-center relative">
+                      <img id="cardAvatarImg" class="absolute inset-0 w-full h-full object-cover hidden" alt="avatar" />
+                      <div id="cardAvatarSvg" class="w-full h-full flex items-center justify-center"></div>
+                      <div class="absolute bottom-1 right-1 text-[10px] font-black px-2 py-1 rounded-xl bg-black/45 border border-white/15">
+                        <span id="cardBadge">TEAM</span>
+                      </div>
+                    </div>
+
+                    <div class="min-w-0">
+                      <div id="cardName" class="text-lg font-black truncate">—</div>
+                      <div class="text-sm text-white/75">
+                        Role: <span id="cardRole" class="font-extrabold">—</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 grid grid-cols-3 gap-2 text-xs">
+                    <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                      <div class="text-white/65">Stamina</div>
+                      <div class="font-black text-white/90"><span id="pSta">—</span>%</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                      <div class="text-white/65">Focus</div>
+                      <div class="font-black text-white/90"><span id="pFoc">—</span>%</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
+                      <div class="text-white/65">Team</div>
+                      <div class="font-black text-white/90"><span id="pTea">—</span>%</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <div class="flex items-center justify-between text-xs text-white/70">
+                      <span>Ready Meter</span><span><span class="font-black" id="readyPct">0</span>%</span>
+                    </div>
+                    <div class="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div id="readyBar" class="h-full rounded-full" style="width:0%; background: linear-gradient(90deg, rgba(124,58,237,.7), rgba(34,197,94,.7), rgba(245,158,11,.7));"></div>
+                    </div>
+                    <div class="mt-2 text-xs text-white/65">
+                      <span class="font-extrabold">الرياضة:</span> <span id="cardSport">—</span>
+                      <span class="mx-2">•</span>
+                      <span class="font-extrabold">اهتمامات:</span> <span id="cardInterests">—</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dust particles layer -->
+              <div class="mt-3 rounded-3xl bg-white/5 border border-white/10 p-4 relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                  <div class="text-sm font-extrabold">Warm-up FX</div>
+                  <div class="text-xs text-white/65">Particles</div>
+                </div>
+                <div id="dustBox" class="mt-3 h-20 rounded-2xl bg-black/25 border border-white/10 relative overflow-hidden">
+                  <!-- particles injected by JS -->
+                </div>
+                <div class="hint mt-2">غبار بسيط + خطوط سرعة = طابع أنمي رياضي.</div>
+              </div>
+            </div>
+          </details>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- Mobile sticky CTA -->
+  <div class="sm:hidden fixed bottom-0 inset-x-0 z-[65] px-4 pb-4">
+    <div class="glass rounded-3xl p-3 border border-white/12">
+      <div class="flex items-center justify-between gap-2">
+        <button id="backBtnM" type="button" class="focus-ring rounded-2xl px-4 py-4 bg-white/10 border border-white/15 hover:bg-white/15 transition text-sm w-28">
+          رجوع
+        </button>
+        <button id="nextBtnM" type="button" class="focus-ring rounded-2xl px-5 py-4 bg-violet-500/25 border border-violet-400/35 hover:bg-violet-500/30 transition text-sm font-extrabold flex-1">
+          التالي
+        </button>
+      </div>
+      <div class="mt-2 text-center text-[11px] text-white/65">أهداف قصيرة — اضغط التالي ✨</div>
+    </div>
+  </div>
+
+  <script>
+    // Helpers
+    const qs = (s, el=document) => el.querySelector(s);
+    const qsa = (s, el=document) => Array.from(el.querySelectorAll(s));
+    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+    const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+
+    // UI refs
+    const stations = [qs('#station1'), qs('#station2'), qs('#station3')];
+    const stationTitle = qs('#stationTitle');
+    const stationIdxEl = qs('#stationIdx');
+
+    const chk1 = qs('#chk1'), chk2 = qs('#chk2'), chk3 = qs('#chk3');
+    const overallBar = qs('#overallBar'), overallPct = qs('#overallPct');
+
+    const backBtn = qs('#backBtn'), nextBtn = qs('#nextBtn');
+    const backBtnM = qs('#backBtnM'), nextBtnM = qs('#nextBtnM');
+
+    const scoreSwipe = qs('#scoreSwipe');
+    const swipeIdx = qs('#swipeIdx');
+    const swipeTitle = qs('#swipeTitle');
+    const swipeSub = qs('#swipeSub');
+    const whistleFlash = qs('#whistleFlash');
+
+    // Form refs
+    const teamName = qs('#teamName');
+    const nickname = qs('#nickname');
+    const email = qs('#email');
+    const notifToggle = qs('#notifToggle');
+
+    const jerseyNumber = qs('#jerseyNumber');
+    const jerseyNumText = qs('#jerseyNumText');
+    const frameNumber = qs('#frameNumber');
+    const cardNumber = qs('#cardNumber');
+
+    // Avatar upload/crop
+    const avatarUpload = qs('#avatarUpload');
+    const cropCanvas = qs('#cropCanvas');
+    const cropCtx = cropCanvas.getContext('2d', { willReadFrequently: true });
+    const zoom = qs('#zoom');
+    const zoomVal = qs('#zoomVal');
+    const applyCrop = qs('#applyCrop');
+    const makeAnime = qs('#makeAnime');
+    const resetCrop = qs('#resetCrop');
+    const animeState = qs('#animeState');
+
+    // Live card refs
+    const cardName = qs('#cardName');
+    const cardRole = qs('#cardRole');
+    const cardSport = qs('#cardSport');
+    const cardInterests = qs('#cardInterests');
+    const cardBadge = qs('#cardBadge');
+
+    const cardAvatarImg = qs('#cardAvatarImg');
+    const cardAvatarSvg = qs('#cardAvatarSvg');
+
+    const readyPct = qs('#readyPct');
+    const readyBar = qs('#readyBar');
+
+    const pSta = qs('#pSta'), pFoc = qs('#pFoc'), pTea = qs('#pTea');
+
+    // Station check refs
+    const sportCheck = qs('#sportCheck');
+    const roleCheck = qs('#roleCheck');
+    const avatarCheck = qs('#avatarCheck');
+    const interestCheck = qs('#interestCheck');
+
+    // task dots
+    const t1a = qs('#t1a'), t1b = qs('#t1b'), t1c = qs('#t1c');
+    const t2a = qs('#t2a'), t2b = qs('#t2b'), t2c = qs('#t2c');
+    const t3a = qs('#t3a'), t3b = qs('#t3b'), t3c = qs('#t3c');
+
+    // Jump buttons
+    qs('#jump1').addEventListener('click', () => setStation(0, true));
+    qs('#jump2').addEventListener('click', () => setStation(1, true));
+    qs('#jump3').addEventListener('click', () => setStation(2, true));
+
+    // Success modal refs
+    const successModal = qs('#successModal');
+    const closeSuccess = qs('#closeSuccess');
+    const restart = qs('#restart');
+    const goHome = qs('#goHome');
+
+    const successName = qs('#successName');
+    const successRole = qs('#successRole');
+    const successNumber = qs('#successNumber');
+    const successAvatar = qs('#successAvatar');
+    const successAvatarFallback = qs('#successAvatarFallback');
+    const successSport = qs('#successSport');
+    const successInterests = qs('#successInterests');
+    const successReady = qs('#successReady');
+    const successBar = qs('#successBar');
+    const confetti = qs('#confetti');
+
+    // State
+    const state = {
+      station: 0,
+      teamName: teamName.value || "Thunder Squad",
+      nickname: "",
+      email: "",
+      notifications: true,
+      sport: "",
+      role: "",
+      jerseyNumber: 17,
+      avatarType: "", // "suggested" | "upload"
+      avatarId: "",
+      finalAvatarDataURL: "",
+
+      // upload crop
+      img: null,
+      imgLoaded: false,
+      imgScale: 1.0,
+      imgOffsetX: 0,
+      imgOffsetY: 0,
+      dragging: false,
+      dragStartX: 0,
+      dragStartY: 0,
+      isAnime: false,
+
+      follows: { trainer: true, highlights: false, strategy: false },
+      interests: new Set()
+    };
+
+    // --- Dust particles ---
+    const dustBox = qs('#dustBox');
+    function spawnDust(){
+      const s = document.createElement('span');
+      s.className = "absolute rounded-full blur-[0.3px]";
+      const size = rand(3, 9);
+      s.style.width = size + "px";
+      s.style.height = size + "px";
+      s.style.right = rand(-10, 30) + "px";
+      s.style.bottom = rand(-10, 30) + "px";
+      s.style.opacity = (Math.random() * 0.55 + 0.25).toFixed(2);
+      s.style.background = "rgba(255,255,255," + (Math.random() * 0.18 + 0.06).toFixed(2) + ")";
+      s.style.animation = "dust " + (Math.random() * 1.0 + 1.2).toFixed(2) + "s ease-out forwards";
+      dustBox.appendChild(s);
+      setTimeout(() => s.remove(), 1800);
+    }
+    setInterval(spawnDust, 220);
+
+    // --- Chips & Toggles ---
+    function setExclusiveChip(group, value){
+      // clear group
+      qsa(`[data-group="${group}"]`).forEach(btn => {
+        const pressed = (btn.dataset.value === value);
+        btn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+      });
+    }
+
+    function toggleChip(btn){
+      const pressed = btn.getAttribute('aria-pressed') === 'true';
+      btn.setAttribute('aria-pressed', pressed ? 'false' : 'true');
+    }
+
+    // Sport (exclusive)
+    qsa('[data-group="sport"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setExclusiveChip('sport', btn.dataset.value);
+        state.sport = btn.dataset.value;
+        updateAll();
+      });
+    });
+
+    // Role (exclusive)
+    qsa('[data-group="role"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setExclusiveChip('role', btn.dataset.value);
+        state.role = btn.dataset.value;
+        updateAll();
+      });
+    });
+
+    // Interests (multi)
+    qsa('[data-group="interest"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        toggleChip(btn);
+        const v = btn.dataset.value;
+        const on = btn.getAttribute('aria-pressed') === 'true';
+        if(on) state.interests.add(v);
+        else state.interests.delete(v);
+        updateAll();
+      });
+    });
+
+    // Toggle buttons
+    function toggleSwitch(btn){
+      const on = btn.getAttribute('aria-checked') === 'true';
+      btn.setAttribute('aria-checked', (!on) ? 'true' : 'false');
+      return !on;
+    }
+
+    notifToggle.addEventListener('click', () => {
+      state.notifications = toggleSwitch(notifToggle);
+      updateAll();
+    });
+
+    qsa('[data-follow]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const on = toggleSwitch(btn);
+        state.follows[btn.dataset.follow] = on;
+        updateAll();
+      });
+    });
+
+    // Text inputs
+    teamName.addEventListener('input', () => { state.teamName = teamName.value.trim() || "Thunder Squad"; updateAll(); });
+    nickname.addEventListener('input', () => { state.nickname = nickname.value.trim(); updateAll(); });
+    email.addEventListener('input', () => { state.email = email.value.trim(); updateAll(); });
+
+    // --- Jersey number controls ---
+    function setJerseyNumber(n, {fromInput=false} = {}){
+      let val = parseInt(String(n).replace(/[^\d]/g,''), 10);
+      if(!Number.isFinite(val)) val = state.jerseyNumber || 17;
+      val = clamp(val, 0, 99);
+      state.jerseyNumber = val;
+      jerseyNumber.value = String(val);
+      jerseyNumText.textContent = String(val).padStart(2,'0');
+      frameNumber.textContent = String(val).padStart(2,'0');
+      cardNumber.textContent = String(val).padStart(2,'0');
+      successNumber.textContent = String(val).padStart(2,'0');
+
+      // Update suggested avatar numbers
+      qsa('.avatarBtn').forEach(btn => {
+        qsa('.aNum', btn).forEach(span => span.textContent = String(val).padStart(2,'0'));
+        qsa('.aNumText', btn).forEach(txt => txt.textContent = String(val).padStart(2,'0'));
+      });
+
+      // If we are showing an injected SVG in live card, update its number if present
+      const svg = qs('svg', cardAvatarSvg);
+      if(svg){
+        qsa('.aNumText', svg).forEach(t => t.textContent = String(val).padStart(2,'0'));
+        qsa('[data-live-num]', svg).forEach(t => t.textContent = String(val).padStart(2,'0'));
+      }
+
+      if(state.imgLoaded && !fromInput){
+        drawCropPreview();
+      }
+      updateAll();
+    }
+
+    qs('#numMinus').addEventListener('click', () => setJerseyNumber(state.jerseyNumber - 1));
+    qs('#numPlus').addEventListener('click', () => setJerseyNumber(state.jerseyNumber + 1));
+    qs('#numRandom').addEventListener('click', () => setJerseyNumber(rand(0, 99)));
+
+    jerseyNumber.addEventListener('input', () => setJerseyNumber(jerseyNumber.value, {fromInput:true}));
+    jerseyNumber.addEventListener('blur', () => setJerseyNumber(jerseyNumber.value));
+
+    // --- Suggested avatar selection ---
+    const avatarBtns = qsa('.avatarBtn');
+    avatarBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        avatarBtns.forEach(b => b.classList.remove('ring-2','ring-violet-400/60','bg-white/10'));
+        btn.classList.add('ring-2','ring-violet-400/60','bg-white/10');
+
+        state.avatarType = "suggested";
+        state.avatarId = btn.dataset.avatar;
+        state.finalAvatarDataURL = ""; // will use SVG fallback in card
+        state.isAnime = false;
+        animeState.textContent = "Anime: OFF";
+        animeState.className = "px-2 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-white/75";
+        // Inject a clone of SVG to live card
+        const svg = qs('svg', btn).cloneNode(true);
+        // ensure jersey number text exists with class
+        // already in svg as .aNumText, updated by setJerseyNumber
+        cardAvatarSvg.innerHTML = "";
+        cardAvatarSvg.appendChild(svg);
+        cardAvatarImg.classList.add('hidden');
+
+        updateAll();
+      });
+    });
+
+    // --- Cropper basics ---
+    function clearCanvas(){
+      cropCtx.clearRect(0,0,cropCanvas.width,cropCanvas.height);
+      cropCtx.fillStyle = "rgba(255,255,255,.05)";
+      cropCtx.fillRect(0,0,cropCanvas.width,cropCanvas.height);
+      // guide
+      cropCtx.strokeStyle = "rgba(255,255,255,.18)";
+      cropCtx.lineWidth = 2;
+      cropCtx.strokeRect(18,18,cropCanvas.width-36,cropCanvas.height-36);
+
+      cropCtx.fillStyle = "rgba(255,255,255,.65)";
+      cropCtx.font = "700 13px system-ui, sans-serif";
+      cropCtx.textAlign = "center";
+      cropCtx.fillText("ارفع صورة ثم اسحب/زوّم", cropCanvas.width/2, cropCanvas.height/2);
+      cropCtx.fillStyle = "rgba(255,255,255,.45)";
+      cropCtx.font = "12px system-ui, sans-serif";
+      cropCtx.fillText("Overlay: jersey frame + رقم + badge", cropCanvas.width/2, cropCanvas.height/2 + 18);
+    }
+
+    function fitImageDefaults(img){
+      // place image centered with reasonable scale
+      const cw = cropCanvas.width, ch = cropCanvas.height;
+      const sx = cw / img.width;
+      const sy = ch / img.height;
+      state.imgScale = Math.max(sx, sy); // cover
+      // apply user zoom multiplicative later
+      state.imgOffsetX = 0;
+      state.imgOffsetY = 0;
+      zoom.value = "1.00";
+      zoomVal.textContent = "1.00x";
+      state.isAnime = false;
+      animeState.textContent = "Anime: OFF";
+      animeState.className = "px-2 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-white/75";
+    }
+
+    function drawCropPreview(){
+      const cw = cropCanvas.width, ch = cropCanvas.height;
+      cropCtx.clearRect(0,0,cw,ch);
+
+      // background
+      const grd = cropCtx.createLinearGradient(0,0,cw,ch);
+      grd.addColorStop(0, "rgba(255,255,255,.06)");
+      grd.addColorStop(1, "rgba(255,255,255,.02)");
+      cropCtx.fillStyle = grd;
+      cropCtx.fillRect(0,0,cw,ch);
+
+      if(!state.imgLoaded || !state.img){
+        clearCanvas();
+        return;
+      }
+
+      // draw image with cover scaling, plus user zoom factor, plus drag offsets
+      const z = parseFloat(zoom.value || "1") || 1;
+      const baseScale = state.imgScale;
+      const scale = baseScale * z;
+
+      const iw = state.img.width * scale;
+      const ih = state.img.height * scale;
+
+      const x = (cw - iw)/2 + state.imgOffsetX;
+      const y = (ch - ih)/2 + state.imgOffsetY;
+
+      // soft vignette mask
+      cropCtx.save();
+      cropCtx.fillStyle = "rgba(0,0,0,.20)";
+      cropCtx.fillRect(0,0,cw,ch);
+      cropCtx.restore();
+
+      cropCtx.save();
+      cropCtx.globalAlpha = 1;
+      cropCtx.drawImage(state.img, x, y, iw, ih);
+      cropCtx.restore();
+
+      // optional anime effect on preview (mock)
+      if(state.isAnime){
+        applyAnimeMockToCanvas(cropCtx, cw, ch);
+      }
+
+      // guide frame
+      cropCtx.strokeStyle = "rgba(255,255,255,.16)";
+      cropCtx.lineWidth = 2;
+      cropCtx.strokeRect(18,18,cw-36,ch-36);
+
+      // small highlight arcs (anime shine)
+      cropCtx.strokeStyle = "rgba(255,255,255,.22)";
+      cropCtx.lineWidth = 5;
+      cropCtx.lineCap = "round";
+      cropCtx.beginPath();
+      cropCtx.arc(cw*0.35, ch*0.32, 44, Math.PI*1.15, Math.PI*1.55);
+      cropCtx.stroke();
+    }
+
+    // Pointer drag on canvas
+    function canvasToLocal(e){
+      const r = cropCanvas.getBoundingClientRect();
+      const x = (e.clientX - r.left) * (cropCanvas.width / r.width);
+      const y = (e.clientY - r.top) * (cropCanvas.height / r.height);
+      return {x,y};
+    }
+    cropCanvas.addEventListener('pointerdown', (e) => {
+      if(!state.imgLoaded) return;
+      cropCanvas.setPointerCapture(e.pointerId);
+      state.dragging = true;
+      const p = canvasToLocal(e);
+      state.dragStartX = p.x;
+      state.dragStartY = p.y;
+    });
+    cropCanvas.addEventListener('pointermove', (e) => {
+      if(!state.dragging || !state.imgLoaded) return;
+      const p = canvasToLocal(e);
+      const dx = (p.x - state.dragStartX);
+      const dy = (p.y - state.dragStartY);
+      state.dragStartX = p.x;
+      state.dragStartY = p.y;
+      state.imgOffsetX += dx;
+      state.imgOffsetY += dy;
+      // clamp offsets a bit to avoid losing image entirely
+      state.imgOffsetX = clamp(state.imgOffsetX, -260, 260);
+      state.imgOffsetY = clamp(state.imgOffsetY, -260, 260);
+      drawCropPreview();
+    });
+    window.addEventListener('pointerup', () => { state.dragging = false; });
+
+    zoom.addEventListener('input', () => {
+      zoomVal.textContent = (parseFloat(zoom.value)).toFixed(2) + "x";
+      drawCropPreview();
+    });
+
+    resetCrop.addEventListener('click', () => {
+      if(!state.imgLoaded || !state.img) return;
+      fitImageDefaults(state.img);
+      drawCropPreview();
+      updateAll();
+    });
+
+    // Upload handler
+    avatarUpload.addEventListener('change', async () => {
+      const file = avatarUpload.files && avatarUpload.files[0];
+      if(!file) return;
+
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        state.img = img;
+        state.imgLoaded = true;
+        fitImageDefaults(img);
+
+        state.avatarType = "upload";
+        state.avatarId = "";
+        // clear selected suggested highlight
+        avatarBtns.forEach(b => b.classList.remove('ring-2','ring-violet-400/60','bg-white/10'));
+        // clear svg in card (will show img when applied)
+        cardAvatarSvg.innerHTML = "";
+
+        drawCropPreview();
+        updateAll();
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    });
+
+    // Make it Anime (mock)
+    makeAnime.addEventListener('click', () => {
+      if(!state.imgLoaded) return;
+      state.isAnime = !state.isAnime;
+      animeState.textContent = state.isAnime ? "Anime: ON" : "Anime: OFF";
+      animeState.className = state.isAnime
+        ? "px-2 py-1 rounded-full bg-violet-500/20 border border-violet-400/30 text-xs text-white/85"
+        : "px-2 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-white/75";
+      drawCropPreview();
+      updateAll();
+    });
+
+    // Posterize + outline mock (fast-ish)
+    function applyAnimeMockToCanvas(ctx, w, h){
+      const imgData = ctx.getImageData(0,0,w,h);
+      const d = imgData.data;
+
+      // posterize
+      const levels = 6; // fewer levels => more "anime poster"
+      const step = 255 / (levels - 1);
+      for(let i=0;i<d.length;i+=4){
+        d[i]   = Math.round(d[i]   / step) * step;
+        d[i+1] = Math.round(d[i+1] / step) * step;
+        d[i+2] = Math.round(d[i+2] / step) * step;
+      }
+
+      // edge outline (simple gradient)
+      const out = new Uint8ClampedArray(d); // copy
+      const thr = 26;
+      for(let y=0;y<h-1;y++){
+        for(let x=0;x<w-1;x++){
+          const idx = (y*w + x)*4;
+          const idxR = (y*w + (x+1))*4;
+          const idxD = ((y+1)*w + x)*4;
+
+          const r = d[idx], g = d[idx+1], b = d[idx+2];
+          const rr = d[idxR], gr = d[idxR+1], br = d[idxR+2];
+          const rd = d[idxD], gd = d[idxD+1], bd = d[idxD+2];
+
+          const diff = Math.abs(r-rr)+Math.abs(g-gr)+Math.abs(b-br) + Math.abs(r-rd)+Math.abs(g-gd)+Math.abs(b-bd);
+          if(diff > thr*6){
+            out[idx] = 0; out[idx+1] = 0; out[idx+2] = 0; // black outline
+          }
+        }
+      }
+
+      imgData.data.set(out);
+      ctx.putImageData(imgData,0,0);
+
+      // slight highlight bloom (fake)
+      ctx.save();
+      ctx.globalAlpha = 0.16;
+      ctx.fillStyle = "rgba(255,255,255,.9)";
+      ctx.beginPath();
+      ctx.arc(w*0.28, h*0.22, 80, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Build final avatar (composite: cropped canvas + simple jersey overlay + number/badge)
+    function generateFinalAvatarDataURL(){
+      const w = 320, h = 320;
+      const out = document.createElement('canvas');
+      out.width = w; out.height = h;
+      const ctx = out.getContext('2d', { willReadFrequently: true });
+
+      // Draw current preview (without guide stroke)
+      // We'll re-render from state for clean
+      ctx.clearRect(0,0,w,h);
+
+      // background
+      const bg = ctx.createLinearGradient(0,0,w,h);
+      bg.addColorStop(0, "rgba(255,255,255,.06)");
+      bg.addColorStop(1, "rgba(255,255,255,.02)");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0,0,w,h);
+
+      if(state.imgLoaded && state.img){
+        const z = parseFloat(zoom.value || "1") || 1;
+        const baseScale = state.imgScale;
+        const scale = baseScale * z;
+
+        const iw = state.img.width * scale;
+        const ih = state.img.height * scale;
+        const x = (w - iw)/2 + state.imgOffsetX;
+        const y = (h - ih)/2 + state.imgOffsetY;
+
+        ctx.drawImage(state.img, x, y, iw, ih);
+
+        if(state.isAnime){
+          applyAnimeMockToCanvas(ctx, w, h);
+        }
+      } else {
+        // If no upload image, keep as fallback blank
+        ctx.fillStyle = "rgba(0,0,0,.2)";
+        ctx.fillRect(0,0,w,h);
+      }
+
+      // Jersey overlay frame
+      ctx.save();
+      // subtle border
+      ctx.strokeStyle = "rgba(255,255,255,.18)";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(8,8,w-16,h-16);
+
+      // jersey collar-like arc at top
+      ctx.strokeStyle = "rgba(255,255,255,.22)";
+      ctx.lineWidth = 10;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.arc(w/2, 92, 48, Math.PI*1.15, Math.PI*1.85);
+      ctx.stroke();
+
+      // diagonal speed slash
+      ctx.globalAlpha = 0.22;
+      ctx.strokeStyle = "rgba(124,58,237,.9)";
+      ctx.lineWidth = 12;
+      ctx.beginPath();
+      ctx.moveTo(-30, 50);
+      ctx.lineTo(170, -20);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(34,197,94,.85)";
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.moveTo(-10, 98);
+      ctx.lineTo(150, 20);
+      ctx.stroke();
+      ctx.restore();
+
+      // Badge (TEAM name)
+      const badgeText = (state.teamName || "TEAM").slice(0, 14);
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,.48)";
+      roundRect(ctx, 14, 14, 110, 34, 999);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.16)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = "rgba(255,255,255,.92)";
+      ctx.font = "900 13px system-ui, sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(badgeText.toUpperCase(), 26, 31);
+      ctx.restore();
+
+      // Number tag
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,.48)";
+      roundRect(ctx, w-110-14, h-52-14, 110, 52, 16);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.16)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = "rgba(255,255,255,.95)";
+      ctx.font = "900 26px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(state.jerseyNumber).padStart(2,'0'), w-110/2-14, h-52/2-14);
+      ctx.restore();
+
+      return out.toDataURL("image/png");
+    }
+
+    function roundRect(ctx, x, y, w, h, r){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+rr, y);
+      ctx.arcTo(x+w, y, x+w, y+h, rr);
+      ctx.arcTo(x+w, y+h, x, y+h, rr);
+      ctx.arcTo(x, y+h, x, y, rr);
+      ctx.arcTo(x, y, x+w, y, rr);
+      ctx.closePath();
+    }
+
+    applyCrop.addEventListener('click', () => {
+      if(!state.imgLoaded) return;
+      state.avatarType = "upload";
+      state.avatarId = "";
+      state.finalAvatarDataURL = generateFinalAvatarDataURL();
+      cardAvatarImg.src = state.finalAvatarDataURL;
+      cardAvatarImg.classList.remove('hidden');
+      cardAvatarSvg.innerHTML = "";
+      updateAll();
+      whistle();
+    });
+
+    // --- Navigation / transitions ---
+    function scoreboardSwipe(toIndex){
+      swipeIdx.textContent = String(toIndex + 1);
+      swipeTitle.textContent = "لوحة النتائج";
+      const subs = ["محطة 1: الأساسيات", "محطة 2: الهوية", "محطة 3: الفريق"];
+      swipeSub.textContent = subs[toIndex] || "انتقال…";
+      scoreSwipe.style.display = "block";
+      const bar = qs('#scoreSwipe .scorebar');
+      bar.classList.remove('anim');
+      void bar.offsetWidth;
+      bar.classList.add('anim');
+      bar.style.animation = "swipe .9s ease-in-out";
+      setTimeout(() => { scoreSwipe.style.display = "none"; }, 930);
+    }
+
+    function whistle(){
+      whistleFlash.classList.remove('on');
+      whistleFlash.style.display = "block";
+      void whistleFlash.offsetWidth;
+      whistleFlash.classList.add('on');
+      setTimeout(() => {
+        whistleFlash.classList.remove('on');
+        whistleFlash.style.display = "none";
+      }, 680);
+    }
+
+    function setStation(i, allowJump=false){
+      i = clamp(i, 0, 2);
+
+      // block jumping forward if not complete and not allowJump
+      if(!allowJump){
+        if(i > state.station){
+          // you can only proceed if current station is complete
+          const ok = isStationComplete(state.station);
+          if(!ok) {
+            whistle();
+            // tiny shake feedback (visual only)
+            const box = stations[state.station];
+            box.classList.add('animate-pulse');
+            setTimeout(() => box.classList.remove('animate-pulse'), 260);
+            return;
+          }
+        }
+      } else {
+        // allow jump, but still block jumping beyond the first incomplete station
+        for(let s=0;s<i;s++){
+          if(!isStationComplete(s)){
+            i = s; // snap
+            break;
+          }
+        }
+      }
+
+      // If leaving station 2 and upload is active but not applied, we still generate a preview for live card
+      if(state.station === 1 && i !== 1){
+        if(state.avatarType === "upload" && state.imgLoaded){
+          // make sure the live card has something (apply silently)
+          if(!state.finalAvatarDataURL){
+            state.finalAvatarDataURL = generateFinalAvatarDataURL();
+            cardAvatarImg.src = state.finalAvatarDataURL;
+            cardAvatarImg.classList.remove('hidden');
+            cardAvatarSvg.innerHTML = "";
+          }
+        }
+      }
+
+      state.station = i;
+
+      stations.forEach((s, idx) => s.classList.toggle('hidden', idx !== i));
+      stationIdxEl.textContent = String(i + 1);
+
+      const titles = ["محطة 1: الأساسيات", "محطة 2: الهوية/الأفاتار", "محطة 3: الفريق"];
+      stationTitle.textContent = titles[i] || "محطة";
+
+      scoreboardSwipe(i);
+      whistle();
+      updateButtons();
+      updateAll();
+    }
+
+    function updateButtons(){
+      const isFirst = state.station === 0;
+      const isLast = state.station === 2;
+      const label = isLast ? "إنهاء التدريب" : "التالي";
+
+      backBtn.disabled = isFirst;
+      backBtn.classList.toggle('opacity-40', isFirst);
+      backBtn.classList.toggle('pointer-events-none', isFirst);
+
+      backBtnM.disabled = isFirst;
+      backBtnM.classList.toggle('opacity-40', isFirst);
+      backBtnM.classList.toggle('pointer-events-none', isFirst);
+
+      nextBtn.textContent = label;
+      nextBtnM.textContent = label;
+
+      // enable next only if current station complete
+      const canProceed = isStationComplete(state.station);
+      nextBtn.disabled = !canProceed;
+      nextBtn.classList.toggle('opacity-40', !canProceed);
+      nextBtn.classList.toggle('pointer-events-none', !canProceed);
+
+      nextBtnM.disabled = !canProceed;
+      nextBtnM.classList.toggle('opacity-40', !canProceed);
+      nextBtnM.classList.toggle('pointer-events-none', !canProceed);
+    }
+
+    backBtn.addEventListener('click', () => setStation(state.station - 1));
+    nextBtn.addEventListener('click', () => {
+      if(state.station < 2) setStation(state.station + 1);
+      else submit();
+    });
+
+    backBtnM.addEventListener('click', () => setStation(state.station - 1));
+    nextBtnM.addEventListener('click', () => {
+      if(state.station < 2) setStation(state.station + 1);
+      else submit();
+    });
+
+    // --- Completion logic ---
+    function isStationComplete(s){
+      if(s === 0){
+        return Boolean(state.nickname) && Boolean(state.sport);
+      }
+      if(s === 1){
+        const hasAvatar = (state.avatarType === "suggested" && state.avatarId) ||
+                          (state.avatarType === "upload" && (state.finalAvatarDataURL || state.imgLoaded));
+        const hasRole = Boolean(state.role);
+        const hasNum = Number.isFinite(state.jerseyNumber);
+        return hasAvatar && hasRole && hasNum;
+      }
+      if(s === 2){
+        const hasFollow = Object.values(state.follows).some(Boolean);
+        const hasInterest = state.interests.size >= 1;
+        return hasFollow && hasInterest;
+      }
+      return false;
+    }
+
+    function overallProgressPct(){
+      const done = [0,1,2].map(isStationComplete).filter(Boolean).length;
+      // partial credit within current station: count tasks
+      let extra = 0;
+
+      // Station 1 tasks
+      const s1 = (state.nickname ? 1 : 0) + (state.sport ? 1 : 0) + (state.notifications !== null ? 1 : 0);
+      // Station 2 tasks
+      const s2HasAvatar = (state.avatarType === "suggested" && state.avatarId) ||
+                          (state.avatarType === "upload" && (state.finalAvatarDataURL || state.imgLoaded));
+      const s2 = (state.role ? 1 : 0) + (s2HasAvatar ? 1 : 0) + (Number.isFinite(state.jerseyNumber) ? 1 : 0);
+      // Station 3 tasks
+      const s3HasFollow = Object.values(state.follows).some(Boolean);
+      const s3HasInterest = state.interests.size >= 1;
+      const s3 = (s3HasFollow ? 1 : 0) + (s3HasInterest ? 1 : 0) + (s3HasFollow && s3HasInterest ? 1 : 0);
+
+      const totalTasks = 9;
+      const completedTasks = s1 + s2 + s3;
+      extra = Math.round((completedTasks / totalTasks) * 100);
+      return clamp(extra, 0, 100);
+    }
+
+    function setDot(el, ok){
+      el.textContent = ok ? "●" : "○";
+      el.className = ok ? "text-emerald-300 font-black" : "text-white/40";
+    }
+
+    function updateCompletionUI(){
+      // station dots
+      setDot(chk1, isStationComplete(0));
+      setDot(chk2, isStationComplete(1));
+      setDot(chk3, isStationComplete(2));
+
+      // task dots
+      setDot(t1a, Boolean(state.nickname));
+      setDot(t1b, Boolean(state.sport));
+      setDot(t1c, state.notifications !== null);
+
+      const s2HasAvatar = (state.avatarType === "suggested" && state.avatarId) ||
+                          (state.avatarType === "upload" && (state.finalAvatarDataURL || state.imgLoaded));
+      setDot(t2a, Boolean(state.role));
+      setDot(t2b, Boolean(s2HasAvatar));
+      setDot(t2c, Number.isFinite(state.jerseyNumber));
+
+      const s3HasFollow = Object.values(state.follows).some(Boolean);
+      const s3HasInterest = state.interests.size >= 1;
+      setDot(t3a, s3HasFollow);
+      setDot(t3b, s3HasInterest);
+      setDot(t3c, s3HasFollow && s3HasInterest);
+
+      // micro labels
+      sportCheck.textContent = state.sport ? "مكتمل ✔" : "غير مكتمل";
+      sportCheck.className = state.sport ? "text-xs text-emerald-300 font-extrabold" : "text-xs text-white/55";
+
+      roleCheck.textContent = state.role ? "مكتمل ✔" : "غير مكتمل";
+      roleCheck.className = state.role ? "text-xs text-emerald-300 font-extrabold" : "text-xs text-white/55";
+
+      avatarCheck.textContent = s2HasAvatar ? "مكتمل ✔" : "غير مكتمل";
+      avatarCheck.className = s2HasAvatar ? "text-xs text-emerald-300 font-extrabold" : "text-xs text-white/55";
+
+      interestCheck.textContent = (state.interests.size >= 1) ? "مكتمل ✔" : "غير مكتمل";
+      interestCheck.className = (state.interests.size >= 1) ? "text-xs text-emerald-300 font-extrabold" : "text-xs text-white/55";
+    }
+
+    // --- Live profile computations ---
+    function computeMockStats(){
+      // stable-ish mock: derived from inputs
+      const base = (state.nickname ? state.nickname.length : 3) * 7;
+      const roleBias = state.role ? state.role.length * 3 : 0;
+      const sportBias = state.sport ? state.sport.length * 2 : 0;
+      const numBias = (state.jerseyNumber % 10) * 2;
+
+      const stamina = clamp(55 + (base + sportBias) % 46, 40, 99);
+      const focus   = clamp(52 + (base + roleBias) % 48, 40, 99);
+      const team    = clamp(58 + (base + numBias) % 44, 40, 99);
+
+      return { stamina, focus, team };
+    }
+
+    function updateLiveCard(){
+      const name = state.nickname || "—";
+      cardName.textContent = name;
+      cardRole.textContent = state.role || "—";
+      cardSport.textContent = state.sport || "—";
+      cardInterests.textContent = state.interests.size ? Array.from(state.interests).slice(0,3).join("، ") : "—";
+
+      cardBadge.textContent = (state.teamName || "TEAM").slice(0,10).toUpperCase();
+
+      // Avatar presentation logic:
+      // - suggested: show injected svg (already done on click); if none selected, show placeholder emoji svg
+      // - upload: show img if applied; else show svg placeholder
+      if(state.avatarType === "upload"){
+        if(state.finalAvatarDataURL){
+          cardAvatarImg.src = state.finalAvatarDataURL;
+          cardAvatarImg.classList.remove('hidden');
+          cardAvatarSvg.innerHTML = "";
+        } else {
+          // no applied yet - show nothing or keep last
+          if(!cardAvatarImg.src){
+            cardAvatarImg.classList.add('hidden');
+            cardAvatarSvg.innerHTML = "";
+          }
+        }
+      } else if(state.avatarType === "suggested"){
+        cardAvatarImg.classList.add('hidden');
+        // if no svg injected yet, add a minimal one
+        if(!qs('svg', cardAvatarSvg)){
+          cardAvatarSvg.innerHTML = minimalAvatarSvg(state.jerseyNumber);
+        }
+      } else {
+        // default
+        cardAvatarImg.classList.add('hidden');
+        cardAvatarSvg.innerHTML = minimalAvatarSvg(state.jerseyNumber);
+      }
+
+      // stats
+      const st = computeMockStats();
+      pSta.textContent = st.stamina;
+      pFoc.textContent = st.focus;
+      pTea.textContent = st.team;
+
+      // ready meter (based on completion tasks)
+      const pct = overallProgressPct();
+      readyPct.textContent = String(pct);
+      readyBar.style.width = pct + "%";
+
+      // overall progress (banner)
+      overallPct.textContent = String(pct);
+      overallBar.style.width = pct + "%";
+    }
+
+    function minimalAvatarSvg(num){
+      const n = String(num).padStart(2,'0');
+      return `
+        <svg viewBox="0 0 200 200" class="w-full h-full">
+          <defs>
+            <linearGradient id="miniG" x1="0" x2="1">
+              <stop offset="0" stop-color="rgba(124,58,237,.85)"/>
+              <stop offset="1" stop-color="rgba(34,197,94,.65)"/>
+            </linearGradient>
+          </defs>
+          <rect width="200" height="200" fill="rgba(255,255,255,.03)"></rect>
+          <circle cx="100" cy="78" r="33" fill="rgba(255,255,255,.14)"></circle>
+          <path d="M58 200 L60 130 Q82 108 100 108 Q118 108 140 130 L142 200Z" fill="url(#miniG)"></path>
+          <text x="100" y="170" text-anchor="middle" font-size="44" font-weight="900" fill="rgba(255,255,255,.92)" data-live-num="1">${n}</text>
+        </svg>
+      `;
+    }
+
+    // --- Submit & success ---
+    function seedConfetti(){
+      confetti.innerHTML = "";
+      for(let i=0;i<28;i++){
+        const b = document.createElement('div');
+        b.className = "confetti-bit";
+        b.style.left = rand(0, 100) + "%";
+        b.style.top = rand(-10, 10) + "%";
+        b.style.animationDelay = (Math.random()*0.8).toFixed(2) + "s";
+        b.style.transform = `translateY(${rand(-30, -10)}px) rotate(${rand(0,180)}deg)`;
+        b.style.background = `rgba(255,255,255,${(Math.random()*0.22+0.12).toFixed(2)})`;
+        // tint through box-shadow for variety
+        const hue = rand(160, 310);
+        b.style.boxShadow = `0 0 0 1px rgba(255,255,255,.08), 0 10px 30px rgba(0,0,0,.25), 0 0 18px hsla(${hue}, 90%, 60%, .25)`;
+        confetti.appendChild(b);
+      }
+    }
+
+    function submit(){
+      if(!isStationComplete(2)){
+        whistle();
+        return;
+      }
+
+      // Ensure final avatar for upload if image exists
+      if(state.avatarType === "upload" && state.imgLoaded && !state.finalAvatarDataURL){
+        state.finalAvatarDataURL = generateFinalAvatarDataURL();
+      }
+
+      // success content
+      successName.textContent = state.nickname || "لاعب";
+      successRole.textContent = state.role || "—";
+      successNumber.textContent = String(state.jerseyNumber).padStart(2,'0');
+
+      successSport.textContent = state.sport || "—";
+      successInterests.textContent = state.interests.size ? Array.from(state.interests).slice(0,4).join("، ") : "—";
+
+      const pct = overallProgressPct();
+      successReady.textContent = String(pct);
+      successBar.style.width = pct + "%";
+
+      if(state.finalAvatarDataURL){
+        successAvatar.src = state.finalAvatarDataURL;
+        successAvatar.classList.remove('hidden');
+        successAvatarFallback.classList.add('hidden');
+      } else if(state.avatarType === "suggested" && qs('svg', cardAvatarSvg)){
+        // render SVG to image for success (best-effort)
+        try{
+          const svgEl = qs('svg', cardAvatarSvg).cloneNode(true);
+          svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          const svgStr = new XMLSerializer().serializeToString(svgEl);
+          const blob = new Blob([svgStr], {type: 'image/svg+xml;charset=utf-8'});
+          const url = URL.createObjectURL(blob);
+          successAvatar.onload = () => URL.revokeObjectURL(url);
+          successAvatar.src = url;
+          successAvatar.classList.remove('hidden');
+          successAvatarFallback.classList.add('hidden');
+        }catch{
+          successAvatar.classList.add('hidden');
+          successAvatarFallback.classList.remove('hidden');
+        }
+      } else {
+        successAvatar.classList.add('hidden');
+        successAvatarFallback.classList.remove('hidden');
+      }
+
+      seedConfetti();
+      whistle();
+      scoreboardSwipe(2);
+
+      successModal.classList.remove('hidden');
+    }
+
+    closeSuccess.addEventListener('click', () => {
+      successModal.classList.add('hidden');
+      whistle();
+    });
+
+    goHome.addEventListener('click', () => {
+      // visual only: close modal
+      successModal.classList.add('hidden');
+      whistle();
+      // open profile details on mobile for "entered stadium"
+      const det = qs('#profileDetails');
+      if(det && det.open === false) det.open = true;
+    });
+
+    restart.addEventListener('click', () => {
+      // reset minimal
+      state.station = 0;
+      nickname.value = "";
+      email.value = "";
+      state.nickname = "";
+      state.email = "";
+      state.sport = "";
+      state.role = "";
+      state.avatarType = "";
+      state.avatarId = "";
+      state.finalAvatarDataURL = "";
+      state.img = null;
+      state.imgLoaded = false;
+      state.imgScale = 1.0;
+      state.imgOffsetX = 0;
+      state.imgOffsetY = 0;
+      state.isAnime = false;
+
+      // reset chips
+      qsa('[data-group="sport"]').forEach(b => b.setAttribute('aria-pressed','false'));
+      qsa('[data-group="role"]').forEach(b => b.setAttribute('aria-pressed','false'));
+      qsa('[data-group="interest"]').forEach(b => b.setAttribute('aria-pressed','false'));
+      state.interests.clear();
+
+      // reset follows
+      state.follows = { trainer: true, highlights: false, strategy: false };
+      qsa('[data-follow]').forEach(b => {
+        const key = b.dataset.follow;
+        b.setAttribute('aria-checked', state.follows[key] ? 'true' : 'false');
+      });
+
+      // reset notif
+      state.notifications = true;
+      notifToggle.setAttribute('aria-checked','true');
+
+      // reset number
+      setJerseyNumber(17);
+
+      // clear avatar UI
+      avatarBtns.forEach(b => b.classList.remove('ring-2','ring-violet-400/60','bg-white/10'));
+      cardAvatarImg.classList.add('hidden');
+      cardAvatarImg.src = "";
+      cardAvatarSvg.innerHTML = minimalAvatarSvg(state.jerseyNumber);
+      clearCanvas();
+
+      successModal.classList.add('hidden');
+
+      setStation(0, true);
+      updateAll();
+    });
+
+    // --- Update loop ---
+    function updateAll(){
+      updateCompletionUI();
+      updateLiveCard();
+      updateButtons();
+    }
+
+    // init
+    function init(){
+      // ensure defaults
+      notifToggle.setAttribute('aria-checked', 'true');
+      setJerseyNumber(state.jerseyNumber);
+      clearCanvas();
+
+      // Set a default minimal avatar
+      cardAvatarSvg.innerHTML = minimalAvatarSvg(state.jerseyNumber);
+
+      // auto-open profile details on large screens
+      const det = qs('#profileDetails');
+      if(det && window.matchMedia('(min-width: 1024px)').matches){
+        det.open = true;
+      }
+
+      // if user never applies crop, keep preview fresh
+      drawCropPreview();
+
+      // first render
+      updateAll();
+      updateButtons();
+
+      // little mock stats motion
+      setInterval(() => {
+        // only update mock stats in banner for flavor
+        qs('#rankMock').textContent = String(10 + (overallProgressPct() % 23));
+        qs('#wrMock').textContent = String(55 + (overallProgressPct() % 35));
+        qs('#streakMock').textContent = (overallProgressPct() > 70) ? "W4" : (overallProgressPct() > 35 ? "W2" : "W1");
+        qs('#fansMock').textContent = (12 + (overallProgressPct()/10)).toFixed(1) + "K";
+      }, 900);
+    }
+
+    // Station change on load
+    window.addEventListener('load', init);
+
+    // Keep crop preview in sync with jersey number
+    setInterval(() => {
+      // update frame TEAM text
+      qsa('.badge').forEach(b => b.textContent = (state.teamName || "TEAM").slice(0,10).toUpperCase());
+    }, 350);
+
+    // Auto-generate light preview avatar for suggested if not selected, for the live card
+    // (handled in updateLiveCard)
+  </script>
+</body>
+</html>

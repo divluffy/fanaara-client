@@ -1,0 +1,1260 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تسجيل حساب — مودال أنمي/كوميكس</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* لطابع كوميكس لطيف */
+    @font-face {
+      font-family: "ComicSansFallback";
+      src: local("Comic Sans MS");
+    }
+    .comic-stroke { box-shadow: 0 0 0 3px #111827; }
+    .comic-stroke-soft { box-shadow: 0 0 0 2px #111827; }
+    .comic-dots {
+      background-image:
+        radial-gradient(rgba(17,24,39,.12) 1px, transparent 1px);
+      background-size: 14px 14px;
+    }
+    .comic-hatch {
+      background-image:
+        repeating-linear-gradient(45deg, rgba(17,24,39,.12) 0px, rgba(17,24,39,.12) 2px, transparent 2px, transparent 8px);
+    }
+    .speech {
+      position: relative;
+    }
+    .speech:after{
+      content:"";
+      position:absolute;
+      bottom:-10px;
+      right:24px; /* RTL tail */
+      width: 0; height: 0;
+      border: 10px solid transparent;
+      border-top-color: #fff;
+      filter: drop-shadow(0 2px 0 rgba(17,24,39,.5));
+    }
+    .speech.yellow:after{ border-top-color:#FEF9C3; }
+    .speech.blue:after{ border-top-color:#DBEAFE; }
+    .speech.coral:after{ border-top-color:#FFE4E6; }
+    .slide-in {
+      transform: translateX(10px);
+      opacity: 0;
+    }
+    .slide-in.show {
+      transform: translateX(0);
+      opacity: 1;
+      transition: all .35s ease;
+    }
+    .fade {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    .fade.show {
+      opacity: 1;
+      transform: translateY(0);
+      transition: all .35s ease;
+    }
+    /* زر Toggle بسيط */
+    .toggle {
+      width: 46px; height: 26px;
+      border-radius: 999px;
+      position: relative;
+      transition: background .2s ease;
+    }
+    .toggle::after {
+      content:"";
+      position:absolute; top: 3px; right: 3px; /* RTL */
+      width: 20px; height: 20px;
+      border-radius: 999px;
+      background: white;
+      box-shadow: 0 2px 0 rgba(17,24,39,.35);
+      transition: transform .2s ease;
+    }
+    .toggle.on::after { transform: translateX(-20px); } /* RTL direction */
+    /* شريط تمرير لطيف */
+    .scrollbar::-webkit-scrollbar { width: 10px; }
+    .scrollbar::-webkit-scrollbar-thumb { background: rgba(17,24,39,.2); border-radius: 999px; }
+    .scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,.6); }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['ui-sans-serif', 'system-ui', 'ComicSansFallback'],
+          },
+          colors: {
+            sunny: { 50:"#FFFBEB", 100:"#FEF3C7", 200:"#FDE68A", 300:"#FCD34D", 400:"#FBBF24" },
+            coral: { 50:"#FFF1F2", 100:"#FFE4E6", 200:"#FECDD3", 300:"#FDA4AF", 400:"#FB7185" },
+            skyish:{ 50:"#EFF6FF", 100:"#DBEAFE", 200:"#BFDBFE", 300:"#93C5FD", 400:"#60A5FA" },
+            ink:   { 900:"#111827" }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="min-h-screen bg-sunny-50 font-display text-ink-900">
+  <!-- خلفية أنمي/كوميكس -->
+  <div class="fixed inset-0 -z-10">
+    <div class="absolute inset-0 bg-gradient-to-br from-sunny-100 via-white to-skyish-100"></div>
+    <div class="absolute inset-0 comic-dots opacity-60"></div>
+    <div class="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-coral-200 blur-2xl opacity-70"></div>
+    <div class="absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-skyish-200 blur-2xl opacity-70"></div>
+    <div class="absolute top-16 right-10 rotate-6 bg-white/70 px-4 py-2 rounded-xl comic-stroke-soft">
+      <span class="text-sm">✨ مودال تسجيل بأسلوب أنمي/كوميكس</span>
+    </div>
+  </div>
+
+  <!-- زر فتح المودال (اختياري) -->
+  <div class="min-h-screen flex items-center justify-center p-6">
+    <button id="openBtn"
+      class="px-6 py-3 rounded-2xl bg-ink-900 text-white comic-stroke hover:translate-y-[-1px] transition"
+      aria-haspopup="dialog" aria-controls="signupModal">
+      افتح تسجيل الحساب 🚀
+    </button>
+  </div>
+
+  <!-- Overlay + Modal -->
+  <div id="overlay" class="fixed inset-0 hidden items-center justify-center p-4 sm:p-8">
+    <div class="absolute inset-0 bg-ink-900/40 backdrop-blur-sm"></div>
+
+    <div id="signupModal"
+      class="relative w-full max-w-4xl rounded-3xl bg-white comic-stroke overflow-hidden"
+      role="dialog" aria-modal="true" aria-label="تسجيل حساب جديد">
+
+      <!-- Header -->
+      <div class="p-4 sm:p-6 bg-gradient-to-l from-sunny-100 via-white to-skyish-100 border-b border-ink-900/10">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-white comic-stroke-soft flex items-center justify-center">
+              <span class="text-2xl">🪄</span>
+            </div>
+            <div>
+              <h1 class="text-xl sm:text-2xl font-black tracking-tight">اصنع هويتك… صفحة صفحة! 📚</h1>
+              <p class="text-sm text-ink-900/70">لا توجد قيود على التنقل — استكشف الخطوات براحتك.</p>
+            </div>
+          </div>
+
+          <button id="closeBtn"
+            class="px-3 py-2 rounded-xl bg-white comic-stroke-soft hover:bg-sunny-50 transition"
+            title="إغلاق">
+            ✖
+          </button>
+        </div>
+
+        <!-- Progress -->
+        <div class="mt-4 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <div class="text-sm font-bold">
+              التقدم: <span id="progressLabel">1</span> / <span id="totalLabel">10</span>
+            </div>
+            <div class="text-sm text-ink-900/70">
+              <span id="stepTitle">لوحة الترحيب</span>
+            </div>
+          </div>
+
+          <div class="w-full h-3 rounded-full bg-ink-900/10 overflow-hidden comic-stroke-soft">
+            <div id="progressBar" class="h-full w-[10%] bg-gradient-to-l from-coral-300 to-skyish-300"></div>
+          </div>
+
+          <!-- Stepper Panels -->
+          <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
+            <!-- buttons injected by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p-4 sm:p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- Left: Character-ish card -->
+          <aside class="lg:col-span-1 rounded-3xl bg-sunny-100 comic-stroke-soft p-4 relative overflow-hidden">
+            <div class="absolute inset-0 comic-hatch opacity-20"></div>
+            <div class="relative">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-2xl">🎭</span>
+                  <span class="font-black">بطاقة البطل</span>
+                </div>
+                <span id="variantBadge" class="px-2 py-1 rounded-xl bg-white comic-stroke-soft text-xs font-bold">نسخة: أولاد ♂</span>
+              </div>
+
+              <div class="mt-4 rounded-2xl bg-white comic-stroke-soft p-3">
+                <div class="flex items-center gap-3">
+                  <div id="previewAvatar"
+                    class="w-16 h-16 rounded-2xl bg-skyish-100 comic-stroke-soft flex items-center justify-center text-3xl">
+                    😺
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-sm font-black truncate">
+                      <span id="previewName">اسم العرض</span>
+                    </div>
+                    <div class="text-xs text-ink-900/70">
+                      <span id="previewStyle">ستايل: —</span> • <span id="previewLang">لغة: —</span>
+                    </div>
+                    <div class="text-xs text-ink-900/70 mt-1">
+                      💌 <span id="previewEmail">—</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <div class="speech yellow rounded-2xl bg-sunny-200 comic-stroke-soft p-3">
+                  <div class="font-black">ملاحظة الراوي 🗯️</div>
+                  <div id="narratorText" class="text-sm mt-1">
+                    اختر اللي تحبه… وخلي حسابك “ستايله” واضح!
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+                <div class="rounded-2xl bg-white comic-stroke-soft p-2">
+                  <div class="font-black">⭐ اهتمامات</div>
+                  <div id="previewInterests" class="text-ink-900/70 mt-1">—</div>
+                </div>
+                <div class="rounded-2xl bg-white comic-stroke-soft p-2">
+                  <div class="font-black">🔔 تفاعل</div>
+                  <div id="previewPrefs" class="text-ink-900/70 mt-1">—</div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Right: Step panel -->
+          <main class="lg:col-span-2">
+            <div id="panel"
+              class="rounded-3xl bg-white comic-stroke-soft overflow-hidden">
+              <div class="p-4 sm:p-5 bg-gradient-to-l from-white via-sunny-50 to-coral-50 border-b border-ink-900/10">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-2">
+                    <span id="panelIcon" class="text-2xl">🧩</span>
+                    <h2 id="panelHeading" class="text-lg sm:text-xl font-black">لوحة</h2>
+                  </div>
+                  <div class="text-xs sm:text-sm text-ink-900/60 font-bold">
+                    Panel <span id="panelNumber">01</span>
+                  </div>
+                </div>
+
+                <div id="panelBubble"
+                  class="speech blue mt-3 rounded-2xl bg-skyish-100 comic-stroke-soft p-3">
+                  <div class="text-sm">
+                    هنا الشرح يطلع كفقاعة كلام بدل النص التقليدي 💬
+                  </div>
+                </div>
+              </div>
+
+              <div id="panelBody" class="p-4 sm:p-5 max-h-[55vh] overflow-auto scrollbar">
+                <!-- step content injected -->
+              </div>
+
+              <!-- Footer buttons -->
+              <div class="p-4 sm:p-5 border-t border-ink-900/10 bg-white">
+                <div class="flex items-center justify-between gap-3">
+                  <button id="prevBtn"
+                    class="flex-1 sm:flex-none px-5 py-3 rounded-2xl bg-white comic-stroke-soft hover:bg-sunny-50 transition font-black">
+                    ⬅ السابق
+                  </button>
+
+                  <div class="hidden sm:flex items-center gap-2 text-xs text-ink-900/60">
+                    <span class="px-2 py-1 rounded-xl bg-sunny-100 comic-stroke-soft">تنقّل حر</span>
+                    <span class="px-2 py-1 rounded-xl bg-skyish-100 comic-stroke-soft">بدون تحقق</span>
+                    <span id="variantDeco" class="px-2 py-1 rounded-xl bg-coral-100 comic-stroke-soft">زخرفة ♂</span>
+                  </div>
+
+                  <button id="nextBtn"
+                    class="flex-1 sm:flex-none px-5 py-3 rounded-2xl bg-ink-900 text-white comic-stroke hover:translate-y-[-1px] transition font-black">
+                    التالي ➡
+                  </button>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+
+      <!-- Tiny footer -->
+      <div class="px-4 sm:px-6 pb-4 text-xs text-ink-900/60">
+        أيقونات SVG/Emoji فقط • RTL • انتقالات Fade/Slide • بدون تحقق إدخال
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========= State =========
+    const state = {
+      step: 1,
+      total: 10,
+
+      // Step1
+      contentPref: [],
+
+      // Step2
+      email: "",
+      password: "",
+
+      // Step3
+      displayName: "",
+      age: "",
+      language: "العربية",
+
+      // Step4
+      accountStyle: "",
+      variant: "boys", // boys/girls
+
+      // Step5
+      avatar: "😺",
+      uploadedImageDataUrl: "",
+
+      // Step6
+      animeGenres: [],
+      animeThemes: [],
+
+      // Step7
+      comicInterests: [],
+      narrativePref: "",
+
+      // Step8
+      follows: {},
+
+      // Step9
+      suggestFriends: true,
+      newNotifications: true
+    };
+
+    const stepsMeta = [
+      { title: "لوحة الترحيب", icon: "🌟", bubble: "أهلاً! خلّينا نبدأ باختيار عالمك المفضل." },
+      { title: "بيانات الدخول", icon: "🔐", bubble: "اكتب بريدك وكلمة مرور… بدون تدقيق، بس عشان المعاينة." },
+      { title: "هويتك الأساسية", icon: "🪪", bubble: "اسم العرض + العمر (+16) + اللغة… لقطة تعريف!" },
+      { title: "ستايل الحساب + النسخة", icon: "🎨", bubble: "اختر ستايلك… وبدّل النسخة لتغيّر زخارف الأيقونات!" },
+      { title: "أفاتار وصورة", icon: "🧑‍🎤", bubble: "اختَر أفاتار من الشبكة أو ارفع صورة… هذا وجه البطل!" },
+      { title: "اهتمامات الأنمي", icon: "🍥", bubble: "Genres + ثلاث ثيمات تحبها… عشان التوصيات تصير نار!" },
+      { title: "اهتمامات القصص المصورة", icon: "🗞️", bubble: "Webtoon/Comics/Manhwa + تفضيل السرد… خلّينا نعرف ذوقك." },
+      { title: "متابعة سريعة", icon: "👥", bubble: "اقترحات حسابات… ضغطة متابعة وخلاص." },
+      { title: "تفضيلات التفاعل", icon: "⚙️", bubble: "تبغى اقتراح أصدقاء؟ تبغى إشعارات؟ بدّل التوجلز!" },
+      { title: "شاشة النهاية", icon: "🏁", bubble: "تم بناء البداية! راجع ملخصك واضغط إنشاء الحساب." },
+    ];
+
+    // ========= DOM =========
+    const overlay = document.getElementById("overlay");
+    const openBtn = document.getElementById("openBtn");
+    const closeBtn = document.getElementById("closeBtn");
+
+    const progressBar = document.getElementById("progressBar");
+    const progressLabel = document.getElementById("progressLabel");
+    const totalLabel = document.getElementById("totalLabel");
+    const stepTitle = document.getElementById("stepTitle");
+
+    const panelIcon = document.getElementById("panelIcon");
+    const panelHeading = document.getElementById("panelHeading");
+    const panelNumber = document.getElementById("panelNumber");
+    const panelBubble = document.getElementById("panelBubble");
+    const panelBody = document.getElementById("panelBody");
+
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    const narratorText = document.getElementById("narratorText");
+    const previewAvatar = document.getElementById("previewAvatar");
+    const previewName = document.getElementById("previewName");
+    const previewStyle = document.getElementById("previewStyle");
+    const previewLang = document.getElementById("previewLang");
+    const previewEmail = document.getElementById("previewEmail");
+    const previewInterests = document.getElementById("previewInterests");
+    const previewPrefs = document.getElementById("previewPrefs");
+
+    const variantBadge = document.getElementById("variantBadge");
+    const variantDeco = document.getElementById("variantDeco");
+
+    const stepperGrid = overlay.querySelector(".grid");
+
+    totalLabel.textContent = state.total;
+
+    // ========= Helpers =========
+    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+    function openModal() {
+      overlay.classList.remove("hidden");
+      overlay.classList.add("flex");
+      renderStepper();
+      render();
+      // Animation in
+      const modal = document.getElementById("signupModal");
+      modal.classList.add("fade");
+      requestAnimationFrame(() => modal.classList.add("show"));
+    }
+
+    function closeModal() {
+      const modal = document.getElementById("signupModal");
+      modal.classList.remove("show");
+      setTimeout(() => {
+        overlay.classList.add("hidden");
+        overlay.classList.remove("flex");
+      }, 180);
+    }
+
+    function setStep(n) {
+      state.step = clamp(n, 1, state.total);
+      render();
+    }
+
+    function next() { setStep(state.step + 1); }
+    function prev() { setStep(state.step - 1); }
+
+    function decoEmoji() {
+      // زخارف تتغير حسب النسخة
+      return state.variant === "girls"
+        ? { badge: "نسخة: بنات ♀", deco: "زخرفة ♀", spark: "🌸", accent: "💖" }
+        : { badge: "نسخة: أولاد ♂", deco: "زخرفة ♂", spark: "⚡", accent: "🔥" };
+    }
+
+    function chip(label, active, onClick, extra="") {
+      return `
+        <button class="px-3 py-2 rounded-2xl comic-stroke-soft text-sm font-black transition
+          ${active ? "bg-ink-900 text-white" : "bg-white hover:bg-sunny-50"}
+          ${extra}"
+          type="button" data-chip="${label}">
+          ${label}
+        </button>
+      `;
+    }
+
+    function cardOption({id, title, subtitle, emoji, active}) {
+      const base = active ? "bg-ink-900 text-white" : "bg-white hover:bg-sunny-50";
+      return `
+        <button type="button" data-option="${id}"
+          class="${base} comic-stroke-soft rounded-3xl p-4 text-right transition hover:translate-y-[-1px]">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="text-base font-black">${title}</div>
+              <div class="text-xs opacity-80 mt-1">${subtitle}</div>
+            </div>
+            <div class="text-2xl">${emoji}</div>
+          </div>
+        </button>
+      `;
+    }
+
+    function renderStepper() {
+      stepperGrid.innerHTML = "";
+      for (let i = 1; i <= state.total; i++) {
+        const isActive = i === state.step;
+        const done = i < state.step;
+        const meta = stepsMeta[i-1];
+
+        stepperGrid.innerHTML += `
+          <button type="button" data-step="${i}"
+            class="rounded-2xl comic-stroke-soft p-2 text-center transition
+              ${isActive ? "bg-ink-900 text-white" : done ? "bg-sunny-100 hover:bg-sunny-200" : "bg-white hover:bg-sunny-50"}">
+            <div class="text-lg">${meta.icon}</div>
+            <div class="text-[10px] font-black leading-tight">${String(i).padStart(2,"0")}</div>
+          </button>
+        `;
+      }
+
+      stepperGrid.querySelectorAll("[data-step]").forEach(btn => {
+        btn.addEventListener("click", () => setStep(+btn.dataset.step));
+      });
+    }
+
+    function updatePreview() {
+      previewAvatar.textContent = state.avatar;
+      previewName.textContent = state.displayName || "اسم العرض";
+      previewStyle.textContent = `ستايل: ${state.accountStyle || "—"}`;
+      previewLang.textContent = `لغة: ${state.language || "—"}`;
+      previewEmail.textContent = state.email || "—";
+
+      const interestsBits = [];
+      if (state.contentPref.length) interestsBits.push(`🧭 ${state.contentPref.join("، ")}`);
+      if (state.animeGenres.length) interestsBits.push(`🍥 ${state.animeGenres.slice(0,4).join("، ")}${state.animeGenres.length>4?"…":""}`);
+      if (state.comicInterests.length) interestsBits.push(`🗞️ ${state.comicInterests.join("، ")}`);
+      previewInterests.textContent = interestsBits.length ? interestsBits.join(" • ") : "—";
+
+      const prefsBits = [];
+      prefsBits.push(state.suggestFriends ? "🤝 اقتراح أصدقاء: نعم" : "🤝 اقتراح أصدقاء: لا");
+      prefsBits.push(state.newNotifications ? "🔔 إشعارات: نعم" : "🔕 إشعارات: لا");
+      previewPrefs.textContent = prefsBits.join(" • ");
+
+      const deco = decoEmoji();
+      variantBadge.textContent = deco.badge;
+      variantDeco.textContent = deco.deco;
+      narratorText.textContent = state.step === 4
+        ? `جرّب تبدّل النسخة وشوف الزخارف تتغيّر ${deco.spark}`
+        : stepsMeta[state.step-1].bubble + " " + deco.accent;
+    }
+
+    function setBubbleColor() {
+      // بدّل لون الفقاعة بشكل مرح حسب الخطوة
+      panelBubble.classList.remove("yellow", "blue", "coral", "bg-sunny-200", "bg-skyish-100", "bg-coral-100");
+      if ([1,6].includes(state.step)) {
+        panelBubble.classList.add("yellow","bg-sunny-200");
+      } else if ([4,8].includes(state.step)) {
+        panelBubble.classList.add("coral","bg-coral-100");
+      } else {
+        panelBubble.classList.add("blue","bg-skyish-100");
+      }
+    }
+
+    function progressPct() {
+      return Math.round((state.step / state.total) * 100);
+    }
+
+    // ========= Step Renderers =========
+    function step1() {
+      const items = [
+        { id:"أنمي", title:"أنمي", subtitle:"حلقات، مواسم، توصيات", emoji:"🍥" },
+        { id:"مانجا", title:"مانجا", subtitle:"فصول، سلاسل، نقاشات", emoji:"📖" },
+        { id:"كوميكس", title:"كوميكس", subtitle:"أبطال، عوالم، أحداث", emoji:"🦸" },
+        { id:"فان آرت", title:"فان آرت", subtitle:"رسومات، جاليري، تحديات", emoji:"🖌️" },
+        { id:"ميمز", title:"ميمز", subtitle:"ضحك، ترندات، لقطات", emoji:"😂" },
+      ];
+
+      return `
+        <div class="slide-in show">
+          <div class="speech yellow rounded-2xl bg-sunny-200 comic-stroke-soft p-3">
+            <div class="font-black">"أول Panel!" 🎬</div>
+            <div class="text-sm mt-1">اختَر المحتوى اللي يحمّسك… تقدر تختار أكثر من خيار.</div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            ${items.map(x => cardOption({
+              ...x,
+              active: state.contentPref.includes(x.id)
+            })).join("")}
+          </div>
+
+          <div class="mt-4 rounded-2xl bg-skyish-50 comic-stroke-soft p-3 text-sm">
+            <span class="font-black">اختيارك الآن:</span>
+            <span class="mr-2">${state.contentPref.length ? state.contentPref.join("، ") : "—"}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function step2() {
+      return `
+        <div class="slide-in show">
+          <div class="speech blue rounded-2xl bg-skyish-100 comic-stroke-soft p-3">
+            <div class="font-black">"حارس البوابة" 🔐</div>
+            <div class="text-sm mt-1">اكتب بريدك وكلمة مرور… فقط للواجهة، بدون تحقق.</div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="rounded-3xl bg-white comic-stroke-soft p-4">
+              <label class="text-sm font-black">البريد الإلكتروني 💌</label>
+              <input id="email" type="email" placeholder="name@example.com"
+                class="mt-2 w-full px-4 py-3 rounded-2xl bg-sunny-50 comic-stroke-soft focus:outline-none"
+                value="${escapeHtml(state.email)}" />
+              <div class="text-xs text-ink-900/60 mt-2">تلميح: أي شيء تكتبه يظهر بالمعاينة فقط.</div>
+            </div>
+
+            <div class="rounded-3xl bg-white comic-stroke-soft p-4">
+              <label class="text-sm font-black">كلمة المرور 🗝️</label>
+              <input id="password" type="password" placeholder="••••••••"
+                class="mt-2 w-full px-4 py-3 rounded-2xl bg-sunny-50 comic-stroke-soft focus:outline-none"
+                value="${escapeHtml(state.password)}" />
+              <div class="text-xs text-ink-900/60 mt-2">بدون شروط، بدون قيود.</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function step3() {
+      return `
+        <div class="slide-in show">
+          <div class="speech yellow rounded-2xl bg-sunny-200 comic-stroke-soft p-3">
+            <div class="font-black">"بطاقة تعريف" 🪪</div>
+            <div class="text-sm mt-1">اسم عرض + عمر (+16) + اللغة… خليها بسيطة!</div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="rounded-3xl bg-white comic-stroke-soft p-4 sm:col-span-1">
+              <label class="text-sm font-black">اسم العرض ✨</label>
+              <input id="displayName" type="text" placeholder="مثلاً: كابتن-أوتاكو"
+                class="mt-2 w-full px-4 py-3 rounded-2xl bg-skyish-50 comic-stroke-soft focus:outline-none"
+                value="${escapeHtml(state.displayName)}" />
+            </div>
+
+            <div class="rounded-3xl bg-white comic-stroke-soft p-4 sm:col-span-1">
+              <label class="text-sm font-black">العمر (+16) 🎂</label>
+              <input id="age" type="number" placeholder="16"
+                class="mt-2 w-full px-4 py-3 rounded-2xl bg-skyish-50 comic-stroke-soft focus:outline-none"
+                value="${escapeHtml(state.age)}" />
+              <div class="text-xs text-ink-900/60 mt-2">مطلوب يكون فوق 16 (لكن ما في تحقق).</div>
+            </div>
+
+            <div class="rounded-3xl bg-white comic-stroke-soft p-4 sm:col-span-1">
+              <label class="text-sm font-black">اللغة 🌍</label>
+              <select id="language"
+                class="mt-2 w-full px-4 py-3 rounded-2xl bg-skyish-50 comic-stroke-soft focus:outline-none">
+                ${["العربية","English","Français","Español","日本語","한국어"].map(l => `
+                  <option ${state.language===l?"selected":""}>${l}</option>
+                `).join("")}
+              </select>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function step4() {
+      const styles = [
+        { id:"ناقد", emoji:"🧐", sub:"تحليل + تقييمات" },
+        { id:"رسام", emoji:"🎨", sub:"اسكتشات + فن" },
+        { id:"جامع", emoji:"🧩", sub:"مقتنيات + نُسخ" },
+        { id:"مشاهد", emoji:"👀", sub:"مشاهدات + قوائم" },
+        { id:"قارئ", emoji:"📚", sub:"قراءة + فصول" },
+      ];
+
+      const deco = decoEmoji();
+      const boysActive = state.variant === "boys";
+      const girlsActive = state.variant === "girls";
+
+      return `
+        <div class="slide-in show">
+          <div class="speech coral rounded-2xl bg-coral-100 comic-stroke-soft p-3">
+            <div class="font-black">"اختر ستايلك" ${deco.spark}</div>
+            <div class="text-sm mt-1">ستايل الحساب يحدد “كيف تظهر”… والنسخة تغيّر زخارف الأيقونات.</div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            ${styles.map(s => cardOption({
+              id: s.id,
+              title: `${s.emoji} ${s.id}`,
+              subtitle: s.sub,
+              emoji: state.variant === "girls" ? "🌸" : "⚡",
+              active: state.accountStyle === s.id
+            })).join("")}
+          </div>
+
+          <div class="mt-4 rounded-3xl bg-white comic-stroke-soft p-4">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
+              <div class="font-black">اختيار النسخة (تغيّر زخرفة الأيقونات)</div>
+              <div class="flex items-center gap-2">
+                <button type="button" data-variant="boys"
+                  class="px-4 py-2 rounded-2xl comic-stroke-soft font-black transition
+                  ${boysActive ? "bg-ink-900 text-white" : "bg-sunny-50 hover:bg-sunny-100"}">
+                  ♂ أولاد
+                </button>
+                <button type="button" data-variant="girls"
+                  class="px-4 py-2 rounded-2xl comic-stroke-soft font-black transition
+                  ${girlsActive ? "bg-ink-900 text-white" : "bg-sunny-50 hover:bg-sunny-100"}">
+                  ♀ بنات
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-3 text-sm text-ink-900/70">
+              الزخرفة الحالية: <span class="font-black">${deco.deco}</span> — أيقونات: ${deco.spark} ${deco.accent}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function step5() {
+      const avatars = ["😺","🦊","🐼","🐯","🦁","🐸","👾","🤖","🧠","🦄","🦇","🦋","🐉","🌙","⭐","🧿"];
+      return `
+        <div class="slide-in show">
+          <div class="speech blue rounded-2xl bg-skyish-100 comic-stroke-soft p-3">
+            <div class="font-black">"وجه البطل" 🧑‍🎤</div>
+            <div class="text-sm mt-1">اختَر أفاتار سريع… أو ارفع صورة (تظهر كخلفية للأفاتار).</div>
+          </div>
+
+          <div class="mt-4 rounded-3xl bg-white comic-stroke-soft p-4">
+            <div class="font-black mb-3">شبكة الأفاتارات</div>
+            <div class="grid grid-cols-4 sm:grid-cols-8 gap-2">
+              ${avatars.map(a => `
+                <button type="button" data-avatar="${a}"
+                  class="aspect-square rounded-2xl comic-stroke-soft text-2xl bg-sunny-50 hover:bg-sunny-100 transition
+                  ${state.avatar===a ? "bg-ink-900 text-white" : ""}">
+                  ${a}
+                </button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-3xl bg-white comic-stroke-soft p-4">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <div class="font-black">رفع صورة</div>
+                <div class="text-sm text-ink-900/70">PNG/JPG… بدون تحقق.</div>
+              </div>
+              <label class="px-4 py-2 rounded-2xl bg-ink-900 text-white comic-stroke cursor-pointer font-black">
+                ارفع صورة 📷
+                <input id="upload" type="file" accept="image/*" class="hidden" />
+              </label>
+            </div>
+
+            <div class="mt-3 rounded-2xl bg-skyish-50 comic-stroke-soft p-3 text-sm">
+              <span class="font-black">حالة الرفع:</span>
+              <span class="mr-2">${state.uploadedImageDataUrl ? "تم اختيار صورة ✅" : "لا يوجد صورة بعد —"}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function step6() {
+      const genres = ["شونين","سينين","شوجو","إيسيكاي","ميكا","رياضة","رعب","كوميديا","دراما","غموض","خيال","سلايس أوف لايف"];
+      const themes = ["صداقة","انتقام","مغامرة","مدرسة","سفر عبر الزمن","بطولة","أسرار","تضحية","نهضة","عائلة","تحدّي","سحر"];
+
+      return `
+        <div class="slide-in show">
+          <div class="speech yellow rounded-2xl bg-sunny-200 comic-stroke-soft p-3">
+            <div class="font-black">"مخبز التوصيات" 🍥</div>
+            <div class="text-sm mt-1">اختر Genres… واختر 3 ثيمات تحبها (تقدر تختار أكثر، ما في منع).</div>
+          </div>
+
+          <div class="mt-4 rounded-3xl bg-white comic-stroke-soft p-4">
+            <div class="font-black mb-2">Genres</div>
+            <div class="flex flex-wrap gap-2">
+              ${genres.map(g => chip(g, state.animeGenres.includes(g), null)).join("")}
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-3xl bg-white comic-stroke-soft p-4">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
+              <div class="font-black">ثيمات تحبها (مقترح 3) 🎭</div>
+              <div class="text-xs text-ink-900/60">مختار: <span class="font-black">${state.animeThemes.length}</span></div>
+            </div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              ${themes.map(t => chip(t, state.animeThemes.includes(t), null)).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function step7() {
+      const types = ["Webtoon","Comics","Manhwa"];
+      const narrs = [
+        { id:"سريع ومشاهد قصيرة", emoji:"⚡", sub:"لقطات كثيرة" },
+        { id:"بطيء وعميق", emoji:"🧠", sub:"تأمل وبناء" },
+        { id:"مزيج متوازن", emoji:"⚖️", sub:"أفضل الاثنين" },
+        { id:"مفاجآت وتويست", emoji:"🎲", sub:"غير متوقع" },
+      ];
+      return `
+        <div class="slide-in show">
+          <div class="speech blue rounded-2xl bg-skyish-100 comic-stroke-soft p-3">
+            <div class="font-black">"صفحات تتقلب" 🗞️</div>
+            <div class="text-sm mt-1">اختَر أنواع القصص المصورة… وبعدها حدّد تفضيل السرد.</div>
+          </div>
+
+          <div class="mt-4 rounded-3xl bg-white comic-stroke-soft p-4">
+            <div class="font-black mb-2">تفضيلات النوع</div>
+            <div class="flex flex-wrap gap-2">
+              ${types.map(t => chip(t, state.comicInterests.includes(t), null)).join("")}
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            ${narrs.map(n => cardOption({
+              id: n.id,
+              title: `${n.emoji} ${n.id}`,
+              subtitle: n.sub,
+              emoji: "📌",
+              active: state.narrativePref === n.id
+            })).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function step8() {
+      const accounts = [
+        { id:"سِنسي-ريكومند", tag:"توصيات يومية", emoji:"🧠" },
+        { id:"مرسم-فان_آرت", tag:"فن + تحديات", emoji:"🖌️" },
+        { id:"ناقد-الحلقات", tag:"تحليل ومراجعات", emoji:"🧐" },
+        { id:"جامع-المانجا", tag:"مقتنيات ونسخ", emoji:"🧩" },
+        { id:"ميمز-فلاش", tag:"ضحك وترند", emoji:"😂" },
+        { id:"ويبـتون-عاشق", tag:"سلاسل Webtoon", emoji:"📱" },
+      ];
+
+      return `
+        <div class="slide-in show">
+          <div class="speech coral rounded-2xl bg-coral-100 comic-stroke-soft p-3">
+            <div class="font-black">"فريق البداية" 👥</div>
+            <div class="text-sm mt-1">اضغط متابعة/إلغاء متابعة كما تحب… بدون قيود.</div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            ${accounts.map(a => {
+              const followed = !!state.follows[a.id];
+              return `
+                <div class="rounded-3xl bg-white comic-stroke-soft p-4">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                      <div class="w-12 h-12 rounded-2xl bg-sunny-50 comic-stroke-soft flex items-center justify-center text-2xl">${a.emoji}</div>
+                      <div>
+                        <div class="font-black">${a.id}</div>
+                        <div class="text-xs text-ink-900/60 mt-1">${a.tag}</div>
+                      </div>
+                    </div>
+                    <button type="button" data-follow="${a.id}"
+                      class="px-4 py-2 rounded-2xl comic-stroke-soft font-black transition
+                      ${followed ? "bg-ink-900 text-white" : "bg-skyish-50 hover:bg-skyish-100"}">
+                      ${followed ? "✓ متابَع" : "+ متابعة"}
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function step9() {
+      return `
+        <div class="slide-in show">
+          <div class="speech yellow rounded-2xl bg-sunny-200 comic-stroke-soft p-3">
+            <div class="font-black">"سويتشات اللطافة" ⚙️</div>
+            <div class="text-sm mt-1">جرّب التوجلز… هذه فقط تفضيلات واجهة.</div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 gap-3">
+            <div class="rounded-3xl bg-white comic-stroke-soft p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <div class="font-black">هل تريد اقتراحات أصدقاء؟ 🤝</div>
+                  <div class="text-sm text-ink-900/70 mt-1">يوصي لك بحسابات قريبة من ذوقك.</div>
+                </div>
+                <button type="button" data-toggle="suggestFriends"
+                  class="toggle comic-stroke-soft ${state.suggestFriends ? "on bg-ink-900" : "bg-ink-900/20"}"></button>
+              </div>
+            </div>
+
+            <div class="rounded-3xl bg-white comic-stroke-soft p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <div class="font-black">هل تريد إشعارات جديدة؟ 🔔</div>
+                  <div class="text-sm text-ink-900/70 mt-1">تنبيه عند ردود/متابعات/ترندات.</div>
+                </div>
+                <button type="button" data-toggle="newNotifications"
+                  class="toggle comic-stroke-soft ${state.newNotifications ? "on bg-ink-900" : "bg-ink-900/20"}"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function step10() {
+      const followedCount = Object.values(state.follows).filter(Boolean).length;
+      const deco = decoEmoji();
+
+      const summaryLines = [
+        { k:"المحتوى", v: state.contentPref.length ? state.contentPref.join("، ") : "—" },
+        { k:"البريد", v: state.email || "—" },
+        { k:"اسم العرض", v: state.displayName || "—" },
+        { k:"العمر", v: state.age || "—" },
+        { k:"اللغة", v: state.language || "—" },
+        { k:"الستايل", v: state.accountStyle || "—" },
+        { k:"النسخة", v: state.variant === "girls" ? "بنات ♀" : "أولاد ♂" },
+        { k:"الأفاتار", v: state.avatar },
+        { k:"صورة مرفوعة", v: state.uploadedImageDataUrl ? "نعم ✅" : "لا —" },
+        { k:"Genres أنمي", v: state.animeGenres.length ? state.animeGenres.slice(0,6).join("، ") + (state.animeGenres.length>6 ? "…" : "") : "—" },
+        { k:"ثيمات", v: state.animeThemes.length ? state.animeThemes.slice(0,6).join("، ") + (state.animeThemes.length>6 ? "…" : "") : "—" },
+        { k:"قصص مصورة", v: state.comicInterests.length ? state.comicInterests.join("، ") : "—" },
+        { k:"السرد", v: state.narrativePref || "—" },
+        { k:"متابعات", v: `${followedCount} حساب` },
+        { k:"اقتراح أصدقاء", v: state.suggestFriends ? "نعم" : "لا" },
+        { k:"إشعارات", v: state.newNotifications ? "نعم" : "لا" },
+      ];
+
+      return `
+        <div class="slide-in show">
+          <div class="rounded-3xl bg-gradient-to-l from-skyish-100 via-white to-sunny-100 comic-stroke-soft p-5">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="text-2xl font-black">تم بناء البداية! 🏁</div>
+                <div class="text-sm text-ink-900/70 mt-1">هذه “الصفحة الأولى” لحسابك… والباقي مغامرة.</div>
+              </div>
+              <div class="text-3xl">${deco.spark}</div>
+            </div>
+
+            <div class="speech coral mt-4 rounded-2xl bg-coral-100 comic-stroke-soft p-3">
+              <div class="font-black">"ملخص سريع" 💬</div>
+              <div class="text-sm mt-1">إذا تبغى تعدّل شيء… ارجع لأي خطوة من الـ Panels فوق.</div>
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-3xl bg-white comic-stroke-soft p-4">
+            <div class="font-black mb-3">ملخصك</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+              ${summaryLines.map(x => `
+                <div class="rounded-2xl bg-sunny-50 comic-stroke-soft p-3 flex items-start justify-between gap-3">
+                  <span class="font-black">${x.k}</span>
+                  <span class="text-ink-900/70 text-left break-words">${escapeHtml(String(x.v))}</span>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-col sm:flex-row gap-3">
+            <button id="createAccountBtn" type="button"
+              class="flex-1 px-5 py-4 rounded-2xl bg-ink-900 text-white comic-stroke font-black hover:translate-y-[-1px] transition">
+              إنشاء الحساب ✨
+            </button>
+
+            <button id="randomizeBtn" type="button"
+              class="px-5 py-4 rounded-2xl bg-white comic-stroke-soft font-black hover:bg-skyish-50 transition">
+              عشوائي لطيف 🎲
+            </button>
+          </div>
+
+          <div id="finalToast" class="hidden mt-4 rounded-2xl bg-skyish-100 comic-stroke-soft p-3">
+            <div class="font-black">🎉 تم!</div>
+            <div class="text-sm mt-1">هذه مجرد واجهة — تقدر تربطها لاحقاً مع Next.js/Nest.js بسهولة.</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(s) {
+      return (s || "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    }
+
+    function attachHandlersForStep() {
+      // Common: options/cards/chips
+      // Step1: contentPref cards
+      if (state.step === 1) {
+        panelBody.querySelectorAll("[data-option]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const id = btn.dataset.option;
+            const idx = state.contentPref.indexOf(id);
+            if (idx >= 0) state.contentPref.splice(idx, 1);
+            else state.contentPref.push(id);
+            render();
+          });
+        });
+      }
+
+      // Step2 inputs
+      if (state.step === 2) {
+        const email = panelBody.querySelector("#email");
+        const password = panelBody.querySelector("#password");
+        email?.addEventListener("input", e => { state.email = e.target.value; updatePreview(); });
+        password?.addEventListener("input", e => { state.password = e.target.value; });
+      }
+
+      // Step3 inputs
+      if (state.step === 3) {
+        const dn = panelBody.querySelector("#displayName");
+        const age = panelBody.querySelector("#age");
+        const lang = panelBody.querySelector("#language");
+        dn?.addEventListener("input", e => { state.displayName = e.target.value; updatePreview(); });
+        age?.addEventListener("input", e => { state.age = e.target.value; updatePreview(); });
+        lang?.addEventListener("change", e => { state.language = e.target.value; updatePreview(); });
+      }
+
+      // Step4 style select + variant
+      if (state.step === 4) {
+        panelBody.querySelectorAll("[data-option]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            state.accountStyle = btn.dataset.option;
+            updatePreview();
+            render(); // refresh highlight
+          });
+        });
+        panelBody.querySelectorAll("[data-variant]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            state.variant = btn.dataset.variant;
+            render(); // update decorations
+          });
+        });
+      }
+
+      // Step5 avatar + upload
+      if (state.step === 5) {
+        panelBody.querySelectorAll("[data-avatar]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            state.avatar = btn.dataset.avatar;
+            updatePreview();
+            render();
+          });
+        });
+        const upload = panelBody.querySelector("#upload");
+        upload?.addEventListener("change", async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            state.uploadedImageDataUrl = String(reader.result || "");
+            // خليه يظهر كخلفية للأفاتار المعاين
+            previewAvatar.style.backgroundImage = `url('${state.uploadedImageDataUrl}')`;
+            previewAvatar.style.backgroundSize = "cover";
+            previewAvatar.style.backgroundPosition = "center";
+            previewAvatar.textContent = ""; // hide emoji on photo
+            render();
+          };
+          reader.readAsDataURL(file);
+        });
+
+        // لو رجع المستخدم لخطوات ثانية، حافظ على شكل المعاينة
+        if (!state.uploadedImageDataUrl) {
+          previewAvatar.style.backgroundImage = "";
+          previewAvatar.textContent = state.avatar;
+        }
+      }
+
+      // Step6 chips: genres + themes
+      if (state.step === 6) {
+        panelBody.querySelectorAll("[data-chip]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const label = btn.dataset.chip;
+            // تمييز: لو label موجود في قائمة themes نضيفه للثيمات، وإلا للgenres (بنفس النص)
+            const allThemes = ["صداقة","انتقام","مغامرة","مدرسة","سفر عبر الزمن","بطولة","أسرار","تضحية","نهضة","عائلة","تحدّي","سحر"];
+            const target = allThemes.includes(label) ? state.animeThemes : state.animeGenres;
+
+            const idx = target.indexOf(label);
+            if (idx >= 0) target.splice(idx, 1);
+            else target.push(label);
+
+            updatePreview();
+            render();
+          });
+        });
+      }
+
+      // Step7: comic types chips + narrative cards
+      if (state.step === 7) {
+        panelBody.querySelectorAll("[data-chip]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const label = btn.dataset.chip;
+            const idx = state.comicInterests.indexOf(label);
+            if (idx >= 0) state.comicInterests.splice(idx, 1);
+            else state.comicInterests.push(label);
+            updatePreview();
+            render();
+          });
+        });
+        panelBody.querySelectorAll("[data-option]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            state.narrativePref = btn.dataset.option;
+            updatePreview();
+            render();
+          });
+        });
+      }
+
+      // Step8 follow buttons
+      if (state.step === 8) {
+        panelBody.querySelectorAll("[data-follow]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const id = btn.dataset.follow;
+            state.follows[id] = !state.follows[id];
+            updatePreview();
+            render();
+          });
+        });
+      }
+
+      // Step9 toggles
+      if (state.step === 9) {
+        panelBody.querySelectorAll("[data-toggle]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const k = btn.dataset.toggle;
+            state[k] = !state[k];
+            updatePreview();
+            render();
+          });
+        });
+      }
+
+      // Step10 actions
+      if (state.step === 10) {
+        panelBody.querySelector("#createAccountBtn")?.addEventListener("click", () => {
+          panelBody.querySelector("#finalToast")?.classList.remove("hidden");
+          // confetti mini (بدون مكتبات)
+          popConfetti();
+        });
+
+        panelBody.querySelector("#randomizeBtn")?.addEventListener("click", () => {
+          randomizeCute();
+          render();
+        });
+      }
+    }
+
+    function popConfetti() {
+      // كونفيتي بسيط: نضيف عناصر ونشيلها
+      const modal = document.getElementById("signupModal");
+      const wrapper = document.createElement("div");
+      wrapper.className = "pointer-events-none absolute inset-0 overflow-hidden";
+      modal.appendChild(wrapper);
+
+      const emojis = ["✨","⭐","🌸","⚡","💥","🎉","🍥","🦊","🧡","💙"];
+      const count = 28;
+
+      for (let i = 0; i < count; i++) {
+        const s = document.createElement("div");
+        s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+        s.style.position = "absolute";
+        s.style.top = "-10px";
+        s.style.right = (Math.random() * 100) + "%";
+        s.style.fontSize = (14 + Math.random()*18) + "px";
+        s.style.opacity = "0.95";
+        s.style.transform = `rotate(${Math.random()*120-60}deg)`;
+        s.style.transition = "transform 1.2s ease, top 1.2s ease, opacity 1.2s ease";
+        wrapper.appendChild(s);
+
+        requestAnimationFrame(() => {
+          s.style.top = (60 + Math.random()*50) + "%";
+          s.style.transform = `translateX(${(Math.random()*120-60)}px) rotate(${Math.random()*360}deg)`;
+          s.style.opacity = "0";
+        });
+      }
+
+      setTimeout(() => wrapper.remove(), 1400);
+    }
+
+    function randomizeCute() {
+      const pick = (arr) => arr[Math.floor(Math.random()*arr.length)];
+      const prefs = ["أنمي","مانجا","كوميكس","فان آرت","ميمز"];
+      state.contentPref = prefs.filter(() => Math.random() > 0.5);
+      if (!state.contentPref.length) state.contentPref = [pick(prefs)];
+
+      const styles = ["ناقد","رسام","جامع","مشاهد","قارئ"];
+      state.accountStyle = pick(styles);
+
+      const langs = ["العربية","English","Français","日本語","한국어"];
+      state.language = pick(langs);
+
+      state.displayName = pick(["شادو-سينباي","مستر-ويبـتون","أوتاكو-لايت","قلم-البرق","جامع-النجوم"]);
+      state.age = String(pick([16,17,18,20,22,25]));
+
+      state.variant = Math.random() > 0.5 ? "girls" : "boys";
+
+      const avatars = ["😺","🦊","🐼","🐯","👾","🤖","🦄","🌙","⭐","🐉"];
+      state.avatar = pick(avatars);
+      state.uploadedImageDataUrl = "";
+      previewAvatar.style.backgroundImage = "";
+      previewAvatar.textContent = state.avatar;
+
+      const genres = ["شونين","سينين","شوجو","إيسيكاي","ميكا","رياضة","رعب","كوميديا","دراما","غموض","خيال","سلايس أوف لايف"];
+      state.animeGenres = genres.filter(() => Math.random() > 0.65).slice(0, 6);
+
+      const themes = ["صداقة","انتقام","مغامرة","مدرسة","سفر عبر الزمن","بطولة","أسرار","تضحية","نهضة","عائلة","تحدّي","سحر"];
+      state.animeThemes = themes.sort(() => Math.random()-0.5).slice(0, 3);
+
+      const comicTypes = ["Webtoon","Comics","Manhwa"];
+      state.comicInterests = comicTypes.filter(() => Math.random() > 0.45);
+      if (!state.comicInterests.length) state.comicInterests = [pick(comicTypes)];
+
+      const narrs = ["سريع ومشاهد قصيرة","بطيء وعميق","مزيج متوازن","مفاجآت وتويست"];
+      state.narrativePref = pick(narrs);
+
+      state.follows = { "سِنسي-ريكومند": true, "ميمز-فلاش": true };
+
+      state.suggestFriends = Math.random() > 0.4;
+      state.newNotifications = Math.random() > 0.4;
+
+      state.email = "hero@otaku.com";
+      state.password = "12345678";
+
+      updatePreview();
+    }
+
+    function render() {
+      // header + progress
+      progressLabel.textContent = state.step;
+      stepTitle.textContent = stepsMeta[state.step-1].title;
+
+      const pct = progressPct();
+      progressBar.style.width = pct + "%";
+
+      // panel header
+      const meta = stepsMeta[state.step-1];
+      panelIcon.textContent = meta.icon;
+      panelHeading.textContent = meta.title;
+      panelNumber.textContent = String(state.step).padStart(2,"0");
+      panelBubble.querySelector("div").textContent = meta.bubble;
+
+      setBubbleColor();
+
+      // body
+      panelBody.classList.remove("show");
+      panelBody.classList.add("slide-in");
+      const html = (() => {
+        switch (state.step) {
+          case 1: return step1();
+          case 2: return step2();
+          case 3: return step3();
+          case 4: return step4();
+          case 5: return step5();
+          case 6: return step6();
+          case 7: return step7();
+          case 8: return step8();
+          case 9: return step9();
+          case 10: return step10();
+        }
+      })();
+
+      panelBody.innerHTML = html;
+
+      // animate in
+      requestAnimationFrame(() => {
+        panelBody.classList.add("show");
+      });
+
+      // buttons (never block)
+      prevBtn.textContent = state.step === 1 ? "⬅ السابق" : "⬅ السابق";
+      nextBtn.textContent = state.step === state.total ? "التالي ➡" : "التالي ➡";
+
+      // update stepper highlight
+      renderStepper();
+
+      // update preview
+      updatePreview();
+
+      // attach listeners
+      attachHandlersForStep();
+
+      // إذا كان عنده صورة مرفوعة سابقاً، خليها تظهر
+      if (state.uploadedImageDataUrl) {
+        previewAvatar.style.backgroundImage = `url('${state.uploadedImageDataUrl}')`;
+        previewAvatar.style.backgroundSize = "cover";
+        previewAvatar.style.backgroundPosition = "center";
+        previewAvatar.textContent = "";
+      } else {
+        previewAvatar.style.backgroundImage = "";
+        previewAvatar.textContent = state.avatar;
+      }
+    }
+
+    // ========= Events =========
+    openBtn.addEventListener("click", openModal);
+    closeBtn.addEventListener("click", closeModal);
+
+    overlay.addEventListener("click", (e) => {
+      // close when clicking outside modal
+      const modal = document.getElementById("signupModal");
+      if (!modal.contains(e.target) && e.target === overlay) closeModal();
+      // also if clicked on backdrop layer
+      if (e.target.classList?.contains("bg-ink-900/40")) closeModal();
+    });
+
+    prevBtn.addEventListener("click", prev);
+    nextBtn.addEventListener("click", next);
+
+    // Esc close
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !overlay.classList.contains("hidden")) closeModal();
+    });
+
+    // Start opened for demo (يمكنك حذف السطر التالي لو تبي)
+    // openModal();
+  </script>
+</body>
+</html>

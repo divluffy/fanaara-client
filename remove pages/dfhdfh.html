@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en" dir="ltr" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime/Comics Community — Feed Layout</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Tailwind theme tokens (NEW colors) -->
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            ink: {
+              950: "#070A14",
+              900: "#0B1020",
+            },
+            brand: {
+              a: "#2BE4A7",   // mint
+              b: "#2AD3FF",   // neon cyan
+              c: "#8B5CF6",   // violet
+              d: "#FF4FD8",   // magenta (sparingly)
+            }
+          },
+          boxShadow: {
+            glow: "0 18px 55px rgba(42,211,255,.18)",
+            lift: "0 14px 36px rgba(2,6,23,.10)",
+            liftDark: "0 18px 55px rgba(0,0,0,.42)"
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* nicer scrollbars (optional) */
+    .nice-scroll::-webkit-scrollbar { width: 10px; }
+    .nice-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,.35); border-radius: 999px; }
+    .dark .nice-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,.22); }
+  </style>
+</head>
+
+<body class="h-full antialiased bg-slate-50 text-slate-900 dark:bg-ink-950 dark:text-slate-100">
+  <!-- BG glow -->
+  <div class="fixed inset-0 -z-10">
+    <div class="absolute inset-0 bg-[radial-gradient(900px_520px_at_80%_15%,rgba(42,211,255,.20),transparent_60%),radial-gradient(900px_520px_at_15%_90%,rgba(43,228,167,.14),transparent_55%),radial-gradient(700px_420px_at_60%_50%,rgba(139,92,246,.12),transparent_60%)]"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-50 dark:to-ink-950"></div>
+  </div>
+
+  <div class="min-h-screen p-4">
+    <div class="mx-auto max-w-7xl grid gap-4 lg:grid-cols-[320px_1fr]">
+
+      <!-- ===================== ASIDE ===================== -->
+      <aside class="lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)]">
+        <div class="h-full rounded-3xl border border-slate-200/70 bg-white/70 backdrop-blur-xl shadow-lift
+                    dark:border-white/10 dark:bg-white/5 dark:shadow-liftDark overflow-hidden flex flex-col">
+
+          <!-- Brand / header -->
+          <div class="p-4 border-b border-slate-200/70 dark:border-white/10">
+            <div class="flex items-center gap-3">
+              <div class="h-11 w-11 rounded-2xl bg-gradient-to-br from-brand-a via-brand-b to-brand-c shadow-glow"></div>
+              <div class="min-w-0">
+                <div class="font-extrabold tracking-tight truncate">OtakuHub</div>
+                <div class="text-xs text-slate-600 dark:text-slate-400 truncate">Anime • Manga • Comics Community</div>
+              </div>
+
+              <!-- Theme toggle -->
+              <button id="themeBtn"
+                class="ms-auto inline-flex items-center gap-2 rounded-2xl border border-slate-200/70 bg-white/70 px-3 py-2 text-xs font-bold
+                       hover:-translate-y-[1px] transition
+                       dark:border-white/10 dark:bg-white/10"
+                type="button" aria-label="Toggle theme">
+                <span class="hidden sm:inline">Theme</span>
+                <span class="grid h-7 w-7 place-items-center rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900">
+                  <span class="dark:hidden">☀️</span>
+                  <span class="hidden dark:inline">🌙</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Pages -->
+          <div class="flex-1 overflow-auto nice-scroll p-3">
+            <div class="px-2 pt-2 pb-2 text-[11px] font-extrabold tracking-[.18em] uppercase text-slate-500 dark:text-slate-400">
+              Pages
+            </div>
+
+            <!-- Active item: add aria-current="page" -->
+            <nav class="space-y-1">
+              <!-- HOME (active) -->
+              <a href="#" aria-current="page"
+                 class="group relative flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                        border border-emerald-500/25 bg-emerald-500/10
+                        dark:border-emerald-400/25 dark:bg-emerald-400/10
+                        hover:-translate-y-[1px] transition">
+                <span class="absolute right-2 top-2 bottom-2 w-1 rounded-full bg-gradient-to-b from-brand-a to-brand-b"></span>
+
+                <span class="flex items-center gap-3 min-w-0">
+                  <span class="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                    <!-- home -->
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20v-9.5Z" stroke="currentColor" stroke-width="2"/>
+                      <path d="M9.5 21.5v-7h5v7" stroke="currentColor" stroke-width="2" opacity=".9"/>
+                    </svg>
+                  </span>
+                  <span class="font-extrabold truncate">Feed</span>
+                </span>
+
+                <span class="rounded-full border border-slate-200/70 bg-white/70 px-2.5 py-1 text-xs font-extrabold text-slate-700
+                             dark:border-white/10 dark:bg-white/10 dark:text-slate-200">
+                  🏠
+                </span>
+              </a>
+
+              <!-- Anime -->
+              <a href="#"
+                 class="group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                        border border-transparent hover:border-slate-200/70 hover:bg-slate-900/[0.03]
+                        dark:hover:border-white/10 dark:hover:bg-white/5
+                        hover:-translate-y-[1px] transition">
+                <span class="flex items-center gap-3 min-w-0">
+                  <span class="grid h-10 w-10 place-items-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-300">
+                    <!-- face -->
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" stroke="currentColor" stroke-width="2"/>
+                      <path d="M9 10.2c.5-1 1.5-1.7 3-1.7s2.5.7 3 1.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M9.3 14.2c.9.8 1.9 1.2 2.7 1.2s1.8-.4 2.7-1.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".9"/>
+                    </svg>
+                  </span>
+                  <span class="font-bold truncate">Anime</span>
+                </span>
+                <span class="rounded-full border border-slate-200/70 bg-white/70 px-2.5 py-1 text-xs font-extrabold text-slate-700
+                             dark:border-white/10 dark:bg-white/10 dark:text-slate-200">🎬</span>
+              </a>
+
+              <!-- Manga -->
+              <a href="#"
+                 class="group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                        border border-transparent hover:border-slate-200/70 hover:bg-slate-900/[0.03]
+                        dark:hover:border-white/10 dark:hover:bg-white/5
+                        hover:-translate-y-[1px] transition">
+                <span class="flex items-center gap-3 min-w-0">
+                  <span class="grid h-10 w-10 place-items-center rounded-xl bg-amber-500/12 text-amber-600 dark:text-amber-300">
+                    <!-- book -->
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <path d="M6 4h10a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2V4Z" stroke="currentColor" stroke-width="2"/>
+                      <path d="M6 20h12" stroke="currentColor" stroke-width="2" opacity=".9"/>
+                    </svg>
+                  </span>
+                  <span class="font-bold truncate">Manga</span>
+                </span>
+                <span class="rounded-full border border-slate-200/70 bg-white/70 px-2.5 py-1 text-xs font-extrabold text-slate-700
+                             dark:border-white/10 dark:bg-white/10 dark:text-slate-200">📖</span>
+              </a>
+
+              <!-- Comics -->
+              <a href="#"
+                 class="group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                        border border-transparent hover:border-slate-200/70 hover:bg-slate-900/[0.03]
+                        dark:hover:border-white/10 dark:hover:bg-white/5
+                        hover:-translate-y-[1px] transition">
+                <span class="flex items-center gap-3 min-w-0">
+                  <span class="grid h-10 w-10 place-items-center rounded-xl bg-orange-500/12 text-orange-600 dark:text-orange-300">
+                    <!-- grid -->
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <path d="M4.5 4.5h7v7h-7v-7Z" stroke="currentColor" stroke-width="2"/>
+                      <path d="M12.5 4.5h7v7h-7v-7Z" stroke="currentColor" stroke-width="2"/>
+                      <path d="M4.5 12.5h7v7h-7v-7Z" stroke="currentColor" stroke-width="2"/>
+                      <path d="M12.5 12.5h7v7h-7v-7Z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                  </span>
+                  <span class="font-bold truncate">Comics</span>
+                </span>
+                <span class="rounded-full border border-slate-200/70 bg-white/70 px-2.5 py-1 text-xs font-extrabold text-slate-700
+                             dark:border-white/10 dark:bg-white/10 dark:text-slate-200">📚</span>
+              </a>
+
+              <!-- Swipes -->
+              <a href="#"
+                 class="group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                        border border-transparent hover:border-slate-200/70 hover:bg-slate-900/[0.03]
+                        dark:hover:border-white/10 dark:hover:bg-white/5
+                        hover:-translate-y-[1px] transition">
+                <span class="flex items-center gap-3 min-w-0">
+                  <span class="grid h-10 w-10 place-items-center rounded-xl bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-300">
+                    <!-- bolt -->
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <path d="M14 3 5 14h6l-1 7 9-11h-6l1-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <span class="font-bold truncate">Swipes</span>
+                </span>
+                <span class="rounded-full border border-slate-200/70 bg-white/70 px-2.5 py-1 text-xs font-extrabold text-slate-700
+                             dark:border-white/10 dark:bg-white/10 dark:text-slate-200">⚡</span>
+              </a>
+
+              <!-- Wallpapers -->
+              <a href="#"
+                 class="group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                        border border-transparent hover:border-slate-200/70 hover:bg-slate-900/[0.03]
+                        dark:hover:border-white/10 dark:hover:bg-white/5
+                        hover:-translate-y-[1px] transition">
+                <span class="flex items-center gap-3 min-w-0">
+                  <span class="grid h-10 w-10 place-items-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-300">
+                    <!-- image -->
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <path d="M4.5 6.5A2 2 0 0 1 6.5 4.5h11A2 2 0 0 1 19.5 6.5v11a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-11Z" stroke="currentColor" stroke-width="2"/>
+                      <path d="M8.3 14.5 10.2 12.6 13.2 15.6 15 13.8 19.5 18.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+                      <path d="M9 9a1.3 1.3 0 1 0 0 2.6A1.3 1.3 0 0 0 9 9Z" fill="currentColor" opacity=".85"/>
+                    </svg>
+                  </span>
+                  <span class="font-bold truncate">Wallpapers</span>
+                </span>
+                <span class="rounded-full border border-slate-200/70 bg-white/70 px-2.5 py-1 text-xs font-extrabold text-slate-700
+                             dark:border-white/10 dark:bg-white/10 dark:text-slate-200">🖼️</span>
+              </a>
+            </nav>
+
+            <div class="px-2 pt-6 pb-2 text-[11px] font-extrabold tracking-[.18em] uppercase text-slate-500 dark:text-slate-400">
+              Social
+            </div>
+
+            <nav class="space-y-1">
+              <!-- Chats -->
+              <a href="#"
+                 class="group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                        border border-transparent hover:border-slate-200/70 hover:bg-slate-900/[0.03]
+                        dark:hover:border-white/10 dark:hover:bg-white/5
+                        hover:-translate-y-[1px] transition">
+                <span class="flex items-center gap-3 min-w-0">
+                  <span class="relative grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                    <!-- chat -->
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <path d="M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v6A2.5 2.5 0 0 1 16.5 15H10l-4 4v-4H7.5A2.5 2.5 0 0 1 5 12.5v-6Z" stroke="currentColor" stroke-width="2"/>
+                      <path d="M8 8.5h8M8 11h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".9"/>
+                    </svg>
+                    <span class="absolute -top-1 -left-1 h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_0_5px_rgba(16,185,129,.14)]"></span>
+                  </span>
+                  <span class="font-bold truncate">Chats</span>
+                </span>
+                <span class="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-xs font-extrabold text-emerald-700
+                             dark:text-emerald-200 dark:border-emerald-400/25 dark:bg-emerald-400/10">💬 3</span>
+              </a>
+
+              <!-- Notifications -->
+              <a href="#"
+                 class="group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                        border border-transparent hover:border-slate-200/70 hover:bg-slate-900/[0.03]
+                        dark:hover:border-white/10 dark:hover:bg-white/5
+                        hover:-translate-y-[1px] transition">
+                <span class="flex items-center gap-3 min-w-0">
+                  <span class="grid h-10 w-10 place-items-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-300">
+                    <!-- bell -->
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <path d="M18 16v-5a6 6 0 1 0-12 0v5l-2 2h16l-2-2Z" stroke="currentColor" stroke-width="2"/>
+                      <path d="M10 20a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="2" opacity=".9"/>
+                    </svg>
+                  </span>
+                  <span class="font-bold truncate">Notifications</span>
+                </span>
+                <span class="rounded-full border border-rose-500/25 bg-rose-500/10 px-2.5 py-1 text-xs font-extrabold text-rose-700
+                             dark:text-rose-200 dark:border-rose-400/25 dark:bg-rose-400/10">🔔 12</span>
+              </a>
+
+              <!-- AI -->
+              <a href="#"
+                 class="group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5
+                        border border-transparent hover:border-slate-200/70 hover:bg-slate-900/[0.03]
+                        dark:hover:border-white/10 dark:hover:bg-white/5
+                        hover:-translate-y-[1px] transition">
+                <span class="flex items-center gap-3 min-w-0">
+                  <span class="grid h-10 w-10 place-items-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-300">
+                    <!-- sparkles -->
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 3l1.2 3.8L17 8l-3.8 1.2L12 13l-1.2-3.8L7 8l3.8-1.2L12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                      <path d="M19 13l.8 2.5L22 16l-2.2.7L19 19l-.8-2.3L16 16l2.2-.5L19 13Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" opacity=".9"/>
+                    </svg>
+                  </span>
+                  <span class="font-bold truncate">AI Tools</span>
+                </span>
+                <span class="rounded-full border border-sky-500/25 bg-sky-500/10 px-2.5 py-1 text-xs font-extrabold text-sky-700
+                             dark:text-sky-200 dark:border-sky-400/25 dark:bg-sky-400/10">✨ Pro</span>
+              </a>
+            </nav>
+          </div>
+
+          <!-- Profile footer -->
+          <div class="p-4 border-t border-slate-200/70 dark:border-white/10">
+            <div class="rounded-3xl border border-slate-200/70 bg-white/70 px-3 py-3 shadow-lift
+                        dark:border-white/10 dark:bg-white/5 dark:shadow-liftDark">
+              <div class="flex items-center gap-3">
+                <div class="h-12 w-12 rounded-2xl overflow-hidden border border-slate-200/70 bg-slate-100
+                            dark:border-white/10 dark:bg-white/10">
+                  <img
+                    src="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=128&h=128&fit=crop"
+                    class="h-full w-full object-cover" alt="avatar">
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="font-extrabold truncate">dev.luffy</div>
+                  <div class="text-xs text-slate-600 dark:text-slate-400 truncate">@otakuhub</div>
+                </div>
+
+                <button class="grid h-12 w-12 place-items-center rounded-2xl border border-slate-200/70 bg-white/70
+                               hover:-translate-y-[1px] transition
+                               dark:border-white/10 dark:bg-white/10"
+                        aria-label="Settings" type="button">
+                  <!-- settings -->
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M19.4 15a7.9 7.9 0 0 0 .1-1l2-1.4-2-3.4-2.4.6a8 8 0 0 0-1.7-1l-.4-2.4h-4l-.4 2.4a8 8 0 0 0-1.7 1l-2.4-.6-2 3.4 2 1.4a8.3 8.3 0 0 0 0 2l-2 1.4 2 3.4 2.4-.6c.5.4 1.1.7 1.7 1l.4 2.4h4l.4-2.4c.6-.3 1.2-.6 1.7-1l2.4.6 2-3.4-2-1.4Z" stroke="currentColor" stroke-width="1.2" opacity=".9"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- ===================== MAIN (Feed Page) ===================== -->
+      <main class="min-h-[calc(100vh-2rem)]">
+        <!-- Top header -->
+        <header class="rounded-3xl border border-slate-200/70 bg-white/70 backdrop-blur-xl shadow-lift
+                       dark:border-white/10 dark:bg-white/5 dark:shadow-liftDark p-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="min-w-0">
+              <h1 class="text-xl font-extrabold tracking-tight">Feed ✨</h1>
+              <p class="text-sm text-slate-600 dark:text-slate-400">
+                Latest posts, discussions, fan art, and chapter drops.
+              </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button class="rounded-2xl px-4 py-3 font-extrabold text-slate-900
+                             border border-slate-200/70 bg-white/70 hover:-translate-y-[1px] transition
+                             dark:text-slate-100 dark:border-white/10 dark:bg-white/10"
+                      type="button">
+                🔥 Trending
+              </button>
+              <button class="rounded-2xl px-4 py-3 font-extrabold text-ink-950
+                             bg-gradient-to-l from-brand-a via-brand-b to-brand-c shadow-glow
+                             hover:-translate-y-[1px] transition"
+                      type="button">
+                ➕ New Post
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Content grid -->
+        <div class="mt-4 grid gap-4 lg:grid-cols-[1fr_360px]">
+
+          <!-- FEED -->
+          <section class="space-y-4">
+            <!-- Composer -->
+            <div class="rounded-3xl border border-slate-200/70 bg-white/70 backdrop-blur-xl shadow-lift p-4
+                        dark:border-white/10 dark:bg-white/5 dark:shadow-liftDark">
+              <div class="flex items-center gap-3">
+                <div class="h-11 w-11 rounded-2xl bg-slate-200/70 dark:bg-white/10 grid place-items-center font-extrabold">
+                  D
+                </div>
+                <div class="flex-1">
+                  <div class="rounded-2xl border border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-600
+                              dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
+                    What are you watching/reading today? 🧠
+                  </div>
+                </div>
+                <button class="hidden sm:inline-flex rounded-2xl px-4 py-3 font-extrabold
+                               border border-slate-200/70 bg-white/70 hover:-translate-y-[1px] transition
+                               dark:border-white/10 dark:bg-white/10"
+                        type="button">
+                  🖼️ Media
+                </button>
+              </div>
+            </div>
+
+            <!-- Post card 1 -->
+            <article class="rounded-3xl border border-slate-200/70 bg-white/70 backdrop-blur-xl shadow-lift
+                            dark:border-white/10 dark:bg-white/5 dark:shadow-liftDark overflow-hidden">
+              <div class="p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="h-11 w-11 rounded-2xl bg-gradient-to-br from-brand-a to-brand-b text-ink-950 grid place-items-center font-extrabold">
+                      A
+                    </div>
+                    <div class="min-w-0">
+                      <div class="font-extrabold truncate">Aki_Draws <span class="text-slate-500 dark:text-slate-400 font-semibold">@aki</span></div>
+                      <div class="text-xs text-slate-600 dark:text-slate-400">2h • Fan Art • 🎨</div>
+                    </div>
+                  </div>
+
+                  <span class="shrink-0 rounded-full border border-fuchsia-500/25 bg-fuchsia-500/10 px-3 py-1 text-xs font-extrabold text-fuchsia-700
+                               dark:text-fuchsia-200 dark:border-fuchsia-400/25 dark:bg-fuchsia-400/10">
+                    #Art
+                  </span>
+                </div>
+
+                <p class="mt-3 text-sm leading-7 text-slate-800 dark:text-slate-200">
+                  Finished a neon version of <b>JJK</b> vibes ✨ — should I upload a wallpaper pack?
+                </p>
+
+                <div class="mt-4 rounded-2xl border border-slate-200/70 bg-slate-100/70 h-56
+                            dark:border-white/10 dark:bg-white/10 grid place-items-center">
+                  <span class="text-slate-500 dark:text-slate-400 text-sm font-bold">Media Preview 🖼️</span>
+                </div>
+
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                  <button class="rounded-2xl px-3 py-2 text-sm font-extrabold border border-slate-200/70 bg-white/70
+                                 hover:-translate-y-[1px] transition
+                                 dark:border-white/10 dark:bg-white/10">
+                    ❤️ 214
+                  </button>
+                  <button class="rounded-2xl px-3 py-2 text-sm font-extrabold border border-slate-200/70 bg-white/70
+                                 hover:-translate-y-[1px] transition
+                                 dark:border-white/10 dark:bg-white/10">
+                    💬 38
+                  </button>
+                  <button class="rounded-2xl px-3 py-2 text-sm font-extrabold border border-slate-200/70 bg-white/70
+                                 hover:-translate-y-[1px] transition
+                                 dark:border-white/10 dark:bg-white/10">
+                    🔖 Save
+                  </button>
+
+                  <span class="ms-auto text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                    Spoiler-free ✅
+                  </span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Post card 2 -->
+            <article class="rounded-3xl border border-slate-200/70 bg-white/70 backdrop-blur-xl shadow-lift
+                            dark:border-white/10 dark:bg-white/5 dark:shadow-liftDark">
+              <div class="p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="h-11 w-11 rounded-2xl bg-slate-200/70 dark:bg-white/10 grid place-items-center font-extrabold">
+                      K
+                    </div>
+                    <div class="min-w-0">
+                      <div class="font-extrabold truncate">KaitoReads <span class="text-slate-500 dark:text-slate-400 font-semibold">@kaito</span></div>
+                      <div class="text-xs text-slate-600 dark:text-slate-400">6h • Manga • 📖</div>
+                    </div>
+                  </div>
+
+                  <span class="shrink-0 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 text-xs font-extrabold text-amber-700
+                               dark:text-amber-200 dark:border-amber-400/25 dark:bg-amber-400/10">
+                    #Chapter
+                  </span>
+                </div>
+
+                <p class="mt-3 text-sm leading-7 text-slate-800 dark:text-slate-200">
+                  New chapter drop — pacing is 🔥. What’s your rating (no spoilers)?
+                </p>
+
+                <div class="mt-4 flex flex-wrap gap-2">
+                  <span class="rounded-full border border-slate-200/70 bg-white/70 px-3 py-1 text-xs font-extrabold text-slate-700
+                               dark:border-white/10 dark:bg-white/10 dark:text-slate-200">⭐ 9/10</span>
+                  <span class="rounded-full border border-slate-200/70 bg-white/70 px-3 py-1 text-xs font-extrabold text-slate-700
+                               dark:border-white/10 dark:bg-white/10 dark:text-slate-200">🧠 Theory</span>
+                  <span class="rounded-full border border-slate-200/70 bg-white/70 px-3 py-1 text-xs font-extrabold text-slate-700
+                               dark:border-white/10 dark:bg-white/10 dark:text-slate-200">⚔️ Action</span>
+                </div>
+
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                  <button class="rounded-2xl px-3 py-2 text-sm font-extrabold border border-slate-200/70 bg-white/70
+                                 hover:-translate-y-[1px] transition
+                                 dark:border-white/10 dark:bg-white/10">
+                    👍 88
+                  </button>
+                  <button class="rounded-2xl px-3 py-2 text-sm font-extrabold border border-slate-200/70 bg-white/70
+                                 hover:-translate-y-[1px] transition
+                                 dark:border-white/10 dark:bg-white/10">
+                    💬 12
+                  </button>
+                  <button class="rounded-2xl px-3 py-2 text-sm font-extrabold border border-slate-200/70 bg-white/70
+                                 hover:-translate-y-[1px] transition
+                                 dark:border-white/10 dark:bg-white/10">
+                    🔁 Share
+                  </button>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <!-- RIGHT PANEL -->
+          <aside class="space-y-4">
+            <!-- Trending -->
+            <div class="rounded-3xl border border-slate-200/70 bg-white/70 backdrop-blur-xl shadow-lift p-4
+                        dark:border-white/10 dark:bg-white/5 dark:shadow-liftDark">
+              <div class="flex items-center justify-between">
+                <h3 class="font-extrabold">Trending 🔥</h3>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold">Today</span>
+              </div>
+
+              <div class="mt-3 space-y-2">
+                <a class="block rounded-2xl border border-slate-200/70 bg-white/70 p-3 hover:-translate-y-[1px] transition
+                           dark:border-white/10 dark:bg-white/10" href="#">
+                  <div class="font-extrabold">🎌 Best Openings</div>
+                  <div class="text-xs text-slate-600 dark:text-slate-400">1.2k posts</div>
+                </a>
+                <a class="block rounded-2xl border border-slate-200/70 bg-white/70 p-3 hover:-translate-y-[1px] transition
+                           dark:border-white/10 dark:bg-white/10" href="#">
+                  <div class="font-extrabold">🖼️ AMOLED Wallpapers</div>
+                  <div class="text-xs text-slate-600 dark:text-slate-400">540 posts</div>
+                </a>
+                <a class="block rounded-2xl border border-slate-200/70 bg-white/70 p-3 hover:-translate-y-[1px] transition
+                           dark:border-white/10 dark:bg-white/10" href="#">
+                  <div class="font-extrabold">⚔️ Power Rankings</div>
+                  <div class="text-xs text-slate-600 dark:text-slate-400">320 posts</div>
+                </a>
+              </div>
+            </div>
+
+            <!-- Suggested Communities -->
+            <div class="rounded-3xl border border-slate-200/70 bg-white/70 backdrop-blur-xl shadow-lift p-4
+                        dark:border-white/10 dark:bg-white/5 dark:shadow-liftDark">
+              <h3 class="font-extrabold">Suggested Groups 👥</h3>
+
+              <div class="mt-3 space-y-2">
+                <div class="rounded-2xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/10">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                      <div class="font-extrabold truncate">JJK Fans</div>
+                      <div class="text-xs text-slate-600 dark:text-slate-400 truncate">Active • 18k members</div>
+                    </div>
+                    <button class="rounded-2xl px-3 py-2 text-xs font-extrabold text-ink-950
+                                   bg-gradient-to-l from-brand-a to-brand-b hover:-translate-y-[1px] transition">
+                      Join
+                    </button>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl border border-slate-200/70 bg-white/70 p-3 dark:border-white/10 dark:bg-white/10">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                      <div class="font-extrabold truncate">One Piece Theories</div>
+                      <div class="text-xs text-slate-600 dark:text-slate-400 truncate">New • 9k members</div>
+                    </div>
+                    <button class="rounded-2xl px-3 py-2 text-xs font-extrabold border border-slate-200/70 bg-white/70
+                                   hover:-translate-y-[1px] transition
+                                   dark:border-white/10 dark:bg-white/10">
+                      Follow
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mini stats -->
+            <div class="rounded-3xl border border-slate-200/70 bg-white/70 backdrop-blur-xl shadow-lift p-4
+                        dark:border-white/10 dark:bg-white/5 dark:shadow-liftDark">
+              <h3 class="font-extrabold">Your Stats 📊</h3>
+              <div class="mt-3 grid grid-cols-3 gap-2">
+                <div class="rounded-2xl border border-slate-200/70 bg-white/70 p-3 text-center dark:border-white/10 dark:bg-white/10">
+                  <div class="text-lg font-extrabold">12</div>
+                  <div class="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">Groups</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200/70 bg-white/70 p-3 text-center dark:border-white/10 dark:bg-white/10">
+                  <div class="text-lg font-extrabold">3</div>
+                  <div class="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">Messages</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200/70 bg-white/70 p-3 text-center dark:border-white/10 dark:bg-white/10">
+                  <div class="text-lg font-extrabold">214</div>
+                  <div class="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">Likes</div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Tiny JS فقط للتبديل بين Light/Dark (ثابت + بسيط) -->
+  <script>
+    const root = document.documentElement;
+    const btn = document.getElementById("themeBtn");
+
+    // restore
+    const saved = localStorage.getItem("theme");
+    if (saved === "dark") root.classList.add("dark");
+
+    btn.addEventListener("click", () => {
+      root.classList.toggle("dark");
+      localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+    });
+  </script>
+</body>
+</html>

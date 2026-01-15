@@ -1,0 +1,1317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2 gpt</title>
+
+  <!-- Tailwind CDN (all-in-one file) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#070815",
+            night: "#0b0f2b",
+            neon: {
+              violet: "#7c3aed",
+              cyan: "#22d3ee",
+              pink: "#fb7185",
+              emerald: "#34d399",
+              amber: "#fbbf24",
+            }
+          },
+          boxShadow: {
+            glow: "0 0 0 1px rgba(255,255,255,.10), 0 18px 70px rgba(124,58,237,.22)",
+            glow2: "0 0 0 1px rgba(255,255,255,.12), 0 18px 70px rgba(34,211,238,.18)",
+          },
+          keyframes: {
+            floaty: {
+              "0%,100%": { transform: "translateY(0px)" },
+              "50%": { transform: "translateY(-8px)" },
+            },
+            shimmer: {
+              "0%": { transform: "translateX(-80%) skewX(-18deg)", opacity: ".0" },
+              "20%": { opacity: ".55" },
+              "55%": { opacity: ".55" },
+              "100%": { transform: "translateX(140%) skewX(-18deg)", opacity: ".0" }
+            },
+            popIn: {
+              "0%": { opacity: "0", transform: "translateY(10px) scale(.98)", filter: "blur(6px)" },
+              "100%": { opacity: "1", transform: "translateY(0) scale(1)", filter: "blur(0)" },
+            },
+            confetti: {
+              "0%": { transform: "translateY(-30px) rotate(0deg)", opacity: "1" },
+              "100%": { transform: "translateY(520px) rotate(520deg)", opacity: ".95" },
+            }
+          },
+          animation: {
+            floaty: "floaty 4.2s ease-in-out infinite",
+            shimmer: "shimmer 3.2s ease-in-out infinite",
+            popIn: "popIn .45s ease both",
+            confetti: "confetti 1.4s linear forwards",
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Ambient: scanlines + halftone + particles */
+    .scanlines{
+      position:fixed; inset:0; pointer-events:none;
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(255,255,255,.045) 0px,
+        rgba(255,255,255,.045) 1px,
+        transparent 2px,
+        transparent 7px
+      );
+      mix-blend-mode: overlay;
+      opacity:.22;
+      transform: translateZ(0);
+      z-index:0;
+    }
+    .halftone{
+      position:fixed; inset:-40px; pointer-events:none;
+      background-image: radial-gradient(rgba(255,255,255,.10) 1px, transparent 1px);
+      background-size: 10px 10px;
+      opacity:.06;
+      filter: blur(.2px);
+      transform: rotate(-8deg) scale(1.08);
+      z-index:0;
+    }
+    .particles{
+      position:fixed; inset:0; pointer-events:none; overflow:hidden;
+      z-index:0;
+    }
+    .particle{
+      position:absolute;
+      width: 7px; height: 7px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), rgba(255,255,255,0));
+      opacity:.22;
+      animation: pFloat linear infinite;
+      filter: drop-shadow(0 0 16px rgba(34,211,238,.18));
+    }
+    @keyframes pFloat{
+      from{ transform: translate3d(0, 20vh, 0) scale(.8); }
+      to  { transform: translate3d(10vw, -120vh, 0) scale(1.2); }
+    }
+
+    /* Fancy shimmer overlay utility */
+    .shimmerWrap { position:relative; overflow:hidden; }
+    .shimmerWrap:after{
+      content:"";
+      position:absolute; inset:-40% -60%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+      transform: translateX(-80%) skewX(-18deg);
+      animation: shimmer 3.2s ease-in-out infinite;
+      pointer-events:none;
+      opacity:.0;
+    }
+
+    /* Hide steps */
+    .step { display:none; }
+    .step.active { display:block; }
+
+    @media (prefers-reduced-motion: reduce){
+      .particle, .scanlines, .halftone { animation: none !important; }
+      * { scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-b from-ink to-night text-white/90 overflow-x-hidden">
+  <div class="halftone"></div>
+  <div class="scanlines"></div>
+  <div id="particles" class="particles"></div>
+
+  <main class="relative z-10 px-4 py-7 sm:py-10">
+    <div class="mx-auto w-full max-w-6xl grid lg:grid-cols-2 gap-4 lg:gap-6">
+
+      <!-- LEFT: HERO -->
+      <aside class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-glow overflow-hidden relative">
+        <div class="absolute inset-0 -z-10 bg-[radial-gradient(900px_500px_at_20%_10%,rgba(124,58,237,.28),transparent_60%),radial-gradient(900px_520px_at_95%_25%,rgba(34,211,238,.18),transparent_55%),radial-gradient(900px_520px_at_70%_95%,rgba(251,113,133,.14),transparent_60%)]"></div>
+
+        <div class="p-5 sm:p-7">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-neon-violet to-neon-cyan shadow-[0_14px_40px_rgba(124,58,237,.22),0_14px_40px_rgba(34,211,238,.14)] shimmerWrap"></div>
+            <div>
+              <div class="font-extrabold tracking-wide">Anime/Comics Hub</div>
+              <div class="text-xs text-white/65">Create your identity • Join the fandom ✨</div>
+            </div>
+          </div>
+
+          <h1 class="mt-5 text-2xl sm:text-3xl font-black leading-tight">
+            Sign up with a <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-white/90 to-neon-pink">multi-step</span>
+            anime/comics vibe
+          </h1>
+
+          <p class="mt-3 text-sm leading-relaxed text-white/70">
+            Build your profile like a protagonist: account details, profile style, avatar, who you follow,
+            and what you love (anime, manga, manhwa, comics…).
+          </p>
+
+          <div class="mt-5 flex flex-wrap gap-2">
+            <span class="px-3 py-2 rounded-full text-xs border border-white/10 bg-white/5 hover:bg-white/10 transition shimmerWrap">
+              ⚡ Smooth steps + progress
+            </span>
+            <span class="px-3 py-2 rounded-full text-xs border border-white/10 bg-white/5 hover:bg-white/10 transition shimmerWrap">
+              🎴 Anime avatars (SVG)
+            </span>
+            <span class="px-3 py-2 rounded-full text-xs border border-white/10 bg-white/5 hover:bg-white/10 transition shimmerWrap">
+              🧠 Live validation + UX
+            </span>
+            <span class="px-3 py-2 rounded-full text-xs border border-white/10 bg-white/5 hover:bg-white/10 transition shimmerWrap">
+              💾 Demo save (localStorage)
+            </span>
+          </div>
+
+          <div class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div class="text-xs text-white/70 leading-relaxed">
+              Tip: Try a username like <b class="text-white/90">gear5_luffy</b> or <b class="text-white/90">manga_sensei</b>.
+              (Availability check is simulated.)
+            </div>
+          </div>
+        </div>
+
+        <div class="px-5 sm:px-7 pb-6">
+          <div class="rounded-2xl border border-white/10 bg-gradient-to-r from-white/5 to-white/0 p-4 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 grid place-items-center animate-floaty">
+                <span class="text-lg">🎌</span>
+              </div>
+              <div>
+                <div class="font-semibold text-sm">Your profile preview updates live</div>
+                <div class="text-xs text-white/65">Pick avatar & accent to match your vibe.</div>
+              </div>
+            </div>
+            <span class="hidden sm:inline-flex px-3 py-1.5 text-xs rounded-full border border-white/10 bg-white/5">
+              modern • responsive
+            </span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- RIGHT: WIZARD -->
+      <section class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-glow2 overflow-hidden relative">
+        <div class="absolute inset-0 -z-10 bg-[radial-gradient(800px_380px_at_30%_0%,rgba(124,58,237,.20),transparent_60%),radial-gradient(650px_360px_at_110%_60%,rgba(34,211,238,.14),transparent_60%)]"></div>
+
+        <div class="p-5 sm:p-7">
+          <!-- TOP: Progress -->
+          <div class="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5">
+            <div class="flex-1">
+              <div class="text-sm font-bold" id="stepTitle">Step 1: Account details</div>
+              <div class="text-xs text-white/65 mt-1" id="stepSubtitle">Set your login + security.</div>
+            </div>
+
+            <div class="w-full sm:w-[320px]">
+              <div class="h-2.5 rounded-full bg-white/10 border border-white/10 overflow-hidden">
+                <div id="progressFill" class="h-full w-0 rounded-full bg-gradient-to-r from-neon-violet via-neon-cyan to-neon-pink shadow-[0_0_24px_rgba(124,58,237,.25)] transition-[width] duration-500 ease-out"></div>
+              </div>
+              <div class="mt-3 flex items-center justify-between text-[11px] text-white/55">
+                <div class="flex gap-2">
+                  <span id="dot0" class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-neon-cyan to-neon-violet ring-2 ring-white/15"></span>
+                  <span id="dot1" class="w-2.5 h-2.5 rounded-full bg-white/10 ring-2 ring-white/10"></span>
+                  <span id="dot2" class="w-2.5 h-2.5 rounded-full bg-white/10 ring-2 ring-white/10"></span>
+                  <span id="dot3" class="w-2.5 h-2.5 rounded-full bg-white/10 ring-2 ring-white/10"></span>
+                  <span id="dot4" class="w-2.5 h-2.5 rounded-full bg-white/10 ring-2 ring-white/10"></span>
+                </div>
+                <span id="stepCount">1 / 5</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Preview -->
+          <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div id="miniPfp" class="w-12 h-12 rounded-2xl border border-white/10 bg-black/20 grid place-items-center overflow-hidden"></div>
+              <div>
+                <div id="miniName" class="font-bold text-sm">Display name…</div>
+                <div id="miniUser" class="text-xs text-white/60">@username</div>
+              </div>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              <span id="miniAccent" class="text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-white/5">Accent: violet</span>
+              <span id="miniTags" class="text-[11px] text-white/55">No loves selected yet</span>
+            </div>
+          </div>
+
+          <!-- FORM -->
+          <form id="wizard" class="mt-5" novalidate>
+            <!-- STEP 1: Details -->
+            <section class="step active animate-popIn" data-step="0">
+              <div class="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="text-xs text-white/75">Email</label>
+                  <input id="email" type="email" autocomplete="email" placeholder="name@domain.com" required
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-cyan/50 focus:ring-4 focus:ring-neon-cyan/10 transition
+                           hover:border-white/20" />
+                  <p class="mt-1 text-[11px] text-white/55">Demo only — no real email will be sent.</p>
+                </div>
+
+                <div>
+                  <label class="text-xs text-white/75">Username</label>
+                  <div class="mt-1 relative">
+                    <input id="username" type="text" minlength="3" maxlength="20" required
+                      placeholder="manga_sensei"
+                      class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                             focus:border-neon-cyan/50 focus:ring-4 focus:ring-neon-cyan/10 transition
+                             hover:border-white/20" />
+                    <span id="userStatus"
+                      class="absolute top-1/2 -translate-y-1/2 left-3 text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-white/5 text-white/70">
+                      —
+                    </span>
+                  </div>
+                  <p class="mt-1 text-[11px] text-white/55">Allowed: letters, numbers, underscore.</p>
+                </div>
+
+                <div>
+                  <label class="text-xs text-white/75">Password</label>
+                  <input id="password" type="password" minlength="8" autocomplete="new-password" required
+                    placeholder="••••••••"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-violet/50 focus:ring-4 focus:ring-neon-violet/10 transition
+                           hover:border-white/20" />
+
+                  <div class="mt-2 flex items-center gap-2">
+                    <div class="h-2 rounded-full bg-white/10 border border-white/10 overflow-hidden flex-1">
+                      <div id="pwFill" class="h-full w-0 rounded-full bg-gradient-to-r from-neon-pink via-neon-amber to-neon-emerald transition-[width] duration-300"></div>
+                    </div>
+                    <span id="pwLabel" class="text-[11px] px-2.5 py-1 rounded-full border border-neon-pink/30 bg-neon-pink/10 text-neon-pink">
+                      weak
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="text-xs text-white/75">Confirm password</label>
+                  <input id="confirm" type="password" autocomplete="new-password" required
+                    placeholder="••••••••"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-violet/50 focus:ring-4 focus:ring-neon-violet/10 transition
+                           hover:border-white/20" />
+                  <p id="matchHint" class="mt-1 text-[11px] text-white/55">Make sure it matches.</p>
+                </div>
+              </div>
+
+              <div id="err0" class="hidden mt-4 rounded-2xl border border-neon-pink/40 bg-neon-pink/10 px-4 py-3 text-sm text-white/90"></div>
+            </section>
+
+            <!-- STEP 2: More details -->
+            <section class="step animate-popIn" data-step="1">
+              <div class="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="text-xs text-white/75">Display name</label>
+                  <input id="displayName" type="text" maxlength="30" required
+                    placeholder="Gojo / Robin / Your name"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-cyan/50 focus:ring-4 focus:ring-neon-cyan/10 transition
+                           hover:border-white/20" />
+                </div>
+
+                <div>
+                  <label class="text-xs text-white/75">Location (optional)</label>
+                  <input id="location" type="text" maxlength="40" placeholder="Tokyo • Seoul • Gotham"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-cyan/50 focus:ring-4 focus:ring-neon-cyan/10 transition
+                           hover:border-white/20" />
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label class="text-xs text-white/75">Bio</label>
+                  <textarea id="bio" maxlength="180" rows="4"
+                    placeholder="Tell the community what you love…"
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-violet/50 focus:ring-4 focus:ring-neon-violet/10 transition
+                           hover:border-white/20"></textarea>
+                  <div class="mt-1 text-[11px] text-white/55"><span id="bioCount">0</span>/180</div>
+                </div>
+
+                <div>
+                  <label class="text-xs text-white/75">Privacy</label>
+                  <select id="privacy" required
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-cyan/50 focus:ring-4 focus:ring-neon-cyan/10 transition hover:border-white/20">
+                    <option value="public">Public</option>
+                    <option value="friends">Friends</option>
+                    <option value="private">Private</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="text-xs text-white/75">Notifications</label>
+                  <select id="notif" required
+                    class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                           focus:border-neon-cyan/50 focus:ring-4 focus:ring-neon-cyan/10 transition hover:border-white/20">
+                    <option value="all">Everything</option>
+                    <option value="releases">Releases only</option>
+                    <option value="friends">Friends only</option>
+                    <option value="quiet">Quiet</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="err1" class="hidden mt-4 rounded-2xl border border-neon-pink/40 bg-neon-pink/10 px-4 py-3 text-sm text-white/90"></div>
+            </section>
+
+            <!-- STEP 3: Avatar + Accent -->
+            <section class="step animate-popIn" data-step="2">
+              <div class="flex flex-col lg:flex-row gap-4">
+                <div class="flex-1">
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <div class="font-bold text-sm">Choose an avatar</div>
+                      <div class="text-xs text-white/60 mt-0.5">SVG avatars — no external images.</div>
+                    </div>
+
+                    <div class="w-[170px]">
+                      <label class="text-xs text-white/75">Accent</label>
+                      <select id="accent" class="mt-1 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-2.5 text-sm outline-none
+                                               focus:border-neon-cyan/50 focus:ring-4 focus:ring-neon-cyan/10 transition hover:border-white/20">
+                        <option value="violet">Violet</option>
+                        <option value="cyan">Cyan</option>
+                        <option value="pink">Pink</option>
+                        <option value="emerald">Emerald</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div id="avatarGrid" class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+
+                  <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="text-xs text-white/70 leading-relaxed">
+                      Pro move: set an accent that matches your favorite faction/series energy. ✨
+                    </div>
+                  </div>
+                </div>
+
+                <aside class="lg:w-[280px] rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="font-bold text-sm">Preview</div>
+                  <div class="mt-3 flex items-center gap-3">
+                    <div id="finalPfp" class="w-14 h-14 rounded-2xl border border-white/10 bg-black/20 grid place-items-center overflow-hidden"></div>
+                    <div>
+                      <div id="finalName" class="font-bold text-sm">Display name…</div>
+                      <div id="finalUser" class="text-xs text-white/60">@username</div>
+                    </div>
+                  </div>
+                  <div class="mt-3 text-xs text-white/65 leading-relaxed">
+                    Your accent affects the avatar and UI glow.
+                  </div>
+                </aside>
+              </div>
+
+              <div id="err2" class="hidden mt-4 rounded-2xl border border-neon-pink/40 bg-neon-pink/10 px-4 py-3 text-sm text-white/90"></div>
+            </section>
+
+            <!-- STEP 4: Follow people -->
+            <section class="step animate-popIn" data-step="3">
+              <div class="flex items-end justify-between gap-3">
+                <div>
+                  <div class="font-bold text-sm">Follow some people</div>
+                  <div class="text-xs text-white/60 mt-0.5">Pick at least 2 to kickstart your feed.</div>
+                </div>
+                <div class="text-[11px] px-3 py-1.5 rounded-full border border-white/10 bg-white/5">
+                  Selected: <span id="followCount" class="font-bold">0</span>
+                </div>
+              </div>
+
+              <div id="followGrid" class="mt-4 grid sm:grid-cols-2 gap-3"></div>
+
+              <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-wrap gap-2 items-center">
+                <span class="text-xs text-white/60">You’ll follow:</span>
+                <div id="followChips" class="flex flex-wrap gap-2"></div>
+              </div>
+
+              <div id="err3" class="hidden mt-4 rounded-2xl border border-neon-pink/40 bg-neon-pink/10 px-4 py-3 text-sm text-white/90"></div>
+            </section>
+
+            <!-- STEP 5: Things you love -->
+            <section class="step animate-popIn" data-step="4">
+              <div class="flex flex-col gap-4">
+                <div>
+                  <div class="font-bold text-sm">Things you love</div>
+                  <div class="text-xs text-white/60 mt-0.5">Choose formats + genres (at least 3 total).</div>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs text-white/70 mb-2">Formats</div>
+                  <div id="formats" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-xs text-white/70 mb-2">Genres</div>
+                  <div id="genres" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="grid sm:grid-cols-3 gap-3">
+                  <div class="sm:col-span-3">
+                    <label class="text-xs text-white/75">Top 3 favorites (optional)</label>
+                  </div>
+                  <input id="fav1" placeholder="Favorite #1" class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                                               focus:border-neon-cyan/50 focus:ring-4 focus:ring-neon-cyan/10 transition hover:border-white/20"/>
+                  <input id="fav2" placeholder="Favorite #2" class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                                               focus:border-neon-cyan/50 focus:ring-4 focus:ring-neon-cyan/10 transition hover:border-white/20"/>
+                  <input id="fav3" placeholder="Favorite #3" class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none
+                                               focus:border-neon-cyan/50 focus:ring-4 focus:ring-neon-cyan/10 transition hover:border-white/20"/>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-gradient-to-r from-white/5 to-white/0 p-4 flex items-center justify-between gap-3">
+                  <div class="text-xs text-white/70 leading-relaxed">
+                    Final check: agree to the (demo) Terms to finish.
+                  </div>
+                  <label class="flex items-center gap-2 text-xs text-white/75 select-none cursor-pointer">
+                    <input id="tos" type="checkbox" class="w-4 h-4 accent-neon-cyan" />
+                    I agree
+                  </label>
+                </div>
+
+                <div id="err4" class="hidden rounded-2xl border border-neon-pink/40 bg-neon-pink/10 px-4 py-3 text-sm text-white/90"></div>
+              </div>
+            </section>
+
+            <!-- Buttons -->
+            <div class="mt-6 flex items-center justify-between gap-3">
+              <button type="button" id="backBtn"
+                class="px-4 py-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20
+                       transition active:translate-y-[1px] disabled:opacity-50 disabled:cursor-not-allowed">
+                ← Back
+              </button>
+
+              <button type="button" id="nextBtn"
+                class="group px-5 py-3 rounded-2xl border border-white/10 bg-gradient-to-r from-neon-violet to-neon-cyan
+                       hover:from-neon-violet hover:via-neon-cyan hover:to-neon-pink transition
+                       shadow-[0_18px_60px_rgba(124,58,237,.18),0_18px_60px_rgba(34,211,238,.12)]
+                       active:translate-y-[1px] disabled:opacity-60 disabled:cursor-not-allowed shimmerWrap">
+                <span class="font-extrabold">Next →</span>
+                <span class="ml-2 inline-block opacity-80 group-hover:opacity-100 transition">✨</span>
+              </button>
+            </div>
+
+            <p class="mt-3 text-[11px] text-white/55">
+              Frontend demo only — payload is saved in <b>localStorage</b> key: <b>animeHub_signup_v2</b>.
+            </p>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- SUCCESS MODAL -->
+  <div id="overlay" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-xl">
+    <div class="relative w-full max-w-xl rounded-3xl border border-white/10 bg-white/5 shadow-glow overflow-hidden">
+      <div class="absolute inset-0 -z-10 bg-[radial-gradient(900px_520px_at_20%_10%,rgba(52,211,153,.18),transparent_60%),radial-gradient(900px_520px_at_90%_35%,rgba(34,211,238,.16),transparent_60%),radial-gradient(900px_520px_at_50%_110%,rgba(124,58,237,.18),transparent_65%)]"></div>
+
+      <div id="confetti" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+
+      <div class="p-6 sm:p-7">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-neon-violet to-neon-cyan shimmerWrap"></div>
+          <div>
+            <div class="font-black">Account created ✅</div>
+            <div class="text-xs text-white/65">Welcome to the fandom.</div>
+          </div>
+        </div>
+
+        <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center gap-3">
+          <div id="successPfp" class="w-14 h-14 rounded-2xl border border-white/10 bg-black/20 grid place-items-center overflow-hidden"></div>
+          <div>
+            <div id="successName" class="font-black text-lg">—</div>
+            <div id="successUser" class="text-sm text-white/65">@—</div>
+            <div id="successMeta" class="mt-1 text-xs text-white/60">—</div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex items-center justify-between gap-3">
+          <button id="closeOverlay"
+            class="px-4 py-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition active:translate-y-[1px]">
+            Close
+          </button>
+          <button id="resetAll"
+            class="px-5 py-3 rounded-2xl border border-white/10 bg-gradient-to-r from-neon-violet to-neon-cyan hover:to-neon-pink transition shimmerWrap">
+            Create another ✨
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -----------------------------
+    // Ambient particles
+    // -----------------------------
+    (function spawnParticles(){
+      const root = document.getElementById('particles');
+      const count = 24;
+      for(let i=0;i<count;i++){
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const left = Math.random()*100;
+        const delay = Math.random()*6;
+        const dur = 10 + Math.random()*11;
+        const size = 4 + Math.random()*7;
+        p.style.left = left + 'vw';
+        p.style.animationDelay = (-delay) + 's';
+        p.style.animationDuration = dur + 's';
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.top = (70 + Math.random()*60) + 'vh';
+        root.appendChild(p);
+      }
+    })();
+
+    // -----------------------------
+    // Helpers: Accent + Avatar SVG
+    // -----------------------------
+    function accentToColor(value){
+      switch(value){
+        case "cyan": return "rgba(34,211,238,.95)";
+        case "pink": return "rgba(251,113,133,.95)";
+        case "emerald": return "rgba(52,211,153,.95)";
+        default: return "rgba(124,58,237,.98)";
+      }
+    }
+
+    function avatarSVG(kind, accent){
+      const hair = accent;
+      const cheek = "rgba(251,113,133,.85)";
+      const eye = "rgba(233,236,255,.95)";
+      const outline = "rgba(255,255,255,.20)";
+      const common = (inner) => `
+        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="avatar">
+          <defs>
+            <linearGradient id="bg" x1="0" x2="1">
+              <stop offset="0" stop-color="rgba(124,58,237,.55)"/>
+              <stop offset="1" stop-color="rgba(34,211,238,.45)"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="120" height="120" rx="26" fill="url(#bg)"/>
+          <circle cx="60" cy="64" r="33" fill="rgba(0,0,0,.22)"/>
+          ${inner}
+          <rect x="6" y="6" width="108" height="108" rx="24" fill="none" stroke="${outline}" />
+        </svg>
+      `;
+
+      if(kind === "shonen"){
+        return common(`
+          <path d="M26 55c6-22 20-33 34-33s28 11 34 33c-12-6-24-10-34-10S38 49 26 55z" fill="${hair}"/>
+          <circle cx="60" cy="66" r="28" fill="rgba(233,236,255,.92)"/>
+          <path d="M42 60c4-6 10-8 18-6" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M78 60c-4-6-10-8-18-6" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <ellipse cx="49" cy="70" rx="7" ry="9" fill="rgba(0,0,0,.55)"/>
+          <ellipse cx="71" cy="70" rx="7" ry="9" fill="rgba(0,0,0,.55)"/>
+          <circle cx="47" cy="68" r="2.4" fill="${eye}"/>
+          <circle cx="69" cy="68" r="2.4" fill="${eye}"/>
+          <path d="M54 83c4 4 8 4 12 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="40" cy="80" r="4.2" fill="${cheek}" opacity=".55"/>
+          <circle cx="80" cy="80" r="4.2" fill="${cheek}" opacity=".55"/>
+        `);
+      }
+      if(kind === "mystic"){
+        return common(`
+          <path d="M20 60c8-30 24-40 40-40s32 10 40 40c-10-10-24-14-40-14S30 50 20 60z" fill="${hair}" />
+          <circle cx="60" cy="66" r="28" fill="rgba(233,236,255,.92)"/>
+          <path d="M38 66c5-3 10-3 15 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M67 66c5-3 10-3 15 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M52 88c6 4 10 4 16 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M60 52l6 10-6 4-6-4z" fill="rgba(0,0,0,.25)"/>
+          <circle cx="33" cy="78" r="3.8" fill="${cheek}" opacity=".45"/>
+          <circle cx="87" cy="78" r="3.8" fill="${cheek}" opacity=".45"/>
+          <path d="M60 22c10 4 16 10 18 18-8-4-14-6-18-6s-10 2-18 6c2-8 8-14 18-18z" fill="rgba(255,255,255,.22)"/>
+        `);
+      }
+      if(kind === "cyber"){
+        return common(`
+          <path d="M22 58c4-20 16-36 38-36s34 16 38 36c-12-8-26-12-38-12S34 50 22 58z" fill="${hair}" />
+          <circle cx="60" cy="66" r="28" fill="rgba(233,236,255,.92)"/>
+          <rect x="38" y="62" width="44" height="12" rx="6" fill="rgba(0,0,0,.45)"/>
+          <circle cx="52" cy="68" r="4.2" fill="${eye}"/>
+          <circle cx="68" cy="68" r="4.2" fill="${eye}"/>
+          <path d="M52 90c6 2 10 2 16 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M26 40h20" stroke="rgba(34,211,238,.9)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M74 40h20" stroke="rgba(251,113,133,.9)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M28 94c10 6 22 8 32 8s22-2 32-8" stroke="rgba(0,0,0,.18)" stroke-width="6" stroke-linecap="round"/>
+        `);
+      }
+      // slice
+      return common(`
+        <path d="M24 58c6-26 20-38 36-38s30 12 36 38c-12-6-24-10-36-10S36 52 24 58z" fill="${hair}" />
+        <circle cx="60" cy="66" r="28" fill="rgba(233,236,255,.92)"/>
+        <circle cx="50" cy="70" r="6.8" fill="rgba(0,0,0,.55)"/>
+        <circle cx="70" cy="70" r="6.8" fill="rgba(0,0,0,.55)"/>
+        <circle cx="48" cy="68" r="2.3" fill="${eye}"/>
+        <circle cx="68" cy="68" r="2.3" fill="${eye}"/>
+        <path d="M54 82c4 6 8 6 12 0" stroke="rgba(0,0,0,.35)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M44 60c4-4 8-6 16-5" stroke="rgba(0,0,0,.28)" stroke-width="3.6" stroke-linecap="round"/>
+        <path d="M76 60c-4-4-8-6-16-5" stroke="rgba(0,0,0,.28)" stroke-width="3.6" stroke-linecap="round"/>
+        <circle cx="40" cy="79" r="4" fill="${cheek}" opacity=".5"/>
+        <circle cx="80" cy="79" r="4" fill="${cheek}" opacity=".5"/>
+      `);
+    }
+
+    // -----------------------------
+    // Wizard state + UI wiring
+    // -----------------------------
+    const steps = Array.from(document.querySelectorAll('.step'));
+    const backBtn = document.getElementById('backBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressFill = document.getElementById('progressFill');
+    const stepTitle = document.getElementById('stepTitle');
+    const stepSubtitle = document.getElementById('stepSubtitle');
+    const stepCount = document.getElementById('stepCount');
+    const dots = [0,1,2,3,4].map(i => document.getElementById('dot'+i));
+
+    const titleMap = [
+      ["Step 1: Account details", "Set your login + security."],
+      ["Step 2: More details", "Make your profile feel alive."],
+      ["Step 3: Avatar + accent", "Pick your look + color energy."],
+      ["Step 4: Follow people", "Kickstart your feed with creators."],
+      ["Step 5: Things you love", "Anime, manga, comics + genres."]
+    ];
+
+    let current = 0;
+
+    function setStep(i){
+      current = i;
+      steps.forEach((s, idx)=> s.classList.toggle('active', idx === i));
+      backBtn.disabled = (i === 0);
+      backBtn.classList.toggle('opacity-50', i === 0);
+
+      const pct = Math.round((i)/(steps.length-1)*100);
+      progressFill.style.width = pct + "%";
+
+      stepTitle.textContent = titleMap[i][0];
+      stepSubtitle.textContent = titleMap[i][1];
+      stepCount.textContent = `${i+1} / ${steps.length}`;
+
+      dots.forEach((d, idx)=>{
+        if(idx === i){
+          d.className = "w-2.5 h-2.5 rounded-full bg-gradient-to-r from-neon-cyan to-neon-violet ring-2 ring-white/15";
+        } else if(idx < i){
+          d.className = "w-2.5 h-2.5 rounded-full bg-neon-emerald/70 ring-2 ring-neon-emerald/30";
+        } else {
+          d.className = "w-2.5 h-2.5 rounded-full bg-white/10 ring-2 ring-white/10";
+        }
+      });
+
+      nextBtn.querySelector('span.font-extrabold').textContent = (i === steps.length-1) ? "Create account ✨" : "Next →";
+
+      clearError(i);
+      syncPreview();
+    }
+
+    function showError(stepIndex, msg){
+      const box = document.getElementById('err'+stepIndex);
+      if(!box) return;
+      box.textContent = msg;
+      box.classList.remove('hidden');
+    }
+    function clearError(stepIndex){
+      const box = document.getElementById('err'+stepIndex);
+      if(!box) return;
+      box.classList.add('hidden');
+      box.textContent = "";
+    }
+
+    backBtn.addEventListener('click', ()=> {
+      if(current > 0) setStep(current - 1);
+    });
+    nextBtn.addEventListener('click', async ()=> {
+      const ok = await validateStep(current);
+      if(!ok) return;
+      if(current < steps.length - 1) setStep(current + 1);
+      else submitWizard();
+    });
+
+    // -----------------------------
+    // Step 1: Username availability + password strength
+    // -----------------------------
+    const email = document.getElementById('email');
+    const username = document.getElementById('username');
+    const userStatus = document.getElementById('userStatus');
+
+    let userCheckPending = false;
+    let userAvailable = false;
+    let userCheckTimer = null;
+
+    const reserved = new Set(["admin","root","support","moderator","owner","anime","manga","naruto","luffy","onepiece","batman","spiderman"]);
+
+    function validateUsernameFormat(v){
+      if(v.length < 3) return "too short";
+      if(v.length > 20) return "too long";
+      if(!/^[a-zA-Z0-9_]+$/.test(v)) return "invalid";
+      return null;
+    }
+
+    function setUserStatus(text, tone){
+      const base = "absolute top-1/2 -translate-y-1/2 left-3 text-[11px] px-2.5 py-1 rounded-full border bg-white/5";
+      if(tone === "ok"){
+        userStatus.className = base + " border-neon-emerald/35 text-neon-emerald";
+      } else if(tone === "bad"){
+        userStatus.className = base + " border-neon-pink/35 text-neon-pink";
+      } else if(tone === "warn"){
+        userStatus.className = base + " border-neon-amber/35 text-neon-amber";
+      } else {
+        userStatus.className = base + " border-white/10 text-white/70";
+      }
+      userStatus.textContent = text;
+    }
+
+    function checkUsername(){
+      const v = username.value.trim();
+      userAvailable = false;
+
+      if(!v){
+        setUserStatus("—", "");
+        return;
+      }
+      const fmt = validateUsernameFormat(v);
+      if(fmt){
+        setUserStatus(fmt === "invalid" ? "letters/numbers/_ only" : fmt, "bad");
+        return;
+      }
+
+      userCheckPending = true;
+      setUserStatus("checking…", "warn");
+      nextBtn.disabled = true;
+
+      clearTimeout(userCheckTimer);
+      userCheckTimer = setTimeout(()=>{
+        userCheckPending = false;
+        const low = v.toLowerCase();
+        const taken = reserved.has(low) || low.endsWith("_official") || low.endsWith("0");
+        userAvailable = !taken;
+        setUserStatus(userAvailable ? "available ✓" : "taken ✕", userAvailable ? "ok" : "bad");
+        nextBtn.disabled = false;
+      }, 520 + Math.random()*520);
+    }
+    username.addEventListener('input', ()=> { checkUsername(); syncPreview(); });
+
+    const pw = document.getElementById('password');
+    const cf = document.getElementById('confirm');
+    const pwFill = document.getElementById('pwFill');
+    const pwLabel = document.getElementById('pwLabel');
+    const matchHint = document.getElementById('matchHint');
+
+    function pwScore(v){
+      let s = 0;
+      if(v.length >= 8) s += 25;
+      if(v.length >= 12) s += 15;
+      if(/[A-Z]/.test(v)) s += 15;
+      if(/[a-z]/.test(v)) s += 15;
+      if(/[0-9]/.test(v)) s += 15;
+      if(/[^A-Za-z0-9]/.test(v)) s += 15;
+      return Math.min(100, s);
+    }
+
+    function updatePwUI(){
+      const s = pwScore(pw.value);
+      pwFill.style.width = s + "%";
+
+      let label = "weak", cls = "border-neon-pink/30 bg-neon-pink/10 text-neon-pink";
+      if(s >= 70){ label = "strong"; cls = "border-neon-emerald/30 bg-neon-emerald/10 text-neon-emerald"; }
+      else if(s >= 45){ label = "medium"; cls = "border-neon-amber/30 bg-neon-amber/10 text-neon-amber"; }
+
+      pwLabel.textContent = label;
+      pwLabel.className = "text-[11px] px-2.5 py-1 rounded-full border " + cls;
+
+      const match = (cf.value.length===0) ? null : (pw.value === cf.value);
+      if(match === null){
+        matchHint.textContent = "Make sure it matches.";
+        matchHint.className = "mt-1 text-[11px] text-white/55";
+      } else if(match){
+        matchHint.textContent = "Match ✓";
+        matchHint.className = "mt-1 text-[11px] text-neon-emerald";
+      } else {
+        matchHint.textContent = "No match ✕";
+        matchHint.className = "mt-1 text-[11px] text-neon-pink";
+      }
+    }
+    pw.addEventListener('input', updatePwUI);
+    cf.addEventListener('input', updatePwUI);
+
+    // -----------------------------
+    // Step 2: Bio counter + preview name
+    // -----------------------------
+    const displayName = document.getElementById('displayName');
+    const bio = document.getElementById('bio');
+    const bioCount = document.getElementById('bioCount');
+    bio.addEventListener('input', ()=> {
+      bioCount.textContent = String(bio.value.length);
+    });
+    displayName.addEventListener('input', syncPreview);
+
+    // -----------------------------
+    // Step 3: Avatar picker
+    // -----------------------------
+    const accent = document.getElementById('accent');
+    const avatarGrid = document.getElementById('avatarGrid');
+
+    const avatarOptions = [
+      { id:"av_shonen", kind:"shonen", label:"Shonen Hero" },
+      { id:"av_mystic", kind:"mystic", label:"Mystic Mage" },
+      { id:"av_cyber",  kind:"cyber",  label:"Cyber Rider" },
+      { id:"av_slice",  kind:"slice",  label:"Slice Buddy" }
+    ];
+
+    function buildAvatars(){
+      avatarGrid.innerHTML = "";
+      const acc = accentToColor(accent.value);
+
+      avatarOptions.forEach((a, idx)=>{
+        const wrap = document.createElement('div');
+        wrap.className = "group";
+
+        const input = document.createElement('input');
+        input.type = "radio";
+        input.name = "avatar";
+        input.value = a.kind;
+        input.id = a.id;
+        input.className = "hidden";
+        if(idx === 0) input.checked = true;
+
+        const label = document.createElement('label');
+        label.setAttribute('for', a.id);
+        label.className =
+          "block cursor-pointer rounded-2xl border border-white/10 bg-white/5 p-3 transition " +
+          "hover:-translate-y-1 hover:border-white/20 hover:bg-white/10 active:translate-y-0 " +
+          "group-has-[:checked]:border-neon-pink/50 group-has-[:checked]:bg-gradient-to-br group-has-[:checked]:from-neon-pink/10 group-has-[:checked]:to-neon-cyan/10 " +
+          "group-has-[:checked]:shadow-[0_0_0_4px_rgba(251,113,133,.08)]";
+
+        const preview = document.createElement('div');
+        preview.className = "w-full aspect-square rounded-xl border border-white/10 bg-black/20 overflow-hidden grid place-items-center";
+        preview.innerHTML = avatarSVG(a.kind, acc);
+
+        const name = document.createElement('div');
+        name.className = "mt-2 text-xs font-semibold text-white/80 text-center";
+        name.textContent = a.label;
+
+        label.appendChild(preview);
+        label.appendChild(name);
+
+        wrap.appendChild(input);
+        wrap.appendChild(label);
+
+        avatarGrid.appendChild(wrap);
+
+        input.addEventListener('change', syncPreview);
+      });
+    }
+
+    function getSelectedAvatarKind(){
+      const picked = document.querySelector('input[name="avatar"]:checked');
+      return picked ? picked.value : "shonen";
+    }
+
+    function getSelectedAvatarSVG(){
+      return avatarSVG(getSelectedAvatarKind(), accentToColor(accent.value));
+    }
+
+    accent.addEventListener('change', ()=>{
+      buildAvatars();
+      syncPreview();
+    });
+
+    // -----------------------------
+    // Step 4: Follow suggestions
+    // -----------------------------
+    const followGrid = document.getElementById('followGrid');
+    const followChips = document.getElementById('followChips');
+    const followCount = document.getElementById('followCount');
+
+    const followSuggestions = [
+      { handle:"panel_sensei", name:"Panel Sensei", bio:"Comics panel breakdowns • storytelling", tag:"Comics" },
+      { handle:"isekai_radar", name:"Isekai Radar", bio:"Weekly isekai picks + memes", tag:"Anime" },
+      { handle:"manga_leaks", name:"Manga Leaks (Spoiler-free)", bio:"New chapters updates + hype", tag:"Manga" },
+      { handle:"webtoon_wave", name:"Webtoon Wave", bio:"Manhwa/webtoon recs • art focus", tag:"Manhwa" },
+      { handle:"sakuga_lab", name:"Sakuga Lab", bio:"Animation cuts • sakuga appreciation", tag:"Anime" },
+      { handle:"lore_archivist", name:"Lore Archivist", bio:"Deep lore threads • theories", tag:"Lore" },
+    ];
+
+    const followed = new Set();
+
+    function renderFollow(){
+      followGrid.innerHTML = "";
+      followSuggestions.forEach((u)=>{
+        const isOn = followed.has(u.handle);
+
+        const card = document.createElement('button');
+        card.type = "button";
+        card.className =
+          "text-left rounded-2xl border px-4 py-4 transition active:translate-y-[1px] " +
+          (isOn
+            ? "border-neon-emerald/40 bg-neon-emerald/10 hover:bg-neon-emerald/15"
+            : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20");
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-2xl border border-white/10 bg-black/20 grid place-items-center overflow-hidden">
+                ${avatarSVG("slice", accentToColor(accent.value))}
+              </div>
+              <div>
+                <div class="font-bold text-sm">${u.name}</div>
+                <div class="text-xs text-white/60">@${u.handle}</div>
+              </div>
+            </div>
+            <span class="text-[11px] px-2.5 py-1 rounded-full border ${isOn ? "border-neon-emerald/40 bg-neon-emerald/10 text-neon-emerald" : "border-white/10 bg-white/5 text-white/70"}">
+              ${isOn ? "Following" : "Follow"}
+            </span>
+          </div>
+          <div class="mt-2 text-xs text-white/65 leading-relaxed">${u.bio}</div>
+          <div class="mt-3 text-[11px] inline-flex px-2.5 py-1 rounded-full border border-white/10 bg-white/5 text-white/70">
+            ${u.tag}
+          </div>
+        `;
+
+        card.addEventListener('click', ()=>{
+          if(followed.has(u.handle)) followed.delete(u.handle);
+          else followed.add(u.handle);
+          renderFollow();
+          syncFollowChips();
+          syncPreview();
+        });
+
+        followGrid.appendChild(card);
+      });
+
+      syncFollowChips();
+    }
+
+    function syncFollowChips(){
+      followCount.textContent = String(followed.size);
+      followChips.innerHTML = "";
+
+      if(followed.size === 0){
+        followChips.innerHTML = `<span class="text-[11px] text-white/55">No one selected yet</span>`;
+        return;
+      }
+
+      Array.from(followed).slice(0, 6).forEach(handle=>{
+        const chip = document.createElement('span');
+        chip.className = "text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition";
+        chip.textContent = "@" + handle;
+        followChips.appendChild(chip);
+      });
+
+      if(followed.size > 6){
+        const more = document.createElement('span');
+        more.className = "text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-white/5 text-white/60";
+        more.textContent = `+${followed.size - 6} more`;
+        followChips.appendChild(more);
+      }
+    }
+
+    // -----------------------------
+    // Step 5: Love chips (formats + genres)
+    // -----------------------------
+    const formatsRoot = document.getElementById('formats');
+    const genresRoot = document.getElementById('genres');
+
+    const formats = ["Anime", "Manga", "Manhwa", "Comics", "Webtoon", "Light Novel", "Cosplay", "Fan Art"];
+    const genres = ["Shonen", "Seinen", "Isekai", "Romance", "Slice of Life", "Horror", "Mystery", "Sci-Fi", "Fantasy", "Superhero", "Sports", "Drama"];
+
+    const loves = { formats: new Set(), genres: new Set() };
+
+    function makeChip(text, onToggle, isOn){
+      const btn = document.createElement('button');
+      btn.type = "button";
+      btn.className =
+        "px-3 py-2 rounded-full text-xs border transition select-none " +
+        (isOn
+          ? "border-neon-cyan/45 bg-gradient-to-r from-neon-cyan/15 to-neon-violet/15 shadow-[0_0_0_4px_rgba(34,211,238,.08)]"
+          : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20");
+      btn.textContent = text;
+      btn.addEventListener('click', onToggle);
+      return btn;
+    }
+
+    function renderLove(){
+      formatsRoot.innerHTML = "";
+      genresRoot.innerHTML = "";
+
+      formats.forEach(f=>{
+        formatsRoot.appendChild(makeChip(f, ()=>{
+          loves.formats.has(f) ? loves.formats.delete(f) : loves.formats.add(f);
+          renderLove(); syncPreview();
+        }, loves.formats.has(f)));
+      });
+
+      genres.forEach(g=>{
+        genresRoot.appendChild(makeChip(g, ()=>{
+          loves.genres.has(g) ? loves.genres.delete(g) : loves.genres.add(g);
+          renderLove(); syncPreview();
+        }, loves.genres.has(g)));
+      });
+    }
+
+    // -----------------------------
+    // Live preview sync
+    // -----------------------------
+    const miniPfp = document.getElementById('miniPfp');
+    const miniName = document.getElementById('miniName');
+    const miniUser = document.getElementById('miniUser');
+    const miniAccent = document.getElementById('miniAccent');
+    const miniTags = document.getElementById('miniTags');
+
+    const finalPfp = document.getElementById('finalPfp');
+    const finalName = document.getElementById('finalName');
+    const finalUser = document.getElementById('finalUser');
+
+    function syncPreview(){
+      const dn = displayName.value.trim();
+      const un = username.value.trim();
+
+      miniName.textContent = dn || "Display name…";
+      miniUser.textContent = un ? ("@" + un) : "@username";
+      miniAccent.textContent = "Accent: " + (accent.value || "violet");
+      miniPfp.innerHTML = getSelectedAvatarSVG();
+
+      finalName.textContent = dn || "Display name…";
+      finalUser.textContent = un ? ("@" + un) : "@username";
+      finalPfp.innerHTML = getSelectedAvatarSVG();
+
+      const totalLoves = loves.formats.size + loves.genres.size;
+      if(totalLoves === 0){
+        miniTags.textContent = "No loves selected yet";
+      } else {
+        const all = [...loves.formats, ...loves.genres].slice(0, 3);
+        miniTags.textContent = all.join(" • ") + (totalLoves > 3 ? " …" : "");
+      }
+    }
+
+    // -----------------------------
+    // Validation
+    // -----------------------------
+    async function validateStep(i){
+      if(i === 0){
+        if(!email.checkValidity()){
+          showError(0, "Please enter a valid email.");
+          email.focus();
+          return false;
+        }
+
+        const un = username.value.trim();
+        const fmt = validateUsernameFormat(un);
+        if(!un || fmt){
+          showError(0, "Username is invalid (letters/numbers/_ only, 3–20 chars).");
+          username.focus();
+          return false;
+        }
+
+        if(userCheckPending){
+          showError(0, "Wait a moment — checking username…");
+          return false;
+        }
+        if(userStatus.textContent === "—"){
+          checkUsername();
+          showError(0, "Check username availability first (wait for the badge).");
+          return false;
+        }
+        if(!userAvailable){
+          showError(0, "That username is taken. Try another one.");
+          username.focus();
+          return false;
+        }
+
+        if(!pw.checkValidity()){
+          showError(0, "Password must be at least 8 characters.");
+          pw.focus();
+          return false;
+        }
+        if(pw.value !== cf.value){
+          showError(0, "Passwords do not match.");
+          cf.focus();
+          return false;
+        }
+        return true;
+      }
+
+      if(i === 1){
+        if(!displayName.value.trim()){
+          showError(1, "Display name is required.");
+          displayName.focus();
+          return false;
+        }
+        return true;
+      }
+
+      if(i === 2){
+        // avatar always has a default; allow proceed
+        return true;
+      }
+
+      if(i === 3){
+        if(followed.size < 2){
+          showError(3, "Pick at least 2 people to follow.");
+          return false;
+        }
+        return true;
+      }
+
+      if(i === 4){
+        const total = loves.formats.size + loves.genres.size;
+        if(total < 3){
+          showError(4, "Choose at least 3 items across formats + genres.");
+          return false;
+        }
+        if(!document.getElementById('tos').checked){
+          showError(4, "You must agree to the Terms to finish (demo).");
+          return false;
+        }
+        return true;
+      }
+
+      return true;
+    }
+
+    // -----------------------------
+    // Submit + Success modal
+    // -----------------------------
+    const overlay = document.getElementById('overlay');
+    const closeOverlay = document.getElementById('closeOverlay');
+    const resetAll = document.getElementById('resetAll');
+
+    const successPfp = document.getElementById('successPfp');
+    const successName = document.getElementById('successName');
+    const successUser = document.getElementById('successUser');
+    const successMeta = document.getElementById('successMeta');
+
+    function collectData(){
+      const tags = {
+        formats: Array.from(loves.formats),
+        genres: Array.from(loves.genres)
+      };
+
+      return {
+        email: email.value.trim(),
+        username: username.value.trim(),
+        displayName: displayName.value.trim(),
+        location: document.getElementById('location').value.trim() || null,
+        bio: bio.value.trim() || "",
+        privacy: document.getElementById('privacy').value,
+        notifications: document.getElementById('notif').value,
+        avatar: getSelectedAvatarKind(),
+        accent: accent.value,
+        follow: Array.from(followed),
+        loves: tags,
+        favorites: [
+          document.getElementById('fav1').value.trim(),
+          document.getElementById('fav2').value.trim(),
+          document.getElementById('fav3').value.trim(),
+        ].filter(Boolean),
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    function confettiBurst(){
+      const root = document.getElementById('confetti');
+      root.innerHTML = "";
+      const colors = [
+        "rgba(124,58,237,.95)", "rgba(34,211,238,.95)",
+        "rgba(251,113,133,.95)", "rgba(52,211,153,.95)",
+        "rgba(251,191,36,.95)", "rgba(233,236,255,.9)"
+      ];
+
+      const n = 44;
+      for(let i=0;i<n;i++){
+        const c = document.createElement('div');
+        c.style.position = "absolute";
+        c.style.width = (8 + Math.random()*6) + "px";
+        c.style.height = (12 + Math.random()*10) + "px";
+        c.style.borderRadius = "3px";
+        c.style.left = (Math.random()*100) + "%";
+        c.style.top = (-20 - Math.random()*40) + "px";
+        c.style.background = colors[Math.floor(Math.random()*colors.length)];
+        c.style.opacity = ".95";
+        c.style.animation = `confetti ${1.1 + Math.random()*1.1}s linear forwards`;
+        c.style.transform = `rotate(${Math.random()*180}deg)`;
+        root.appendChild(c);
+      }
+    }
+
+    function submitWizard(){
+      const payload = collectData();
+      try{
+        localStorage.setItem("animeHub_signup_v2", JSON.stringify(payload));
+      }catch(e){
+        console.warn("localStorage failed:", e);
+      }
+
+      successPfp.innerHTML = getSelectedAvatarSVG();
+      successName.textContent = payload.displayName;
+      successUser.textContent = "@" + payload.username;
+
+      const lovesText = [...payload.loves.formats, ...payload.loves.genres].slice(0, 6).join(" • ");
+      const followText = payload.follow.slice(0, 3).map(x=>"@"+x).join(", ") + (payload.follow.length > 3 ? " …" : "");
+      successMeta.textContent = `Loves: ${lovesText || "—"} • Following: ${followText || "—"}`;
+
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+      confettiBurst();
+
+      console.log("Signup payload (demo):", payload);
+    }
+
+    closeOverlay.addEventListener('click', ()=>{
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
+    });
+
+    resetAll.addEventListener('click', ()=>{
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
+
+      document.getElementById('wizard').reset();
+
+      // Reset state
+      setUserStatus("—", "");
+      userCheckPending = false;
+      userAvailable = false;
+
+      loves.formats.clear();
+      loves.genres.clear();
+      followed.clear();
+
+      document.getElementById('bioCount').textContent = "0";
+      document.getElementById('pwFill').style.width = "0%";
+      document.getElementById('pwLabel').textContent = "weak";
+      document.getElementById('pwLabel').className = "text-[11px] px-2.5 py-1 rounded-full border border-neon-pink/30 bg-neon-pink/10 text-neon-pink";
+      matchHint.textContent = "Make sure it matches.";
+      matchHint.className = "mt-1 text-[11px] text-white/55";
+
+      // Rebuild UI
+      buildAvatars();
+      renderFollow();
+      renderLove();
+
+      setStep(0);
+      syncPreview();
+    });
+
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === "Escape" && !overlay.classList.contains('hidden')){
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+      }
+    });
+
+    // -----------------------------
+    // Init
+    // -----------------------------
+    function init(){
+      setUserStatus("—", "");
+      buildAvatars();
+      renderFollow();
+      renderLove();
+      updatePwUI();
+      setStep(0);
+      syncPreview();
+    }
+    init();
+  </script>
+</body>
+</html>

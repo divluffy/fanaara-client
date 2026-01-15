@@ -1,0 +1,1447 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Isekai Fantasy Map – رحلة التسجيل</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* لمسات بسيطة بدون أي صور خارجية */
+      .glow {
+        filter: drop-shadow(0 0 10px rgba(147, 51, 234, 0.45));
+      }
+      .shake {
+        animation: shake 240ms linear 0s 2;
+      }
+      @keyframes shake {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(6px); }
+        50% { transform: translateX(0); }
+        75% { transform: translateX(-6px); }
+        100% { transform: translateX(0); }
+      }
+      .sr-only-focusable:focus {
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        clip: auto !important;
+        white-space: normal !important;
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <!-- خلفية خريطة SVG -->
+    <div class="fixed inset-0 -z-10">
+      <svg class="h-full w-full" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="bgG" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#0b1220" />
+            <stop offset="0.55" stop-color="#120b2a" />
+            <stop offset="1" stop-color="#06131a" />
+          </linearGradient>
+
+          <radialGradient id="mist" cx="50%" cy="45%" r="65%">
+            <stop offset="0" stop-color="#a78bfa" stop-opacity="0.12" />
+            <stop offset="0.55" stop-color="#22c55e" stop-opacity="0.06" />
+            <stop offset="1" stop-color="#000000" stop-opacity="0" />
+          </radialGradient>
+
+          <pattern id="runes" width="120" height="120" patternUnits="userSpaceOnUse">
+            <path d="M10 30 L30 10 L50 30 L30 50 Z" fill="none" stroke="#a78bfa" stroke-opacity="0.12" />
+            <circle cx="85" cy="85" r="12" fill="none" stroke="#22c55e" stroke-opacity="0.10" />
+            <path d="M70 25 Q85 5 100 25" fill="none" stroke="#38bdf8" stroke-opacity="0.10" />
+          </pattern>
+
+          <linearGradient id="river" x1="0" x2="1">
+            <stop offset="0" stop-color="#38bdf8" stop-opacity="0.10" />
+            <stop offset="1" stop-color="#a78bfa" stop-opacity="0.10" />
+          </linearGradient>
+        </defs>
+
+        <rect width="1200" height="800" fill="url(#bgG)" />
+        <rect width="1200" height="800" fill="url(#mist)" />
+        <rect width="1200" height="800" fill="url(#runes)" opacity="0.9" />
+
+        <!-- تضاريس/طرق -->
+        <path d="M90 680 C240 610, 290 520, 390 490 C520 450, 560 330, 700 300 C840 270, 920 180, 1110 130"
+              fill="none" stroke="url(#river)" stroke-width="16" stroke-linecap="round" opacity="0.9"/>
+        <path d="M90 680 C240 610, 290 520, 390 490 C520 450, 560 330, 700 300 C840 270, 920 180, 1110 130"
+              fill="none" stroke="#a78bfa" stroke-opacity="0.18" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 10"/>
+
+        <!-- جزر/جبال بسيطة -->
+        <g opacity="0.18">
+          <path d="M170 200 Q240 120 320 190 Q260 260 170 200 Z" fill="#22c55e"/>
+          <path d="M930 660 Q1000 590 1070 650 Q1010 720 930 660 Z" fill="#38bdf8"/>
+          <path d="M650 520 Q720 460 800 520 Q740 590 650 520 Z" fill="#a78bfa"/>
+        </g>
+      </svg>
+    </div>
+
+    <a href="#stepTitle" class="sr-only sr-only-focusable">تخطّي إلى الخطوة الحالية</a>
+
+    <main class="mx-auto max-w-6xl px-4 py-8">
+      <header class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p class="text-sm text-slate-300">إيسيكاي / خريطة / مغامرة</p>
+          <h1 class="text-2xl md:text-3xl font-black tracking-tight">
+            بوابة الدخول إلى العالم — <span class="text-violet-300">رحلة التسجيل</span>
+          </h1>
+          <p class="mt-1 text-slate-300">
+            كل خطوة “منعطف” على الخريطة… خلّصها عشان تفتح الطريق للخطوة اللي بعدها.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <div class="text-xs text-slate-300">تقدّم الرحلة</div>
+            <div class="mt-1 flex items-baseline gap-2">
+              <div id="progressPercent" class="text-xl font-extrabold">0%</div>
+              <div id="progressMeta" class="text-sm text-slate-300">0 / 8</div>
+            </div>
+          </div>
+          <button id="resetBtn"
+            class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm hover:bg-white/10">
+            إعادة البداية
+          </button>
+        </div>
+      </header>
+
+      <section class="mt-8 grid gap-6 lg:grid-cols-[420px_1fr]">
+        <!-- خريطة التقدّم -->
+        <aside class="relative overflow-hidden rounded-3xl border border-white/10 bg-black/20 p-5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-extrabold">خريطة المراحل</h2>
+            <span class="text-xs text-slate-300">اضغط مرحلة سابقة للعودة</span>
+          </div>
+
+          <div class="relative mt-4 h-[420px] rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+            <!-- طبقة ضباب -->
+            <div class="absolute inset-0 bg-gradient-to-br from-violet-500/10 via-transparent to-emerald-500/10"></div>
+
+            <!-- مسار/شبكة داخلية SVG -->
+            <svg class="absolute inset-0 h-full w-full" viewBox="0 0 420 420" aria-hidden="true">
+              <defs>
+                <linearGradient id="pathG" x1="0" x2="1" y1="1" y2="0">
+                  <stop offset="0" stop-color="#22c55e" stop-opacity="0.25"/>
+                  <stop offset="1" stop-color="#a78bfa" stop-opacity="0.25"/>
+                </linearGradient>
+              </defs>
+              <path d="M35 375 C85 345, 95 300, 140 280 C195 255, 210 205, 250 185 C300 160, 320 120, 385 85"
+                    fill="none" stroke="url(#pathG)" stroke-width="10" stroke-linecap="round"/>
+              <path d="M35 375 C85 345, 95 300, 140 280 C195 255, 210 205, 250 185 C300 160, 320 120, 385 85"
+                    fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="2" stroke-dasharray="6 8" stroke-linecap="round"/>
+
+              <!-- نجوم صغيرة -->
+              <g fill="#fff" opacity="0.12">
+                <circle cx="70" cy="60" r="2"/><circle cx="210" cy="40" r="1.8"/><circle cx="330" cy="55" r="1.6"/>
+                <circle cx="390" cy="200" r="1.7"/><circle cx="40" cy="190" r="1.5"/><circle cx="115" cy="350" r="1.5"/>
+              </g>
+            </svg>
+
+            <!-- عقد المراحل (أزرار) -->
+            <div id="mapNodes" class="absolute inset-0">
+              <!-- يُملأ عبر JS -->
+            </div>
+
+            <!-- أسطورة -->
+            <div class="absolute bottom-3 left-3 right-3 flex flex-wrap gap-2 text-xs text-slate-300">
+              <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1">
+                <span class="h-2.5 w-2.5 rounded-full bg-slate-500"></span> غير مفعّلة
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1">
+                <span class="h-2.5 w-2.5 rounded-full bg-violet-400"></span> الحالية
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1">
+                <span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span> مكتملة
+              </span>
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="text-sm text-slate-300">المرحلة الحالية</div>
+                <div id="currentStepLabel" class="mt-1 text-lg font-extrabold">—</div>
+                <div id="currentStepHint" class="mt-1 text-sm text-slate-300">—</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-slate-200">
+                Tip: بياناتك قابلة للتعديل قبل <span class="text-violet-300 font-semibold">Enter the World</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- محتوى الخطوات -->
+        <section class="rounded-3xl border border-white/10 bg-black/20 p-5 md:p-6">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 id="stepTitle" class="text-xl md:text-2xl font-black">—</h2>
+              <p id="stepSubtitle" class="mt-1 text-slate-300">—</p>
+            </div>
+            <div class="hidden md:block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+              <span class="text-slate-300">مذكّرة:</span> إدخال لطيف + تحقق بسيط
+            </div>
+          </div>
+
+          <!-- شريط رسائل التحقق -->
+          <div id="messageBar" class="mt-4 hidden rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
+            <div class="flex items-start gap-3">
+              <div class="mt-0.5 h-2.5 w-2.5 rounded-full bg-rose-400"></div>
+              <div>
+                <div class="font-bold text-rose-200">قبل ما نكمل…</div>
+                <div id="messageText" class="mt-1 text-sm text-rose-100/90"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- الفورم -->
+          <form id="wizardForm" class="mt-6">
+            <!-- STEP 1 -->
+            <div class="stepPanel" data-step="0">
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label class="text-sm text-slate-300">اسم المغامر</label>
+                  <input id="name" type="text" maxlength="24"
+                    class="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-violet-400/60"
+                    placeholder="مثال: Luffy_D" />
+                  <p class="mt-2 text-xs text-slate-400">اختر اسمًا قصيرًا… رحلتك ستُعرف به.</p>
+                </div>
+
+                <div>
+                  <label class="text-sm text-slate-300">Class (الفئة)</label>
+                  <div class="mt-2 grid grid-cols-2 gap-2">
+                    <label class="group cursor-pointer rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10">
+                      <input class="sr-only" type="radio" name="class" value="Mage" />
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <div class="font-extrabold">Mage</div>
+                          <div class="text-xs text-slate-300">تعويذات + لور</div>
+                        </div>
+                        <span class="text-violet-300">✦</span>
+                      </div>
+                    </label>
+                    <label class="group cursor-pointer rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10">
+                      <input class="sr-only" type="radio" name="class" value="Warrior" />
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <div class="font-extrabold">Warrior</div>
+                          <div class="text-xs text-slate-300">حماس + حماية</div>
+                        </div>
+                        <span class="text-emerald-300">⚔</span>
+                      </div>
+                    </label>
+                    <label class="group cursor-pointer rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10">
+                      <input class="sr-only" type="radio" name="class" value="Artist" />
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <div class="font-extrabold">Artist</div>
+                          <div class="text-xs text-slate-300">فن + إلهام</div>
+                        </div>
+                        <span class="text-sky-300">✎</span>
+                      </div>
+                    </label>
+                    <label class="group cursor-pointer rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10">
+                      <input class="sr-only" type="radio" name="class" value="Reviewer" />
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <div class="font-extrabold">Reviewer</div>
+                          <div class="text-xs text-slate-300">تحليل + نقاش</div>
+                        </div>
+                        <span class="text-amber-300">⌁</span>
+                      </div>
+                    </label>
+                  </div>
+
+                  <p class="mt-2 text-xs text-slate-400">هذه فقط “نغمة” لملفك… وتقدر تغيّرها لاحقًا.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 2 -->
+            <div class="stepPanel hidden" data-step="1">
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label class="text-sm text-slate-300">Email</label>
+                  <input id="email" type="email" inputmode="email"
+                    class="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-violet-400/60"
+                    placeholder="you@domain.com" />
+                  <p class="mt-2 text-xs text-slate-400">لن نرسل إلا الضروري… لا سبام.</p>
+                </div>
+
+                <div>
+                  <label class="text-sm text-slate-300">Password</label>
+                  <input id="password" type="password" minlength="8"
+                    class="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-violet-400/60"
+                    placeholder="••••••••" />
+                  <p class="mt-2 text-xs text-slate-400">يفضّل 8 أحرف+، خليها قوية مثل تعويذة.</p>
+                </div>
+              </div>
+
+              <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <div class="font-extrabold text-violet-200">عهد المغامر</div>
+                    <ul class="mt-2 list-disc space-y-1 pr-6 text-sm text-slate-200/90">
+                      <li>أحترم النقاش… وأحفظ “سبويلر” داخل التحذير.</li>
+                      <li>أدعم الفنّانين… وأنسب الأعمال لأصحابها.</li>
+                      <li>أبحث عن فريق… لا عن معركة.</li>
+                    </ul>
+                  </div>
+                  <div class="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-slate-300">
+                    Quest: اقبَل العهد
+                  </div>
+                </div>
+
+                <label class="mt-4 flex cursor-pointer items-start gap-3">
+                  <input id="oath" type="checkbox" class="mt-1 h-4 w-4 accent-violet-400" />
+                  <span class="text-sm text-slate-200/90">
+                    أوافق على عهد المغامر وأعد أن أكون عضوًا محترمًا.
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- STEP 3 -->
+            <div class="stepPanel hidden" data-step="2">
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label class="text-sm text-slate-300">البلد</label>
+                  <input id="country" type="text"
+                    class="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-emerald-400/60"
+                    placeholder="مثال: فلسطين / الأردن / السعودية..." />
+                </div>
+
+                <div>
+                  <label class="text-sm text-slate-300">اللغة</label>
+                  <select id="language"
+                    class="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-emerald-400/60">
+                    <option value="">اختر…</option>
+                    <option>العربية</option>
+                    <option>English</option>
+                    <option>日本語</option>
+                    <option>Français</option>
+                    <option>Türkçe</option>
+                  </select>
+                </div>
+
+                <div class="md:col-span-2">
+                  <label class="text-sm text-slate-300">Bio (نبذة)</label>
+                  <textarea id="bio" rows="4" maxlength="240"
+                    class="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-emerald-400/60"
+                    placeholder="قولنا مين أنت… وشو بتحب؟"></textarea>
+                  <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
+                    <span>النبذة تساعدنا نقترح لك محتوى مناسب.</span>
+                    <span id="bioCount">0 / 240</span>
+                  </div>
+                </div>
+
+                <div class="md:col-span-2">
+                  <label class="text-sm text-slate-300">هدف الرحلة</label>
+                  <div class="mt-2 grid gap-2 md:grid-cols-3">
+                    <label class="cursor-pointer rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10">
+                      <input class="sr-only" type="radio" name="goal" value="أصدقاء" />
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <div class="font-extrabold">أصدقاء</div>
+                          <div class="text-xs text-slate-300">سيرفر من الرفاق</div>
+                        </div>
+                        <span>🤝</span>
+                      </div>
+                    </label>
+                    <label class="cursor-pointer rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10">
+                      <input class="sr-only" type="radio" name="goal" value="نقاش" />
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <div class="font-extrabold">نقاش</div>
+                          <div class="text-xs text-slate-300">تحليل + نظريات</div>
+                        </div>
+                        <span>💬</span>
+                      </div>
+                    </label>
+                    <label class="cursor-pointer rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10">
+                      <input class="sr-only" type="radio" name="goal" value="فن" />
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <div class="font-extrabold">فن</div>
+                          <div class="text-xs text-slate-300">لوحات + Fanart</div>
+                        </div>
+                        <span>🎨</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 4 -->
+            <div class="stepPanel hidden" data-step="3">
+              <div class="grid gap-5 md:grid-cols-[1fr_280px]">
+                <div>
+                  <label class="text-sm text-slate-300">Portrait Frame (إطار الصورة)</label>
+                  <div id="frameOptions" class="mt-2 grid gap-2 md:grid-cols-2">
+                    <!-- يُملأ عبر JS -->
+                  </div>
+
+                  <div class="mt-5 grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label class="text-sm text-slate-300">لون رئيسي</label>
+                      <input id="colorPrimary" type="color" value="#a78bfa"
+                        class="mt-2 h-12 w-full cursor-pointer rounded-2xl border border-white/10 bg-white/5 p-2" />
+                    </div>
+                    <div>
+                      <label class="text-sm text-slate-300">لون ثانوي</label>
+                      <input id="colorSecondary" type="color" value="#22c55e"
+                        class="mt-2 h-12 w-full cursor-pointer rounded-2xl border border-white/10 bg-white/5 p-2" />
+                    </div>
+                  </div>
+
+                  <div class="mt-5">
+                    <label class="text-sm text-slate-300">رفع صورة أفاتار (اختياري)</label>
+                    <input id="avatarFile" type="file" accept="image/*"
+                      class="mt-2 block w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 file:mr-3 file:rounded-xl file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-slate-100 hover:file:bg-white/20" />
+                    <p class="mt-2 text-xs text-slate-400">لو ما رفعت… بنعمل لك رمز بسيط داخل الإطار.</p>
+                  </div>
+                </div>
+
+                <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-sm text-slate-300">معاينة</div>
+                  <div class="mt-3 flex items-center justify-center">
+                    <div id="avatarPreviewWrap"
+                      class="relative h-44 w-44 rounded-full border border-white/10 bg-black/30 p-2">
+                      <div id="avatarFrame"
+                        class="absolute inset-0 rounded-full glow"
+                        style="border: 3px solid rgba(167,139,250,0.7);"></div>
+
+                      <div class="absolute inset-[14px] overflow-hidden rounded-full border border-white/10 bg-gradient-to-br from-white/5 to-black/30">
+                        <img id="avatarPreviewImg" alt="Avatar preview" class="hidden h-full w-full object-cover" />
+                        <div id="avatarFallback" class="grid h-full w-full place-items-center text-center">
+                          <div>
+                            <div class="text-3xl font-black text-violet-200" id="avatarInitials">??</div>
+                            <div class="mt-1 text-xs text-slate-300">Spirit Sigil</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div id="frameGlyph"
+                        class="pointer-events-none absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-xs text-slate-200">
+                        —
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 text-xs text-slate-400">
+                    الإطار والألوان ينعكسوا على بروفايلك داخل العالم.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 5 -->
+            <div class="stepPanel hidden" data-step="4">
+              <div class="grid gap-6">
+                <div>
+                  <div class="flex items-end justify-between gap-3">
+                    <div>
+                      <div class="text-sm text-slate-300">اختر عوالم / Genres</div>
+                      <div class="text-xs text-slate-400">اختيار حر… بس نفضّل على الأقل واحد.</div>
+                    </div>
+                    <div class="text-xs text-slate-300">
+                      المختار: <span id="genresCount" class="font-bold text-emerald-200">0</span>
+                    </div>
+                  </div>
+                  <div id="genresWrap" class="mt-3 flex flex-wrap gap-2">
+                    <!-- عبر JS -->
+                  </div>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <div class="text-sm text-slate-300">اختر 3 سلاسل مفضلة</div>
+                      <div class="text-xs text-slate-400">بالضبط 3 عشان نضبط لك الـ feed.</div>
+                    </div>
+                    <div class="text-xs text-slate-300">
+                      المختار: <span id="seriesCount" class="font-bold text-violet-200">0</span> / 3
+                    </div>
+                  </div>
+
+                  <div id="seriesWrap" class="mt-3 grid gap-2 md:grid-cols-2">
+                    <!-- عبر JS -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 6 -->
+            <div class="stepPanel hidden" data-step="5">
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="flex items-end justify-between gap-3">
+                  <div>
+                    <div class="text-lg font-extrabold">Party Members (متابعة)</div>
+                    <div class="text-sm text-slate-300">اختر <span class="text-emerald-200 font-bold">3 حسابات</span> على الأقل للبدء.</div>
+                  </div>
+                  <div class="text-xs text-slate-300">
+                    المختار: <span id="partyCount" class="font-bold text-emerald-200">0</span>
+                  </div>
+                </div>
+
+                <div id="partyWrap" class="mt-4 grid gap-2 md:grid-cols-2">
+                  <!-- عبر JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 7 -->
+            <div class="stepPanel hidden" data-step="6">
+              <div class="grid gap-4">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div class="text-lg font-extrabold">Starter Pack</div>
+                  <p class="mt-1 text-sm text-slate-300">
+                    اختر “حزمة بداية” — محتوى مقترح بيظهر لك فورًا في الـ feed.
+                  </p>
+
+                  <div id="starterWrap" class="mt-4 grid gap-3 md:grid-cols-3">
+                    <!-- عبر JS -->
+                  </div>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-slate-200/90">
+                  <span class="font-bold text-violet-200">تلميح:</span>
+                  تقدر تغيّر اهتماماتك وحزمة البداية لاحقًا… بس اختيار الآن يساعدنا نعطيك افتتاحية قوية.
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 8 (Review) -->
+            <div class="stepPanel hidden" data-step="7">
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-lg font-extrabold">Review — دفتر الرحلة</div>
+                    <div class="text-sm text-slate-300">تأكد من كل شيء قبل فتح البوابة.</div>
+                  </div>
+                  <div class="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-slate-300">
+                    Final Check
+                  </div>
+                </div>
+
+                <div id="reviewWrap" class="mt-4 grid gap-3 md:grid-cols-2">
+                  <!-- عبر JS -->
+                </div>
+
+                <div class="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div class="text-sm text-slate-300">ملاحظة أخيرة</div>
+                  <p class="mt-1 text-sm text-slate-200/90">
+                    بالضغط على <span class="font-bold text-violet-200">Enter the World</span> أنت تبدأ رحلة المحتوى والمجتمع.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="mt-6 flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-between">
+              <button id="backBtn" type="button"
+                class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm hover:bg-white/10">
+                رجوع
+              </button>
+
+              <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                <div id="saveHint" class="hidden md:block text-xs text-slate-400">
+                  يتم حفظ الاختيارات محليًا داخل الصفحة.
+                </div>
+                <button id="nextBtn" type="button"
+                  class="rounded-2xl bg-violet-500/80 px-6 py-3 text-sm font-bold hover:bg-violet-500">
+                  التالي
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+      </section>
+    </main>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+      <div class="relative mx-auto mt-20 w-[92%] max-w-xl rounded-3xl border border-white/10 bg-slate-950/90 p-6">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="text-sm text-slate-300">تم فتح البوابة</div>
+            <h3 class="mt-1 text-2xl font-black text-emerald-200">نجحت! أهلاً بك في العالم ✦</h3>
+            <p id="successText" class="mt-2 text-sm text-slate-200/90">
+              —
+            </p>
+          </div>
+          <button id="closeModalBtn"
+            class="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10">
+            ✕
+          </button>
+        </div>
+
+        <div class="mt-5 grid gap-3 md:grid-cols-2">
+          <button id="ctaCreatePost"
+            class="rounded-2xl bg-emerald-500/80 px-5 py-3 font-bold hover:bg-emerald-500">
+            Create Post (اكتب أول منشور)
+          </button>
+          <button id="ctaExplore"
+            class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 font-bold hover:bg-white/10">
+            Explore (استكشف الخلاصات)
+          </button>
+        </div>
+
+        <div class="mt-4 text-xs text-slate-400">
+          (هذه مجرد واجهة HTML Demo — اربطها لاحقًا بـ Next.js/Nest.js بسهولة.)
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ====== Data ======
+      const steps = [
+        { title: "اختيار الاسم + Class", subtitle: "أول حجر على الطريق… حدّد هويتك." },
+        { title: "Email / Password + عهد المغامر", subtitle: "توقيعك السحري… واحترام قوانين العالم." },
+        { title: "تفاصيل + هدف الرحلة", subtitle: "من أين أتيت؟ وإلى أين تمضي؟" },
+        { title: "الأفاتار", subtitle: "إطار + ألوان + رفع (اختياري)." },
+        { title: "الاهتمامات", subtitle: "اختَر Genres… ثم 3 سلاسل مفضلة." },
+        { title: "Party Members", subtitle: "ابدأ بفريق… اختر 3 حسابات لمتابعتها (حد أدنى)." },
+        { title: "Starter Pack", subtitle: "حزمة محتوى أولية تقترح لك بداية قوية." },
+        { title: "Review + Enter the World", subtitle: "تأكد… ثم افتح البوابة." },
+      ];
+
+      // مواقع العقد على الخريطة (absolute داخل 420x420)
+      const nodePositions = [
+        { x: 35,  y: 375 },
+        { x: 110, y: 315 },
+        { x: 140, y: 280 },
+        { x: 210, y: 230 },
+        { x: 250, y: 185 },
+        { x: 305, y: 145 },
+        { x: 350, y: 110 },
+        { x: 385, y: 85  },
+      ];
+
+      const genres = [
+        "Isekai", "Fantasy", "Shounen", "Seinen", "Romance", "Mystery",
+        "Horror", "Comedy", "Drama", "Slice of Life", "Mecha", "Sci-Fi"
+      ];
+
+      const seriesList = [
+        "One Piece", "Naruto", "Attack on Titan", "Jujutsu Kaisen",
+        "Fullmetal Alchemist", "Steins;Gate", "Re:Zero", "Mushoku Tensei",
+        "Demon Slayer", "Bleach", "Death Note", "Hunter x Hunter"
+      ];
+
+      const partyMembers = [
+        { handle: "@RuneArchivist", bio: "لور + أسرار العوالم" },
+        { handle: "@BladeVanguard",  bio: "قتال محترم بدون سمّية" },
+        { handle: "@PanelPainter",   bio: "Fanart يومي" },
+        { handle: "@LoreReviewer",   bio: "تحليل حلقات + نظريات" },
+        { handle: "@SpoilerShield",  bio: "تحذير سبويلر دائمًا" },
+        { handle: "@CosplayCrafter", bio: "كوسبلاي + تصميم" },
+        { handle: "@MangaScout",     bio: "اقتراحات مانغا عميقة" },
+        { handle: "@ChillCafe",      bio: "سلايس أوف لايف وهدوء" },
+      ];
+
+      const starterPacks = [
+        {
+          id: "pack-quests",
+          title: "Daily Isekai Quests",
+          desc: "تحديات يومية + أسئلة خفيفة تشعل النقاش."
+        },
+        {
+          id: "pack-art",
+          title: "Art & Fanart Spotlight",
+          desc: "فنّانين + مسابقات بسيطة + ردود محترمة."
+        },
+        {
+          id: "pack-reviews",
+          title: "Deep Reviews & Theories",
+          desc: "مراجعات مطوّلة + نظريات + تصويتات."
+        }
+      ];
+
+      const frameOptions = [
+        { id: "rune",   title: "Rune Circle",   glyph: "✦", style: "ring" },
+        { id: "crest",  title: "Golden Crest",  glyph: "⌁", style: "crest" },
+        { id: "forest", title: "Forest Warden", glyph: "❖", style: "leaf" },
+        { id: "void",   title: "Void Prism",    glyph: "◈", style: "prism" },
+      ];
+
+      // ====== State ======
+      const state = {
+        step: 0,
+        completedMax: 0,
+        data: {
+          name: "",
+          class: "",
+          email: "",
+          password: "",
+          oath: false,
+          country: "",
+          language: "",
+          bio: "",
+          goal: "",
+          frame: "rune",
+          colorPrimary: "#a78bfa",
+          colorSecondary: "#22c55e",
+          avatarFileName: "",
+          genres: [],
+          series: [],
+          party: [],
+          starterPack: "",
+        }
+      };
+
+      // ====== DOM refs ======
+      const mapNodes = document.getElementById("mapNodes");
+      const currentStepLabel = document.getElementById("currentStepLabel");
+      const currentStepHint = document.getElementById("currentStepHint");
+      const stepTitle = document.getElementById("stepTitle");
+      const stepSubtitle = document.getElementById("stepSubtitle");
+      const panels = [...document.querySelectorAll(".stepPanel")];
+
+      const nextBtn = document.getElementById("nextBtn");
+      const backBtn = document.getElementById("backBtn");
+      const resetBtn = document.getElementById("resetBtn");
+
+      const messageBar = document.getElementById("messageBar");
+      const messageText = document.getElementById("messageText");
+
+      const progressPercent = document.getElementById("progressPercent");
+      const progressMeta = document.getElementById("progressMeta");
+
+      // Step 3 helpers
+      const bioEl = document.getElementById("bio");
+      const bioCount = document.getElementById("bioCount");
+
+      // Avatar
+      const frameOptionsWrap = document.getElementById("frameOptions");
+      const colorPrimaryEl = document.getElementById("colorPrimary");
+      const colorSecondaryEl = document.getElementById("colorSecondary");
+      const avatarFileEl = document.getElementById("avatarFile");
+      const avatarPreviewImg = document.getElementById("avatarPreviewImg");
+      const avatarFallback = document.getElementById("avatarFallback");
+      const avatarInitials = document.getElementById("avatarInitials");
+      const avatarFrame = document.getElementById("avatarFrame");
+      const frameGlyph = document.getElementById("frameGlyph");
+
+      // Interests
+      const genresWrap = document.getElementById("genresWrap");
+      const genresCount = document.getElementById("genresCount");
+      const seriesWrap = document.getElementById("seriesWrap");
+      const seriesCount = document.getElementById("seriesCount");
+
+      // Party
+      const partyWrap = document.getElementById("partyWrap");
+      const partyCount = document.getElementById("partyCount");
+
+      // Starter
+      const starterWrap = document.getElementById("starterWrap");
+
+      // Review
+      const reviewWrap = document.getElementById("reviewWrap");
+
+      // Modal
+      const successModal = document.getElementById("successModal");
+      const closeModalBtn = document.getElementById("closeModalBtn");
+      const successText = document.getElementById("successText");
+      const ctaCreatePost = document.getElementById("ctaCreatePost");
+      const ctaExplore = document.getElementById("ctaExplore");
+
+      // ====== Utils ======
+      function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+      function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+      }
+
+      function showMessage(msg) {
+        messageText.textContent = msg;
+        messageBar.classList.remove("hidden");
+        messageBar.classList.add("shake");
+        setTimeout(() => messageBar.classList.remove("shake"), 500);
+      }
+      function clearMessage() {
+        messageBar.classList.add("hidden");
+        messageText.textContent = "";
+      }
+
+      function setActiveRadioStyles(groupName) {
+        const radios = [...document.querySelectorAll(`input[name="${groupName}"]`)];
+        radios.forEach(r => {
+          const card = r.closest("label");
+          if (!card) return;
+          if (r.checked) {
+            card.classList.add("border-violet-400/60", "bg-white/10");
+            card.classList.remove("border-white/10", "bg-white/5");
+          } else {
+            card.classList.remove("border-violet-400/60", "bg-white/10");
+            card.classList.add("border-white/10", "bg-white/5");
+          }
+        });
+      }
+
+      function setActiveChoiceCardStyles(container, selectorChecked) {
+        const cards = [...container.querySelectorAll("label")];
+        cards.forEach(card => {
+          const input = card.querySelector("input");
+          const active = input && input.checked;
+          card.classList.toggle("border-emerald-400/60", active && selectorChecked === "emerald");
+          card.classList.toggle("border-violet-400/60", active && selectorChecked === "violet");
+          card.classList.toggle("bg-white/10", active);
+          card.classList.toggle("border-white/10", !active);
+          card.classList.toggle("bg-white/5", !active);
+        });
+      }
+
+      // ====== Renderers ======
+      function renderMapNodes() {
+        mapNodes.innerHTML = "";
+        steps.forEach((s, i) => {
+          const pos = nodePositions[i];
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.setAttribute("data-node", String(i));
+          btn.className = "absolute -translate-x-1/2 -translate-y-1/2 text-right focus:outline-none";
+          btn.style.left = `${pos.x}px`;
+          btn.style.top = `${pos.y}px`;
+
+          btn.innerHTML = `
+            <div class="flex items-center gap-2">
+              <div data-dot class="h-10 w-10 rounded-full border border-white/10 bg-white/5 grid place-items-center">
+                <span data-icon class="text-sm font-black text-slate-200"> ${i+1} </span>
+              </div>
+              <div class="hidden sm:block">
+                <div class="text-xs font-bold text-slate-200">${escapeHtml(s.title)}</div>
+              </div>
+            </div>
+          `;
+
+          btn.addEventListener("click", () => {
+            // مسموح الرجوع فقط للخطوات السابقة أو الحالية
+            if (i <= state.completedMax) goToStep(i);
+          });
+
+          mapNodes.appendChild(btn);
+        });
+      }
+
+      function updateMapNodesUI() {
+        const nodes = [...mapNodes.querySelectorAll("button[data-node]")];
+        nodes.forEach(node => {
+          const i = Number(node.getAttribute("data-node"));
+          const dot = node.querySelector("[data-dot]");
+          const icon = node.querySelector("[data-icon]");
+
+          const isCurrent = i === state.step;
+          const isCompleted = i < state.step || i <= state.completedMax && i !== state.step && i < state.step ? true : i < state.step;
+
+          // قفل المراحل القادمة
+          const locked = i > state.completedMax + 1; // ما تسمح بالقفز للأمام (إلا التالي المنطقي بعد المكتمل)
+          node.style.opacity = locked ? "0.55" : "1";
+          node.style.cursor = (i <= state.completedMax) ? "pointer" : (i === state.step ? "default" : "not-allowed");
+
+          dot.className = "h-10 w-10 rounded-full border grid place-items-center transition-all";
+          if (isCurrent) {
+            dot.classList.add("border-violet-400/60", "bg-violet-500/20", "glow");
+            icon.textContent = "✦";
+            icon.className = "text-sm font-black text-violet-100";
+          } else if (i < state.step) {
+            dot.classList.add("border-emerald-400/60", "bg-emerald-500/15");
+            icon.textContent = "✓";
+            icon.className = "text-sm font-black text-emerald-200";
+          } else {
+            dot.classList.add("border-white/10", "bg-white/5");
+            icon.textContent = String(i + 1);
+            icon.className = "text-sm font-black text-slate-200";
+          }
+        });
+      }
+
+      function updateHeader() {
+        const s = steps[state.step];
+        stepTitle.textContent = s.title;
+        stepSubtitle.textContent = s.subtitle;
+        currentStepLabel.textContent = s.title;
+        currentStepHint.textContent = s.subtitle;
+
+        const total = steps.length;
+        const done = state.step; // كم خطوة أنهيت قبل الحالية
+        const pct = Math.round((done / (total - 1)) * 100);
+        progressPercent.textContent = `${clamp(pct, 0, 100)}%`;
+        progressMeta.textContent = `${state.step + 1} / ${total}`;
+
+        backBtn.disabled = state.step === 0;
+        backBtn.classList.toggle("opacity-60", backBtn.disabled);
+        backBtn.classList.toggle("cursor-not-allowed", backBtn.disabled);
+
+        nextBtn.textContent = state.step === steps.length - 1 ? "Enter the World" : "التالي";
+      }
+
+      function showStepPanel() {
+        panels.forEach(p => p.classList.add("hidden"));
+        const active = panels.find(p => Number(p.dataset.step) === state.step);
+        if (active) active.classList.remove("hidden");
+      }
+
+      function goToStep(i) {
+        clearMessage();
+        state.step = clamp(i, 0, steps.length - 1);
+        state.completedMax = Math.max(state.completedMax, state.step - 1); // المكتمل حتى قبل الحالية
+        updateHeader();
+        showStepPanel();
+        updateMapNodesUI();
+        renderReviewIfNeeded();
+        syncSelectedStyles();
+        scrollToTopOfCard();
+      }
+
+      function scrollToTopOfCard() {
+        const el = document.getElementById("stepTitle");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function syncSelectedStyles() {
+        setActiveRadioStyles("class");
+        setActiveRadioStyles("goal");
+
+        // Starter packs styles
+        setActiveChoiceCardStyles(starterWrap, "emerald");
+        // Frames styles
+        setActiveChoiceCardStyles(frameOptionsWrap, "violet");
+      }
+
+      // ====== Step-specific render ======
+      function renderFrameOptions() {
+        frameOptionsWrap.innerHTML = frameOptions.map(f => `
+          <label class="cursor-pointer rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10">
+            <input class="sr-only" type="radio" name="frame" value="${escapeHtml(f.id)}" ${state.data.frame === f.id ? "checked" : ""} />
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-extrabold">${escapeHtml(f.title)}</div>
+                <div class="text-xs text-slate-300">Frame ID: ${escapeHtml(f.id)}</div>
+              </div>
+              <div class="text-violet-200 text-lg">${escapeHtml(f.glyph)}</div>
+            </div>
+          </label>
+        `).join("");
+
+        frameOptionsWrap.addEventListener("change", (e) => {
+          if (e.target && e.target.name === "frame") {
+            state.data.frame = e.target.value;
+            updateAvatarFrame();
+            syncSelectedStyles();
+          }
+        });
+      }
+
+      function renderGenres() {
+        genresWrap.innerHTML = genres.map(g => {
+          const active = state.data.genres.includes(g);
+          return `
+            <button type="button" data-genre="${escapeHtml(g)}"
+              class="rounded-full border px-4 py-2 text-sm transition
+              ${active ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-100" : "border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"}">
+              ${escapeHtml(g)}
+            </button>
+          `;
+        }).join("");
+        genresCount.textContent = String(state.data.genres.length);
+
+        genresWrap.onclick = (e) => {
+          const btn = e.target.closest("button[data-genre]");
+          if (!btn) return;
+          const g = btn.getAttribute("data-genre");
+          const idx = state.data.genres.indexOf(g);
+          if (idx >= 0) state.data.genres.splice(idx, 1);
+          else state.data.genres.push(g);
+          renderGenres();
+        };
+      }
+
+      function renderSeries() {
+        seriesWrap.innerHTML = seriesList.map(s => {
+          const checked = state.data.series.includes(s);
+          return `
+            <label class="flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3 hover:bg-white/5">
+              <div class="flex items-center gap-3">
+                <input type="checkbox" data-series="${escapeHtml(s)}" class="h-4 w-4 accent-violet-400" ${checked ? "checked" : ""} />
+                <div>
+                  <div class="font-bold">${escapeHtml(s)}</div>
+                  <div class="text-xs text-slate-400">Tap to ${checked ? "remove" : "select"}</div>
+                </div>
+              </div>
+              <span class="text-xs text-slate-300">Fav</span>
+            </label>
+          `;
+        }).join("");
+
+        seriesCount.textContent = String(state.data.series.length);
+
+        seriesWrap.onchange = (e) => {
+          const cb = e.target.closest("input[type='checkbox'][data-series]");
+          if (!cb) return;
+          const s = cb.getAttribute("data-series");
+
+          const already = state.data.series.includes(s);
+
+          if (cb.checked && !already) {
+            if (state.data.series.length >= 3) {
+              cb.checked = false;
+              showMessage("تقدر تختار 3 سلاسل فقط. شيل واحد أولاً.");
+              return;
+            }
+            state.data.series.push(s);
+          } else if (!cb.checked && already) {
+            state.data.series = state.data.series.filter(x => x !== s);
+          }
+
+          seriesCount.textContent = String(state.data.series.length);
+
+          // Disable unchecked if reached 3
+          const all = [...seriesWrap.querySelectorAll("input[type='checkbox'][data-series]")];
+          const reached = state.data.series.length >= 3;
+          all.forEach(x => {
+            if (!x.checked) x.disabled = reached;
+            x.closest("label").classList.toggle("opacity-60", x.disabled);
+          });
+        };
+
+        // Apply disable rules on render
+        const all = [...seriesWrap.querySelectorAll("input[type='checkbox'][data-series]")];
+        const reached = state.data.series.length >= 3;
+        all.forEach(x => {
+          if (!x.checked) x.disabled = reached;
+          x.closest("label").classList.toggle("opacity-60", x.disabled);
+        });
+      }
+
+      function renderParty() {
+        partyWrap.innerHTML = partyMembers.map(m => {
+          const checked = state.data.party.includes(m.handle);
+          return `
+            <label class="flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3 hover:bg-white/5">
+              <div class="flex items-center gap-3">
+                <input type="checkbox" data-party="${escapeHtml(m.handle)}" class="h-4 w-4 accent-emerald-400" ${checked ? "checked" : ""} />
+                <div>
+                  <div class="font-bold">${escapeHtml(m.handle)}</div>
+                  <div class="text-xs text-slate-400">${escapeHtml(m.bio)}</div>
+                </div>
+              </div>
+              <span class="text-xs text-slate-300">Follow</span>
+            </label>
+          `;
+        }).join("");
+
+        partyCount.textContent = String(state.data.party.length);
+
+        partyWrap.onchange = (e) => {
+          const cb = e.target.closest("input[type='checkbox'][data-party]");
+          if (!cb) return;
+          const h = cb.getAttribute("data-party");
+          if (cb.checked) {
+            if (!state.data.party.includes(h)) state.data.party.push(h);
+          } else {
+            state.data.party = state.data.party.filter(x => x !== h);
+          }
+          partyCount.textContent = String(state.data.party.length);
+        };
+      }
+
+      function renderStarterPacks() {
+        starterWrap.innerHTML = starterPacks.map(p => `
+          <label class="cursor-pointer rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/10">
+            <input class="sr-only" type="radio" name="starter" value="${escapeHtml(p.id)}" ${state.data.starterPack === p.id ? "checked" : ""} />
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="font-extrabold">${escapeHtml(p.title)}</div>
+                <div class="mt-1 text-sm text-slate-300">${escapeHtml(p.desc)}</div>
+              </div>
+              <div class="rounded-xl border border-white/10 bg-black/20 px-3 py-1 text-xs text-slate-200">
+                Pack
+              </div>
+            </div>
+          </label>
+        `).join("");
+
+        starterWrap.onchange = (e) => {
+          if (e.target && e.target.name === "starter") {
+            state.data.starterPack = e.target.value;
+            syncSelectedStyles();
+          }
+        };
+      }
+
+      function updateAvatarFrame() {
+        // Frame glyph + border style based on selected frame & colors
+        const f = frameOptions.find(x => x.id === state.data.frame) || frameOptions[0];
+        const cp = state.data.colorPrimary;
+        const cs = state.data.colorSecondary;
+
+        frameGlyph.textContent = `${f.glyph} ${f.title}`;
+
+        // border with primary color
+        avatarFrame.style.border = `3px solid ${hexToRgba(cp, 0.75)}`;
+        avatarFrame.style.boxShadow = `0 0 0 6px ${hexToRgba(cs, 0.12)}, 0 0 24px ${hexToRgba(cp, 0.30)}`;
+
+        // add a small "ornament" via background gradient
+        if (f.style === "ring") {
+          avatarFrame.style.background = `conic-gradient(from 0deg, ${hexToRgba(cp,0.10)}, ${hexToRgba(cs,0.10)}, ${hexToRgba(cp,0.10)})`;
+        } else if (f.style === "crest") {
+          avatarFrame.style.background = `radial-gradient(circle at 30% 30%, ${hexToRgba(cs,0.20)}, transparent 55%), radial-gradient(circle at 70% 70%, ${hexToRgba(cp,0.18)}, transparent 55%)`;
+        } else if (f.style === "leaf") {
+          avatarFrame.style.background = `linear-gradient(135deg, ${hexToRgba(cs,0.18)}, transparent 55%), linear-gradient(315deg, ${hexToRgba(cp,0.16)}, transparent 55%)`;
+        } else if (f.style === "prism") {
+          avatarFrame.style.background = `conic-gradient(from 90deg, ${hexToRgba(cs,0.16)}, transparent 40%, ${hexToRgba(cp,0.18)})`;
+        }
+
+        // initials
+        avatarInitials.textContent = makeInitials(state.data.name || "??");
+      }
+
+      function hexToRgba(hex, a) {
+        const h = (hex || "#000000").replace("#","");
+        const full = h.length === 3 ? h.split("").map(x=>x+x).join("") : h;
+        const n = parseInt(full, 16);
+        const r = (n >> 16) & 255;
+        const g = (n >> 8) & 255;
+        const b = n & 255;
+        return `rgba(${r},${g},${b},${a})`;
+      }
+
+      function makeInitials(name) {
+        const clean = String(name).trim();
+        if (!clean) return "??";
+        const parts = clean.split(/[\s_\-]+/).filter(Boolean);
+        const a = (parts[0] || "?")[0] || "?";
+        const b = (parts[1] || parts[0] || "?")[0] || "?";
+        return (a + b).toUpperCase();
+      }
+
+      function renderReviewIfNeeded() {
+        if (state.step !== steps.length - 1) return;
+
+        const d = state.data;
+        const classVal = d.class || "—";
+        const goalVal = d.goal || "—";
+        const langVal = d.language || "—";
+        const genresVal = d.genres.length ? d.genres.join(", ") : "—";
+        const seriesVal = d.series.length ? d.series.join(", ") : "—";
+        const partyVal = d.party.length ? d.party.join(", ") : "—";
+        const pack = starterPacks.find(p => p.id === d.starterPack);
+        const packVal = pack ? pack.title : "—";
+
+        const card = (label, value) => `
+          <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div class="text-xs text-slate-400">${escapeHtml(label)}</div>
+            <div class="mt-1 font-bold text-slate-100 break-words">${escapeHtml(value)}</div>
+          </div>
+        `;
+
+        reviewWrap.innerHTML = [
+          card("اسم + Class", `${d.name || "—"} — ${classVal}`),
+          card("Email", d.email ? d.email : "—"),
+          card("بلد + لغة", `${d.country || "—"} — ${langVal}`),
+          card("هدف الرحلة", goalVal),
+          card("Bio", d.bio ? d.bio : "—"),
+          card("Genres", genresVal),
+          card("3 سلاسل مفضلة", seriesVal),
+          card("Party Members", partyVal),
+          card("Starter Pack", packVal),
+        ].join("");
+      }
+
+      // ====== Validation ======
+      function readCurrentInputsIntoState() {
+        // Step 1
+        const name = (document.getElementById("name").value || "").trim();
+        const cls = (document.querySelector('input[name="class"]:checked') || {}).value || "";
+
+        // Step 2
+        const email = (document.getElementById("email").value || "").trim();
+        const password = document.getElementById("password").value || "";
+        const oath = document.getElementById("oath").checked;
+
+        // Step 3
+        const country = (document.getElementById("country").value || "").trim();
+        const language = document.getElementById("language").value || "";
+        const bio = (document.getElementById("bio").value || "").trim();
+        const goal = (document.querySelector('input[name="goal"]:checked') || {}).value || "";
+
+        // Step 4
+        const frame = (document.querySelector('input[name="frame"]:checked') || {}).value || state.data.frame;
+        const colorPrimary = colorPrimaryEl.value || state.data.colorPrimary;
+        const colorSecondary = colorSecondaryEl.value || state.data.colorSecondary;
+
+        // Step 7
+        const starter = (document.querySelector('input[name="starter"]:checked') || {}).value || "";
+
+        state.data = {
+          ...state.data,
+          name, class: cls,
+          email, password, oath,
+          country, language, bio, goal,
+          frame, colorPrimary, colorSecondary,
+          starterPack: starter || state.data.starterPack,
+        };
+      }
+
+      function validateStep(stepIdx) {
+        readCurrentInputsIntoState();
+
+        const d = state.data;
+
+        if (stepIdx === 0) {
+          if (!d.name || d.name.length < 2) return "اكتب اسمًا مناسبًا (حرفين على الأقل).";
+          if (!d.class) return "اختر Class قبل المتابعة.";
+        }
+
+        if (stepIdx === 1) {
+          if (!d.email || !isEmail(d.email)) return "اكتب Email صحيح.";
+          if (!d.password || d.password.length < 8) return "كلمة المرور لازم تكون 8 أحرف على الأقل.";
+          if (!d.oath) return "لازم تقبل عهد المغامر قبل المتابعة.";
+        }
+
+        if (stepIdx === 2) {
+          if (!d.country) return "اكتب البلد.";
+          if (!d.language) return "اختر اللغة.";
+          if (!d.goal) return "اختر هدف الرحلة.";
+          if (!d.bio || d.bio.length < 10) return "اكتب Bio قصيرة (10 أحرف على الأقل).";
+        }
+
+        if (stepIdx === 3) {
+          // avatar optional، بس نطلب اختيار إطار + ألوان موجودة
+          if (!d.frame) return "اختر إطار للأفاتار.";
+          if (!d.colorPrimary || !d.colorSecondary) return "اختر ألوان الإطار.";
+        }
+
+        if (stepIdx === 4) {
+          if (!d.genres.length) return "اختَر Genre واحد على الأقل.";
+          if (d.series.length !== 3) return "لازم تختار بالضبط 3 سلاسل مفضلة.";
+        }
+
+        if (stepIdx === 5) {
+          if (d.party.length < 3) return "اختر 3 حسابات على الأقل للمتابعة.";
+        }
+
+        if (stepIdx === 6) {
+          if (!d.starterPack) return "اختر Starter Pack واحد.";
+        }
+
+        if (stepIdx === 7) {
+          // Final check
+          const req = [
+            [!!d.name, "الاسم ناقص."],
+            [!!d.class, "Class ناقص."],
+            [isEmail(d.email), "Email غير صحيح."],
+            [d.password && d.password.length >= 8, "Password ضعيفة."],
+            [d.oath, "عهد المغامر غير مُفعّل."],
+            [!!d.country, "البلد ناقص."],
+            [!!d.language, "اللغة ناقصة."],
+            [!!d.goal, "هدف الرحلة ناقص."],
+            [d.bio && d.bio.length >= 10, "Bio قصيرة جدًا."],
+            [d.genres.length >= 1, "Genres ناقصة."],
+            [d.series.length === 3, "السلاسل المفضلة لازم تكون 3."],
+            [d.party.length >= 3, "Party Members لازم 3+."],
+            [!!d.starterPack, "Starter Pack ناقص."],
+          ];
+          const bad = req.find(x => !x[0]);
+          if (bad) return bad[1];
+        }
+
+        return "";
+      }
+
+      // ====== Events ======
+      nextBtn.addEventListener("click", () => {
+        clearMessage();
+        const err = validateStep(state.step);
+        if (err) {
+          showMessage(err);
+          return;
+        }
+
+        // mark completed
+        state.completedMax = Math.max(state.completedMax, state.step);
+
+        if (state.step === steps.length - 1) {
+          // Enter the World
+          openSuccessModal();
+          return;
+        }
+
+        goToStep(state.step + 1);
+      });
+
+      backBtn.addEventListener("click", () => {
+        if (state.step === 0) return;
+        clearMessage();
+        goToStep(state.step - 1);
+      });
+
+      resetBtn.addEventListener("click", () => {
+        clearMessage();
+        // reset state
+        state.step = 0;
+        state.completedMax = 0;
+        state.data = {
+          name: "",
+          class: "",
+          email: "",
+          password: "",
+          oath: false,
+          country: "",
+          language: "",
+          bio: "",
+          goal: "",
+          frame: "rune",
+          colorPrimary: "#a78bfa",
+          colorSecondary: "#22c55e",
+          avatarFileName: "",
+          genres: [],
+          series: [],
+          party: [],
+          starterPack: "",
+        };
+
+        // reset UI fields
+        document.getElementById("wizardForm").reset();
+        avatarPreviewImg.src = "";
+        avatarPreviewImg.classList.add("hidden");
+        avatarFallback.classList.remove("hidden");
+        bioCount.textContent = "0 / 240";
+        genresCount.textContent = "0";
+        seriesCount.textContent = "0";
+        partyCount.textContent = "0";
+
+        // rerender option lists
+        renderFrameOptions();
+        renderGenres();
+        renderSeries();
+        renderParty();
+        renderStarterPacks();
+
+        // update avatar
+        updateAvatarFrame();
+
+        goToStep(0);
+      });
+
+      // Step 1 styles
+      document.addEventListener("change", (e) => {
+        if (e.target && e.target.name === "class") setActiveRadioStyles("class");
+        if (e.target && e.target.name === "goal") setActiveRadioStyles("goal");
+      });
+
+      // Bio counter
+      bioEl.addEventListener("input", () => {
+        const v = bioEl.value || "";
+        bioCount.textContent = `${v.length} / 240`;
+      });
+
+      // Avatar updates
+      document.getElementById("name").addEventListener("input", (e) => {
+        state.data.name = e.target.value;
+        updateAvatarFrame();
+      });
+
+      colorPrimaryEl.addEventListener("input", () => {
+        state.data.colorPrimary = colorPrimaryEl.value;
+        updateAvatarFrame();
+      });
+      colorSecondaryEl.addEventListener("input", () => {
+        state.data.colorSecondary = colorSecondaryEl.value;
+        updateAvatarFrame();
+      });
+
+      avatarFileEl.addEventListener("change", () => {
+        const file = avatarFileEl.files && avatarFileEl.files[0];
+        if (!file) {
+          avatarPreviewImg.src = "";
+          avatarPreviewImg.classList.add("hidden");
+          avatarFallback.classList.remove("hidden");
+          state.data.avatarFileName = "";
+          return;
+        }
+
+        state.data.avatarFileName = file.name;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          avatarPreviewImg.src = reader.result;
+          avatarPreviewImg.classList.remove("hidden");
+          avatarFallback.classList.add("hidden");
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Starter styles on change
+      starterWrap.addEventListener("change", () => {
+        setActiveChoiceCardStyles(starterWrap, "emerald");
+      });
+
+      // Frame styles on change
+      frameOptionsWrap.addEventListener("change", () => {
+        setActiveChoiceCardStyles(frameOptionsWrap, "violet");
+      });
+
+      // Modal
+      function openSuccessModal() {
+        readCurrentInputsIntoState();
+        const d = state.data;
+        const pack = starterPacks.find(p => p.id === d.starterPack);
+        const packName = pack ? pack.title : "Starter Pack";
+
+        successText.textContent =
+          `يا ${d.name || "مغامر"}! تم تجهيز فئتك (${d.class || "—"})، وفتحنا لك مسار محتوى: ${packName}. أول خطوة؟`;
+
+        successModal.classList.remove("hidden");
+        document.body.classList.add("overflow-hidden");
+      }
+
+      function closeSuccessModal() {
+        successModal.classList.add("hidden");
+        document.body.classList.remove("overflow-hidden");
+      }
+
+      closeModalBtn.addEventListener("click", closeSuccessModal);
+      successModal.addEventListener("click", (e) => {
+        if (e.target === successModal.firstElementChild) closeSuccessModal();
+      });
+
+      ctaCreatePost.addEventListener("click", () => {
+        // Demo action
+        closeSuccessModal();
+        alert("Demo: Create Post ✅\n(اربطها لاحقًا بصفحة /create في Next.js)");
+      });
+
+      ctaExplore.addEventListener("click", () => {
+        closeSuccessModal();
+        alert("Demo: Explore ✅\n(اربطها لاحقًا بصفحة /explore في Next.js)");
+      });
+
+      // ====== Init ======
+      function init() {
+        renderMapNodes();
+        renderFrameOptions();
+        renderGenres();
+        renderSeries();
+        renderParty();
+        renderStarterPacks();
+
+        // set initial colors in state
+        state.data.colorPrimary = colorPrimaryEl.value;
+        state.data.colorSecondary = colorSecondaryEl.value;
+        updateAvatarFrame();
+
+        goToStep(0);
+      }
+
+      init();
+    </script>
+  </body>
+</html>

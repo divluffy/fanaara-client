@@ -1,0 +1,1923 @@
+<!doctype html>
+<html lang="ar" dir="rtl" class="h-full">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>5 gpt</title>
+
+  <!-- Tailwind via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* لطيفة: انتقالات للخطوات + تأثيرات بسيطة */
+    .step-enter { opacity: 0; transform: translateY(12px) scale(.99); }
+    .step-enter-active { opacity: 1; transform: translateY(0) scale(1); transition: all 360ms ease; }
+    .step-exit { opacity: 1; transform: translateY(0) scale(1); }
+    .step-exit-active { opacity: 0; transform: translateY(-10px) scale(.99); transition: all 260ms ease; }
+
+    /* شيمر خفيف */
+    .shimmer {
+      background: linear-gradient(110deg, rgba(255,255,255,0.06) 8%, rgba(255,255,255,0.14) 18%, rgba(255,255,255,0.06) 33%);
+      background-size: 200% 100%;
+      animation: shimmer 2.2s linear infinite;
+    }
+    @keyframes shimmer { to { background-position-x: -200%; } }
+
+    /* إخفاء أسهم رقم input */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          boxShadow: {
+            glow: "0 0 0 1px rgba(255,255,255,0.08), 0 16px 60px rgba(0,0,0,0.35)",
+          },
+          keyframes: {
+            floaty: {
+              "0%, 100%": { transform: "translateY(0px)" },
+              "50%": { transform: "translateY(-10px)" },
+            },
+            pop: {
+              "0%": { transform: "scale(.98)", opacity: ".0" },
+              "100%": { transform: "scale(1)", opacity: "1" },
+            }
+          },
+          animation: {
+            floaty: "floaty 5.5s ease-in-out infinite",
+            pop: "pop 220ms ease-out",
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="h-full bg-slate-950 text-slate-100 selection:bg-fuchsia-400/30 selection:text-white">
+  <!-- خلفية أنمي/تدرّجات + أشكال -->
+  <div class="fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950/70 to-fuchsia-950/50"></div>
+    <div class="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-3xl animate-floaty"></div>
+    <div class="absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-cyan-400/15 blur-3xl animate-floaty" style="animation-delay: -1.5s;"></div>
+    <div class="absolute -bottom-28 left-1/3 h-96 w-96 rounded-full bg-amber-400/10 blur-3xl animate-floaty" style="animation-delay: -3s;"></div>
+    <div class="absolute inset-0 opacity-[0.12] mix-blend-soft-light">
+      <svg class="w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#22d3ee"/>
+            <stop offset="1" stop-color="#e879f9"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,640 C180,560 240,740 420,660 C600,580 640,460 800,520 C960,580 1020,480 1200,520 L1200,800 L0,800 Z" fill="url(#g)"/>
+      </svg>
+    </div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_40%),radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.05),transparent_45%),radial-gradient(circle_at_40%_80%,rgba(255,255,255,0.05),transparent_50%)]"></div>
+  </div>
+
+  <header class="relative">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <div class="flex items-center justify-between gap-3">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <div class="h-11 w-11 rounded-2xl bg-gradient-to-br from-cyan-400/90 to-fuchsia-400/90 shadow-glow grid place-items-center">
+              <!-- بسيطة: نجمة -->
+              <svg class="h-6 w-6 text-slate-950" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.6-6.2 3.6 1.6-7-5.4-4.7 7.1-.6L12 2z"/>
+              </svg>
+            </div>
+            <span class="absolute -bottom-1 -left-1 h-4 w-4 rounded-full bg-amber-300 shadow-glow"></span>
+          </div>
+          <div>
+            <p class="text-sm text-slate-300">منصة مجتمع</p>
+            <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">
+              <span class="bg-gradient-to-l from-fuchsia-300 via-cyan-200 to-amber-200 bg-clip-text text-transparent">
+                أنمي • مانجا • كومكس
+              </span>
+            </h1>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center gap-2">
+          <button id="btnClear" type="button"
+            class="hidden sm:inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold
+                   bg-white/5 hover:bg-white/10 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-300/60 focus:ring-offset-0 transition"
+            aria-label="مسح البيانات المحفوظة">
+            <svg class="h-4 w-4 text-slate-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+            </svg>
+            مسح
+          </button>
+
+          <button id="btnTheme" type="button"
+            class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold
+                   bg-white/5 hover:bg-white/10 border border-white/10 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/60 focus:ring-offset-0 transition"
+            aria-label="تبديل الوضع الداكن/الفاتح">
+            <span class="relative inline-flex h-6 w-10 items-center rounded-full bg-slate-800/70 border border-white/10 px-1 transition" id="themePill">
+              <span class="h-4 w-4 rounded-full bg-gradient-to-br from-amber-200 to-amber-400 shadow-glow transition" id="themeDot"></span>
+            </span>
+            <span class="hidden sm:inline" id="themeLabel">Dark</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="relative">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div class="grid lg:grid-cols-12 gap-8 items-start">
+        <!-- Side panel -->
+        <aside class="lg:col-span-5 xl:col-span-4">
+          <div class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-glow overflow-hidden">
+            <div class="p-6 sm:p-7">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+                    اصنع <span class="bg-gradient-to-l from-fuchsia-300 via-cyan-200 to-amber-200 bg-clip-text text-transparent">هوية</span> بطابعك ✨
+                  </h2>
+                  <p class="mt-2 text-slate-300 text-sm sm:text-base leading-relaxed">
+                    خطوات سريعة… تصميم لطيف… وواجهة سلسة تساعدك تبني بروفايلك وتبدأ تلاقي ناس بنفس ذوقك.
+                  </p>
+                </div>
+                <span class="shrink-0 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-cyan-400/20 border border-white/10 px-3 py-2 text-xs font-bold text-slate-100">
+                  Beta
+                </span>
+              </div>
+
+              <!-- Progress -->
+              <div class="mt-6">
+                <div class="flex items-center justify-between text-xs text-slate-300">
+                  <span id="progressLabel">الخطوة 1 من 5</span>
+                  <span id="progressPct">0%</span>
+                </div>
+                <div class="mt-2 h-3 rounded-full bg-white/10 border border-white/10 overflow-hidden">
+                  <div id="progressBar" class="h-full w-[0%] rounded-full bg-gradient-to-l from-cyan-300 to-fuchsia-300 transition-all duration-500"></div>
+                </div>
+              </div>
+
+              <!-- Stepper -->
+              <ol class="mt-6 space-y-3" id="stepper" aria-label="مراحل التسجيل">
+                <!-- JS will populate -->
+              </ol>
+
+              <!-- Tips -->
+              <div class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="flex items-center gap-2">
+                  <span class="grid place-items-center h-8 w-8 rounded-xl bg-gradient-to-br from-amber-300/30 to-fuchsia-400/20 border border-white/10">
+                    <svg class="h-4 w-4 text-amber-200" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M9 21h6v-1H9v1Zm3-20C7.6 1 4 4.6 4 9c0 2.6 1.2 4.9 3.1 6.4.6.5.9 1.2.9 2V18h8v-.6c0-.8.3-1.5.9-2C18.8 13.9 20 11.6 20 9c0-4.4-3.6-8-8-8Zm3.6 12.8c-1 .9-1.6 2.1-1.6 3.4H10c0-1.3-.6-2.5-1.6-3.4C7 12.6 6.2 10.9 6.2 9c0-3.2 2.6-5.8 5.8-5.8s5.8 2.6 5.8 5.8c0 1.9-.8 3.6-2.2 4.8Z"/>
+                    </svg>
+                  </span>
+                  <div>
+                    <p class="font-semibold">نصيحة سريعة</p>
+                    <p class="text-xs text-slate-300">يتم الحفظ تلقائيًا محليًا. يمكنك الرجوع لأي خطوة بدون فقدان البيانات.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mini preview card -->
+              <div class="mt-6 rounded-2xl border border-white/10 bg-gradient-to-br from-white/6 to-white/3 p-4">
+                <div class="flex items-center gap-3">
+                  <div class="relative">
+                    <img id="miniAvatar" alt="معاينة الأفاتار" class="h-12 w-12 rounded-2xl object-cover border border-white/10 bg-white/5" />
+                    <span class="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-emerald-300/20 border border-emerald-200/30 grid place-items-center">
+                      <svg class="h-3.5 w-3.5 text-emerald-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M20 6L9 17l-5-5"/>
+                      </svg>
+                    </span>
+                  </div>
+                  <div class="min-w-0">
+                    <p id="miniName" class="font-bold truncate">ضيف جديد</p>
+                    <p id="miniEmail" class="text-xs text-slate-300 truncate">—</p>
+                  </div>
+                </div>
+                <div class="mt-3 flex flex-wrap gap-2" id="miniTags"></div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Form panel -->
+        <section class="lg:col-span-7 xl:col-span-8">
+          <div class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-glow overflow-hidden">
+            <!-- Top bar -->
+            <div class="p-5 sm:p-6 border-b border-white/10 bg-gradient-to-l from-white/6 to-transparent">
+              <div class="flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <h3 id="panelTitle" class="text-lg sm:text-xl font-extrabold tracking-tight">إنشاء حساب جديد</h3>
+                  <p id="panelDesc" class="text-sm text-slate-300 mt-1">خلّنا نبدأ ببيانات حسابك الأساسية.</p>
+                </div>
+                <span class="hidden sm:inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-200">
+                  <span class="inline-block h-2 w-2 rounded-full bg-emerald-300/70"></span>
+                  UI/UX مود
+                </span>
+              </div>
+            </div>
+
+            <form id="signupForm" class="p-5 sm:p-6" novalidate>
+              <!-- Live region for announcements -->
+              <div class="sr-only" aria-live="polite" id="live"></div>
+
+              <!-- Steps container -->
+              <div id="stepsContainer" class="relative">
+                <!-- STEP 1 -->
+                <section class="step" data-step="1" aria-label="بيانات الحساب">
+                  <div class="grid sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                      <label for="displayName" class="block text-sm font-semibold">الاسم (Display Name) <span class="text-fuchsia-200">*</span></label>
+                      <div class="mt-2 relative">
+                        <input id="displayName" name="displayName" type="text" autocomplete="nickname" required
+                          class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm
+                                 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/60 focus:border-transparent transition"
+                          placeholder="مثال: LuffySenpai" />
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                          </svg>
+                        </span>
+                      </div>
+                      <p class="mt-2 text-xs text-rose-200 hidden" id="errDisplayName"></p>
+                    </div>
+
+                    <div class="sm:col-span-2">
+                      <label for="email" class="block text-sm font-semibold">البريد الإلكتروني <span class="text-fuchsia-200">*</span></label>
+                      <div class="mt-2 relative">
+                        <input id="email" name="email" type="email" autocomplete="email" required
+                          class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm
+                                 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/60 focus:border-transparent transition"
+                          placeholder="you@domain.com" />
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/>
+                          </svg>
+                        </span>
+                      </div>
+                      <p class="mt-2 text-xs text-rose-200 hidden" id="errEmail"></p>
+                    </div>
+
+                    <div>
+                      <label for="password" class="block text-sm font-semibold">كلمة المرور <span class="text-fuchsia-200">*</span></label>
+                      <div class="mt-2 relative">
+                        <input id="password" name="password" type="password" autocomplete="new-password" required
+                          class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm
+                                 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/60 focus:border-transparent transition"
+                          placeholder="8+ أحرف + رقم" />
+                        <button type="button" id="togglePass"
+                          class="absolute left-2 top-1/2 -translate-y-1/2 rounded-xl px-2 py-2 text-slate-300 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/60 transition"
+                          aria-label="إظهار/إخفاء كلمة المرور">
+                          <svg id="eyeIcon" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div class="mt-2 flex items-center justify-between gap-2">
+                        <p class="text-xs text-slate-300">قوة كلمة المرور</p>
+                        <p class="text-xs font-semibold" id="passStrengthText">—</p>
+                      </div>
+                      <div class="mt-2 h-2 rounded-full bg-white/10 border border-white/10 overflow-hidden">
+                        <div id="passStrengthBar" class="h-full w-0 rounded-full bg-gradient-to-l from-rose-300 to-emerald-300 transition-all duration-500"></div>
+                      </div>
+                      <p class="mt-2 text-xs text-rose-200 hidden" id="errPassword"></p>
+                    </div>
+
+                    <div>
+                      <label for="confirmPassword" class="block text-sm font-semibold">تأكيد كلمة المرور <span class="text-fuchsia-200">*</span></label>
+                      <div class="mt-2 relative">
+                        <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required
+                          class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm
+                                 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/60 focus:border-transparent transition"
+                          placeholder="أعد الكتابة" />
+                        <span id="matchBadge" class="hidden absolute left-3 top-1/2 -translate-y-1/2 text-emerald-200">
+                          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M20 6L9 17l-5-5"/>
+                          </svg>
+                        </span>
+                      </div>
+                      <p class="mt-2 text-xs text-rose-200 hidden" id="errConfirm"></p>
+                    </div>
+                  </div>
+
+                  <div class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div class="flex items-start gap-3">
+                      <span class="grid place-items-center h-10 w-10 rounded-2xl bg-gradient-to-br from-cyan-400/20 to-fuchsia-400/20 border border-white/10">
+                        <svg class="h-5 w-5 text-cyan-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path d="M12 22s8-4 8-10V6l-8-4-8 4v6c0 6 8 10 8 10z"/>
+                          <path d="M9 12l2 2 4-4"/>
+                        </svg>
+                      </span>
+                      <div>
+                        <p class="font-semibold">خصوصية لطيفة</p>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                          هذا نموذج تجريبي — لا يوجد إرسال حقيقي للسيرفر. الهدف: تجربة UI/UX ممتازة.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- STEP 2 -->
+                <section class="step hidden" data-step="2" aria-label="الملف الشخصي">
+                  <div class="grid lg:grid-cols-2 gap-5">
+                    <!-- Avatar -->
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div class="flex items-center justify-between gap-3">
+                        <div>
+                          <h4 class="font-extrabold">صورة الأفاتار</h4>
+                          <p class="text-sm text-slate-300">ارفع صورتك أو اختر تشيبّي جاهز.</p>
+                        </div>
+                        <span class="text-xs text-slate-300 rounded-xl bg-white/5 border border-white/10 px-2 py-1">اختياري</span>
+                      </div>
+
+                      <div class="mt-4 flex items-center gap-4">
+                        <div class="relative shrink-0">
+                          <img id="avatarPreview" alt="معاينة الأفاتار" class="h-20 w-20 rounded-3xl object-cover border border-white/10 bg-white/5" />
+                          <span class="absolute -bottom-2 -right-2 h-8 w-8 rounded-2xl bg-gradient-to-br from-fuchsia-400/30 to-cyan-300/20 border border-white/10 grid place-items-center">
+                            <svg class="h-4 w-4 text-slate-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                              <path d="M12 5v14"/><path d="M5 12h14"/>
+                            </svg>
+                          </span>
+                        </div>
+
+                        <div class="min-w-0 flex-1">
+                          <label for="avatarUpload" class="block text-sm font-semibold">رفع صورة</label>
+                          <input id="avatarUpload" type="file" accept="image/*"
+                            class="mt-2 block w-full text-sm text-slate-200 file:mr-4 file:rounded-xl file:border-0
+                                   file:bg-white/10 file:px-4 file:py-2 file:text-sm file:font-semibold
+                                   hover:file:bg-white/15 focus:outline-none focus:ring-2 focus:ring-cyan-300/60 rounded-2xl" />
+                          <p class="mt-2 text-xs text-slate-300">تظهر المعاينة فورًا. (محلي فقط)</p>
+                        </div>
+                      </div>
+
+                      <div class="mt-5">
+                        <p class="text-sm font-semibold">أفاتارات جاهزة</p>
+                        <div class="mt-3 grid grid-cols-6 gap-2" id="presetAvatars" role="list" aria-label="أفاتارات جاهزة"></div>
+                      </div>
+                    </div>
+
+                    <!-- Bio + country/lang -->
+                    <div class="space-y-5">
+                      <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <label for="bio" class="block text-sm font-semibold">نبذة قصيرة (Bio)</label>
+                        <textarea id="bio" rows="4" maxlength="140"
+                          class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm
+                                 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/60 focus:border-transparent transition"
+                          placeholder="أحب الشونين، وأرسم فان-آرت، وأبحث عن نقاشات لطيفة ✨"></textarea>
+                        <div class="mt-2 flex items-center justify-between text-xs text-slate-300">
+                          <span>اختياري</span>
+                          <span id="bioCount">0/140</span>
+                        </div>
+                      </div>
+
+                      <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <div class="grid sm:grid-cols-2 gap-4">
+                          <div>
+                            <label for="country" class="block text-sm font-semibold">الدولة</label>
+                            <select id="country"
+                              class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm
+                                     focus:outline-none focus:ring-2 focus:ring-cyan-300/60 focus:border-transparent transition">
+                              <option value="">— اختياري —</option>
+                              <option>السعودية</option>
+                              <option>الإمارات</option>
+                              <option>مصر</option>
+                              <option>الأردن</option>
+                              <option>المغرب</option>
+                              <option>الجزائر</option>
+                              <option>العراق</option>
+                              <option>فلسطين</option>
+                              <option>الكويت</option>
+                              <option>لبنان</option>
+                              <option>قطر</option>
+                              <option>تونس</option>
+                              <option>عُمان</option>
+                              <option>البحرين</option>
+                              <option>اليمن</option>
+                              <option>أخرى</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label for="language" class="block text-sm font-semibold">اللغة</label>
+                            <select id="language"
+                              class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm
+                                     focus:outline-none focus:ring-2 focus:ring-cyan-300/60 focus:border-transparent transition">
+                              <option value="">— اختياري —</option>
+                              <option>العربية</option>
+                              <option>English</option>
+                              <option>日本語</option>
+                              <option>Français</option>
+                              <option>Español</option>
+                            </select>
+                          </div>
+                        </div>
+                        <p class="mt-3 text-xs text-slate-300">تساعدنا نضبط اقتراحات المحتوى والصداقات.</p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- STEP 3 -->
+                <section class="step hidden" data-step="3" aria-label="الاهتمامات">
+                  <div class="space-y-5">
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div class="flex items-start justify-between gap-3">
+                        <div>
+                          <h4 class="font-extrabold">اهتماماتك</h4>
+                          <p class="text-sm text-slate-300">اختيارات متعددة (Chips) — خلي ذوقك يبان ✨</p>
+                        </div>
+                        <span class="text-xs text-slate-300 rounded-xl bg-white/5 border border-white/10 px-2 py-1">اختياري</span>
+                      </div>
+                      <div class="mt-4 flex flex-wrap gap-2" id="interestChips" role="list" aria-label="قائمة الاهتمامات"></div>
+                    </div>
+
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div class="flex items-start justify-between gap-3">
+                        <div>
+                          <h4 class="font-extrabold">أنواعك المفضلة (Genres)</h4>
+                          <p class="text-sm text-slate-300">اختيارات متعددة — نستخدمها للاقتراحات.</p>
+                        </div>
+                        <span class="text-xs text-slate-300 rounded-xl bg-white/5 border border-white/10 px-2 py-1">اختياري</span>
+                      </div>
+                      <div class="mt-4 flex flex-wrap gap-2" id="genreChips" role="list" aria-label="قائمة الأنواع"></div>
+                    </div>
+
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div class="flex items-start justify-between gap-3">
+                        <div>
+                          <h4 class="font-extrabold">أفضل 3 أعمال عندك</h4>
+                          <p class="text-sm text-slate-300">إضافة بسيطة مع اقتراحات (Autocomplete خفيف).</p>
+                        </div>
+                        <span class="text-xs text-slate-300 rounded-xl bg-white/5 border border-white/10 px-2 py-1">اختياري</span>
+                      </div>
+
+                      <div class="mt-4 grid sm:grid-cols-2 gap-4 items-start">
+                        <div class="sm:col-span-2">
+                          <label for="favInput" class="block text-sm font-semibold">ابحث/اكتب اسم العمل</label>
+                          <div class="mt-2 relative">
+                            <input id="favInput" type="text" autocomplete="off"
+                              class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 text-sm
+                                     placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/60 focus:border-transparent transition"
+                              placeholder="مثال: One Piece, Attack on Titan..." />
+                            <button type="button" id="btnAddFav"
+                              class="absolute left-2 top-1/2 -translate-y-1/2 rounded-xl px-3 py-2 text-sm font-semibold
+                                     bg-gradient-to-l from-cyan-300/80 to-fuchsia-300/80 text-slate-950
+                                     hover:from-cyan-300 hover:to-fuchsia-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/60 transition">
+                              إضافة
+                            </button>
+                          </div>
+                          <div id="favSuggest" class="mt-2 hidden rounded-2xl border border-white/10 bg-slate-950/60 backdrop-blur p-2"></div>
+                          <p class="mt-2 text-xs text-slate-300">حد أقصى 3 أعمال.</p>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                          <div class="flex flex-wrap gap-2" id="favList" aria-label="قائمة الأعمال المفضلة"></div>
+                          <p class="mt-2 text-xs text-rose-200 hidden" id="errFavs"></p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- STEP 4 -->
+                <section class="step hidden" data-step="4" aria-label="التفاعل الاجتماعي">
+                  <div class="space-y-5">
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <h4 class="font-extrabold">وش تبغى من المجتمع؟</h4>
+                      <p class="text-sm text-slate-300 mt-1">اختيارات متعددة — نستخدمها لترتيب واجهتك.</p>
+
+                      <div class="mt-4 grid sm:grid-cols-2 gap-3" id="socialGoals" role="group" aria-label="أهداف التفاعل">
+                        <!-- JS will populate -->
+                      </div>
+                    </div>
+
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div class="flex items-start justify-between gap-3">
+                        <div>
+                          <h4 class="font-extrabold">اقتراحات متابعة</h4>
+                          <p class="text-sm text-slate-300">تجريبي/Preview — أزرار Follow/Unfollow فقط.</p>
+                        </div>
+                        <div class="text-xs text-slate-300 rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+                          <span class="font-semibold" id="previewCounts">0</span>
+                          <span class="opacity-80">متابعون •</span>
+                          <span class="font-semibold" id="previewFollowing">0</span>
+                          <span class="opacity-80">تتابعهم</span>
+                        </div>
+                      </div>
+
+                      <div class="mt-4 grid md:grid-cols-2 gap-3" id="suggestedFollows" aria-label="حسابات مقترحة"></div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- STEP 5 -->
+                <section class="step hidden" data-step="5" aria-label="مراجعة وإنشاء الحساب">
+                  <div class="space-y-5">
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <h4 class="font-extrabold">مراجعة نهائية</h4>
+                      <p class="text-sm text-slate-300 mt-1">تأكد من كل شيء قبل إنشاء الحساب.</p>
+
+                      <div class="mt-4 grid lg:grid-cols-12 gap-4">
+                        <div class="lg:col-span-5">
+                          <div class="rounded-2xl border border-white/10 bg-gradient-to-br from-white/6 to-white/3 p-4">
+                            <div class="flex items-center gap-3">
+                              <img id="reviewAvatar" alt="صورة الأفاتار" class="h-14 w-14 rounded-2xl object-cover border border-white/10 bg-white/5" />
+                              <div class="min-w-0">
+                                <p id="reviewName" class="font-extrabold truncate">—</p>
+                                <p id="reviewEmail" class="text-sm text-slate-300 truncate">—</p>
+                              </div>
+                            </div>
+
+                            <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
+                              <div class="rounded-xl bg-white/5 border border-white/10 p-3">
+                                <p class="text-xs text-slate-300">الدولة</p>
+                                <p id="reviewCountry" class="font-semibold">—</p>
+                              </div>
+                              <div class="rounded-xl bg-white/5 border border-white/10 p-3">
+                                <p class="text-xs text-slate-300">اللغة</p>
+                                <p id="reviewLang" class="font-semibold">—</p>
+                              </div>
+                            </div>
+
+                            <div class="mt-3 rounded-xl bg-white/5 border border-white/10 p-3">
+                              <p class="text-xs text-slate-300">Bio</p>
+                              <p id="reviewBio" class="text-sm leading-relaxed mt-1">—</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="lg:col-span-7">
+                          <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
+                            <div>
+                              <div class="flex items-center justify-between gap-2">
+                                <p class="font-semibold">الاهتمامات</p>
+                                <span class="text-xs text-slate-300" id="reviewInterestsCount">0</span>
+                              </div>
+                              <div class="mt-2 flex flex-wrap gap-2" id="reviewInterests"></div>
+                            </div>
+                            <div>
+                              <div class="flex items-center justify-between gap-2">
+                                <p class="font-semibold">الأنواع</p>
+                                <span class="text-xs text-slate-300" id="reviewGenresCount">0</span>
+                              </div>
+                              <div class="mt-2 flex flex-wrap gap-2" id="reviewGenres"></div>
+                            </div>
+                            <div>
+                              <div class="flex items-center justify-between gap-2">
+                                <p class="font-semibold">أفضل 3 أعمال</p>
+                                <span class="text-xs text-slate-300" id="reviewFavsCount">0/3</span>
+                              </div>
+                              <div class="mt-2 flex flex-wrap gap-2" id="reviewFavs"></div>
+                            </div>
+
+                            <div class="rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-400/10 to-fuchsia-400/10 p-4">
+                              <div class="flex items-start gap-3">
+                                <span class="grid place-items-center h-10 w-10 rounded-2xl bg-white/10 border border-white/10">
+                                  <svg class="h-5 w-5 text-fuchsia-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M9 12l2 2 4-4"/>
+                                    <path d="M12 22s8-4 8-10V6l-8-4-8 4v6c0 6 8 10 8 10z"/>
+                                  </svg>
+                                </span>
+                                <div>
+                                  <p class="font-extrabold">جاهز للانطلاق؟</p>
+                                  <p class="text-sm text-slate-200/90 leading-relaxed">
+                                    عند إنشاء الحساب سنعرض شاشة نجاح (تجريبية) مع زر للملف الشخصي.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <p class="mt-1 text-xs text-slate-300">
+                              بالنقر على “إنشاء الحساب” أنت توافق (تجريبيًا) على الشروط وسياسة الخصوصية.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Success -->
+                    <section id="successState" class="hidden">
+                      <div class="rounded-3xl border border-emerald-200/20 bg-gradient-to-br from-emerald-400/15 via-cyan-400/10 to-fuchsia-400/10 p-6 sm:p-8 shadow-glow">
+                        <div class="flex items-start gap-4">
+                          <div class="shrink-0 h-12 w-12 rounded-2xl bg-emerald-300/20 border border-emerald-200/30 grid place-items-center">
+                            <svg class="h-7 w-7 text-emerald-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                              <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                          </div>
+                          <div class="min-w-0">
+                            <h4 class="text-xl sm:text-2xl font-extrabold">تم إنشاء الحساب بنجاح 🎉</h4>
+                            <p class="mt-2 text-slate-200/90 leading-relaxed">
+                              أهلًا <span class="font-bold" id="successName">—</span>! جهّزنا بروفايلك الأولي… والآن وقت المتعة 💫
+                            </p>
+                            <div class="mt-5 flex flex-col sm:flex-row gap-3">
+                              <a href="#" id="goProfile"
+                                class="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-extrabold
+                                       bg-gradient-to-l from-cyan-300 to-fuchsia-300 text-slate-950
+                                       hover:from-cyan-200 hover:to-fuchsia-200 focus:outline-none focus:ring-2 focus:ring-cyan-300/60 transition">
+                                الانتقال للملف الشخصي
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                  <path d="M5 12h14"/><path d="M13 5l7 7-7 7"/>
+                                </svg>
+                              </a>
+                              <button type="button" id="startOver"
+                                class="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold
+                                       bg-white/5 border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/60 transition">
+                                إنشاء حساب جديد
+                                <svg class="h-5 w-5 text-slate-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                  <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 9 9"/><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-9-9"/><path d="M8 12h8"/>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </section>
+              </div>
+
+              <!-- Footer controls -->
+              <div class="mt-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center gap-2 text-xs text-slate-300">
+                    <span class="inline-block h-2 w-2 rounded-full bg-cyan-300/70"></span>
+                    حفظ تلقائي
+                  </span>
+                  <span class="text-xs text-slate-500">•</span>
+                  <button type="button" id="btnResetStep"
+                    class="text-xs font-semibold text-slate-200 hover:text-white underline underline-offset-4 decoration-white/20 hover:decoration-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-300/60 rounded">
+                    إعادة ضبط هذه الخطوة
+                  </button>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <button type="button" id="btnPrev"
+                    class="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold
+                           bg-white/5 border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/60 transition disabled:opacity-40 disabled:hover:bg-white/5 disabled:cursor-not-allowed">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M19 12H5"/><path d="M11 19l-7-7 7-7"/>
+                    </svg>
+                    السابق
+                  </button>
+
+                  <button type="button" id="btnNext"
+                    class="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-extrabold
+                           bg-gradient-to-l from-cyan-300 to-fuchsia-300 text-slate-950
+                           hover:from-cyan-200 hover:to-fuchsia-200 focus:outline-none focus:ring-2 focus:ring-cyan-300/60 transition">
+                    التالي
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M5 12h14"/><path d="M13 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+
+                  <button type="submit" id="btnCreate"
+                    class="hidden inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-extrabold
+                           bg-gradient-to-l from-emerald-300 to-cyan-300 text-slate-950
+                           hover:from-emerald-200 hover:to-cyan-200 focus:outline-none focus:ring-2 focus:ring-emerald-300/60 transition">
+                    إنشاء الحساب
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <p class="mt-4 text-xs text-slate-400/90">
+            ⌁ اختصار لوحة المفاتيح: Enter = التالي (إذا كان ممكن)، Shift+Enter = السابق، Esc = مسح الاقتراحات.
+          </p>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ==========================
+    // بيانات ثابتة (Presets)
+    // ==========================
+    const STORAGE_KEY = "anime_signup_wizard_v1";
+    const THEME_KEY = "anime_signup_theme_v1";
+
+    // أفاتارات جاهزة (SVG data URI) — تشيبّي لطيف
+    const presetAvatars = [
+      { id: "chibi1", label: "تشيبّي 1", svg: chibiSvg("#22d3ee", "#e879f9", "⭐") },
+      { id: "chibi2", label: "تشيبّي 2", svg: chibiSvg("#a78bfa", "#fbbf24", "⚡") },
+      { id: "chibi3", label: "تشيبّي 3", svg: chibiSvg("#34d399", "#60a5fa", "🍡") },
+      { id: "chibi4", label: "تشيبّي 4", svg: chibiSvg("#fb7185", "#22d3ee", "🌙") },
+      { id: "chibi5", label: "تشيبّي 5", svg: chibiSvg("#fbbf24", "#a78bfa", "🎴") },
+      { id: "chibi6", label: "تشيبّي 6", svg: chibiSvg("#60a5fa", "#34d399", "🎧") },
+      { id: "chibi7", label: "تشيبّي 7", svg: chibiSvg("#e879f9", "#22d3ee", "🗡️") },
+      { id: "chibi8", label: "تشيبّي 8", svg: chibiSvg("#22c55e", "#f97316", "🧋") },
+      { id: "chibi9", label: "تشيبّي 9", svg: chibiSvg("#38bdf8", "#f472b6", "🐾") },
+      { id: "chibi10", label: "تشيبّي 10", svg: chibiSvg("#f97316", "#fbbf24", "🔥") },
+      { id: "chibi11", label: "تشيبّي 11", svg: chibiSvg("#94a3b8", "#22d3ee", "📌") },
+      { id: "chibi12", label: "تشيبّي 12", svg: chibiSvg("#e879f9", "#fbbf24", "💫") },
+    ];
+
+    const interests = ["Anime", "Manga", "Manhwa", "Comics", "Cosplay", "Fanart", "Games"];
+    const genres = ["Shonen", "Seinen", "Isekai", "Slice of Life", "Romance", "Horror", "Sci-Fi", "Fantasy", "Mystery", "Comedy", "Sports", "Drama"];
+
+    const worksSuggestions = [
+      "One Piece","Naruto","Bleach","Attack on Titan","Jujutsu Kaisen","Demon Slayer","Fullmetal Alchemist",
+      "Hunter x Hunter","Death Note","Haikyuu!!","My Hero Academia","Chainsaw Man","Spy x Family",
+      "Steins;Gate","Tokyo Ghoul","Vinland Saga","Berserk","Frieren","JoJo's Bizarre Adventure","Blue Lock",
+      "Solo Leveling","Tower of God","The Beginning After the End","Batman","Spider-Man","X-Men","Sandman",
+      "Watchmen","Saga","Invincible"
+    ];
+
+    const socialGoals = [
+      { id: "friends", label: "أريد أصدقاء بنفس الذوق", icon: "👥" },
+      { id: "weekly", label: "أبحث عن نقاشات أسبوعية", icon: "🗓️" },
+      { id: "art", label: "أريد نشر رسوماتي", icon: "🎨" },
+      { id: "reviews", label: "أريد مراجعات وتقييمات", icon: "⭐" },
+    ];
+
+    const suggestedAccounts = [
+      { id: "otakuWeekly", name: "OtakuWeekly", handle: "@otakuweekly", vibe: "نقاشات + توصيات", followers: 12840, following: 120 },
+      { id: "chibiSketch", name: "ChibiSketch", handle: "@chibisketch", vibe: "فان-آرت يومي", followers: 80210, following: 312 },
+      { id: "mangaLab", name: "MangaLab", handle: "@mangalab", vibe: "مراجعات مانجا", followers: 43120, following: 210 },
+      { id: "cosplayCorner", name: "CosplayCorner", handle: "@cosplaycorner", vibe: "كوسبلاي ودروس", followers: 25110, following: 460 },
+      { id: "isekaiRadar", name: "IsekaiRadar", handle: "@isekairadar", vibe: "أفضل إيسيكاي", followers: 16400, following: 98 },
+      { id: "panelTalks", name: "PanelTalks", handle: "@paneltalks", vibe: "كومكس + تحليل", followers: 9800, following: 75 },
+    ];
+
+    const stepMeta = [
+      { title: "بيانات الحساب", desc: "الاسم، الإيميل، وكلمة مرور قوية.", icon: "🧾" },
+      { title: "الملف الشخصي", desc: "أفاتار + نبذة بسيطة.", icon: "🧑‍🎤" },
+      { title: "الاهتمامات", desc: "Chips + 3 أعمال مفضلة.", icon: "🏷️" },
+      { title: "التفاعل الاجتماعي", desc: "أهدافك + اقتراحات متابعة.", icon: "🤝" },
+      { title: "مراجعة وإنشاء", desc: "ملخص جميل ثم نجاح.", icon: "✅" },
+    ];
+
+    // ==========================
+    // الحالة (State)
+    // ==========================
+    const state = {
+      step: 1,
+      // Step 1
+      displayName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      // Step 2
+      avatarDataUrl: "",
+      avatarPresetId: "chibi1",
+      bio: "",
+      country: "",
+      language: "",
+      // Step 3
+      selectedInterests: [],
+      selectedGenres: [],
+      favoriteWorks: [],
+      // Step 4
+      selectedGoals: [],
+      followed: {}, // id -> boolean
+      previewFollowers: 0,
+      previewFollowing: 0,
+      // Submit
+      created: false
+    };
+
+    // ==========================
+    // DOM
+    // ==========================
+    const $ = (id) => document.getElementById(id);
+    const stepsContainer = $("stepsContainer");
+    const steps = Array.from(document.querySelectorAll(".step"));
+    const stepper = $("stepper");
+
+    const btnPrev = $("btnPrev");
+    const btnNext = $("btnNext");
+    const btnCreate = $("btnCreate");
+
+    const panelTitle = $("panelTitle");
+    const panelDesc = $("panelDesc");
+
+    const progressLabel = $("progressLabel");
+    const progressPct = $("progressPct");
+    const progressBar = $("progressBar");
+
+    const live = $("live");
+
+    // Step 1 fields
+    const displayName = $("displayName");
+    const email = $("email");
+    const password = $("password");
+    const confirmPassword = $("confirmPassword");
+
+    const errDisplayName = $("errDisplayName");
+    const errEmail = $("errEmail");
+    const errPassword = $("errPassword");
+    const errConfirm = $("errConfirm");
+
+    const togglePass = $("togglePass");
+    const eyeIcon = $("eyeIcon");
+    const passStrengthText = $("passStrengthText");
+    const passStrengthBar = $("passStrengthBar");
+    const matchBadge = $("matchBadge");
+
+    // Step 2 fields
+    const avatarPreview = $("avatarPreview");
+    const avatarUpload = $("avatarUpload");
+    const presetAvatarsEl = $("presetAvatars");
+    const bio = $("bio");
+    const bioCount = $("bioCount");
+    const country = $("country");
+    const language = $("language");
+
+    // Step 3
+    const interestChips = $("interestChips");
+    const genreChips = $("genreChips");
+    const favInput = $("favInput");
+    const favSuggest = $("favSuggest");
+    const favList = $("favList");
+    const btnAddFav = $("btnAddFav");
+    const errFavs = $("errFavs");
+
+    // Step 4
+    const socialGoalsEl = $("socialGoals");
+    const suggestedFollowsEl = $("suggestedFollows");
+    const previewCounts = $("previewCounts");
+    const previewFollowing = $("previewFollowing");
+
+    // Step 5 review
+    const reviewAvatar = $("reviewAvatar");
+    const reviewName = $("reviewName");
+    const reviewEmail = $("reviewEmail");
+    const reviewCountry = $("reviewCountry");
+    const reviewLang = $("reviewLang");
+    const reviewBio = $("reviewBio");
+    const reviewInterests = $("reviewInterests");
+    const reviewGenres = $("reviewGenres");
+    const reviewFavs = $("reviewFavs");
+    const reviewInterestsCount = $("reviewInterestsCount");
+    const reviewGenresCount = $("reviewGenresCount");
+    const reviewFavsCount = $("reviewFavsCount");
+
+    // Success
+    const successState = $("successState");
+    const successName = $("successName");
+    const startOver = $("startOver");
+    const goProfile = $("goProfile");
+
+    // Side mini preview
+    const miniAvatar = $("miniAvatar");
+    const miniName = $("miniName");
+    const miniEmail = $("miniEmail");
+    const miniTags = $("miniTags");
+
+    // Misc
+    const btnResetStep = $("btnResetStep");
+    const btnTheme = $("btnTheme");
+    const themeDot = $("themeDot");
+    const themePill = $("themePill");
+    const themeLabel = $("themeLabel");
+    const btnClear = $("btnClear");
+    const signupForm = $("signupForm");
+
+    // ==========================
+    // Helpers
+    // ==========================
+    function announce(msg) {
+      live.textContent = msg;
+    }
+
+    function safeText(v) {
+      return (v ?? "").toString().trim();
+    }
+
+    function toDataUri(svg) {
+      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    }
+
+    function chibiSvg(c1, c2, badge) {
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+          <defs>
+            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="${c1}" stop-opacity=".9"/>
+              <stop offset="1" stop-color="${c2}" stop-opacity=".9"/>
+            </linearGradient>
+            <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".35"/>
+            </filter>
+          </defs>
+          <rect x="10" y="10" width="140" height="140" rx="28" fill="url(#bg)" filter="url(#s)"/>
+          <circle cx="80" cy="78" r="42" fill="rgba(255,255,255,.18)"/>
+          <circle cx="64" cy="74" r="8" fill="rgba(0,0,0,.35)"/>
+          <circle cx="96" cy="74" r="8" fill="rgba(0,0,0,.35)"/>
+          <circle cx="62" cy="72" r="3" fill="rgba(255,255,255,.65)"/>
+          <circle cx="94" cy="72" r="3" fill="rgba(255,255,255,.65)"/>
+          <path d="M66 94c6 8 22 8 28 0" stroke="rgba(0,0,0,.3)" stroke-width="6" stroke-linecap="round" fill="none"/>
+          <path d="M52 64c8-10 18-16 28-16s20 6 28 16" fill="rgba(0,0,0,.18)"/>
+          <circle cx="48" cy="94" r="8" fill="rgba(255,255,255,.18)"/>
+          <circle cx="112" cy="94" r="8" fill="rgba(255,255,255,.18)"/>
+          <rect x="24" y="24" width="44" height="22" rx="11" fill="rgba(255,255,255,.2)"/>
+          <text x="46" y="40" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="14" fill="rgba(15,23,42,.9)" font-weight="800">CHIBI</text>
+          <g>
+            <circle cx="126" cy="126" r="18" fill="rgba(255,255,255,.22)"/>
+            <text x="126" y="132" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="16" fill="rgba(255,255,255,.92)" font-weight="800">${badge}</text>
+          </g>
+        </svg>
+      `;
+      return toDataUri(svg);
+    }
+
+    function chipClass(active, tint="cyan") {
+      const base = "inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-semibold border focus:outline-none focus:ring-2 focus:ring-offset-0 transition select-none";
+      const off = "bg-white/5 border-white/10 text-slate-200 hover:bg-white/10";
+      const on = tint === "fuchsia"
+        ? "bg-fuchsia-300/15 border-fuchsia-200/25 text-fuchsia-100 hover:bg-fuchsia-300/20 focus:ring-fuchsia-300/60"
+        : tint === "amber"
+          ? "bg-amber-300/15 border-amber-200/25 text-amber-100 hover:bg-amber-300/20 focus:ring-amber-300/60"
+          : "bg-cyan-300/15 border-cyan-200/25 text-cyan-100 hover:bg-cyan-300/20 focus:ring-cyan-300/60";
+      return `${base} ${active ? on : off} ${active ? "" : "focus:ring-cyan-300/60"}`;
+    }
+
+    function pill(text, tone="cyan") {
+      const cls = tone === "fuchsia"
+        ? "bg-fuchsia-300/15 border-fuchsia-200/25 text-fuchsia-100"
+        : tone === "amber"
+          ? "bg-amber-300/15 border-amber-200/25 text-amber-100"
+          : tone === "emerald"
+            ? "bg-emerald-300/15 border-emerald-200/25 text-emerald-100"
+            : "bg-cyan-300/15 border-cyan-200/25 text-cyan-100";
+      const el = document.createElement("span");
+      el.className = `inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 text-xs font-semibold border ${cls}`;
+      el.textContent = text;
+      return el;
+    }
+
+    function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+    function isEmailValid(v) {
+      const val = safeText(v);
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+    }
+
+    function passwordStrength(pw) {
+      const p = safeText(pw);
+      const len = p.length >= 8;
+      const num = /\d/.test(p);
+      const mix = /[A-Z]/.test(p) || /[a-z]/.test(p);
+      const sym = /[^A-Za-z0-9]/.test(p);
+      let score = 0;
+      if (len) score++;
+      if (num) score++;
+      if (mix) score++;
+      if (sym) score++;
+      // 0..4
+      const label = score <= 1 ? "ضعيفة" : score === 2 ? "متوسطة" : score === 3 ? "جيدة" : "قوية";
+      return { score, label, ok: (len && num) }; // مطلوب: 8+ + رقم
+    }
+
+    function setFieldError(el, errEl, msg) {
+      if (!msg) {
+        errEl.classList.add("hidden");
+        errEl.textContent = "";
+        el.classList.remove("border-rose-400/60");
+        el.classList.add("border-white/10");
+        return;
+      }
+      errEl.textContent = msg;
+      errEl.classList.remove("hidden");
+      errEl.classList.add("animate-pop");
+      el.classList.add("border-rose-400/60");
+      el.classList.remove("border-white/10");
+    }
+
+    function getDefaultAvatar() {
+      const found = presetAvatars.find(a => a.id === state.avatarPresetId) || presetAvatars[0];
+      return found.svg;
+    }
+
+    function updateMiniPreview() {
+      miniName.textContent = safeText(state.displayName) || "ضيف جديد";
+      miniEmail.textContent = safeText(state.email) || "—";
+      miniAvatar.src = state.avatarDataUrl || getDefaultAvatar();
+
+      miniTags.innerHTML = "";
+      const tags = [
+        ...state.selectedInterests.slice(0, 3).map(x => ({ t: x, tone: "cyan" })),
+        ...state.selectedGenres.slice(0, 2).map(x => ({ t: x, tone: "fuchsia" })),
+      ];
+      if (tags.length === 0) {
+        const hint = document.createElement("span");
+        hint.className = "text-xs text-slate-300";
+        hint.textContent = "اختياراتك ستظهر هنا…";
+        miniTags.appendChild(hint);
+      } else {
+        tags.forEach(({t, tone}) => miniTags.appendChild(pill(t, tone)));
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      // زر مسح يظهر لو فيه بيانات
+      btnClear.classList.toggle("hidden", !localStorage.getItem(STORAGE_KEY));
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        Object.assign(state, data || {});
+      } catch(e) {}
+    }
+
+    function resetAll() {
+      localStorage.removeItem(STORAGE_KEY);
+      Object.keys(state).forEach(k => {
+        // تجاهل الدوال
+      });
+      // إعادة الحالة
+      Object.assign(state, {
+        step: 1,
+        displayName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        avatarDataUrl: "",
+        avatarPresetId: "chibi1",
+        bio: "",
+        country: "",
+        language: "",
+        selectedInterests: [],
+        selectedGenres: [],
+        favoriteWorks: [],
+        selectedGoals: [],
+        followed: {},
+        previewFollowers: 0,
+        previewFollowing: 0,
+        created: false
+      });
+      applyStateToUI();
+      goToStep(1, true);
+      announce("تمت إعادة الضبط.");
+      btnClear.classList.add("hidden");
+    }
+
+    function resetCurrentStep() {
+      const s = state.step;
+      if (s === 1) {
+        state.displayName = ""; state.email = ""; state.password = ""; state.confirmPassword = "";
+      } else if (s === 2) {
+        state.avatarDataUrl = ""; state.avatarPresetId = "chibi1"; state.bio=""; state.country=""; state.language="";
+      } else if (s === 3) {
+        state.selectedInterests = []; state.selectedGenres = []; state.favoriteWorks = [];
+      } else if (s === 4) {
+        state.selectedGoals = []; state.followed = {}; state.previewFollowers = 0; state.previewFollowing = 0;
+      } else if (s === 5) {
+        // لا شيء
+      }
+      saveState();
+      applyStateToUI();
+      announce("تمت إعادة ضبط بيانات هذه الخطوة.");
+    }
+
+    // ==========================
+    // Build UI blocks
+    // ==========================
+    function buildStepper() {
+      stepper.innerHTML = "";
+      stepMeta.forEach((m, idx) => {
+        const n = idx + 1;
+        const li = document.createElement("li");
+        li.className = "group";
+        li.innerHTML = `
+          <button type="button" data-jump="${n}"
+            class="w-full flex items-start gap-3 rounded-2xl p-3 border border-white/10 bg-white/5 hover:bg-white/10 transition
+                   focus:outline-none focus:ring-2 focus:ring-cyan-300/60">
+            <span class="shrink-0 grid place-items-center h-10 w-10 rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent">
+              <span class="text-base">${m.icon}</span>
+            </span>
+            <span class="min-w-0 text-right">
+              <span class="flex items-center gap-2 justify-between">
+                <span class="font-extrabold text-sm">${m.title}</span>
+                <span class="text-xs text-slate-300" id="stepperState${n}">—</span>
+              </span>
+              <span class="block text-xs text-slate-300 mt-1 leading-relaxed">${m.desc}</span>
+            </span>
+          </button>
+        `;
+        stepper.appendChild(li);
+      });
+
+      stepper.querySelectorAll("button[data-jump]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const target = Number(btn.getAttribute("data-jump"));
+          // لا تسمح بالقفز للأمام إن كانت الخطوة الحالية غير صحيحة (منع تجربة سيئة)
+          if (target > state.step) {
+            const ok = validateStep(state.step, true);
+            if (!ok) return;
+          }
+          goToStep(target);
+        });
+      });
+    }
+
+    function buildPresetAvatars() {
+      presetAvatarsEl.innerHTML = "";
+      presetAvatars.forEach(a => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "group relative rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-300/60 transition overflow-hidden";
+        b.setAttribute("aria-label", `اختيار ${a.label}`);
+        b.setAttribute("data-avatar", a.id);
+        b.innerHTML = `
+          <img src="${a.svg}" alt="${a.label}" class="h-14 w-14 object-cover"/>
+          <span class="absolute inset-0 ring-0 ring-cyan-300/0 group-hover:ring-2 group-hover:ring-cyan-300/30 transition"></span>
+          <span class="absolute top-1 left-1 hidden" data-check="${a.id}">
+            <span class="grid place-items-center h-5 w-5 rounded-xl bg-cyan-300/30 border border-cyan-200/30">
+              <svg class="h-3.5 w-3.5 text-cyan-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+            </span>
+          </span>
+        `;
+        presetAvatarsEl.appendChild(b);
+      });
+
+      presetAvatarsEl.querySelectorAll("button[data-avatar]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-avatar");
+          state.avatarPresetId = id;
+          state.avatarDataUrl = ""; // لو اختار preset نلغي الرفع
+          avatarUpload.value = "";
+          saveState();
+          applyStateToUI();
+          announce("تم اختيار أفاتار جاهز.");
+        });
+      });
+    }
+
+    function buildChips(container, list, key, tint) {
+      container.innerHTML = "";
+      list.forEach(item => {
+        const active = state[key].includes(item);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = chipClass(active, tint);
+        btn.setAttribute("role", "listitem");
+        btn.setAttribute("aria-pressed", active ? "true" : "false");
+        btn.textContent = item;
+        btn.addEventListener("click", () => {
+          const arr = state[key];
+          const i = arr.indexOf(item);
+          if (i >= 0) arr.splice(i, 1);
+          else arr.push(item);
+          saveState();
+          buildChips(container, list, key, tint);
+          updateMiniPreview();
+        });
+        container.appendChild(btn);
+      });
+    }
+
+    function buildSocialGoals() {
+      socialGoalsEl.innerHTML = "";
+      socialGoals.forEach(g => {
+        const active = state.selectedGoals.includes(g.id);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `
+          group w-full text-right rounded-2xl border px-4 py-4 transition
+          ${active ? "bg-cyan-300/15 border-cyan-200/25" : "bg-white/5 border-white/10 hover:bg-white/10"}
+          focus:outline-none focus:ring-2 focus:ring-cyan-300/60
+        `;
+        btn.setAttribute("aria-pressed", active ? "true" : "false");
+        btn.innerHTML = `
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 grid place-items-center h-10 w-10 rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent">
+              <span class="text-lg">${g.icon}</span>
+            </span>
+            <div class="min-w-0">
+              <p class="font-extrabold">${g.label}</p>
+              <p class="text-xs text-slate-300 mt-1">اختر/ألغِ لتخصيص تجربتك.</p>
+            </div>
+            <span class="mr-auto"></span>
+            <span class="shrink-0 mt-1 inline-flex items-center justify-center h-6 w-6 rounded-xl border transition
+              ${active ? "bg-cyan-300/25 border-cyan-200/30" : "bg-white/5 border-white/10"}">
+              <svg class="h-4 w-4 ${active ? "text-cyan-100" : "text-slate-300"}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+            </span>
+          </div>
+        `;
+        btn.addEventListener("click", () => {
+          const arr = state.selectedGoals;
+          const i = arr.indexOf(g.id);
+          if (i >= 0) arr.splice(i, 1);
+          else arr.push(g.id);
+          saveState();
+          buildSocialGoals();
+        });
+        socialGoalsEl.appendChild(btn);
+      });
+    }
+
+    function buildSuggestedFollows() {
+      suggestedFollowsEl.innerHTML = "";
+      suggestedAccounts.forEach(acc => {
+        const isFollowed = !!state.followed[acc.id];
+        const card = document.createElement("div");
+        card.className = "rounded-2xl border border-white/10 bg-gradient-to-br from-white/6 to-white/3 p-4";
+        card.innerHTML = `
+          <div class="flex items-start gap-3">
+            <img src="${accountAvatar(acc.name)}" alt="أفاتار ${acc.name}" class="h-12 w-12 rounded-2xl border border-white/10 bg-white/5 object-cover"/>
+            <div class="min-w-0">
+              <p class="font-extrabold truncate">${acc.name}</p>
+              <p class="text-xs text-slate-300 truncate">${acc.handle} • ${acc.vibe}</p>
+              <div class="mt-2 text-xs text-slate-300 flex gap-2 flex-wrap">
+                <span class="inline-flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 px-2 py-1">
+                  <span class="font-semibold">${formatK(acc.followers)}</span>
+                  <span class="opacity-75">متابع</span>
+                </span>
+                <span class="inline-flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 px-2 py-1">
+                  <span class="font-semibold">${formatK(acc.following)}</span>
+                  <span class="opacity-75">يتابع</span>
+                </span>
+              </div>
+            </div>
+            <div class="mr-auto"></div>
+            <button type="button" data-follow="${acc.id}"
+              class="shrink-0 rounded-2xl px-4 py-2 text-sm font-extrabold border transition
+                ${isFollowed
+                  ? "bg-white/5 border-white/10 hover:bg-white/10 text-slate-100"
+                  : "bg-gradient-to-l from-cyan-300/85 to-fuchsia-300/85 text-slate-950 border-white/10 hover:from-cyan-200 hover:to-fuchsia-200"
+                }
+                focus:outline-none focus:ring-2 focus:ring-fuchsia-300/60">
+              ${isFollowed ? "Unfollow" : "Follow"}
+            </button>
+          </div>
+        `;
+        suggestedFollowsEl.appendChild(card);
+      });
+
+      suggestedFollowsEl.querySelectorAll("button[data-follow]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-follow");
+          const now = !!state.followed[id];
+          state.followed[id] = !now;
+
+          // Counts Preview (تجريبية)
+          if (!now) {
+            state.previewFollowing += 1;
+            state.previewFollowers += randInt(2, 15);
+          } else {
+            state.previewFollowing = Math.max(0, state.previewFollowing - 1);
+            state.previewFollowers = Math.max(0, state.previewFollowers - randInt(1, 10));
+          }
+
+          saveState();
+          buildSuggestedFollows();
+          updatePreviewCounts();
+          announce(state.followed[id] ? "تمت المتابعة (تجريبيًا)." : "تم إلغاء المتابعة (تجريبيًا).");
+        });
+      });
+
+      updatePreviewCounts();
+    }
+
+    function updatePreviewCounts() {
+      previewCounts.textContent = formatK(state.previewFollowers);
+      previewFollowing.textContent = formatK(state.previewFollowing);
+    }
+
+    function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function formatK(n) {
+      const x = Number(n || 0);
+      if (x >= 1000000) return (x/1000000).toFixed(1).replace(/\.0$/,"") + "M";
+      if (x >= 1000) return (x/1000).toFixed(1).replace(/\.0$/,"") + "K";
+      return String(x);
+    }
+
+    function accountAvatar(seed) {
+      // أفاتار SVG صغير للحسابات
+      const c1 = ["#22d3ee","#e879f9","#a78bfa","#34d399","#fbbf24","#fb7185","#60a5fa"][Math.abs(hash(seed)) % 7];
+      const c2 = ["#fbbf24","#22d3ee","#e879f9","#60a5fa","#34d399","#a78bfa","#fb7185"][Math.abs(hash(seed)+3) % 7];
+      const badge = ["★","✦","✧","✶","✺","✹","✸"][Math.abs(hash(seed)+11) % 7];
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="a" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="${c1}" stop-opacity=".95"/>
+              <stop offset="1" stop-color="${c2}" stop-opacity=".95"/>
+            </linearGradient>
+          </defs>
+          <rect x="8" y="8" width="104" height="104" rx="24" fill="url(#a)"/>
+          <circle cx="60" cy="58" r="28" fill="rgba(255,255,255,.18)"/>
+          <circle cx="50" cy="55" r="5" fill="rgba(0,0,0,.32)"/>
+          <circle cx="70" cy="55" r="5" fill="rgba(0,0,0,.32)"/>
+          <path d="M49 71c4 5 18 5 22 0" stroke="rgba(0,0,0,.28)" stroke-width="5" stroke-linecap="round" fill="none"/>
+          <circle cx="90" cy="90" r="14" fill="rgba(255,255,255,.18)"/>
+          <text x="90" y="95" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="14" fill="rgba(255,255,255,.92)" font-weight="800">${badge}</text>
+        </svg>
+      `;
+      return toDataUri(svg);
+    }
+
+    function hash(str) {
+      let h = 0;
+      for (let i=0; i<str.length; i++) h = (h<<5) - h + str.charCodeAt(i) | 0;
+      return h;
+    }
+
+    // ==========================
+    // Favorites (Autocomplete)
+    // ==========================
+    function renderFavs() {
+      favList.innerHTML = "";
+      state.favoriteWorks.forEach((w, idx) => {
+        const tag = document.createElement("button");
+        tag.type = "button";
+        tag.className = "group inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-fuchsia-300/60";
+        tag.setAttribute("aria-label", `إزالة ${w}`);
+        tag.innerHTML = `
+          <span class="truncate max-w-[16rem]">${escapeHtml(w)}</span>
+          <span class="grid place-items-center h-6 w-6 rounded-xl bg-white/5 border border-white/10 group-hover:bg-white/10">
+            <svg class="h-4 w-4 text-slate-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M18 6L6 18"/><path d="M6 6l12 12"/>
+            </svg>
+          </span>
+        `;
+        tag.addEventListener("click", () => {
+          state.favoriteWorks.splice(idx, 1);
+          saveState();
+          renderFavs();
+          updateMiniPreview();
+        });
+        favList.appendChild(tag);
+      });
+    }
+
+    function showSuggestions(q) {
+      const query = safeText(q).toLowerCase();
+      if (!query) {
+        favSuggest.classList.add("hidden");
+        favSuggest.innerHTML = "";
+        return;
+      }
+      const picked = new Set(state.favoriteWorks.map(x => x.toLowerCase()));
+      const hits = worksSuggestions
+        .filter(x => x.toLowerCase().includes(query))
+        .filter(x => !picked.has(x.toLowerCase()))
+        .slice(0, 6);
+
+      if (hits.length === 0) {
+        favSuggest.classList.add("hidden");
+        favSuggest.innerHTML = "";
+        return;
+      }
+      favSuggest.classList.remove("hidden");
+      favSuggest.innerHTML = hits.map((x, i) => `
+        <button type="button" data-s="${escapeAttr(x)}"
+          class="w-full text-right rounded-xl px-3 py-2 text-sm hover:bg-white/10 transition focus:outline-none focus:ring-2 focus:ring-cyan-300/60">
+          <span class="font-semibold">${escapeHtml(x)}</span>
+          <span class="text-xs text-slate-300">اقتراح</span>
+        </button>
+      `).join("");
+
+      favSuggest.querySelectorAll("button[data-s]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          addFav(btn.getAttribute("data-s"));
+        });
+      });
+    }
+
+    function addFav(value) {
+      const v = safeText(value || favInput.value);
+      if (!v) return;
+      if (state.favoriteWorks.length >= 3) {
+        setFieldError(favInput, errFavs, "وصلت للحد الأقصى: 3 أعمال فقط.");
+        return;
+      }
+      // منع تكرار
+      if (state.favoriteWorks.some(x => x.toLowerCase() === v.toLowerCase())) {
+        setFieldError(favInput, errFavs, "هذا العمل موجود بالفعل.");
+        return;
+      }
+
+      state.favoriteWorks.push(v);
+      favInput.value = "";
+      setFieldError(favInput, errFavs, "");
+      showSuggestions("");
+      saveState();
+      renderFavs();
+      updateMiniPreview();
+      announce("تمت إضافة عمل مفضل.");
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;" }[m]));
+    }
+    function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+
+    // ==========================
+    // Navigation + Animations
+    // ==========================
+    function goToStep(target, instant=false) {
+      target = clamp(target, 1, 5);
+      if (state.created) return; // بعد النجاح لا نرجع
+
+      const current = state.step;
+      if (target === current) {
+        updateNavUI();
+        return;
+      }
+
+      // Animation
+      const curEl = steps.find(s => Number(s.dataset.step) === current);
+      const nextEl = steps.find(s => Number(s.dataset.step) === target);
+
+      if (!curEl || !nextEl) return;
+
+      // Ensure next visible for transition
+      nextEl.classList.remove("hidden");
+
+      if (instant) {
+        curEl.classList.add("hidden");
+        state.step = target;
+        saveState();
+        updateNavUI(true);
+        focusFirstInStep(target);
+        return;
+      }
+
+      curEl.classList.add("step-exit");
+      curEl.classList.remove("step-enter", "step-enter-active", "step-exit-active");
+      nextEl.classList.add("step-enter");
+      nextEl.classList.remove("step-exit", "step-exit-active", "step-enter-active");
+
+      requestAnimationFrame(() => {
+        curEl.classList.add("step-exit-active");
+        nextEl.classList.add("step-enter-active");
+      });
+
+      setTimeout(() => {
+        curEl.classList.add("hidden");
+        curEl.classList.remove("step-exit", "step-exit-active");
+        nextEl.classList.remove("step-enter", "step-enter-active");
+        state.step = target;
+        saveState();
+        updateNavUI(true);
+        focusFirstInStep(target);
+      }, 380);
+    }
+
+    function focusFirstInStep(stepNum) {
+      const el = steps.find(s => Number(s.dataset.step) === stepNum);
+      if (!el) return;
+      const focusable = el.querySelector("input, textarea, select, button");
+      if (focusable) focusable.focus({ preventScroll: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function updateNavUI(fromTransition=false) {
+      // Panel text
+      panelTitle.textContent = stepMeta[state.step - 1].title;
+      panelDesc.textContent = stepMeta[state.step - 1].desc;
+
+      // Buttons
+      btnPrev.disabled = state.step === 1;
+      btnNext.classList.toggle("hidden", state.step === 5);
+      btnCreate.classList.toggle("hidden", state.step !== 5);
+
+      // Progress
+      progressLabel.textContent = `الخطوة ${state.step} من 5`;
+      const pct = Math.round(((state.step - 1) / 4) * 100);
+      progressPct.textContent = `${pct}%`;
+      progressBar.style.width = `${pct}%`;
+
+      // Stepper states
+      for (let i=1; i<=5; i++) {
+        const s = $("stepperState" + i);
+        if (!s) continue;
+        if (i < state.step) s.textContent = "تم";
+        else if (i === state.step) s.textContent = "الآن";
+        else s.textContent = "بعدها";
+      }
+
+      // Stepper highlight
+      stepper.querySelectorAll("button[data-jump]").forEach(btn => {
+        const n = Number(btn.getAttribute("data-jump"));
+        btn.classList.toggle("ring-2", n === state.step);
+        btn.classList.toggle("ring-cyan-300/30", n === state.step);
+      });
+
+      // Apply review data when step 5
+      if (state.step === 5) {
+        fillReview();
+      }
+
+      // Hide success if navigating
+      if (fromTransition) {
+        successState.classList.add("hidden");
+      }
+
+      updateMiniPreview();
+    }
+
+    // ==========================
+    // Validation
+    // ==========================
+    function validateStep(stepNum, gentle=false) {
+      let ok = true;
+
+      if (stepNum === 1) {
+        const dn = safeText(displayName.value);
+        const em = safeText(email.value);
+        const pw = password.value;
+        const cpw = confirmPassword.value;
+
+        if (!dn) { ok = false; setFieldError(displayName, errDisplayName, "الاسم مطلوب."); }
+        else setFieldError(displayName, errDisplayName, "");
+
+        if (!em) { ok = false; setFieldError(email, errEmail, "البريد مطلوب."); }
+        else if (!isEmailValid(em)) { ok = false; setFieldError(email, errEmail, "بريد غير صحيح. جرّب صيغة مثل you@domain.com"); }
+        else setFieldError(email, errEmail, "");
+
+        const ps = passwordStrength(pw);
+        if (!safeText(pw)) { ok = false; setFieldError(password, errPassword, "كلمة المرور مطلوبة."); }
+        else if (!ps.ok) { ok = false; setFieldError(password, errPassword, "لازم 8 أحرف على الأقل + رقم واحد."); }
+        else setFieldError(password, errPassword, "");
+
+        if (!safeText(cpw)) { ok = false; setFieldError(confirmPassword, errConfirm, "التأكيد مطلوب."); }
+        else if (pw !== cpw) { ok = false; setFieldError(confirmPassword, errConfirm, "كلمتا المرور غير متطابقتين."); }
+        else setFieldError(confirmPassword, errConfirm, "");
+
+        if (!ok && !gentle) announce("رجاءً صحّح الأخطاء قبل المتابعة.");
+      }
+
+      // باقي الخطوات اختيارية بالكامل — ما عدا الملخص/إنشاء الحساب (نرجع نتحقق من الخطوة 1 أساسًا)
+      if (stepNum === 5) {
+        // تأكد أن الخطوة 1 صحيحة قبل الإنشاء
+        ok = validateStep(1, true);
+        if (!ok) announce("بيانات الحساب تحتاج تصحيح قبل الإنشاء.");
+      }
+
+      return ok;
+    }
+
+    // ==========================
+    // Apply state -> UI
+    // ==========================
+    function applyStateToUI() {
+      // step 1
+      displayName.value = state.displayName || "";
+      email.value = state.email || "";
+      password.value = state.password || "";
+      confirmPassword.value = state.confirmPassword || "";
+
+      updatePasswordMeter();
+      updateConfirmMatchBadge();
+
+      // step 2
+      bio.value = state.bio || "";
+      bioCount.textContent = `${(state.bio || "").length}/140`;
+      country.value = state.country || "";
+      language.value = state.language || "";
+      avatarPreview.src = state.avatarDataUrl || getDefaultAvatar();
+
+      // preset checks
+      presetAvatarsEl.querySelectorAll("[data-check]").forEach(el => el.classList.add("hidden"));
+      const check = presetAvatarsEl.querySelector(`[data-check="${state.avatarPresetId}"]`);
+      if (check) check.classList.remove("hidden");
+
+      // step 3 chips
+      buildChips(interestChips, interests, "selectedInterests", "cyan");
+      buildChips(genreChips, genres, "selectedGenres", "fuchsia");
+      renderFavs();
+
+      // step 4
+      buildSocialGoals();
+      buildSuggestedFollows();
+
+      // mini preview
+      updateMiniPreview();
+
+      // steps visibility
+      steps.forEach(s => {
+        const n = Number(s.dataset.step);
+        s.classList.toggle("hidden", n !== state.step);
+      });
+
+      // buttons + progress
+      updateNavUI(true);
+
+      // Clear button
+      btnClear.classList.toggle("hidden", !localStorage.getItem(STORAGE_KEY));
+    }
+
+    function fillReview() {
+      reviewAvatar.src = state.avatarDataUrl || getDefaultAvatar();
+      reviewName.textContent = safeText(state.displayName) || "—";
+      reviewEmail.textContent = safeText(state.email) || "—";
+      reviewCountry.textContent = safeText(state.country) || "—";
+      reviewLang.textContent = safeText(state.language) || "—";
+      reviewBio.textContent = safeText(state.bio) || "—";
+
+      // Interests/Genres/Favs
+      reviewInterests.innerHTML = "";
+      reviewGenres.innerHTML = "";
+      reviewFavs.innerHTML = "";
+
+      const iList = state.selectedInterests.slice();
+      const gList = state.selectedGenres.slice();
+      const fList = state.favoriteWorks.slice();
+
+      reviewInterestsCount.textContent = String(iList.length);
+      reviewGenresCount.textContent = String(gList.length);
+      reviewFavsCount.textContent = `${fList.length}/3`;
+
+      if (iList.length === 0) reviewInterests.appendChild(pill("— لا شيء —", "cyan"));
+      else iList.forEach(x => reviewInterests.appendChild(pill(x, "cyan")));
+
+      if (gList.length === 0) reviewGenres.appendChild(pill("— لا شيء —", "fuchsia"));
+      else gList.forEach(x => reviewGenres.appendChild(pill(x, "fuchsia")));
+
+      if (fList.length === 0) reviewFavs.appendChild(pill("— لا شيء —", "amber"));
+      else fList.forEach(x => reviewFavs.appendChild(pill(x, "amber")));
+    }
+
+    // ==========================
+    // Password UI
+    // ==========================
+    function updatePasswordMeter() {
+      const { score, label, ok } = passwordStrength(password.value);
+      passStrengthText.textContent = label;
+      const pct = clamp(Math.round((score / 4) * 100), 0, 100);
+      passStrengthBar.style.width = `${pct}%`;
+
+      // تلميح بصري لطيف (بدون ألوان مخصصة إضافية)
+      passStrengthText.className = "text-xs font-semibold " + (ok ? "text-emerald-200" : "text-rose-200");
+    }
+
+    function updateConfirmMatchBadge() {
+      const pw = password.value;
+      const cpw = confirmPassword.value;
+      const show = safeText(pw) && safeText(cpw) && pw === cpw;
+      matchBadge.classList.toggle("hidden", !show);
+    }
+
+    // ==========================
+    // Theme
+    // ==========================
+    function applyTheme(mode) {
+      const root = document.documentElement;
+      const isDark = mode !== "light";
+      root.classList.toggle("dark", isDark);
+      localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
+
+      // Toggle UI
+      if (isDark) {
+        themeDot.classList.remove("translate-x-4");
+        themeDot.classList.add("translate-x-0");
+        themeLabel.textContent = "Dark";
+      } else {
+        themeDot.classList.add("translate-x-4");
+        themeDot.classList.remove("translate-x-0");
+        themeLabel.textContent = "Light";
+      }
+    }
+
+    function initTheme() {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved === "light") applyTheme("light");
+      else applyTheme("dark");
+    }
+
+    // ==========================
+    // Events
+    // ==========================
+    function wireEvents() {
+      btnPrev.addEventListener("click", () => goToStep(state.step - 1));
+      btnNext.addEventListener("click", () => {
+        const ok = validateStep(state.step, false);
+        if (!ok) return;
+        goToStep(state.step + 1);
+      });
+
+      signupForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (state.created) return;
+        const ok = validateStep(5, false);
+        if (!ok) return;
+
+        // Simulate creation
+        state.created = true;
+        saveState();
+
+        // Show success state
+        successName.textContent = safeText(state.displayName) || "صديقنا";
+        successState.classList.remove("hidden");
+        successState.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        // Disable navigation buttons
+        btnPrev.disabled = true;
+        btnNext.classList.add("hidden");
+        btnCreate.classList.add("hidden");
+
+        announce("تم إنشاء الحساب بنجاح.");
+      });
+
+      // Toggle pass
+      togglePass.addEventListener("click", () => {
+        const isPass = password.type === "password";
+        password.type = isPass ? "text" : "password";
+        confirmPassword.type = isPass ? "text" : "password";
+        eyeIcon.innerHTML = isPass
+          ? '<path d="M3 3l18 18"/><path d="M10.6 10.6A3 3 0 0 0 12 15a3 3 0 0 0 2.4-4.4"/><path d="M9.9 4.2A9.9 9.9 0 0 1 12 4c7 0 10 8 10 8a17.3 17.3 0 0 1-3.2 4.2"/><path d="M6.5 6.5A17.3 17.3 0 0 0 2 12s3 8 10 8a9.9 9.9 0 0 0 4.2-.9"/>'
+          : '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>';
+        announce(isPass ? "تم إظهار كلمات المرور." : "تم إخفاء كلمات المرور.");
+      });
+
+      // Step 1 inputs -> state
+      displayName.addEventListener("input", () => {
+        state.displayName = safeText(displayName.value);
+        saveState();
+        updateMiniPreview();
+        if (safeText(displayName.value)) setFieldError(displayName, errDisplayName, "");
+      });
+      email.addEventListener("input", () => {
+        state.email = safeText(email.value);
+        saveState();
+        updateMiniPreview();
+        if (!safeText(email.value)) return;
+        setFieldError(email, errEmail, isEmailValid(email.value) ? "" : "بريد غير صحيح.");
+      });
+      password.addEventListener("input", () => {
+        state.password = password.value;
+        saveState();
+        updatePasswordMeter();
+        updateConfirmMatchBadge();
+        // لمسة لطيفة: لا نزعج المستخدم بسرعة
+        if (safeText(password.value)) {
+          const ps = passwordStrength(password.value);
+          setFieldError(password, errPassword, ps.ok ? "" : "لازم 8 أحرف على الأقل + رقم.");
+        }
+      });
+      confirmPassword.addEventListener("input", () => {
+        state.confirmPassword = confirmPassword.value;
+        saveState();
+        updateConfirmMatchBadge();
+        if (!safeText(confirmPassword.value)) return;
+        setFieldError(confirmPassword, errConfirm, (password.value === confirmPassword.value) ? "" : "غير متطابقة.");
+      });
+
+      // Step 2 avatar upload
+      avatarUpload.addEventListener("change", () => {
+        const f = avatarUpload.files && avatarUpload.files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          state.avatarDataUrl = reader.result;
+          saveState();
+          applyStateToUI();
+          announce("تم رفع صورة أفاتار (محليًا).");
+        };
+        reader.readAsDataURL(f);
+      });
+
+      // Bio
+      bio.addEventListener("input", () => {
+        state.bio = bio.value;
+        bioCount.textContent = `${bio.value.length}/140`;
+        saveState();
+      });
+
+      // Country/Language
+      country.addEventListener("change", () => { state.country = country.value; saveState(); });
+      language.addEventListener("change", () => { state.language = language.value; saveState(); });
+
+      // Favorites
+      favInput.addEventListener("input", () => showSuggestions(favInput.value));
+      favInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addFav();
+        } else if (e.key === "Escape") {
+          favSuggest.classList.add("hidden");
+          favSuggest.innerHTML = "";
+        }
+      });
+      btnAddFav.addEventListener("click", () => addFav());
+
+      // Theme
+      btnTheme.addEventListener("click", () => {
+        const now = (localStorage.getItem(THEME_KEY) || "dark") === "dark";
+        applyTheme(now ? "light" : "dark");
+      });
+
+      // Reset step
+      btnResetStep.addEventListener("click", resetCurrentStep);
+
+      // Clear all
+      btnClear.addEventListener("click", resetAll);
+
+      // Start over (from success)
+      startOver.addEventListener("click", () => {
+        state.created = false;
+        resetAll();
+      });
+
+      // Go profile (dummy)
+      goProfile.addEventListener("click", (e) => {
+        e.preventDefault();
+        announce("رابط وهمي للملف الشخصي.");
+      });
+
+      // Keyboard shortcuts
+      document.addEventListener("keydown", (e) => {
+        if (state.created) return;
+        const isTyping = ["INPUT","TEXTAREA","SELECT"].includes((document.activeElement || {}).tagName);
+        if (e.key === "Enter" && !e.shiftKey && isTyping) {
+          // Enter -> Next if possible (except textarea)
+          if ((document.activeElement || {}).tagName === "TEXTAREA") return;
+          e.preventDefault();
+          if (state.step < 5) btnNext.click();
+          else btnCreate.click();
+        } else if (e.key === "Enter" && e.shiftKey) {
+          e.preventDefault();
+          btnPrev.click();
+        } else if (e.key === "Escape") {
+          favSuggest.classList.add("hidden");
+          favSuggest.innerHTML = "";
+        }
+      });
+    }
+
+    // ==========================
+    // Init
+    // ==========================
+    function init() {
+      initTheme();
+      loadState();
+      buildStepper();
+      buildPresetAvatars();
+      buildChips(interestChips, interests, "selectedInterests", "cyan");
+      buildChips(genreChips, genres, "selectedGenres", "fuchsia");
+      buildSocialGoals();
+      buildSuggestedFollows();
+
+      // Default avatar
+      if (!state.avatarDataUrl) {
+        // ensure mini + review have something
+        avatarPreview.src = getDefaultAvatar();
+      }
+
+      applyStateToUI();
+      wireEvents();
+
+      // If created previously, keep flow safe (نخليه يرجع لخطوة 5 ويعرض النجاح)
+      if (state.created) {
+        state.step = 5;
+        saveState();
+        applyStateToUI();
+        validateStep(5, true);
+        // Force success UI
+        successName.textContent = safeText(state.displayName) || "صديقنا";
+        successState.classList.remove("hidden");
+        btnPrev.disabled = true;
+        btnNext.classList.add("hidden");
+        btnCreate.classList.add("hidden");
+      }
+
+      // ensure step in range
+      state.step = clamp(state.step, 1, 5);
+      goToStep(state.step, true);
+
+      // Seed mini avatar
+      avatarPreview.src = state.avatarDataUrl || getDefaultAvatar();
+      miniAvatar.src = state.avatarDataUrl || getDefaultAvatar();
+      reviewAvatar.src = state.avatarDataUrl || getDefaultAvatar();
+
+      btnClear.classList.toggle("hidden", !localStorage.getItem(STORAGE_KEY));
+    }
+
+    // ==========================
+    // Sync state from UI before validation transitions
+    // ==========================
+    function syncStep1ToState() {
+      state.displayName = safeText(displayName.value);
+      state.email = safeText(email.value);
+      state.password = password.value;
+      state.confirmPassword = confirmPassword.value;
+      saveState();
+    }
+
+    // Ensure state up-to-date on button click (just in case)
+    btnNext?.addEventListener?.("click", syncStep1ToState);
+
+    // Boot
+    init();
+  </script>
+</body>
+</html>

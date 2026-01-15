@@ -1,0 +1,1701 @@
+<!-- index.html — Kawaii Onboarding (Slice-of-life) | HTML + Tailwind CDN + CSS + Vanilla JS -->
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kawaii Onboarding ✿ إنشاء حساب</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          boxShadow: {
+            soft: "0 18px 50px rgba(15, 23, 42, 0.10)",
+            glow: "0 0 0 6px rgba(244, 114, 182, 0.10)"
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --bg1:#fff7fb;
+      --bg2:#f3f7ff;
+      --bg3:#f7fff7;
+      --ink:#0f172a;
+    }
+    body{
+      background:
+        radial-gradient(900px 600px at 10% 10%, rgba(244,114,182,.20), transparent 55%),
+        radial-gradient(900px 600px at 90% 20%, rgba(99,102,241,.16), transparent 55%),
+        radial-gradient(900px 600px at 30% 90%, rgba(34,197,94,.10), transparent 55%),
+        linear-gradient(120deg, var(--bg1), var(--bg2), var(--bg3));
+      color: var(--ink);
+      overflow-x:hidden;
+    }
+
+    /* subtle sakura confetti */
+    .sakura-dots{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .55;
+      background-image:
+        radial-gradient(circle at 12px 10px, rgba(244,114,182,.30) 1.2px, transparent 1.4px),
+        radial-gradient(circle at 32px 30px, rgba(99,102,241,.22) 1.1px, transparent 1.3px),
+        radial-gradient(circle at 22px 38px, rgba(34,197,94,.16) 1.0px, transparent 1.2px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(circle at 50% 50%, rgba(0,0,0,1), rgba(0,0,0,.2) 55%, rgba(0,0,0,0) 78%);
+      filter: blur(.1px);
+    }
+
+    /* floating stickers */
+    .sticker{
+      position:absolute;
+      width: 140px;
+      height: 140px;
+      border-radius: 28px;
+      background: rgba(255,255,255,.55);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 16px 40px rgba(2,6,23,.08);
+      border: 1px solid rgba(255,255,255,.65);
+      transform: rotate(2deg);
+      animation: floaty 6s ease-in-out infinite;
+    }
+    .sticker::before{
+      content:"";
+      position:absolute;
+      inset: 10px;
+      border-radius: 22px;
+      background:
+        radial-gradient(24px 24px at 25% 30%, rgba(244,114,182,.35), transparent 60%),
+        radial-gradient(28px 28px at 70% 60%, rgba(99,102,241,.28), transparent 60%),
+        radial-gradient(22px 22px at 45% 80%, rgba(34,197,94,.18), transparent 60%),
+        linear-gradient(135deg, rgba(255,255,255,.75), rgba(255,255,255,.20));
+      border: 1px dashed rgba(15,23,42,.10);
+    }
+    @keyframes floaty{
+      0%,100%{ transform: translateY(0) rotate(2deg); }
+      50%{ transform: translateY(-10px) rotate(1deg); }
+    }
+
+    /* accordion transitions (max-height) */
+    .acc-panel{
+      overflow:hidden;
+      max-height: 0;
+      transition: max-height 260ms ease;
+    }
+    .acc-panel.open{
+      max-height: 1200px; /* big enough */
+    }
+
+    /* avatar grid */
+    .avatar-tile{
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.75);
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .avatar-tile:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(2,6,23,.10);
+      border-color: rgba(244,114,182,.35);
+    }
+    .avatar-tile.selected{
+      outline: 0;
+      border-color: rgba(244,114,182,.65);
+      box-shadow: 0 0 0 6px rgba(244,114,182,.12);
+      transform: translateY(-1px);
+    }
+
+    /* canvas touch */
+    #cropCanvas{
+      touch-action: none;
+      cursor: grab;
+    }
+    #cropCanvas.dragging{ cursor: grabbing; }
+
+    /* toast */
+    .toast{
+      position: fixed;
+      left: 16px;
+      bottom: 16px;
+      z-index: 50;
+      transform: translateY(12px);
+      opacity: 0;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <div class="sakura-dots"></div>
+
+  <!-- decorative stickers (no known characters/logos) -->
+  <div class="hidden md:block sticker" style="top: 26px; left: 26px;"></div>
+  <div class="hidden md:block sticker" style="top: 120px; right: 40px; width:120px;height:120px; border-radius: 26px; animation-delay: .8s;"></div>
+  <div class="hidden md:block sticker" style="bottom: 26px; right: 80px; width:160px;height:160px; border-radius: 34px; animation-delay: 1.4s;"></div>
+
+  <main class="relative mx-auto max-w-6xl px-4 py-10">
+    <!-- Mobile: collapsible preview on top -->
+    <details id="mobilePreviewWrap" class="lg:hidden group rounded-3xl bg-white/70 backdrop-blur border border-white/70 shadow-soft">
+      <summary class="cursor-pointer list-none select-none px-5 py-4 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-white shadow">
+            ✿
+          </span>
+          <div>
+            <div class="text-sm font-semibold">بطاقة الشخصية (Live Preview)</div>
+            <div class="text-xs text-slate-500">تتحدث تلقائيًا… لطيف!</div>
+          </div>
+        </div>
+        <span class="text-slate-500 group-open:rotate-180 transition">▾</span>
+      </summary>
+      <div class="px-5 pb-5">
+        <div id="previewCardMobile"></div>
+      </div>
+    </details>
+
+    <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_330px] items-start">
+      <!-- Main Card -->
+      <section class="rounded-3xl bg-white/70 backdrop-blur border border-white/70 shadow-soft">
+        <header class="px-6 pt-6 pb-3">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">
+                إنشاء حساب ✿
+                <span class="text-slate-400 font-black">/</span>
+                <span class="text-pink-500">Kawaii</span>
+              </h1>
+              <p class="mt-2 text-sm md:text-base text-slate-600 leading-relaxed">
+                صفحة خفيفة بأسلوب <span class="font-semibold">slice-of-life</span>:
+                قسمين إلزاميين + الباقي “لاحقًا” بسهولة.
+              </p>
+            </div>
+            <div class="hidden md:flex items-center gap-2">
+              <span class="inline-flex items-center gap-2 rounded-2xl bg-white px-3 py-2 border border-slate-100 shadow">
+                <span class="h-2 w-2 rounded-full bg-pink-400"></span>
+                <span class="text-xs font-semibold text-slate-600">Pastel Mode</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- tiny “feels short” indicator -->
+          <div class="mt-4 grid grid-cols-3 gap-2">
+            <div class="rounded-2xl bg-white/80 border border-slate-100 px-3 py-2">
+              <div class="text-[11px] text-slate-500">الإلزامي</div>
+              <div class="text-sm font-bold">3 أقسام</div>
+            </div>
+            <div class="rounded-2xl bg-white/80 border border-slate-100 px-3 py-2">
+              <div class="text-[11px] text-slate-500">الاختياري</div>
+              <div class="text-sm font-bold">Later ✨</div>
+            </div>
+            <div class="rounded-2xl bg-white/80 border border-slate-100 px-3 py-2">
+              <div class="text-[11px] text-slate-500">الزمن</div>
+              <div class="text-sm font-bold">~ دقيقة</div>
+            </div>
+          </div>
+        </header>
+
+        <form id="signupForm" class="px-6 pb-6">
+          <!-- ACCORDION -->
+          <div class="mt-3 space-y-3">
+
+            <!-- A) Account (Required) -->
+            <article class="rounded-3xl bg-white/70 border border-slate-100">
+              <button type="button"
+                      class="acc-btn w-full px-5 py-4 flex items-center justify-between gap-4 text-right"
+                      data-acc="acc_account"
+                      aria-expanded="true">
+                <div class="flex items-start gap-3">
+                  <span class="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-pink-50 border border-pink-100">🔐</span>
+                  <div>
+                    <div class="font-extrabold">A) الحساب <span class="text-pink-500">• Required</span></div>
+                    <div class="text-xs text-slate-500 mt-0.5">Email + Password مع مؤشر قوة</div>
+                  </div>
+                </div>
+                <span class="text-slate-500 acc-chevron transition">▾</span>
+              </button>
+
+              <div id="acc_account" class="acc-panel open px-5 pb-5">
+                <div class="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-semibold mb-1" for="email">البريد الإلكتروني</label>
+                    <input id="email" type="email" autocomplete="email"
+                           class="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                           placeholder="you@studio.com" />
+                    <p class="mt-1 text-xs text-slate-500">لن نرسل سبام. بس رسالة لطيفة للتأكيد 🌸</p>
+                    <p id="emailErr" class="mt-1 text-xs text-rose-600 hidden"></p>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold mb-1" for="password">كلمة المرور</label>
+                    <div class="relative">
+                      <input id="password" type="password" autocomplete="new-password"
+                             class="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 pl-28 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                             placeholder="••••••••" />
+                      <button type="button" id="togglePw"
+                              class="absolute left-3 top-1/2 -translate-y-1/2 rounded-xl bg-white border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                        إظهار
+                      </button>
+                    </div>
+
+                    <div class="mt-3">
+                      <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500">قوة كلمة المرور</span>
+                        <span id="pwLabel" class="font-bold text-slate-600">…</span>
+                      </div>
+                      <div class="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+                        <div id="pwBar" class="h-full w-0 rounded-full bg-pink-400 transition-all"></div>
+                      </div>
+                      <p id="pwHint" class="mt-1 text-xs text-slate-500"></p>
+                      <p id="pwErr" class="mt-1 text-xs text-rose-600 hidden"></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- B) Your Name (Required) -->
+            <article class="rounded-3xl bg-white/70 border border-slate-100">
+              <button type="button"
+                      class="acc-btn w-full px-5 py-4 flex items-center justify-between gap-4 text-right"
+                      data-acc="acc_name"
+                      aria-expanded="true">
+                <div class="flex items-start gap-3">
+                  <span class="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 border border-indigo-100">🪪</span>
+                  <div>
+                    <div class="font-extrabold">B) هويتك <span class="text-pink-500">• Required</span></div>
+                    <div class="text-xs text-slate-500 mt-0.5">Display Name + Username (تحقق Async)</div>
+                  </div>
+                </div>
+                <span class="text-slate-500 acc-chevron transition">▾</span>
+              </button>
+
+              <div id="acc_name" class="acc-panel open px-5 pb-5">
+                <div class="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-semibold mb-1" for="displayName">اسم العرض</label>
+                    <input id="displayName" type="text" maxlength="24"
+                           class="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                           placeholder="مثال: Momo ✿" />
+                    <p class="mt-1 text-xs text-slate-500">هذا يظهر للناس — خليّه لطيف وبسيط.</p>
+                    <p id="dnErr" class="mt-1 text-xs text-rose-600 hidden"></p>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-semibold mb-1" for="username">
+                      اسم المستخدم <span class="text-slate-400">(username)</span>
+                    </label>
+
+                    <div class="relative">
+                      <input id="username" type="text" dir="ltr" inputmode="text" autocapitalize="none" autocomplete="off"
+                             class="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                             placeholder="momo_tea" />
+                      <span id="uSpinner" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">⏳</span>
+                    </div>
+
+                    <div class="mt-2 flex items-center justify-between gap-2">
+                      <p class="text-xs text-slate-500">3–15: حروف/أرقام/underscore فقط.</p>
+                      <span id="uStatus" class="text-xs font-bold text-slate-500">—</span>
+                    </div>
+                    <p id="uErr" class="mt-1 text-xs text-rose-600 hidden"></p>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- C) Avatar Atelier (Required) -->
+            <article class="rounded-3xl bg-white/70 border border-slate-100">
+              <button type="button"
+                      class="acc-btn w-full px-5 py-4 flex items-center justify-between gap-4 text-right"
+                      data-acc="acc_avatar"
+                      aria-expanded="true">
+                <div class="flex items-start gap-3">
+                  <span class="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-100">🎨</span>
+                  <div>
+                    <div class="font-extrabold">C) Avatar Atelier <span class="text-pink-500">• Required</span></div>
+                    <div class="text-xs text-slate-500 mt-0.5">Icons لطيفة + رفع صورة مع قص داخل دائرة</div>
+                  </div>
+                </div>
+                <span class="text-slate-500 acc-chevron transition">▾</span>
+              </button>
+
+              <div id="acc_avatar" class="acc-panel open px-5 pb-5">
+                <!-- tabs -->
+                <div class="flex flex-wrap items-center gap-2">
+                  <button type="button" data-tab="tab_icons"
+                          class="tabBtn rounded-2xl px-4 py-2 text-sm font-bold border border-slate-200 bg-white hover:bg-slate-50">
+                    ✿ Kawaii Icons
+                  </button>
+                  <button type="button" data-tab="tab_upload"
+                          class="tabBtn rounded-2xl px-4 py-2 text-sm font-bold border border-slate-200 bg-white hover:bg-slate-50">
+                    ⤴︎ Custom Upload
+                  </button>
+
+                  <div class="mr-auto flex items-center gap-2">
+                    <span class="text-xs text-slate-500">المختار:</span>
+                    <span id="avatarChosenTag" class="text-xs font-bold text-slate-700 rounded-xl bg-white px-3 py-1 border border-slate-200">لا يوجد بعد</span>
+                  </div>
+                </div>
+
+                <!-- Icons tab -->
+                <div id="tab_icons" class="mt-4">
+                  <div class="rounded-3xl border border-slate-100 bg-white/70 p-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm font-extrabold">Mood Filter</span>
+                        <div class="flex flex-wrap gap-2">
+                          <button type="button" class="moodBtn px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-white hover:bg-slate-50" data-mood="All">All</button>
+                          <button type="button" class="moodBtn px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-white hover:bg-slate-50" data-mood="Calm">Calm</button>
+                          <button type="button" class="moodBtn px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-white hover:bg-slate-50" data-mood="Cheerful">Cheerful</button>
+                          <button type="button" class="moodBtn px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-white hover:bg-slate-50" data-mood="Cool">Cool</button>
+                          <button type="button" class="moodBtn px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-white hover:bg-slate-50" data-mood="Chaos">Chaos</button>
+                        </div>
+                      </div>
+
+                      <button type="button" id="shuffle3"
+                              class="px-4 py-2 rounded-2xl text-sm font-extrabold bg-pink-500 text-white hover:bg-pink-600 shadow">
+                        Shuffle 3 Suggestions ✨
+                      </button>
+                    </div>
+
+                    <div class="mt-4 grid md:grid-cols-3 gap-3">
+                      <div class="md:col-span-1">
+                        <div class="flex items-center justify-between">
+                          <div class="text-sm font-extrabold">Suggestions</div>
+                          <div id="moodBadge" class="text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl px-3 py-1">All</div>
+                        </div>
+                        <div id="suggestionsRow" class="mt-2 grid grid-cols-3 gap-2"></div>
+                        <p class="mt-2 text-xs text-slate-500">اضغط على أيقونة لتحديدها — وتقدر تبدّل مود!</p>
+                      </div>
+
+                      <div class="md:col-span-2">
+                        <div class="flex items-center justify-between">
+                          <div class="text-sm font-extrabold">24 خيار SVG لطيف</div>
+                          <div class="text-xs text-slate-500">اضغط على النقاط لتغيير الـ palette 🎨</div>
+                        </div>
+                        <div id="avatarGrid" class="mt-2 grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Upload tab -->
+                <div id="tab_upload" class="mt-4 hidden">
+                  <div class="rounded-3xl border border-slate-100 bg-white/70 p-4">
+                    <div class="flex flex-wrap items-center gap-3 justify-between">
+                      <div>
+                        <div class="text-sm font-extrabold">ارفع صورة وحرّكها داخل إطار دائرة</div>
+                        <div class="text-xs text-slate-500 mt-1">Drag + Zoom، وبعدها “Apply”.</div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <label class="cursor-pointer px-4 py-2 rounded-2xl bg-white border border-slate-200 text-sm font-bold hover:bg-slate-50">
+                          اختيار صورة
+                          <input id="uploadInput" type="file" accept="image/*" class="hidden" />
+                        </label>
+                        <button type="button" id="resetCrop"
+                                class="px-4 py-2 rounded-2xl bg-white border border-slate-200 text-sm font-bold hover:bg-slate-50">
+                          Reset
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 grid md:grid-cols-[260px_1fr] gap-4 items-start">
+                      <div class="flex flex-col items-center">
+                        <div class="relative">
+                          <canvas id="cropCanvas" width="240" height="240"
+                                  class="rounded-3xl bg-white border border-slate-200 shadow"></canvas>
+
+                          <!-- subtle label -->
+                          <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] font-bold text-slate-600 bg-white/80 border border-slate-200 rounded-xl px-2 py-1">
+                            Drag ✿ Zoom
+                          </div>
+                        </div>
+
+                        <div class="mt-3 w-full">
+                          <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-500">Zoom</span>
+                            <span id="zoomVal" class="font-bold text-slate-600">100%</span>
+                          </div>
+                          <input id="zoomRange" type="range" min="0.8" max="2.4" value="1" step="0.01"
+                                 class="w-full mt-2" />
+                        </div>
+
+                        <div class="mt-4 w-full">
+                          <div class="text-xs font-extrabold text-slate-700">Anime Frame</div>
+                          <div class="mt-2 grid grid-cols-2 gap-2">
+                            <button type="button" class="frameBtn px-3 py-2 rounded-2xl bg-white border border-slate-200 text-sm font-bold hover:bg-slate-50" data-frame="none">بدون</button>
+                            <button type="button" class="frameBtn px-3 py-2 rounded-2xl bg-white border border-slate-200 text-sm font-bold hover:bg-slate-50" data-frame="stars">نجوم</button>
+                            <button type="button" class="frameBtn px-3 py-2 rounded-2xl bg-white border border-slate-200 text-sm font-bold hover:bg-slate-50" data-frame="hearts">قلوب</button>
+                            <button type="button" class="frameBtn px-3 py-2 rounded-2xl bg-white border border-slate-200 text-sm font-bold hover:bg-slate-50" data-frame="clouds">سحاب</button>
+                          </div>
+                        </div>
+
+                        <button type="button" id="applyCrop"
+                                class="mt-4 w-full px-4 py-3 rounded-2xl bg-emerald-500 text-white font-extrabold hover:bg-emerald-600 shadow">
+                          Apply ✨
+                        </button>
+
+                        <p id="uploadHint" class="mt-2 text-xs text-slate-500 text-center">
+                          نصيحة: لو الصورة كبيرة، كبّر zoom شوية ووسّط الوجه.
+                        </p>
+                      </div>
+
+                      <div class="rounded-3xl bg-white/80 border border-slate-100 p-4">
+                        <div class="flex items-center justify-between">
+                          <div class="text-sm font-extrabold">ملاحظات سريعة</div>
+                          <span class="text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl px-3 py-1">دائرة نظيفة</span>
+                        </div>
+                        <ul class="mt-3 space-y-2 text-sm text-slate-600 leading-relaxed">
+                          <li class="flex gap-2"><span>•</span>اسحب الصورة داخل الدائرة (Drag).</li>
+                          <li class="flex gap-2"><span>•</span>غيّر الزوم من السلايدر.</li>
+                          <li class="flex gap-2"><span>•</span>اختر إطار “نجوم / قلوب / سحاب” لو تحب vibe أنمي.</li>
+                          <li class="flex gap-2"><span>•</span>بعد Apply، سيتم تحديث المعاينة فورًا.</li>
+                        </ul>
+
+                        <div class="mt-4 rounded-2xl border border-slate-100 bg-gradient-to-br from-pink-50 to-indigo-50 p-4">
+                          <div class="text-sm font-extrabold">بديل سريع</div>
+                          <div class="text-xs text-slate-600 mt-1">لو ما عندك صورة الآن… رجّع لتبويب الأيقونات واختر واحدة ✿</div>
+                          <button type="button" id="goIcons"
+                                  class="mt-3 px-4 py-2 rounded-2xl bg-white border border-slate-200 text-sm font-bold hover:bg-slate-50">
+                            رجوع للأيقونات
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p id="avatarErr" class="mt-3 text-xs text-rose-600 hidden"></p>
+              </div>
+            </article>
+
+            <!-- D) Follow Quick Picks (Optional) -->
+            <article class="rounded-3xl bg-white/70 border border-slate-100">
+              <button type="button"
+                      class="acc-btn w-full px-5 py-4 flex items-center justify-between gap-4 text-right"
+                      data-acc="acc_follow"
+                      aria-expanded="false">
+                <div class="flex items-start gap-3">
+                  <span class="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 border border-amber-100">👣</span>
+                  <div>
+                    <div class="font-extrabold">D) Follow Quick Picks <span class="text-slate-400">• Optional</span></div>
+                    <div class="text-xs text-slate-500 mt-0.5">ابدأ بمتابعة 2 (مش إجباري)</div>
+                  </div>
+                </div>
+                <span class="text-slate-500 acc-chevron transition">▾</span>
+              </button>
+
+              <div id="acc_follow" class="acc-panel px-5 pb-5">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="text-sm font-extrabold">
+                    اقتراحات لطيفة
+                    <span class="text-xs text-slate-500 font-semibold">(اختياري)</span>
+                  </div>
+                  <button type="button" class="laterBtn text-xs font-extrabold text-slate-600 rounded-xl border border-slate-200 bg-white px-3 py-2 hover:bg-slate-50"
+                          data-collapse="acc_follow">
+                    Later
+                  </button>
+                </div>
+
+                <p class="mt-2 text-sm text-slate-600">
+                  تقدر تبدأ بمتابعة <span class="font-extrabold">2</span> بس عشان الـ feed يصير ممتع… أو تجاهلها تمامًا ✨
+                </p>
+
+                <div class="mt-3 flex items-center justify-between">
+                  <div class="text-xs text-slate-500">Followed: <span id="followCount" class="font-extrabold text-slate-700">0</span></div>
+                  <div class="text-xs text-slate-500">تقدر تغيّر رأيك لاحقًا</div>
+                </div>
+
+                <div id="followList" class="mt-3 grid md:grid-cols-2 gap-3"></div>
+              </div>
+            </article>
+
+            <!-- E) Interests (Optional) -->
+            <article class="rounded-3xl bg-white/70 border border-slate-100">
+              <button type="button"
+                      class="acc-btn w-full px-5 py-4 flex items-center justify-between gap-4 text-right"
+                      data-acc="acc_interests"
+                      aria-expanded="false">
+                <div class="flex items-start gap-3">
+                  <span class="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-fuchsia-50 border border-fuchsia-100">🏷️</span>
+                  <div>
+                    <div class="font-extrabold">E) Interests <span class="text-slate-400">• Optional</span></div>
+                    <div class="text-xs text-slate-500 mt-0.5">اختيار Tags لتخصيص التجربة</div>
+                  </div>
+                </div>
+                <span class="text-slate-500 acc-chevron transition">▾</span>
+              </button>
+
+              <div id="acc_interests" class="acc-panel px-5 pb-5">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="text-sm font-extrabold">اختيارات سريعة</div>
+                  <button type="button" class="laterBtn text-xs font-extrabold text-slate-600 rounded-xl border border-slate-200 bg-white px-3 py-2 hover:bg-slate-50"
+                          data-collapse="acc_interests">
+                    Later
+                  </button>
+                </div>
+
+                <p class="mt-2 text-sm text-slate-600">اختر اللي يعجبك… حتى 7 Tags كفاية ✿</p>
+
+                <div class="mt-3 flex items-center justify-between">
+                  <div class="text-xs text-slate-500">Selected: <span id="interestCount" class="font-extrabold text-slate-700">0</span>/7</div>
+                  <button type="button" id="clearInterests"
+                          class="text-xs font-extrabold text-slate-600 rounded-xl border border-slate-200 bg-white px-3 py-2 hover:bg-slate-50">
+                    مسح
+                  </button>
+                </div>
+
+                <div id="interestChips" class="mt-3 flex flex-wrap gap-2"></div>
+              </div>
+            </article>
+
+          </div>
+
+          <!-- Footer actions -->
+          <div class="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 justify-between">
+            <div class="text-xs text-slate-500 leading-relaxed">
+              بالضغط على “إنشاء حساب” أنت موافق على تجربة لطيفة ✨
+              <span class="text-slate-400">(نص قانوني حقيقي لاحقًا)</span>
+            </div>
+
+            <button type="submit"
+                    class="px-6 py-3 rounded-2xl bg-slate-900 text-white font-extrabold hover:bg-slate-800 shadow">
+              إنشاء حساب ✿
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Desktop: Preview Sidebar -->
+      <aside class="hidden lg:block sticky top-6">
+        <div class="rounded-3xl bg-white/70 backdrop-blur border border-white/70 shadow-soft p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm font-extrabold">بطاقة الشخصية</div>
+              <div class="text-xs text-slate-500 mt-0.5">Live Preview</div>
+            </div>
+            <span class="text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl px-3 py-1">auto</span>
+          </div>
+
+          <div class="mt-4" id="previewCardDesktop"></div>
+
+          <div class="mt-4 rounded-2xl border border-slate-100 bg-white/80 p-4">
+            <div class="text-sm font-extrabold">Hint لطيف</div>
+            <div class="mt-1 text-xs text-slate-600 leading-relaxed">
+              جرّب تغيّر الـ Mood في الأيقونات، وحط اسم عرض قصير… بيطلع كيوت جدًا ✿
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="toast">
+    <div class="rounded-2xl bg-white/90 backdrop-blur border border-slate-200 shadow px-4 py-3 flex items-center gap-3">
+      <div id="toastIcon" class="h-9 w-9 rounded-2xl bg-pink-50 border border-pink-100 flex items-center justify-center">✨</div>
+      <div>
+        <div id="toastTitle" class="text-sm font-extrabold">…</div>
+        <div id="toastMsg" class="text-xs text-slate-600">…</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ---------------------------
+   Helpers
+--------------------------- */
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+function debounce(fn, wait=350){
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+}
+function escapeHtml(str){
+  return (str ?? "").toString()
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+function showToast(title, msg, icon="✨"){
+  $("#toastTitle").textContent = title;
+  $("#toastMsg").textContent = msg;
+  $("#toastIcon").textContent = icon;
+  const t = $("#toast");
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+/* ---------------------------
+   Accordion
+--------------------------- */
+function setAccordion(panelId, open){
+  const panel = document.getElementById(panelId);
+  const btn = $(`.acc-btn[data-acc="${panelId}"]`);
+  if(!panel || !btn) return;
+  panel.classList.toggle("open", open);
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+  const chev = btn.querySelector(".acc-chevron");
+  if(chev) chev.style.transform = open ? "rotate(180deg)" : "rotate(0deg)";
+}
+$$(".acc-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const id = btn.dataset.acc;
+    const panel = document.getElementById(id);
+    const isOpen = panel.classList.contains("open");
+    setAccordion(id, !isOpen);
+  });
+});
+$$(".laterBtn").forEach(b => b.addEventListener("click", () => setAccordion(b.dataset.collapse, false)));
+
+/* default open required sections */
+setAccordion("acc_account", true);
+setAccordion("acc_name", true);
+setAccordion("acc_avatar", true);
+
+/* ---------------------------
+   Tabs (Avatar Atelier)
+--------------------------- */
+let activeTab = "tab_icons";
+function setTab(id){
+  activeTab = id;
+  ["tab_icons","tab_upload"].forEach(t => {
+    const el = document.getElementById(t);
+    el.classList.toggle("hidden", t !== id);
+  });
+  $$(".tabBtn").forEach(b => {
+    const on = b.dataset.tab === id;
+    b.classList.toggle("bg-slate-900", on);
+    b.classList.toggle("text-white", on);
+    b.classList.toggle("border-slate-900", on);
+    b.classList.toggle("bg-white", !on);
+  });
+}
+$$(".tabBtn").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
+$("#goIcons").addEventListener("click", () => setTab("tab_icons"));
+setTab("tab_icons");
+
+/* ---------------------------
+   Password strength + show/hide
+--------------------------- */
+const pw = $("#password");
+const pwBar = $("#pwBar");
+const pwLabel = $("#pwLabel");
+const pwHint = $("#pwHint");
+const pwErr = $("#pwErr");
+$("#togglePw").addEventListener("click", () => {
+  const isPw = pw.type === "password";
+  pw.type = isPw ? "text" : "password";
+  $("#togglePw").textContent = isPw ? "إخفاء" : "إظهار";
+});
+
+function pwScore(v){
+  let score = 0;
+  if(v.length >= 8) score += 1;
+  if(v.length >= 12) score += 1;
+  if(/[a-z]/.test(v) && /[A-Z]/.test(v)) score += 1;
+  if(/\d/.test(v)) score += 1;
+  if(/[^a-zA-Z0-9]/.test(v)) score += 1;
+  return clamp(score, 0, 5);
+}
+function renderPw(){
+  const v = pw.value || "";
+  const s = pwScore(v);
+  const pct = [0, 25, 45, 65, 85, 100][s];
+  pwBar.style.width = pct + "%";
+
+  const labels = ["فارغة", "ضعيفة", "مقبولة", "جيدة", "قوية", "قوية جدًا"];
+  pwLabel.textContent = labels[s];
+  const hints = [
+    "اكتب كلمة مرور.",
+    "زيد الطول وحط رقم.",
+    "تمام! جرّب رمز كمان.",
+    "جميل ✿",
+    "قريب جدًا!",
+    "Perfect slice-of-life energy ✨"
+  ];
+  pwHint.textContent = hints[s];
+}
+pw.addEventListener("input", renderPw);
+renderPw();
+
+/* ---------------------------
+   Username async check (simulated)
+--------------------------- */
+const username = $("#username");
+const uStatus = $("#uStatus");
+const uSpinner = $("#uSpinner");
+const uErr = $("#uErr");
+
+let usernameOk = false;
+let lastUReq = 0;
+
+const taken = new Set([
+  "admin","support","root","momo","momo_tea","sakura","kawaii","anime","comics","artist",
+  "luffy","dev","developer","test","user","moderator","staff","system"
+]);
+
+function validUsername(u){
+  return /^[a-z0-9_]{3,15}$/.test(u);
+}
+
+async function checkUsernameAsync(u){
+  const reqId = ++lastUReq;
+  usernameOk = false;
+
+  uErr.classList.add("hidden");
+  if(!u){
+    uStatus.textContent = "—";
+    uStatus.className = "text-xs font-bold text-slate-500";
+    uSpinner.classList.add("hidden");
+    return;
+  }
+  if(!validUsername(u)){
+    uStatus.textContent = "صيغة غير صحيحة";
+    uStatus.className = "text-xs font-bold text-rose-600";
+    uSpinner.classList.add("hidden");
+    usernameOk = false;
+    return;
+  }
+
+  uSpinner.classList.remove("hidden");
+  uStatus.textContent = "يتم التحقق…";
+  uStatus.className = "text-xs font-bold text-slate-600";
+
+  // simulate network delay
+  const delay = 650 + Math.random() * 650;
+  await new Promise(r => setTimeout(r, delay));
+
+  if(reqId !== lastUReq) return; // stale
+
+  const isTaken = taken.has(u) || Math.random() < 0.08; // tiny chance “taken”
+  uSpinner.classList.add("hidden");
+
+  if(isTaken){
+    uStatus.textContent = "غير متاح";
+    uStatus.className = "text-xs font-bold text-rose-600";
+    usernameOk = false;
+  } else {
+    uStatus.textContent = "متاح ✿";
+    uStatus.className = "text-xs font-bold text-emerald-600";
+    usernameOk = true;
+  }
+  renderPreview();
+}
+
+username.addEventListener("input", debounce(() => {
+  const u = (username.value || "").trim().toLowerCase();
+  username.value = u;
+  checkUsernameAsync(u);
+}, 420));
+
+/* ---------------------------
+   Avatar Icons (24 SVG) + palettes + mood filter + shuffle suggestions
+--------------------------- */
+const palettes = [
+  { name:"Sakura", skin:"#FFE4EF", hair:"#7C3AED", accent:"#FB7185", eye:"#0F172A" },
+  { name:"Mint",   skin:"#E8FFFA", hair:"#0EA5E9", accent:"#22C55E", eye:"#0F172A" },
+  { name:"Lav",    skin:"#F2E8FF", hair:"#111827", accent:"#A78BFA", eye:"#0F172A" },
+  { name:"Peach",  skin:"#FFE9D6", hair:"#F97316", accent:"#F472B6", eye:"#0F172A" },
+  { name:"Sky",    skin:"#E6F3FF", hair:"#1D4ED8", accent:"#38BDF8", eye:"#0F172A" },
+  { name:"Matcha", skin:"#F0FFE6", hair:"#14532D", accent:"#22C55E", eye:"#0F172A" },
+];
+
+const avatarSeeds = [
+  // 24 entries with mood + features
+  {id:"a01", mood:"Calm",     eye:"dot",   mouth:"smile",  acc:"none"},
+  {id:"a02", mood:"Calm",     eye:"sleep", mouth:"tiny",   acc:"cloud"},
+  {id:"a03", mood:"Calm",     eye:"shine", mouth:"smile",  acc:"leaf"},
+  {id:"a04", mood:"Calm",     eye:"dot",   mouth:"tiny",   acc:"star"},
+
+  {id:"a05", mood:"Cheerful", eye:"wink",  mouth:"open",   acc:"star"},
+  {id:"a06", mood:"Cheerful", eye:"shine", mouth:"open",   acc:"heart"},
+  {id:"a07", mood:"Cheerful", eye:"dot",   mouth:"smile",  acc:"spark"},
+  {id:"a08", mood:"Cheerful", eye:"wink",  mouth:"smile",  acc:"ribbon"},
+
+  {id:"a09", mood:"Cool",     eye:"line",  mouth:"flat",   acc:"moon"},
+  {id:"a10", mood:"Cool",     eye:"line",  mouth:"smile",  acc:"star"},
+  {id:"a11", mood:"Cool",     eye:"shine", mouth:"flat",   acc:"gem"},
+  {id:"a12", mood:"Cool",     eye:"dot",   mouth:"flat",   acc:"cap"},
+
+  {id:"a13", mood:"Chaos",    eye:"spiral",mouth:"open",   acc:"bolt"},
+  {id:"a14", mood:"Chaos",    eye:"x",     mouth:"zig",    acc:"skull"},
+  {id:"a15", mood:"Chaos",    eye:"spiral",mouth:"zig",    acc:"star"},
+  {id:"a16", mood:"Chaos",    eye:"x",     mouth:"open",   acc:"heart"},
+
+  {id:"a17", mood:"Calm",     eye:"sleep", mouth:"smile",  acc:"flower"},
+  {id:"a18", mood:"Cheerful", eye:"shine", mouth:"smile",  acc:"flower"},
+  {id:"a19", mood:"Cool",     eye:"line",  mouth:"tiny",   acc:"flower"},
+  {id:"a20", mood:"Chaos",    eye:"spiral",mouth:"tiny",   acc:"flower"},
+
+  {id:"a21", mood:"Cheerful", eye:"dot",   mouth:"open",   acc:"confetti"},
+  {id:"a22", mood:"Calm",     eye:"dot",   mouth:"tiny",   acc:"halo"},
+  {id:"a23", mood:"Cool",     eye:"shine", mouth:"smile",  acc:"headphones"},
+  {id:"a24", mood:"Chaos",    eye:"x",     mouth:"zig",    acc:"flame"},
+];
+
+function svgAvatar(seed, pal){
+  // small cute chibi-ish abstract face; no known characters.
+  const w=96, h=96;
+  const hair = pal.hair, skin = pal.skin, accent = pal.accent, eye = pal.eye;
+
+  const eyes = (() => {
+    const cx1 = 36, cx2 = 60, cy = 44;
+    const blush = `<circle cx="28" cy="52" r="6" fill="${accent}" opacity=".15"/><circle cx="68" cy="52" r="6" fill="${accent}" opacity=".15"/>`;
+
+    if(seed.eye==="dot"){
+      return `${blush}<circle cx="${cx1}" cy="${cy}" r="4" fill="${eye}"/><circle cx="${cx2}" cy="${cy}" r="4" fill="${eye}"/>`;
+    }
+    if(seed.eye==="sleep"){
+      return `${blush}<path d="M30 44 q6 6 12 0" stroke="${eye}" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+              <path d="M54 44 q6 6 12 0" stroke="${eye}" stroke-width="3.2" stroke-linecap="round" fill="none"/>`;
+    }
+    if(seed.eye==="shine"){
+      return `${blush}<circle cx="${cx1}" cy="${cy}" r="5" fill="${eye}"/><circle cx="${cx1-2}" cy="${cy-2}" r="1.6" fill="#fff" opacity=".9"/>
+              <circle cx="${cx2}" cy="${cy}" r="5" fill="${eye}"/><circle cx="${cx2-2}" cy="${cy-2}" r="1.6" fill="#fff" opacity=".9"/>`;
+    }
+    if(seed.eye==="wink"){
+      return `${blush}<path d="M30 44 q6 6 12 0" stroke="${eye}" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+              <circle cx="${cx2}" cy="${cy}" r="4.8" fill="${eye}"/><circle cx="${cx2-2}" cy="${cy-2}" r="1.5" fill="#fff" opacity=".9"/>`;
+    }
+    if(seed.eye==="line"){
+      return `${blush}<rect x="30" y="42" width="14" height="3.5" rx="2" fill="${eye}"/>
+              <rect x="52" y="42" width="14" height="3.5" rx="2" fill="${eye}"/>`;
+    }
+    if(seed.eye==="spiral"){
+      return `${blush}
+        <path d="M34 44
+          c0 -6 10 -6 10 0
+          c0 6 -8 6 -8 0
+          c0 -4 6 -4 6 0" fill="none" stroke="${eye}" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M58 44
+          c0 -6 10 -6 10 0
+          c0 6 -8 6 -8 0
+          c0 -4 6 -4 6 0" fill="none" stroke="${eye}" stroke-width="2.4" stroke-linecap="round"/>`;
+    }
+    if(seed.eye==="x"){
+      return `${blush}
+        <path d="M30 40 l12 12 M42 40 l-12 12" stroke="${eye}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M54 40 l12 12 M66 40 l-12 12" stroke="${eye}" stroke-width="3" stroke-linecap="round"/>`;
+    }
+    return "";
+  })();
+
+  const mouth = (() => {
+    if(seed.mouth==="smile"){
+      return `<path d="M42 60 q6 6 12 0" stroke="${eye}" stroke-width="3.2" stroke-linecap="round" fill="none"/>`;
+    }
+    if(seed.mouth==="tiny"){
+      return `<rect x="46" y="60" width="10" height="3.5" rx="2" fill="${eye}" opacity=".9"/>`;
+    }
+    if(seed.mouth==="flat"){
+      return `<path d="M44 61 h16" stroke="${eye}" stroke-width="3.2" stroke-linecap="round"/>`;
+    }
+    if(seed.mouth==="open"){
+      return `<path d="M44 58 q8 12 16 0 q-8 16 -16 0" fill="${accent}" opacity=".35" stroke="${eye}" stroke-width="2.4" stroke-linejoin="round"/>`;
+    }
+    if(seed.mouth==="zig"){
+      return `<path d="M44 60 l6 4 l6 -4 l6 4" stroke="${eye}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+    }
+    return "";
+  })();
+
+  const accessory = (() => {
+    // tiny icon on top-right
+    const x=72, y=18;
+    if(seed.acc==="star"){
+      return `<path d="M${x} ${y} l4 9 l9 1 l-7 6 l2 9 l-8 -5 l-8 5 l2 -9 l-7 -6 l9 -1z" fill="${accent}" opacity=".9"/>`;
+    }
+    if(seed.acc==="heart"){
+      return `<path d="M${x} ${y+8}
+        c0-5 6-6 8-2
+        c2-4 8-3 8 2
+        c0 4-4 7-8 10
+        c-4-3-8-6-8-10z" fill="${accent}" opacity=".9"/>`;
+    }
+    if(seed.acc==="cloud"){
+      return `<path d="M${x-6} ${y+12}
+        c0-4 4-6 7-5
+        c1-4 7-5 10-2
+        c4-1 7 2 7 5
+        c3 1 4 5 1 7
+        h-20
+        c-3 0-5-2-5-5z" fill="${accent}" opacity=".35" stroke="${accent}" stroke-width="2"/>`;
+    }
+    if(seed.acc==="moon"){
+      return `<path d="M${x+8} ${y+6}
+        c-6 1-9 8-5 14
+        c-6-2-8-9-4-14
+        c2-3 6-5 9-4z" fill="${accent}" opacity=".85"/>`;
+    }
+    if(seed.acc==="bolt"){
+      return `<path d="M${x+2} ${y}
+        l10 0 l-7 10 l8 0 l-14 16 l5-12 l-8 0z" fill="${accent}" opacity=".9"/>`;
+    }
+    if(seed.acc==="flower"){
+      return `<g transform="translate(${x},${y})">
+        <circle cx="8" cy="10" r="4" fill="${accent}" opacity=".9"/>
+        <circle cx="8" cy="2" r="3" fill="${accent}" opacity=".55"/>
+        <circle cx="2" cy="8" r="3" fill="${accent}" opacity=".55"/>
+        <circle cx="14" cy="8" r="3" fill="${accent}" opacity=".55"/>
+        <circle cx="6" cy="16" r="3" fill="${accent}" opacity=".55"/>
+        <circle cx="10" cy="16" r="3" fill="${accent}" opacity=".55"/>
+      </g>`;
+    }
+    if(seed.acc==="spark"){
+      return `<path d="M${x+8} ${y}
+        l2 8 l8 2 l-8 2 l-2 8 l-2-8 l-8-2 l8-2z" fill="${accent}" opacity=".9"/>`;
+    }
+    if(seed.acc==="ribbon"){
+      return `<path d="M${x} ${y+6} q8-8 16 0 q-8 8-16 0z" fill="${accent}" opacity=".85"/>
+              <path d="M${x+6} ${y+10} l-6 10 l8-4 l8 4 l-6-10" fill="${accent}" opacity=".55"/>`;
+    }
+    if(seed.acc==="gem"){
+      return `<path d="M${x+8} ${y}
+        l10 8 l-10 18 l-10-18z" fill="${accent}" opacity=".85" stroke="${accent}" stroke-width="2" />`;
+    }
+    if(seed.acc==="cap"){
+      return `<path d="M${x-2} ${y+12} q10-10 20 0 v4 h-20z" fill="${accent}" opacity=".55"/>
+              <circle cx="${x+18}" cy="${y+14}" r="2.5" fill="${accent}" opacity=".9"/>`;
+    }
+    if(seed.acc==="skull"){
+      return `<g transform="translate(${x},${y+4})" opacity=".9">
+        <rect x="4" y="4" width="16" height="14" rx="6" fill="${accent}"/>
+        <circle cx="9" cy="11" r="2" fill="#fff"/><circle cx="15" cy="11" r="2" fill="#fff"/>
+        <rect x="10" y="16" width="4" height="3" rx="1.5" fill="#fff"/>
+      </g>`;
+    }
+    if(seed.acc==="confetti"){
+      return `<g transform="translate(${x-4},${y})" opacity=".9">
+        <circle cx="6" cy="8" r="2" fill="${accent}"/>
+        <circle cx="14" cy="6" r="2" fill="${hair}"/>
+        <circle cx="18" cy="14" r="2" fill="${skin}"/>
+        <path d="M4 16 l6 -6" stroke="${accent}" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M10 18 l8 -8" stroke="${hair}" stroke-width="2.5" stroke-linecap="round"/>
+      </g>`;
+    }
+    if(seed.acc==="halo"){
+      return `<ellipse cx="${x+10}" cy="${y+6}" rx="12" ry="5" fill="none" stroke="${accent}" stroke-width="3" opacity=".85"/>`;
+    }
+    if(seed.acc==="headphones"){
+      return `<g transform="translate(${x-2},${y+6})" opacity=".9">
+        <path d="M6 12 q6-10 18 0" fill="none" stroke="${accent}" stroke-width="3.2" stroke-linecap="round"/>
+        <rect x="3" y="11" width="6" height="10" rx="3" fill="${accent}" opacity=".8"/>
+        <rect x="21" y="11" width="6" height="10" rx="3" fill="${accent}" opacity=".8"/>
+      </g>`;
+    }
+    if(seed.acc==="flame"){
+      return `<path d="M${x+10} ${y}
+        c6 8 2 10 6 16
+        c3 5-1 12-8 12
+        c-7 0-10-7-7-12
+        c3-6-1-8 3-16
+        c1 5 5 6 6 0z" fill="${accent}" opacity=".85"/>`;
+    }
+    if(seed.acc==="leaf"){
+      return `<path d="M${x+6} ${y+2}
+        c10 4 12 14 4 20
+        c-8 6-18 2-20-8
+        c8 2 14-2 16-12z" fill="${accent}" opacity=".6"/>`;
+    }
+    return "";
+  })();
+
+  // hair tuft variations (based on seed id char)
+  const t = seed.id.charCodeAt(seed.id.length-1) % 4;
+  const hairPath = [
+    `M22 40 q10-20 26-18 q16-8 26 18 q-4-16-18-14 q-8 1-12-6 q-8 10-22 20z`,
+    `M18 42 q10-26 28-22 q22-4 30 18 q-10-10-18-6 q-10 4-16-4 q-10 8-24 14z`,
+    `M20 44 q10-24 28-18 q18-6 28 16 q-6-10-18-8 q-10 2-14-5 q-10 10-24 15z`,
+    `M22 42 q10-22 28-20 q18-2 28 18 q-8-12-18-10 q-10 2-14-4 q-12 10-24 16z`,
+  ][t];
+
+  const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 96 96">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="${skin}" stop-opacity=".95"/>
+        <stop offset="1" stop-color="#ffffff" stop-opacity=".85"/>
+      </linearGradient>
+    </defs>
+
+    <rect x="6" y="6" width="84" height="84" rx="26" fill="rgba(255,255,255,.7)" stroke="rgba(15,23,42,.08)"/>
+    <circle cx="48" cy="52" r="28" fill="url(#g)" stroke="rgba(15,23,42,.10)" stroke-width="2"/>
+    <path d="${hairPath}" fill="${hair}" opacity=".92"/>
+    <path d="M24 50 q8-18 24-18 q16 0 24 18 q-8-10-24-10 q-16 0-24 10z" fill="${hair}" opacity=".25"/>
+    ${eyes}
+    ${mouth}
+    ${accessory}
+  </svg>`;
+  return svg.trim();
+}
+
+let activeMood = "All";
+let avatarState = {
+  selectedId: null,
+  selectedSvg: null,
+  selectedPaletteIndex: 0,
+  // upload selection:
+  uploadDataUrl: null,
+  source: null, // "svg" | "upload"
+};
+
+function seedById(id){ return avatarSeeds.find(s => s.id === id); }
+function filteredSeeds(){
+  return avatarSeeds.filter(s => activeMood === "All" ? true : s.mood === activeMood);
+}
+
+function renderGrid(){
+  const grid = $("#avatarGrid");
+  grid.innerHTML = "";
+
+  const list = filteredSeeds();
+  list.forEach((seed, idx) => {
+    const palIndex = (seed._palIndex ?? (idx % palettes.length));
+    seed._palIndex = palIndex;
+
+    const pal = palettes[palIndex];
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = "avatar-tile rounded-2xl p-2 flex flex-col items-center gap-1";
+    tile.dataset.id = seed.id;
+
+    const svg = svgAvatar(seed, pal);
+    tile.innerHTML = `
+      <div class="w-full aspect-square flex items-center justify-center">${svg}</div>
+      <div class="flex items-center justify-between w-full px-1">
+        <span class="text-[10px] font-extrabold text-slate-600">${seed.mood}</span>
+        <span class="inline-flex items-center gap-1" title="تبديل palette">
+          ${palettes.slice(0,3).map((p,i)=>`<span class="palDot h-2 w-2 rounded-full border border-white shadow" style="background:${p.accent}" data-pal="${i}"></span>`).join("")}
+        </span>
+      </div>
+    `;
+
+    if(avatarState.source === "svg" && avatarState.selectedId === seed.id){
+      tile.classList.add("selected");
+    }
+
+    tile.addEventListener("click", (e) => {
+      // if clicked a palette dot
+      const dot = e.target.closest(".palDot");
+      if(dot){
+        const newIndex = Number(dot.dataset.pal);
+        seed._palIndex = newIndex;
+        renderGrid();
+        renderSuggestions();
+        // if currently selected this avatar, re-apply selection with new palette
+        if(avatarState.source === "svg" && avatarState.selectedId === seed.id){
+          selectSvgAvatar(seed.id);
+        }
+        return;
+      }
+      selectSvgAvatar(seed.id);
+    });
+
+    grid.appendChild(tile);
+  });
+}
+
+function selectSvgAvatar(id){
+  const seed = seedById(id);
+  if(!seed) return;
+  const pal = palettes[seed._palIndex ?? 0];
+  const svg = svgAvatar(seed, pal);
+
+  avatarState.source = "svg";
+  avatarState.selectedId = id;
+  avatarState.selectedSvg = svg;
+  avatarState.uploadDataUrl = null;
+
+  $("#avatarChosenTag").textContent = `SVG • ${seed.mood}`;
+  $("#avatarErr").classList.add("hidden");
+  renderGrid();
+  renderSuggestions();
+  renderPreview();
+}
+
+function pickRandom(arr, n){
+  const copy = [...arr];
+  for(let i=copy.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [copy[i],copy[j]] = [copy[j],copy[i]];
+  }
+  return copy.slice(0,n);
+}
+
+function renderSuggestions(){
+  const wrap = $("#suggestionsRow");
+  wrap.innerHTML = "";
+  const candidates = filteredSeeds();
+  const picks = pickRandom(candidates, Math.min(3, candidates.length));
+
+  picks.forEach(seed => {
+    const pal = palettes[seed._palIndex ?? 0];
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "avatar-tile rounded-2xl p-2";
+    btn.dataset.id = seed.id;
+    btn.innerHTML = `<div class="w-full aspect-square flex items-center justify-center">${svgAvatar(seed, pal)}</div>`;
+
+    if(avatarState.source === "svg" && avatarState.selectedId === seed.id){
+      btn.classList.add("selected");
+    }
+    btn.addEventListener("click", () => selectSvgAvatar(seed.id));
+    wrap.appendChild(btn);
+  });
+}
+
+$$(".moodBtn").forEach(b => {
+  b.addEventListener("click", () => {
+    activeMood = b.dataset.mood;
+    $("#moodBadge").textContent = activeMood;
+    renderGrid();
+    renderSuggestions();
+  });
+});
+$("#shuffle3").addEventListener("click", () => {
+  renderSuggestions();
+  showToast("Shuffle!", "3 اقتراحات جديدة حسب الـ Mood ✨", "🎲");
+});
+
+/* ---------------------------
+   Custom Upload Crop (Canvas)
+--------------------------- */
+const canvas = $("#cropCanvas");
+const ctx = canvas.getContext("2d");
+
+let img = null;
+let imgReady = false;
+let scale = 1.0;
+let offset = {x: 0, y: 0};
+let dragging = false;
+let dragStart = {x:0, y:0};
+let offsetStart = {x:0, y:0};
+let selectedFrame = "none";
+
+function drawFrame(type){
+  // draw small decorative elements around the circle
+  const cx = canvas.width/2, cy = canvas.height/2;
+  const r = 98;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  function star(x,y,rr=7){
+    ctx.beginPath();
+    for(let i=0;i<10;i++){
+      const a = (Math.PI/5)*i;
+      const rad = i%2===0 ? rr : rr*0.45;
+      ctx.lineTo(Math.cos(a)*rad + x, Math.sin(a)*rad + y);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+  function heart(x,y,s=10){
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.bezierCurveTo(x-s, y-s, x-1.3*s, y+s*0.2, x, y+s);
+    ctx.bezierCurveTo(x+1.3*s, y+s*0.2, x+s, y-s, x, y);
+    ctx.closePath();
+    ctx.fill();
+  }
+  function cloud(x,y,w=26,h=14){
+    ctx.beginPath();
+    ctx.ellipse(x-8, y, 9, 7, 0, 0, Math.PI*2);
+    ctx.ellipse(x+2, y-4, 11, 9, 0, 0, Math.PI*2);
+    ctx.ellipse(x+13, y, 9, 7, 0, 0, Math.PI*2);
+    ctx.roundRect(x-18, y, w, h, 8);
+    ctx.fill();
+  }
+
+  const grad = ctx.createLinearGradient(-100,-100,100,100);
+  grad.addColorStop(0, "rgba(244,114,182,.65)");
+  grad.addColorStop(1, "rgba(99,102,241,.55)");
+  ctx.fillStyle = grad;
+
+  if(type === "stars"){
+    const pts = [
+      {a:-70, b:-85}, {a:85, b:-60}, {a:90, b:70}, {a:-80, b:90}
+    ];
+    pts.forEach(p => star(p.a, p.b, 8));
+  } else if(type === "hearts"){
+    const pts = [
+      {a:-70, b:-80}, {a:80, b:-70}, {a:88, b:70}, {a:-78, b:88}
+    ];
+    pts.forEach(p => heart(p.a, p.b, 9));
+  } else if(type === "clouds"){
+    ctx.fillStyle = "rgba(255,255,255,.85)";
+    const pts = [
+      {a:-70, b:-80}, {a:80, b:-70}, {a:88, b:70}, {a:-78, b:88}
+    ];
+    pts.forEach(p => cloud(p.a, p.b, 30, 16));
+    ctx.strokeStyle = "rgba(244,114,182,.45)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0,0,r+6,0,Math.PI*2);
+    ctx.stroke();
+  }
+
+  // ring
+  ctx.strokeStyle = "rgba(244,114,182,.35)";
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.arc(0,0,r+2,0,Math.PI*2);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawCanvas(){
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+
+  // soft background
+  const bg = ctx.createLinearGradient(0,0,w,h);
+  bg.addColorStop(0, "rgba(255,255,255,.95)");
+  bg.addColorStop(1, "rgba(244,114,182,.10)");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,w,h);
+
+  // circle clip
+  const cx = w/2, cy = h/2;
+  const r = 98;
+
+  // faint guide
+  ctx.save();
+  ctx.strokeStyle = "rgba(15,23,42,.08)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.clip();
+
+  if(imgReady && img){
+    // draw image centered with scale and offset
+    const iw = img.width, ih = img.height;
+    const s = scale;
+    const dw = iw * s;
+    const dh = ih * s;
+
+    const x = cx - dw/2 + offset.x;
+    const y = cy - dh/2 + offset.y;
+
+    ctx.drawImage(img, x, y, dw, dh);
+
+    // slight overlay to keep pastel
+    ctx.fillStyle = "rgba(255,255,255,.06)";
+    ctx.fillRect(0,0,w,h);
+  } else {
+    // placeholder
+    ctx.fillStyle = "rgba(15,23,42,.05)";
+    ctx.roundRect(34, 84, 172, 12, 6);
+    ctx.fill();
+    ctx.fillStyle = "rgba(15,23,42,.35)";
+    ctx.font = "bold 12px system-ui, -apple-system, Segoe UI, Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("ارفع صورة لبدء القص ✿", cx, 120);
+  }
+
+  ctx.restore();
+
+  // frame overlay
+  if(selectedFrame && selectedFrame !== "none"){
+    drawFrame(selectedFrame);
+  }
+}
+
+function setZoom(v){
+  scale = clamp(Number(v), 0.8, 2.4);
+  $("#zoomVal").textContent = Math.round(scale*100) + "%";
+  drawCanvas();
+}
+
+$("#zoomRange").addEventListener("input", (e) => setZoom(e.target.value));
+setZoom($("#zoomRange").value);
+
+function loadImageFromFile(file){
+  if(!file) return;
+  const url = URL.createObjectURL(file);
+  const im = new Image();
+  im.onload = () => {
+    img = im;
+    imgReady = true;
+    // reset position
+    scale = 1.0;
+    offset = {x:0, y:0};
+    $("#zoomRange").value = 1.0;
+    setZoom(1.0);
+    drawCanvas();
+    URL.revokeObjectURL(url);
+    showToast("تم!", "اسحب وقرّب… ثم Apply ✨", "🖼️");
+  };
+  im.src = url;
+}
+
+$("#uploadInput").addEventListener("change", (e) => {
+  const f = e.target.files?.[0];
+  loadImageFromFile(f);
+});
+
+canvas.addEventListener("pointerdown", (e) => {
+  dragging = true;
+  canvas.classList.add("dragging");
+  canvas.setPointerCapture(e.pointerId);
+  dragStart = {x: e.clientX, y: e.clientY};
+  offsetStart = {...offset};
+});
+canvas.addEventListener("pointermove", (e) => {
+  if(!dragging) return;
+  const dx = e.clientX - dragStart.x;
+  const dy = e.clientY - dragStart.y;
+  offset = { x: offsetStart.x + dx, y: offsetStart.y + dy };
+  drawCanvas();
+});
+canvas.addEventListener("pointerup", () => {
+  dragging = false;
+  canvas.classList.remove("dragging");
+});
+
+$$(".frameBtn").forEach(b => {
+  b.addEventListener("click", () => {
+    selectedFrame = b.dataset.frame;
+    $$(".frameBtn").forEach(x => x.classList.remove("bg-slate-900","text-white","border-slate-900"));
+    b.classList.add("bg-slate-900","text-white","border-slate-900");
+    drawCanvas();
+  });
+});
+// default frame none
+$$(".frameBtn").find(b => b.dataset.frame==="none")?.click();
+
+$("#resetCrop").addEventListener("click", () => {
+  img = null; imgReady = false;
+  offset = {x:0, y:0};
+  selectedFrame = "none";
+  $("#uploadInput").value = "";
+  $("#zoomRange").value = 1.0;
+  setZoom(1.0);
+  $$(".frameBtn").find(b => b.dataset.frame==="none")?.click();
+  drawCanvas();
+  showToast("Reset", "رجّعناها نظيفة ✿", "🧼");
+});
+
+$("#applyCrop").addEventListener("click", () => {
+  if(!imgReady || !img){
+    showToast("ناقص", "ارفع صورة أولًا ✿", "⚠️");
+    return;
+  }
+  // export as dataURL
+  const dataUrl = canvas.toDataURL("image/png");
+  avatarState.source = "upload";
+  avatarState.uploadDataUrl = dataUrl;
+  avatarState.selectedId = null;
+  avatarState.selectedSvg = null;
+
+  $("#avatarChosenTag").textContent = `Upload • ${selectedFrame === "none" ? "Clean" : selectedFrame}`;
+  $("#avatarErr").classList.add("hidden");
+  renderGrid();
+  renderSuggestions();
+  renderPreview();
+  showToast("تم Apply!", "الصورة اتقصت بدائرة لطيفة ✨", "✅");
+});
+
+drawCanvas();
+
+/* ---------------------------
+   Follow quick picks (optional)
+--------------------------- */
+const followData = [
+  { name:"Tea & Panels", handle:"tea_panels", tag:"Manga cozy" },
+  { name:"Sakura Loops", handle:"sakura_loops", tag:"Slice-of-life" },
+  { name:"Panel Painter", handle:"panel_painter", tag:"Art tips" },
+  { name:"Night BGM", handle:"night_bgm", tag:"Study vibes" },
+  { name:"Chibi Snacks", handle:"chibi_snacks", tag:"Memes" },
+  { name:"Cloud Sketch", handle:"cloud_sketch", tag:"Fanart" },
+];
+
+const followed = new Set();
+function renderFollows(){
+  const wrap = $("#followList");
+  wrap.innerHTML = "";
+  followData.forEach(item => {
+    const on = followed.has(item.handle);
+    const card = document.createElement("div");
+    card.className = "rounded-3xl bg-white/80 border border-slate-100 p-4 flex items-center justify-between gap-3";
+    card.innerHTML = `
+      <div class="min-w-0">
+        <div class="font-extrabold truncate">${escapeHtml(item.name)}</div>
+        <div class="text-xs text-slate-500 mt-0.5 truncate" dir="ltr">@${escapeHtml(item.handle)} • ${escapeHtml(item.tag)}</div>
+      </div>
+      <button type="button" class="followBtn shrink-0 rounded-2xl px-4 py-2 text-sm font-extrabold border ${on ? "bg-slate-900 text-white border-slate-900" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}">
+        ${on ? "Following" : "Follow"}
+      </button>
+    `;
+    card.querySelector(".followBtn").addEventListener("click", () => {
+      if(followed.has(item.handle)) followed.delete(item.handle);
+      else followed.add(item.handle);
+      $("#followCount").textContent = followed.size;
+      renderFollows();
+      renderPreview();
+    });
+    wrap.appendChild(card);
+  });
+}
+renderFollows();
+
+/* ---------------------------
+   Interests chips (optional)
+--------------------------- */
+const interestOptions = [
+  "Slice-of-life", "Romance", "Action", "Comedy", "Fantasy", "Sci-fi",
+  "Cozy reading", "Manga panels", "Anime OST", "Fanart", "Cosplay",
+  "Webtoons", "Light novels", "Shoujo vibes", "Seinen mood", "Chibi",
+  "Isekai", "Mystery", "Horror-lite", "Study room", "Lo-fi", "Collecting"
+];
+
+const selectedInterests = new Set();
+function renderInterests(){
+  const wrap = $("#interestChips");
+  wrap.innerHTML = "";
+  interestOptions.forEach(tag => {
+    const on = selectedInterests.has(tag);
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = `px-3 py-2 rounded-2xl text-sm font-extrabold border transition
+      ${on ? "bg-pink-500 text-white border-pink-500 shadow" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`;
+    b.textContent = tag;
+    b.addEventListener("click", () => {
+      if(on){
+        selectedInterests.delete(tag);
+      } else {
+        if(selectedInterests.size >= 7){
+          showToast("حدّ أعلى", "اختر 7 فقط… عشان تظل خفيفة ✿", "🏷️");
+          return;
+        }
+        selectedInterests.add(tag);
+      }
+      $("#interestCount").textContent = selectedInterests.size;
+      renderInterests();
+      renderPreview();
+    });
+    wrap.appendChild(b);
+  });
+}
+renderInterests();
+
+$("#clearInterests").addEventListener("click", () => {
+  selectedInterests.clear();
+  $("#interestCount").textContent = "0";
+  renderInterests();
+  renderPreview();
+});
+
+/* ---------------------------
+   Live Preview Card
+--------------------------- */
+function previewCardHtml(){
+  const dn = ($("#displayName").value || "").trim() || "اسمك هنا ✿";
+  const un = ($("#username").value || "").trim() || "username";
+  const email = ($("#email").value || "").trim() || "you@studio.com";
+
+  const mood = (() => {
+    if(avatarState.source === "svg" && avatarState.selectedId){
+      return seedById(avatarState.selectedId)?.mood || "—";
+    }
+    if(avatarState.source === "upload"){
+      return "Custom";
+    }
+    return "—";
+  })();
+
+  const interests = Array.from(selectedInterests).slice(0,4);
+  const more = selectedInterests.size - interests.length;
+
+  const avatarHtml = (() => {
+    if(avatarState.source === "svg" && avatarState.selectedSvg){
+      return `<div class="h-20 w-20 rounded-3xl bg-white border border-slate-100 shadow flex items-center justify-center overflow-hidden">${avatarState.selectedSvg}</div>`;
+    }
+    if(avatarState.source === "upload" && avatarState.uploadDataUrl){
+      return `<div class="h-20 w-20 rounded-3xl bg-white border border-slate-100 shadow overflow-hidden">
+        <img src="${avatarState.uploadDataUrl}" alt="avatar" class="h-full w-full object-cover" />
+      </div>`;
+    }
+    return `<div class="h-20 w-20 rounded-3xl bg-white border border-slate-100 shadow flex items-center justify-center text-slate-400 font-black">?</div>`;
+  })();
+
+  const followLine = followed.size
+    ? `<div class="text-xs text-slate-500 mt-1">Following: <span class="font-extrabold text-slate-700">${followed.size}</span></div>`
+    : `<div class="text-xs text-slate-500 mt-1">Follow picks: Later ✨</div>`;
+
+  const tags = interests.map(t => `<span class="text-[11px] font-extrabold px-2 py-1 rounded-xl bg-white border border-slate-200">${escapeHtml(t)}</span>`).join("");
+  const tagsMore = more > 0 ? `<span class="text-[11px] font-extrabold px-2 py-1 rounded-xl bg-slate-900 text-white">+${more}</span>` : "";
+
+  return `
+    <div class="rounded-3xl bg-gradient-to-br from-white/90 to-white/60 border border-slate-100 p-4">
+      <div class="flex items-center gap-3">
+        ${avatarHtml}
+        <div class="min-w-0">
+          <div class="font-extrabold text-lg truncate">${escapeHtml(dn)}</div>
+          <div class="text-xs text-slate-500 mt-0.5 truncate" dir="ltr">@${escapeHtml(un)} • ${escapeHtml(email)}</div>
+          <div class="mt-2 inline-flex items-center gap-2">
+            <span class="text-xs font-extrabold rounded-xl bg-pink-50 border border-pink-100 px-3 py-1">Mood: ${escapeHtml(mood)}</span>
+            <span class="text-xs font-extrabold rounded-xl bg-indigo-50 border border-indigo-100 px-3 py-1">${usernameOk ? "Username OK" : "Checking…"}</span>
+          </div>
+          ${followLine}
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-xs font-extrabold text-slate-600">Interests</div>
+        <div class="mt-2 flex flex-wrap gap-2">
+          ${tags || `<span class="text-[11px] font-extrabold px-2 py-1 rounded-xl bg-white border border-slate-200 text-slate-500">Later ✿</span>`}
+          ${tagsMore}
+        </div>
+      </div>
+
+      <div class="mt-4 rounded-2xl bg-white/80 border border-slate-100 p-3">
+        <div class="flex items-center justify-between">
+          <div class="text-xs font-extrabold text-slate-700">Vibe</div>
+          <div class="text-xs text-slate-500">sakura + stickers</div>
+        </div>
+        <div class="mt-2 text-sm text-slate-600 leading-relaxed">
+          “أول منشور لك؟ يمكن صورة كوب شاي + بانل لطيف ✿”
+        </div>
+      </div>
+    </div>
+  `;
+}
+function renderPreview(){
+  const html = previewCardHtml();
+  $("#previewCardDesktop").innerHTML = html;
+  $("#previewCardMobile").innerHTML = html;
+}
+["email","displayName","username","password"].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener("input", renderPreview);
+});
+renderPreview();
+
+/* ---------------------------
+   Validation + Submit
+--------------------------- */
+const emailErr = $("#emailErr");
+const dnErr = $("#dnErr");
+const avatarErr = $("#avatarErr");
+
+function setErr(el, msg){
+  if(!msg){
+    el.classList.add("hidden");
+    el.textContent = "";
+  } else {
+    el.classList.remove("hidden");
+    el.textContent = msg;
+  }
+}
+function isEmail(v){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
+$("#signupForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  // clear errors
+  setErr(emailErr, "");
+  setErr(pwErr, "");
+  setErr(dnErr, "");
+  setErr(uErr, "");
+  setErr(avatarErr, "");
+
+  const em = ($("#email").value || "").trim();
+  const pwv = $("#password").value || "";
+  const dn = ($("#displayName").value || "").trim();
+  const un = ($("#username").value || "").trim();
+
+  let ok = true;
+
+  // Account required
+  if(!isEmail(em)){
+    setErr(emailErr, "اكتب بريد صحيح ✿");
+    ok = false;
+    setAccordion("acc_account", true);
+  }
+  if(pwv.length < 8){
+    setErr(pwErr, "كلمة المرور لازم تكون 8 أحرف على الأقل.");
+    ok = false;
+    setAccordion("acc_account", true);
+  }
+
+  // Name required
+  if(dn.length < 2){
+    setErr(dnErr, "اسم العرض قصير جدًا.");
+    ok = false;
+    setAccordion("acc_name", true);
+  }
+  if(!validUsername(un)){
+    setErr(uErr, "اسم المستخدم لازم يكون 3–15 وبحروف/أرقام/underscore فقط.");
+    ok = false;
+    setAccordion("acc_name", true);
+  } else if(!usernameOk){
+    setErr(uErr, "لسه ما تأكدنا من توفر الاسم… انتظر لحظة أو غيّره.");
+    ok = false;
+    setAccordion("acc_name", true);
+  }
+
+  // Avatar required
+  const avatarChosen = (avatarState.source === "svg" && avatarState.selectedSvg) ||
+                       (avatarState.source === "upload" && avatarState.uploadDataUrl);
+  if(!avatarChosen){
+    setErr(avatarErr, "اختَر Avatar (Icon أو Upload) عشان نكمل ✿");
+    ok = false;
+    setAccordion("acc_avatar", true);
+  }
+
+  if(!ok){
+    showToast("فيه شوية نواقص", "خلّينا نكمّل المطلوب… وبعدها كله Later ✨", "⚠️");
+    renderPreview();
+    return;
+  }
+
+  // success (demo)
+  showToast("تم إنشاء الحساب!", "مرحبًا بك… يوميات لطيفة تبدأ الآن ✿", "🎉");
+
+  // Optional: demo payload in console
+  const payload = {
+    email: em,
+    displayName: dn,
+    username: un,
+    avatar: avatarState.source === "svg" ? { type:"svg", id: avatarState.selectedId } : { type:"upload", frame: selectedFrame },
+    followed: Array.from(followed),
+    interests: Array.from(selectedInterests),
+  };
+  console.log("Signup payload (demo):", payload);
+
+  // tiny UX: collapse optional sections
+  setAccordion("acc_follow", false);
+  setAccordion("acc_interests", false);
+});
+
+/* ---------------------------
+   Init avatar rendering + suggestions
+--------------------------- */
+renderGrid();
+renderSuggestions();
+
+// Tiny: auto-open mobile preview initially (feels welcoming)
+try { $("#mobilePreviewWrap").open = true; } catch(e) {}
+</script>
+</body>
+</html>

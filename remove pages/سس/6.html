@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>6</title>
+  <style>
+    :root{
+      --bgA:#0b0b12;
+      --bgB:#2a1032;
+      --pink:#ff6fb1;
+      --rose:#ffb3d5;
+      --lav:#c7a7ff;
+      --card: rgba(255,255,255,.10);
+      --stroke: rgba(255,255,255,.18);
+      --text: #fff7fb;
+      --shadow: 0 18px 70px rgba(0,0,0,.55);
+      --r: 22px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-rounded, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color: var(--text);
+      background:
+        radial-gradient(1000px 700px at 20% 20%, rgba(255,111,177,.18), transparent 60%),
+        radial-gradient(900px 650px at 70% 85%, rgba(199,167,255,.18), transparent 55%),
+        linear-gradient(120deg, var(--bgA), var(--bgB));
+      overflow:hidden;
+    }
+
+    /* Petals */
+    .petals{ position:fixed; inset:0; pointer-events:none; }
+    .petal{
+      position:absolute;
+      width: 14px; height: 10px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.7), rgba(255,255,255,0) 55%),
+                  linear-gradient(135deg, rgba(255,179,213,.95), rgba(255,111,177,.85));
+      border-radius: 10px 12px 10px 12px;
+      transform: rotate(25deg);
+      filter: drop-shadow(0 8px 12px rgba(0,0,0,.25));
+      opacity:.9;
+      animation: fall var(--dur) linear infinite;
+    }
+    @keyframes fall{
+      from{ transform: translate(var(--x), -15vh) rotate(0deg); opacity:0; }
+      10%{ opacity:.95; }
+      to  { transform: translate(calc(var(--x) + 18vw), 110vh) rotate(300deg); opacity:0; }
+    }
+
+    .page{
+      height:100%;
+      display:grid;
+      place-items:center;
+      padding:26px;
+    }
+    .hero{
+      width:min(760px, 94vw);
+      border-radius: 26px;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      text-align:center;
+      backdrop-filter: blur(10px);
+    }
+    .hero h1{
+      margin: 0 0 10px;
+      font-size: clamp(26px, 4.3vw, 46px);
+      font-weight: 950;
+      letter-spacing:.2px;
+      text-shadow: 0 0 28px rgba(255,111,177,.28);
+    }
+    .hero p{
+      margin:0 auto;
+      max-width: 56ch;
+      color: rgba(255,247,251,.84);
+      line-height:1.55;
+    }
+
+    /* Backdrop + Modal */
+    .backdrop{
+      position:fixed; inset:0;
+      display:grid; place-items:center;
+      background: radial-gradient(circle at 50% 30%, rgba(0,0,0,.25), rgba(0,0,0,.65));
+      opacity:0; pointer-events:none;
+      transition: opacity .22s ease;
+      padding: 22px;
+    }
+    .backdrop.open{ opacity:1; pointer-events:auto; }
+
+    .modal{
+      width:min(560px, 92vw);
+      border-radius: var(--r);
+      border:1px solid rgba(255,255,255,.16);
+      background:
+        radial-gradient(110% 130% at 85% 20%, rgba(255,179,213,.28), transparent 55%),
+        radial-gradient(120% 140% at 10% 90%, rgba(199,167,255,.22), transparent 55%),
+        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      position:relative;
+      transform: translateY(20px) scale(.92);
+      opacity:0;
+    }
+    .backdrop.open .modal{
+      opacity:1;
+      animation: sakuraIn .7s cubic-bezier(.2, 1.4, .25, 1) both;
+    }
+    @keyframes sakuraIn{
+      0%   { transform: translateY(24px) scale(.84); filter: blur(2px); }
+      55%  { transform: translateY(-4px) scale(1.02); filter: blur(0px); }
+      100% { transform: translateY(0px) scale(1); }
+    }
+
+    .top{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 14px 16px 0;
+    }
+    .tag{
+      display:inline-flex; align-items:center; gap:10px;
+      padding: 8px 12px;
+      border-radius:999px;
+      background: rgba(0,0,0,.16);
+      border:1px solid rgba(255,255,255,.14);
+      font-weight: 800;
+      color: rgba(255,247,251,.92);
+    }
+    .heart{
+      width:12px; height:12px;
+      background: radial-gradient(circle, var(--pink), rgba(255,111,177,0) 70%);
+      border-radius:999px;
+      box-shadow: 0 0 16px rgba(255,111,177,.65);
+    }
+
+    .close{
+      width:40px; height:40px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.14);
+      color: rgba(255,255,255,.9);
+      cursor:pointer;
+      transition: transform .16s ease, background .16s ease;
+    }
+    .close:hover{ transform: rotate(-6deg) scale(1.06); background: rgba(255,255,255,.08); }
+    .close:active{ transform: scale(.98); }
+
+    .content{ padding: 8px 18px 18px; }
+    .content h2{
+      margin: 8px 0 8px;
+      font-size: clamp(22px, 3.2vw, 30px);
+      font-weight: 950;
+    }
+    .content p{
+      margin:0 0 16px;
+      color: rgba(255,247,251,.82);
+      line-height:1.6;
+    }
+
+    .actions{ display:flex; gap:12px; flex-wrap:wrap; }
+    .btn{
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.14);
+      color: rgba(255,255,255,.92);
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-weight: 900;
+      cursor:pointer;
+      transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .btn.primary{
+      background: linear-gradient(90deg, rgba(255,111,177,.92), rgba(199,167,255,.9));
+      box-shadow: 0 14px 34px rgba(255,111,177,.18), 0 14px 34px rgba(199,167,255,.14);
+    }
+    .btn:hover{ transform: translateY(-2px); box-shadow: 0 16px 34px rgba(0,0,0,.35); }
+    .btn:active{ transform: translateY(0px) scale(.99); }
+
+    /* Cute wiggle hover */
+    .btn.primary:hover{ animation: wiggle .42s ease-in-out both; }
+    @keyframes wiggle{
+      0%,100%{ transform: translateY(-2px) rotate(0deg); }
+      35%{ transform: translateY(-2px) rotate(1.2deg); }
+      70%{ transform: translateY(-2px) rotate(-1.2deg); }
+    }
+
+    :focus-visible{
+      outline: 3px solid rgba(255,111,177,.55);
+      outline-offset: 3px;
+      border-radius: 14px;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .petal{ animation:none !important; }
+      .backdrop,.btn{ transition:none !important; }
+      .backdrop.open .modal{ animation:none !important; transform:none !important; opacity:1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="petals" id="petals" aria-hidden="true"></div>
+
+  <main class="page">
+    <section class="hero">
+      <h1>Follow Platform</h1>
+      <p>Find new anime friends, follow artists, and keep your fandom feed glowing 🌸</p>
+    </section>
+  </main>
+
+  <div class="backdrop" id="backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="title" aria-describedby="desc">
+      <div class="top">
+        <div class="tag"><span class="heart"></span> Fresh Join</div>
+        <button class="close" id="closeBtn" aria-label="Close">✕</button>
+      </div>
+
+      <div class="content">
+        <h2 id="title">Welcome & Congratulations! 🌸</h2>
+        <p id="desc">
+          You joined us — and your feed is about to get way more fun.
+          Start following your favorite creators and fandoms.
+        </p>
+
+        <div class="actions">
+          <button class="btn primary" id="goBtn">Go to Feed</button>
+          <button class="btn" id="setupBtn">Set Up Profile</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Petal generator
+    const petals = document.getElementById("petals");
+    const COUNT = 22;
+    for (let i = 0; i < COUNT; i++) {
+      const p = document.createElement("div");
+      p.className = "petal";
+      const x = Math.floor(Math.random() * 100) + "vw";
+      p.style.left = x;
+      p.style.setProperty("--x", x);
+      p.style.setProperty("--dur", (7 + Math.random() * 7) + "s");
+      p.style.animationDelay = (-Math.random() * 10) + "s";
+      p.style.transform = `rotate(${Math.random()*40}deg)`;
+      p.style.opacity = (0.35 + Math.random() * 0.65).toFixed(2);
+      petals.appendChild(p);
+    }
+
+    // Modal (focus trap)
+    const backdrop = document.getElementById("backdrop");
+    const closeBtn = document.getElementById("closeBtn");
+    const goBtn = document.getElementById("goBtn");
+    const setupBtn = document.getElementById("setupBtn");
+
+    let lastFocused = null;
+
+    function focusables() {
+      return [...backdrop.querySelectorAll('button,[tabindex]:not([tabindex="-1"])')]
+        .filter(el => !el.disabled);
+    }
+
+    function openModal() {
+      lastFocused = document.activeElement;
+      backdrop.classList.add("open");
+      goBtn.focus({ preventScroll: true });
+      document.addEventListener("keydown", onKey);
+      backdrop.addEventListener("click", onBackdrop);
+    }
+
+    function closeModal() {
+      backdrop.classList.remove("open");
+      document.removeEventListener("keydown", onKey);
+      backdrop.removeEventListener("click", onBackdrop);
+      if (lastFocused) lastFocused.focus({ preventScroll: true });
+    }
+
+    function onBackdrop(e) {
+      if (e.target === backdrop) closeModal();
+    }
+
+    function onKey(e) {
+      if (e.key === "Escape") closeModal();
+
+      if (e.key === "Tab" && backdrop.classList.contains("open")) {
+        const list = focusables();
+        const first = list[0], last = list[list.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault(); first.focus();
+        }
+      }
+    }
+
+    closeBtn.addEventListener("click", closeModal);
+    goBtn.addEventListener("click", () => alert("Opening your feed 🌸"));
+    setupBtn.addEventListener("click", () => alert("Profile setup ✨"));
+
+    window.addEventListener("load", openModal);
+  </script>
+</body>
+</html>

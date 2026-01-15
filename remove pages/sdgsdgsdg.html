@@ -1,0 +1,1361 @@
+<!doctype html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OtakuVerse V3 - أوتاكو فيرس</title>
+
+  <!-- Tailwind (CDN) -->
+  <script>
+    tailwind = {
+      config: {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              brand: { p:"#7C5CFF", c:"#00D7FF", d:"#5B45CC" },
+              primary: "#6B7FED",
+              secondary: "#EC4899",
+              accent: "#10B981",
+              warning: "#F59E0B",
+            },
+            boxShadow: {
+              glow: "0 0 0 1px rgba(124,92,255,.25), 0 20px 60px rgba(124,92,255,.20)",
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+
+    :root{
+      --bg0:#0A0E1A;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.04);
+      --stroke: rgba(255,255,255,.10);
+      --muted: rgba(255,255,255,.60);
+      --muted2: rgba(255,255,255,.45);
+      --focus: rgba(124,92,255,.65);
+    }
+    html:not(.dark){
+      --bg0: #f7f8ff;
+      --card: rgba(255,255,255,.70);
+      --card2: rgba(0,0,0,.04);
+      --stroke: rgba(0,0,0,.10);
+      --muted: rgba(0,0,0,.60);
+      --muted2: rgba(0,0,0,.45);
+      --focus: rgba(124,92,255,.55);
+    }
+
+    *{ font-family:'Tajawal', sans-serif; }
+    body{ background: var(--bg0); }
+    ::selection{ background: rgba(124,92,255,.35); }
+
+    .gradient-text{
+      background: linear-gradient(135deg, #7C5CFF 0%, #00D7FF 100%);
+      -webkit-background-clip: text; background-clip:text;
+      -webkit-text-fill-color: transparent;
+    }
+    .glass{
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .card-hover{
+      transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s cubic-bezier(.2,.8,.2,1), border-color .25s;
+    }
+    .card-hover:hover{ transform: translateY(-4px); box-shadow: var(--shadow, 0 16px 50px rgba(0,0,0,.35)); }
+    .ring-focus:focus-visible{
+      outline: none;
+      box-shadow: 0 0 0 4px var(--focus);
+      border-color: rgba(124,92,255,.6) !important;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar{ display:none; }
+    .scrollbar-hide{ -ms-overflow-style:none; scrollbar-width:none; }
+
+    .pulse-glow{ animation:pulse-glow 2.2s ease-in-out infinite; }
+    @keyframes pulse-glow{
+      0%,100%{ box-shadow: 0 0 20px rgba(124,92,255,.28); }
+      50%{ box-shadow: 0 0 34px rgba(124,92,255,.46); }
+    }
+
+    .slide-up{ animation: slide-up .55s cubic-bezier(.2,.8,.2,1); }
+    @keyframes slide-up{
+      from{ opacity: 0; transform: translateY(16px); }
+      to{ opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mobile tab active indicator */
+    .tab-active{
+      background: linear-gradient(135deg, rgba(124,92,255,.18), rgba(0,215,255,.12));
+      border: 1px solid rgba(124,92,255,.22);
+      box-shadow: 0 10px 30px rgba(124,92,255,.18);
+    }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      *{ animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+
+<body class="antialiased text-slate-100 dark:text-slate-100 text-slate-900">
+  <!-- Skip link (a11y) -->
+  <a href="#content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-[9999] focus:px-4 focus:py-2 focus:rounded-xl focus:bg-white/90 focus:text-black ring-focus">
+    تخطي إلى المحتوى
+  </a>
+
+  <!-- Animated Background -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden opacity-40 dark:opacity-40 opacity-25">
+    <div class="absolute top-16 right-10 w-[28rem] h-[28rem] bg-brand-p/30 rounded-full blur-3xl animate-pulse"></div>
+    <div class="absolute bottom-10 left-10 w-[28rem] h-[28rem] bg-brand-c/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1.2s;"></div>
+    <div class="absolute top-1/2 left-1/2 w-[28rem] h-[28rem] bg-secondary/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 2.1s;"></div>
+  </div>
+
+  <!-- Mobile Top Bar -->
+  <header class="lg:hidden sticky top-0 z-50">
+    <div class="mx-auto max-w-7xl px-4 pt-4">
+      <div class="glass rounded-3xl px-4 py-3 flex items-center gap-3">
+        <button id="btnDrawer" class="h-11 w-11 rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus flex items-center justify-center" aria-label="القائمة">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+            <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="relative">
+            <div class="h-11 w-11 rounded-2xl bg-gradient-to-br from-brand-p via-brand-c to-secondary shadow-lg pulse-glow"></div>
+            <div class="absolute -bottom-1 -right-1 h-4 w-4 bg-accent rounded-full border-2 border-[#0A0E1A] dark:border-[#0A0E1A] border-white"></div>
+          </div>
+          <div class="min-w-0">
+            <div class="font-black leading-5 gradient-text">أوتاكو فيرس</div>
+            <div class="text-[11px] opacity-70 truncate">كل شي أنمي • مانجا • كومكس</div>
+          </div>
+        </div>
+
+        <div class="flex-1"></div>
+
+        <button id="btnTheme" class="h-11 w-11 rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus flex items-center justify-center" aria-label="تبديل الثيم">
+          <svg class="h-5 w-5 hidden" data-ico="sun" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <svg class="h-5 w-5" data-ico="moon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+
+        <button id="btnComposeTop" class="h-11 px-4 rounded-2xl bg-gradient-to-l from-brand-p to-brand-c text-white font-bold hover:shadow-lg hover:shadow-brand-p/40 transition ring-focus">
+          + منشور
+        </button>
+      </div>
+
+      <div class="mt-3">
+        <div class="glass rounded-3xl px-4 py-3 flex items-center gap-3">
+          <svg class="h-5 w-5 opacity-70" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+            <path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input id="searchMobile" class="w-full bg-transparent outline-none placeholder:opacity-60 text-sm ring-focus rounded-xl" placeholder="ابحث: أنمي، مانجا، هاشتاق..." />
+          <button id="btnClearSearch" class="text-xs font-bold opacity-70 hover:opacity-100 transition ring-focus rounded-xl px-2 py-1">
+            مسح
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer -->
+  <div id="drawerBackdrop" class="fixed inset-0 z-[60] hidden">
+    <div class="absolute inset-0 bg-black/50"></div>
+
+    <aside id="drawer" class="absolute top-0 right-0 h-full w-[86%] max-w-sm glass border-l border-white/10 dark:border-white/10 border-black/10 p-4 translate-x-0">
+      <div class="flex items-center justify-between mb-4">
+        <div class="font-black text-lg">القائمة</div>
+        <button id="btnCloseDrawer" class="h-11 w-11 rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus flex items-center justify-center" aria-label="إغلاق">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+            <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="rounded-3xl p-3 glass mb-4">
+        <div class="flex items-center gap-3">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=ibrahim" class="h-12 w-12 rounded-2xl border-2 border-brand-p" alt="Avatar"/>
+          <div class="flex-1 min-w-0">
+            <div class="font-black text-sm truncate">إبراهيم دحمة</div>
+            <div class="text-xs opacity-70 truncate">@luffy.dev</div>
+          </div>
+          <span class="text-xs px-2 py-1 rounded-xl bg-accent/15 text-accent font-bold">Online</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mt-3">
+          <div class="rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 p-3">
+            <div class="text-xs opacity-70">المتابعون</div>
+            <div class="text-lg font-black">3.2K</div>
+          </div>
+          <div class="rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 p-3">
+            <div class="text-xs opacity-70">النقاط</div>
+            <div class="text-lg font-black">890</div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="space-y-2">
+        <a class="drawer-link flex items-center gap-3 rounded-2xl px-4 py-3 glass hover:bg-white/10 transition ring-focus" href="#home" data-tab="home">
+          <span class="h-10 w-10 rounded-xl bg-brand-p/20 flex items-center justify-center">
+            <svg class="h-5 w-5 text-brand-p" viewBox="0 0 24 24" fill="none">
+              <path d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20v-9.5Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </span>
+          <div class="flex-1">
+            <div class="font-black text-sm">الرئيسية</div>
+            <div class="text-xs opacity-70">التحديثات الجديدة</div>
+          </div>
+          <span class="h-6 w-6 rounded-xl bg-brand-p text-white text-xs flex items-center justify-center font-black">5</span>
+        </a>
+
+        <a class="drawer-link flex items-center gap-3 rounded-2xl px-4 py-3 glass hover:bg-white/10 transition ring-focus" href="#explore" data-tab="explore">
+          <span class="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center">
+            <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+              <path d="M4 4h7v7H4V4ZM13 4h7v7h-7V4ZM4 13h7v7H4v-7ZM13 13h7v7h-7v-7Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </span>
+          <div class="flex-1">
+            <div class="font-black text-sm">استكشف</div>
+            <div class="text-xs opacity-70">تقنيات • ترند</div>
+          </div>
+        </a>
+
+        <a class="drawer-link flex items-center gap-3 rounded-2xl px-4 py-3 glass hover:bg-white/10 transition ring-focus" href="#manga" data-tab="manga">
+          <span class="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center">
+            <svg class="h-5 w-5 text-warning" viewBox="0 0 24 24" fill="none">
+              <path d="M7 6h14v12H7V6Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M3 8h4v12H3V8Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </span>
+          <div class="flex-1">
+            <div class="font-black text-sm">المانجا</div>
+            <div class="text-xs opacity-70">فصول • توصيات</div>
+          </div>
+        </a>
+
+        <a class="drawer-link flex items-center gap-3 rounded-2xl px-4 py-3 glass hover:bg-white/10 transition ring-focus" href="#episodes" data-tab="episodes">
+          <span class="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center">
+            <svg class="h-5 w-5 text-secondary" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+              <path d="m10 8 6 4-6 4V8Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <div class="flex-1">
+            <div class="font-black text-sm">الحلقات</div>
+            <div class="text-xs opacity-70">مشاهدة الآن</div>
+          </div>
+          <span class="text-xs rounded-xl bg-secondary/15 text-secondary px-2 py-1 font-black">24</span>
+        </a>
+
+        <a class="drawer-link flex items-center gap-3 rounded-2xl px-4 py-3 glass hover:bg-white/10 transition ring-focus" href="#chat" data-tab="chat">
+          <span class="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center">
+            <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+              <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v7A2.5 2.5 0 0 1 17.5 15H10l-4 4v-4H6.5A2.5 2.5 0 0 1 4 12.5v-7Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </span>
+          <div class="flex-1">
+            <div class="font-black text-sm">المحادثات</div>
+            <div class="text-xs opacity-70">رسائل ودردشة</div>
+          </div>
+          <span class="h-6 w-6 rounded-xl bg-secondary text-white text-xs flex items-center justify-center font-black">3</span>
+        </a>
+
+        <div class="pt-2 border-t border-white/10 dark:border-white/10 border-black/10">
+          <a class="flex items-center justify-between rounded-2xl px-4 py-3 hover:bg-white/10 transition ring-focus" href="#links">
+            <span class="font-black text-sm">روابط سريعة</span>
+            <span class="opacity-70 text-xs">سياسة • دعم</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+  </div>
+
+  <!-- Desktop Layout -->
+  <div class="relative z-10 mx-auto max-w-7xl p-4 lg:p-6">
+    <div class="grid gap-6 lg:grid-cols-[280px_1fr]">
+      <!-- Desktop Sidebar -->
+      <aside class="hidden lg:block sticky top-6 h-[calc(100vh-3rem)]">
+        <div class="h-full rounded-3xl glass overflow-hidden shadow-2xl">
+          <!-- Brand -->
+          <div class="p-5 border-b border-white/10 dark:border-white/10 border-black/10">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="relative">
+                <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-brand-p via-brand-c to-secondary shadow-lg pulse-glow"></div>
+                <div class="absolute -bottom-1 -right-1 h-4 w-4 bg-accent rounded-full border-2 border-[#0A0E1A] dark:border-[#0A0E1A] border-white"></div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-black text-lg gradient-text">أوتاكو فيرس</div>
+                <div class="text-[11px] opacity-70">مجتمع الأنمي العربي</div>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <div class="flex-1 rounded-xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 px-3 py-2">
+                <div class="text-xs opacity-70">المتابعون</div>
+                <div class="text-lg font-black">3.2K</div>
+              </div>
+              <div class="flex-1 rounded-xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 px-3 py-2">
+                <div class="text-xs opacity-70">النقاط</div>
+                <div class="text-lg font-black">890</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Nav -->
+          <div class="p-3 h-[calc(100%-220px)] overflow-auto scrollbar-hide">
+            <nav class="space-y-1">
+              <a href="#home" data-tab="home" class="desk-link group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200 bg-gradient-to-l from-brand-p/20 to-transparent hover:from-brand-p/30 ring-focus">
+                <div class="h-10 w-10 rounded-xl bg-brand-p/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg class="h-5 w-5 text-brand-p" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20v-9.5Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-black text-sm">الرئيسية</div>
+                  <div class="text-xs opacity-70">التحديثات الجديدة</div>
+                </div>
+                <span class="h-6 w-6 rounded-lg bg-brand-p text-white text-xs flex items-center justify-center font-black">5</span>
+              </a>
+
+              <a href="#explore" data-tab="explore" class="desk-link group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200 hover:bg-white/5 dark:hover:bg-white/5 hover:bg-black/5 ring-focus">
+                <div class="h-10 w-10 rounded-xl bg-white/5 dark:bg-white/5 bg-black/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 4h7v7H4V4ZM13 4h7v7h-7V4ZM4 13h7v7H4v-7ZM13 13h7v7h-7v-7Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-black text-sm">استكشف</div>
+                  <div class="text-xs opacity-70">ترند ومحتوى</div>
+                </div>
+              </a>
+
+              <a href="#manga" data-tab="manga" class="desk-link group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200 hover:bg-white/5 dark:hover:bg-white/5 hover:bg-black/5 ring-focus">
+                <div class="h-10 w-10 rounded-xl bg-white/5 dark:bg-white/5 bg-black/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg class="h-5 w-5 text-warning" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 6h14v12H7V6Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M3 8h4v12H3V8Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-black text-sm">القصص المصورة</div>
+                  <div class="text-xs opacity-70">المانجا والكوميكس</div>
+                </div>
+              </a>
+
+              <a href="#episodes" data-tab="episodes" class="desk-link group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200 hover:bg-white/5 dark:hover:bg-white/5 hover:bg-black/5 ring-focus">
+                <div class="h-10 w-10 rounded-xl bg-white/5 dark:bg-white/5 bg-black/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg class="h-5 w-5 text-secondary" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                    <path d="m10 8 6 4-6 4V8Z" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-black text-sm">حلقات</div>
+                  <div class="text-xs opacity-70">شاهد الأنمي</div>
+                </div>
+                <span class="text-xs rounded-lg bg-secondary/20 text-secondary px-2 py-0.5 font-black">24</span>
+              </a>
+
+              <a href="#chat" data-tab="chat" class="desk-link group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200 hover:bg-white/5 dark:hover:bg-white/5 hover:bg-black/5 ring-focus">
+                <div class="h-10 w-10 rounded-xl bg-white/5 dark:bg-white/5 bg-black/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v7A2.5 2.5 0 0 1 17.5 15H10l-4 4v-4H6.5A2.5 2.5 0 0 1 4 12.5v-7Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-black text-sm">المحادثات</div>
+                  <div class="text-xs opacity-70">الرسائل والدردشة</div>
+                </div>
+                <span class="h-6 w-6 rounded-lg bg-secondary text-white text-xs flex items-center justify-center font-black">3</span>
+              </a>
+
+              <div class="my-3 border-t border-white/10 dark:border-white/10 border-black/10"></div>
+
+              <div class="rounded-2xl p-3 glass">
+                <div class="flex items-center gap-2">
+                  <svg class="h-5 w-5 opacity-70" viewBox="0 0 24 24" fill="none">
+                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+                    <path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                  <input id="searchDesktop" class="w-full bg-transparent outline-none placeholder:opacity-60 text-sm ring-focus rounded-xl" placeholder="ابحث بسرعة..." />
+                </div>
+              </div>
+
+              <a href="#links" class="desk-link group flex items-center justify-between rounded-2xl px-4 py-3 transition-all duration-200 hover:bg-white/5 dark:hover:bg-white/5 hover:bg-black/5 ring-focus">
+                <span class="font-black text-sm">روابط سريعة</span>
+                <span class="text-xs opacity-70">الشروط • الخصوصية</span>
+              </a>
+            </nav>
+          </div>
+
+          <!-- Desktop User Footer -->
+          <div class="p-3 border-t border-white/10 dark:border-white/10 border-black/10">
+            <div class="flex items-center gap-3 rounded-2xl p-3 bg-white/5 dark:bg-white/5 bg-black/5">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=ibrahim" class="h-11 w-11 rounded-xl border-2 border-brand-p" alt="Avatar"/>
+              <div class="flex-1 min-w-0">
+                <div class="font-black text-sm truncate">إبراهيم دحمة</div>
+                <div class="text-xs opacity-70 truncate">@luffy.dev</div>
+              </div>
+              <button class="h-9 w-9 rounded-xl bg-white/5 dark:bg-white/5 bg-black/5 hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 flex items-center justify-center transition ring-focus" aria-label="خيارات">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main id="content" class="min-h-screen pb-28 lg:pb-6">
+        <!-- Desktop Header -->
+        <header class="hidden lg:block mb-6 slide-up">
+          <div class="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <h1 class="text-3xl font-black mb-1">مرحباً، إبراهيم 👋</h1>
+              <p class="text-sm opacity-70">اكتشف آخر التحديثات في عالم الأنمي</p>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <button id="btnThemeDesk" class="h-12 w-12 rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus flex items-center justify-center" aria-label="تبديل الثيم">
+                <svg class="h-5 w-5 hidden" data-ico="sun" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <svg class="h-5 w-5" data-ico="moon" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+              </button>
+
+              <button id="btnComposeDesk" class="h-12 px-5 rounded-2xl bg-gradient-to-l from-brand-p to-brand-c text-white font-black hover:shadow-lg hover:shadow-brand-p/40 transition ring-focus">
+                + إنشاء منشور
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="card-hover rounded-2xl glass p-4">
+              <div class="flex items-center justify-between mb-2">
+                <div class="h-12 w-12 rounded-xl bg-brand-p/20 flex items-center justify-center">
+                  <svg class="h-6 w-6 text-brand-p" viewBox="0 0 24 24" fill="none">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <span class="text-xs text-brand-p font-black">+12%</span>
+              </div>
+              <div class="text-2xl font-black mb-1">12.5K</div>
+              <div class="text-sm opacity-70">المشاهدات</div>
+            </div>
+
+            <div class="card-hover rounded-2xl glass p-4">
+              <div class="flex items-center justify-between mb-2">
+                <div class="h-12 w-12 rounded-xl bg-accent/20 flex items-center justify-center">
+                  <svg class="h-6 w-6 text-accent" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 20c0-3.3 3.6-5 9-5s9 1.7 9 5" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <span class="text-xs text-accent font-black">+8%</span>
+              </div>
+              <div class="text-2xl font-black mb-1">3.2K</div>
+              <div class="text-sm opacity-70">المتابعون</div>
+            </div>
+
+            <div class="card-hover rounded-2xl glass p-4">
+              <div class="flex items-center justify-between mb-2">
+                <div class="h-12 w-12 rounded-xl bg-secondary/20 flex items-center justify-center">
+                  <svg class="h-6 w-6 text-secondary" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                </div>
+                <span class="text-xs text-secondary font-black">+15%</span>
+              </div>
+              <div class="text-2xl font-black mb-1">8.7K</div>
+              <div class="text-sm opacity-70">الإعجابات</div>
+            </div>
+
+            <div class="card-hover rounded-2xl glass p-4">
+              <div class="flex items-center justify-between mb-2">
+                <div class="h-12 w-12 rounded-xl bg-warning/20 flex items-center justify-center">
+                  <svg class="h-6 w-6 text-warning" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 6h14v12H7V6Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M3 8h4v12H3V8Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </div>
+                <span class="text-xs text-warning font-black">+5%</span>
+              </div>
+              <div class="text-2xl font-black mb-1">156</div>
+              <div class="text-sm opacity-70">المحتوى</div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Sections wrapper -->
+        <div class="grid lg:grid-cols-[1fr_380px] gap-6">
+          <!-- Feed / Center -->
+          <section id="home" data-section="home" class="space-y-4 scroll-mt-28 lg:scroll-mt-8">
+            <!-- Stories -->
+            <div class="rounded-2xl glass p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="font-black">القصص</div>
+                <div class="text-xs opacity-70">اسحب يمين/يسار</div>
+              </div>
+
+              <div class="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+                <button class="shrink-0 text-center ring-focus rounded-2xl" id="btnAddStory">
+                  <div class="relative mb-2">
+                    <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-brand-p to-brand-c p-0.5">
+                      <div class="h-full w-full rounded-2xl bg-[var(--bg0)] flex items-center justify-center">
+                        <svg class="h-8 w-8 opacity-90" viewBox="0 0 24 24" fill="none">
+                          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-xs font-black">قصتك</div>
+                </button>
+
+                <button class="shrink-0 text-center ring-focus rounded-2xl">
+                  <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-secondary to-warning p-0.5 mb-2">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=story1" class="h-full w-full rounded-2xl" alt="Story"/>
+                  </div>
+                  <div class="text-xs font-black">أحمد</div>
+                </button>
+
+                <button class="shrink-0 text-center ring-focus rounded-2xl">
+                  <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-accent to-brand-c p-0.5 mb-2">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=story2" class="h-full w-full rounded-2xl" alt="Story"/>
+                  </div>
+                  <div class="text-xs font-black">سارة</div>
+                </button>
+
+                <button class="shrink-0 text-center ring-focus rounded-2xl">
+                  <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-brand-p to-secondary p-0.5 mb-2">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=story3" class="h-full w-full rounded-2xl" alt="Story"/>
+                  </div>
+                  <div class="text-xs font-black">محمد</div>
+                </button>
+
+                <button class="shrink-0 text-center ring-focus rounded-2xl">
+                  <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-warning to-accent p-0.5 mb-2">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=story4" class="h-full w-full rounded-2xl" alt="Story"/>
+                  </div>
+                  <div class="text-xs font-black">فاطمة</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Compose teaser (mobile-friendly) -->
+            <div class="rounded-2xl glass p-4 flex items-center gap-3">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=ibrahim" class="h-11 w-11 rounded-2xl border-2 border-brand-p" alt="Avatar"/>
+              <button id="btnComposeInline" class="flex-1 text-right px-4 py-3 rounded-2xl bg-white/5 dark:bg-white/5 bg-black/5 hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus text-sm opacity-80">
+                شاركنا رأيك… ماذا تشاهد اليوم؟
+              </button>
+              <button id="btnQuickPhoto" class="h-11 w-11 rounded-2xl bg-accent/15 text-accent hover:bg-accent/20 transition ring-focus flex items-center justify-center" aria-label="إضافة صورة">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7Z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M9 10.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" fill="currentColor"/>
+                  <path d="m21 16-5-5-4 4-2-2-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Posts -->
+            <div id="feed" class="space-y-4">
+              <!-- Post 1 -->
+              <article class="post card-hover rounded-2xl glass p-5" data-text="Attack on Titan الحلقة الأخيرة كانت مذهلة التحول الدراماتيكي">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=post1" class="h-12 w-12 rounded-xl" alt="Avatar"/>
+                    <div>
+                      <div class="font-black">أحمد الأنمي</div>
+                      <div class="text-xs opacity-70">منذ ساعتين • Attack on Titan</div>
+                    </div>
+                  </div>
+                  <button class="h-9 w-9 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 flex items-center justify-center transition ring-focus" aria-label="المزيد">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="mb-4">
+                  <p class="text-sm leading-relaxed mb-3">
+                    الحلقة الأخيرة من Attack on Titan كانت مذهلة! التحول الدراماتيكي في الأحداث والرسوم المتحركة الرائعة جعلت كل شيء يبدو مثالياً 🔥⚔️
+                  </p>
+                  <div class="rounded-xl overflow-hidden border border-white/10 dark:border-white/10 border-black/10">
+                    <div class="aspect-video bg-gradient-to-br from-brand-p/20 via-secondary/20 to-brand-c/20 flex items-center justify-center">
+                      <div class="text-center">
+                        <svg class="h-20 w-20 mx-auto mb-2 opacity-40" viewBox="0 0 24 24" fill="currentColor">
+                          <circle cx="12" cy="12" r="9"/>
+                          <path d="m10 8 6 4-6 4V8Z" fill="rgba(10,14,26,.9)"/>
+                        </svg>
+                        <div class="text-sm opacity-70">مقطع فيديو</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-white/10 dark:border-white/10 border-black/10">
+                  <button class="btn-like flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus" data-count="1200">
+                    <svg class="h-5 w-5 text-secondary" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                    <span class="font-black text-sm like-count">1.2K</span>
+                  </button>
+
+                  <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus">
+                    <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+                      <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span class="font-black text-sm">256</span>
+                  </button>
+
+                  <button class="btn-share flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus">
+                    <svg class="h-5 w-5 text-accent" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span class="font-black text-sm">مشاركة</span>
+                  </button>
+                </div>
+              </article>
+
+              <!-- Post 2 -->
+              <article class="post card-hover rounded-2xl glass p-5" data-text="One Piece فصل 1099 القصة الخلفية لكوما كانت مؤثرة">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=post2" class="h-12 w-12 rounded-xl" alt="Avatar"/>
+                    <div>
+                      <div class="font-black">سارة المانجا</div>
+                      <div class="text-xs opacity-70">منذ 4 ساعات • One Piece</div>
+                    </div>
+                  </div>
+                  <button class="h-9 w-9 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 flex items-center justify-center transition ring-focus" aria-label="المزيد">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="mb-4">
+                  <p class="text-sm leading-relaxed mb-3">
+                    فصل 1099 من One Piece نزل أخيراً! 🏴‍☠️ القصة الخلفية لكوما كانت مؤثرة جداً والأحداث بدأت تتسارع. أودا دائماً يفاجئنا!
+                  </p>
+
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="rounded-xl overflow-hidden border border-white/10 dark:border-white/10 border-black/10">
+                      <div class="aspect-square bg-gradient-to-br from-warning/20 to-secondary/20"></div>
+                    </div>
+                    <div class="rounded-xl overflow-hidden border border-white/10 dark:border-white/10 border-black/10">
+                      <div class="aspect-square bg-gradient-to-br from-accent/20 to-primary/20"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-white/10 dark:border-white/10 border-black/10">
+                  <button class="btn-like flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus" data-count="892">
+                    <svg class="h-5 w-5 text-secondary" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                    <span class="font-black text-sm like-count">892</span>
+                  </button>
+
+                  <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus">
+                    <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+                      <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span class="font-black text-sm">187</span>
+                  </button>
+
+                  <button class="btn-share flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus">
+                    <svg class="h-5 w-5 text-accent" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span class="font-black text-sm">مشاركة</span>
+                  </button>
+                </div>
+              </article>
+
+              <!-- Post 3 -->
+              <article class="post card-hover rounded-2xl glass p-5" data-text="Fan Art رسم جوجو كاتسو سايبربانك 12 ساعة">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=post3" class="h-12 w-12 rounded-xl" alt="Avatar"/>
+                    <div>
+                      <div class="font-black">محمد الفنان</div>
+                      <div class="text-xs opacity-70">منذ يوم • Fan Art</div>
+                    </div>
+                  </div>
+                  <button class="h-9 w-9 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 flex items-center justify-center transition ring-focus" aria-label="المزيد">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="mb-4">
+                  <p class="text-sm leading-relaxed mb-3">
+                    قضيت 12 ساعة في رسم جوجو كاتسو بأسلوب السايبربانك! 🎨✨ ما رأيكم بالنتيجة؟
+                  </p>
+
+                  <div class="rounded-xl overflow-hidden border border-white/10 dark:border-white/10 border-black/10">
+                    <div class="aspect-video bg-gradient-to-br from-brand-p/20 via-secondary/20 to-accent/20 flex items-center justify-center">
+                      <svg class="h-24 w-24 opacity-30" viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                        <path d="m3 16 5-5 4 4 5-5 4 4" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-white/10 dark:border-white/10 border-black/10">
+                  <button class="btn-like flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus" data-count="1500">
+                    <svg class="h-5 w-5 text-secondary" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                    <span class="font-black text-sm like-count">1.5K</span>
+                  </button>
+
+                  <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus">
+                    <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+                      <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span class="font-black text-sm">89</span>
+                  </button>
+
+                  <button class="btn-share flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus">
+                    <svg class="h-5 w-5 text-accent" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span class="font-black text-sm">مشاركة</span>
+                  </button>
+                </div>
+              </article>
+            </div>
+
+            <!-- Extra sections (for tabs) -->
+            <section id="explore" data-section="explore" class="rounded-2xl glass p-5 mt-6 scroll-mt-28 lg:scroll-mt-8">
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="font-black text-lg">استكشف ✨</h2>
+                <span class="text-xs opacity-70">مقترحات سريعة</span>
+              </div>
+              <div class="grid sm:grid-cols-2 gap-3">
+                <div class="rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 p-4">
+                  <div class="font-black mb-1">تحدي الأسبوع</div>
+                  <div class="text-sm opacity-70">شارك لقطة/اقتباس من حلقة أثّرت فيك.</div>
+                </div>
+                <div class="rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 p-4">
+                  <div class="font-black mb-1">قائمة المشاهدة</div>
+                  <div class="text-sm opacity-70">أضف أنمي جديد واكسب نقاط.</div>
+                </div>
+              </div>
+            </section>
+
+            <section id="manga" data-section="manga" class="rounded-2xl glass p-5 mt-6 scroll-mt-28 lg:scroll-mt-8">
+              <h2 class="font-black text-lg mb-3">المانجا 📚</h2>
+              <div class="grid sm:grid-cols-3 gap-3">
+                <div class="rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 p-4">
+                  <div class="font-black">One Piece</div>
+                  <div class="text-xs opacity-70 mt-1">الفصل الأخير: 1099</div>
+                </div>
+                <div class="rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 p-4">
+                  <div class="font-black">JJK</div>
+                  <div class="text-xs opacity-70 mt-1">نقاشات مكثفة 🔥</div>
+                </div>
+                <div class="rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 p-4">
+                  <div class="font-black">Berserk</div>
+                  <div class="text-xs opacity-70 mt-1">أفضل لحظات غاتس</div>
+                </div>
+              </div>
+            </section>
+
+            <section id="episodes" data-section="episodes" class="rounded-2xl glass p-5 mt-6 scroll-mt-28 lg:scroll-mt-8">
+              <h2 class="font-black text-lg mb-3">الحلقات ▶️</h2>
+              <div class="grid sm:grid-cols-2 gap-3">
+                <div class="rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 p-4 flex items-center justify-between">
+                  <div>
+                    <div class="font-black">Jujutsu Kaisen</div>
+                    <div class="text-xs opacity-70">الحلقة الجديدة متاحة</div>
+                  </div>
+                  <button class="px-4 py-2 rounded-2xl bg-secondary/15 text-secondary font-black ring-focus hover:bg-secondary/20 transition">تشغيل</button>
+                </div>
+                <div class="rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 p-4 flex items-center justify-between">
+                  <div>
+                    <div class="font-black">Demon Slayer</div>
+                    <div class="text-xs opacity-70">ملخص الموسم</div>
+                  </div>
+                  <button class="px-4 py-2 rounded-2xl bg-brand-p/15 text-brand-p font-black ring-focus hover:bg-brand-p/20 transition">مشاهدة</button>
+                </div>
+              </div>
+            </section>
+
+            <section id="chat" data-section="chat" class="rounded-2xl glass p-5 mt-6 scroll-mt-28 lg:scroll-mt-8">
+              <h2 class="font-black text-lg mb-3">المحادثات 💬</h2>
+              <div class="space-y-2">
+                <div class="rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 p-4 flex items-center justify-between">
+                  <div>
+                    <div class="font-black">غرفة: AOT نقاش</div>
+                    <div class="text-xs opacity-70">نشط الآن • 58 عضو</div>
+                  </div>
+                  <button class="px-4 py-2 rounded-2xl bg-accent/15 text-accent font-black ring-focus hover:bg-accent/20 transition">دخول</button>
+                </div>
+                <div class="rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 p-4 flex items-center justify-between">
+                  <div>
+                    <div class="font-black">رسائل خاصة</div>
+                    <div class="text-xs opacity-70">3 رسائل غير مقروءة</div>
+                  </div>
+                  <button class="px-4 py-2 rounded-2xl bg-secondary/15 text-secondary font-black ring-focus hover:bg-secondary/20 transition">فتح</button>
+                </div>
+              </div>
+            </section>
+
+            <section id="links" data-section="links" class="rounded-2xl glass p-5 mt-6 scroll-mt-28 lg:scroll-mt-8">
+              <h2 class="font-black text-lg mb-3">روابط سريعة</h2>
+              <div class="space-y-2 text-sm">
+                <a href="#" class="block opacity-80 hover:opacity-100 transition ring-focus rounded-xl px-2 py-2">عن أوتاكو فيرس</a>
+                <a href="#" class="block opacity-80 hover:opacity-100 transition ring-focus rounded-xl px-2 py-2">الشروط والأحكام</a>
+                <a href="#" class="block opacity-80 hover:opacity-100 transition ring-focus rounded-xl px-2 py-2">سياسة الخصوصية</a>
+                <a href="#" class="block opacity-80 hover:opacity-100 transition ring-focus rounded-xl px-2 py-2">المساعدة والدعم</a>
+              </div>
+              <div class="mt-4 pt-4 border-t border-white/10 dark:border-white/10 border-black/10 text-xs opacity-70">
+                © 2024 OtakuVerse. جميع الحقوق محفوظة
+              </div>
+            </section>
+          </section>
+
+          <!-- Right Sidebar -->
+          <aside class="space-y-4 hidden lg:block">
+            <!-- Trending -->
+            <div class="rounded-2xl glass p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-black text-lg">الترند 🔥</h3>
+                <button class="text-xs text-brand-p font-black ring-focus rounded-xl px-2 py-1 hover:bg-brand-p/10 transition">عرض الكل</button>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 dark:hover:bg-white/5 hover:bg-black/5 transition cursor-pointer ring-focus">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-p to-secondary flex items-center justify-center text-white font-black">1</div>
+                    <div>
+                      <div class="font-black text-sm">#AttackOnTitan</div>
+                      <div class="text-xs opacity-70">15.2K منشور</div>
+                    </div>
+                  </div>
+                  <span class="text-xl">⚔️</span>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 dark:hover:bg-white/5 hover:bg-black/5 transition cursor-pointer ring-focus">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-warning to-accent flex items-center justify-center text-white font-black">2</div>
+                    <div>
+                      <div class="font-black text-sm">#OnePiece</div>
+                      <div class="text-xs opacity-70">12.8K منشور</div>
+                    </div>
+                  </div>
+                  <span class="text-xl">🏴‍☠️</span>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 dark:hover:bg-white/5 hover:bg-black/5 transition cursor-pointer ring-focus">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center text-white font-black">3</div>
+                    <div>
+                      <div class="font-black text-sm">#JujutsuKaisen</div>
+                      <div class="text-xs opacity-70">9.4K منشور</div>
+                    </div>
+                  </div>
+                  <span class="text-xl">⚡</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Suggestions -->
+            <div class="rounded-2xl glass p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-black text-lg">اقتراحات المتابعة</h3>
+                <span class="text-xs opacity-70">مخصص لك</span>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=sug1" class="h-12 w-12 rounded-xl" alt="Avatar"/>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-black text-sm">عمر الناقد</div>
+                    <div class="text-xs opacity-70">2.5K متابع</div>
+                  </div>
+                  <button class="h-9 px-4 rounded-xl bg-gradient-to-l from-brand-p to-brand-c text-white text-sm font-black hover:shadow-lg hover:shadow-brand-p/30 transition ring-focus">
+                    متابعة
+                  </button>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=sug2" class="h-12 w-12 rounded-xl" alt="Avatar"/>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-black text-sm">ليلى الرسامة</div>
+                    <div class="text-xs opacity-70">1.8K متابع</div>
+                  </div>
+                  <button class="h-9 px-4 rounded-xl bg-gradient-to-l from-brand-p to-brand-c text-white text-sm font-black hover:shadow-lg hover:shadow-brand-p/30 transition ring-focus">
+                    متابعة
+                  </button>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=sug3" class="h-12 w-12 rounded-xl" alt="Avatar"/>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-black text-sm">كريم الأوتاكو</div>
+                    <div class="text-xs opacity-70">3.2K متابع</div>
+                  </div>
+                  <button class="h-9 px-4 rounded-xl bg-gradient-to-l from-brand-p to-brand-c text-white text-sm font-black hover:shadow-lg hover:shadow-brand-p/30 transition ring-focus">
+                    متابعة
+                  </button>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Nav (Footer icons) -->
+  <nav class="lg:hidden fixed bottom-3 left-0 right-0 z-50">
+    <div class="mx-auto max-w-2xl px-4">
+      <div class="glass rounded-3xl px-3 py-2 flex items-center justify-between">
+        <a class="tab-link tab-active flex-1 mx-1 rounded-2xl px-3 py-2 flex flex-col items-center gap-1 ring-focus" href="#home" data-tab="home" aria-label="الرئيسية">
+          <svg class="h-5 w-5 text-brand-p" viewBox="0 0 24 24" fill="none">
+            <path d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20v-9.5Z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <span class="text-[11px] font-black">الرئيسية</span>
+        </a>
+
+        <a class="tab-link flex-1 mx-1 rounded-2xl px-3 py-2 flex flex-col items-center gap-1 hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus" href="#explore" data-tab="explore" aria-label="استكشف">
+          <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+            <path d="M4 4h7v7H4V4ZM13 4h7v7h-7V4ZM4 13h7v7H4v-7ZM13 13h7v7h-7v-7Z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <span class="text-[11px] font-black">استكشف</span>
+        </a>
+
+        <!-- Center FAB -->
+        <button id="btnComposeFab" class="mx-1 h-12 w-12 rounded-2xl bg-gradient-to-br from-brand-p to-brand-c text-white shadow-glow hover:scale-105 transition ring-focus flex items-center justify-center" aria-label="إنشاء منشور">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+
+        <a class="tab-link flex-1 mx-1 rounded-2xl px-3 py-2 flex flex-col items-center gap-1 hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus" href="#manga" data-tab="manga" aria-label="المانجا">
+          <svg class="h-5 w-5 text-warning" viewBox="0 0 24 24" fill="none">
+            <path d="M7 6h14v12H7V6Z" stroke="currentColor" stroke-width="2"/>
+            <path d="M3 8h4v12H3V8Z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <span class="text-[11px] font-black">مانجا</span>
+        </a>
+
+        <a class="tab-link flex-1 mx-1 rounded-2xl px-3 py-2 flex flex-col items-center gap-1 hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus" href="#chat" data-tab="chat" aria-label="الدردشة">
+          <svg class="h-5 w-5 text-secondary" viewBox="0 0 24 24" fill="none">
+            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v7A2.5 2.5 0 0 1 17.5 15H10l-4 4v-4H6.5A2.5 2.5 0 0 1 4 12.5v-7Z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <span class="text-[11px] font-black">دردشة</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Compose Modal -->
+  <div id="composeModal" class="fixed inset-0 z-[80] hidden">
+    <div class="absolute inset-0 bg-black/55"></div>
+    <div class="relative mx-auto max-w-2xl px-4 pt-24 lg:pt-28">
+      <div class="glass rounded-3xl p-5 shadow-2xl">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-black text-lg">إنشاء منشور</div>
+          <button id="btnCloseCompose" class="h-11 w-11 rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus flex items-center justify-center" aria-label="إغلاق">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+              <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-3 mb-3">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=ibrahim" class="h-11 w-11 rounded-2xl border-2 border-brand-p" alt="Avatar"/>
+          <div class="min-w-0">
+            <div class="font-black text-sm">إبراهيم دحمة</div>
+            <div class="text-xs opacity-70">انشر شيئاً رهيباً 🔥</div>
+          </div>
+        </div>
+
+        <textarea id="composeText" rows="4" class="w-full rounded-2xl border border-white/10 dark:border-white/10 border-black/10 bg-white/5 dark:bg-white/5 bg-black/5 px-4 py-3 outline-none ring-focus text-sm resize-none" placeholder="اكتب رأيك... (مثال: حلقة اليوم كانت جنونية!)"></textarea>
+
+        <div class="flex items-center justify-between mt-3">
+          <div class="text-xs opacity-70">
+            <span id="charCount">0</span>/280
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnInsertTag" class="px-4 py-2 rounded-2xl bg-white/5 dark:bg-white/5 bg-black/5 hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus font-black text-sm">
+              #هاشتاق
+            </button>
+            <button id="btnPublish" class="px-5 py-2 rounded-2xl bg-gradient-to-l from-brand-p to-brand-c text-white font-black hover:shadow-lg hover:shadow-brand-p/35 transition ring-focus">
+              نشر
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed top-6 left-0 right-0 z-[90] pointer-events-none hidden">
+    <div class="mx-auto max-w-md px-4">
+      <div class="glass rounded-2xl px-4 py-3 flex items-center gap-3 shadow-xl">
+        <div class="h-9 w-9 rounded-2xl bg-accent/15 text-accent flex items-center justify-center">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+            <path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="text-sm font-black" id="toastText">تم!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll to top -->
+  <button id="btnTop" class="fixed bottom-28 lg:bottom-8 right-4 z-[70] hidden h-12 w-12 rounded-2xl glass hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus flex items-center justify-center" aria-label="أعلى الصفحة">
+    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+      <path d="M12 19V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="m6 11 6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <script>
+    // ---------- Helpers ----------
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+
+    function formatCount(n){
+      const num = Number(n) || 0;
+      if (num >= 1000) return (Math.round((num/1000)*10)/10) + "K";
+      return String(num);
+    }
+
+    function toast(msg){
+      const t = $("#toast");
+      $("#toastText").textContent = msg;
+      t.classList.remove("hidden");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(()=> t.classList.add("hidden"), 1600);
+    }
+
+    function setTheme(isDark){
+      document.documentElement.classList.toggle("dark", isDark);
+      localStorage.setItem("ov_theme", isDark ? "dark" : "light");
+      syncThemeIcons();
+    }
+
+    function syncThemeIcons(){
+      const isDark = document.documentElement.classList.contains("dark");
+      $$("[data-ico='moon']").forEach(el => el.classList.toggle("hidden", !isDark));
+      $$("[data-ico='sun']").forEach(el => el.classList.toggle("hidden", isDark));
+    }
+
+    // ---------- Theme (persist) ----------
+    (function initTheme(){
+      const saved = localStorage.getItem("ov_theme");
+      if (saved === "light") document.documentElement.classList.remove("dark");
+      if (saved === "dark") document.documentElement.classList.add("dark");
+      syncThemeIcons();
+    })();
+
+    $("#btnTheme")?.addEventListener("click", () => setTheme(!document.documentElement.classList.contains("dark")));
+    $("#btnThemeDesk")?.addEventListener("click", () => setTheme(!document.documentElement.classList.contains("dark")));
+
+    // ---------- Drawer ----------
+    const drawerBackdrop = $("#drawerBackdrop");
+    const btnDrawer = $("#btnDrawer");
+    const btnCloseDrawer = $("#btnCloseDrawer");
+
+    function openDrawer(){
+      drawerBackdrop.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+    function closeDrawer(){
+      drawerBackdrop.classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+
+    btnDrawer?.addEventListener("click", openDrawer);
+    btnCloseDrawer?.addEventListener("click", closeDrawer);
+    drawerBackdrop?.addEventListener("click", (e)=>{
+      if (e.target === drawerBackdrop || e.target === drawerBackdrop.firstElementChild) closeDrawer();
+    });
+
+    // Close drawer on navigation click
+    $$(".drawer-link").forEach(a => a.addEventListener("click", () => closeDrawer()));
+
+    // ---------- Compose Modal ----------
+    const modal = $("#composeModal");
+    const composeText = $("#composeText");
+    const charCount = $("#charCount");
+
+    function openCompose(){
+      modal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+      setTimeout(() => composeText?.focus(), 0);
+      updateCharCount();
+    }
+    function closeCompose(){
+      modal.classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+    function updateCharCount(){
+      const v = (composeText?.value || "");
+      charCount.textContent = v.length;
+      if (v.length > 280) {
+        charCount.parentElement.classList.add("text-warning");
+      } else {
+        charCount.parentElement.classList.remove("text-warning");
+      }
+    }
+
+    $("#btnComposeTop")?.addEventListener("click", openCompose);
+    $("#btnComposeDesk")?.addEventListener("click", openCompose);
+    $("#btnComposeInline")?.addEventListener("click", openCompose);
+    $("#btnComposeFab")?.addEventListener("click", openCompose);
+    $("#btnCloseCompose")?.addEventListener("click", closeCompose);
+
+    modal?.addEventListener("click", (e)=>{
+      if (e.target === modal || e.target === modal.firstElementChild) closeCompose();
+    });
+
+    document.addEventListener("keydown", (e)=>{
+      if (e.key === "Escape") {
+        if (!modal.classList.contains("hidden")) closeCompose();
+        if (!drawerBackdrop.classList.contains("hidden")) closeDrawer();
+      }
+    });
+
+    composeText?.addEventListener("input", updateCharCount);
+
+    $("#btnInsertTag")?.addEventListener("click", ()=>{
+      const tag = "#OtakuVerse ";
+      if (!composeText) return;
+      const start = composeText.selectionStart || 0;
+      const end = composeText.selectionEnd || 0;
+      const v = composeText.value;
+      composeText.value = v.slice(0, start) + tag + v.slice(end);
+      composeText.focus();
+      composeText.selectionStart = composeText.selectionEnd = start + tag.length;
+      updateCharCount();
+    });
+
+    $("#btnPublish")?.addEventListener("click", ()=>{
+      const text = (composeText?.value || "").trim();
+      if (!text) return toast("اكتب شيئاً أولاً ✍️");
+      if (text.length > 280) return toast("قلّل النص إلى 280 حرف");
+
+      const feed = $("#feed");
+      const now = new Date();
+      const mins = now.getMinutes().toString().padStart(2,"0");
+      const timeLabel = `الآن • ${now.getHours()}:${mins}`;
+
+      const article = document.createElement("article");
+      article.className = "post card-hover rounded-2xl glass p-5 slide-up";
+      article.setAttribute("data-text", text);
+
+      article.innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=ibrahim" class="h-12 w-12 rounded-xl" alt="Avatar"/>
+            <div>
+              <div class="font-black">إبراهيم دحمة</div>
+              <div class="text-xs opacity-70">${timeLabel}</div>
+            </div>
+          </div>
+          <button class="h-9 w-9 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 flex items-center justify-center transition ring-focus" aria-label="المزيد">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+            </svg>
+          </button>
+        </div>
+        <div class="mb-4">
+          <p class="text-sm leading-relaxed whitespace-pre-wrap">${escapeHtml(text)}</p>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-white/10 dark:border-white/10 border-black/10">
+          <button class="btn-like flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus" data-count="0">
+            <svg class="h-5 w-5 text-secondary" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <span class="font-black text-sm like-count">0</span>
+          </button>
+
+          <button class="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus">
+            <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none">
+              <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span class="font-black text-sm">0</span>
+          </button>
+
+          <button class="btn-share flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 hover:bg-black/10 transition ring-focus">
+            <svg class="h-5 w-5 text-accent" viewBox="0 0 24 24" fill="none">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span class="font-black text-sm">مشاركة</span>
+          </button>
+        </div>
+      `;
+
+      feed?.prepend(article);
+      composeText.value = "";
+      updateCharCount();
+      closeCompose();
+      toast("تم نشر المنشور ✅");
+      bindPostActions(article);
+    });
+
+    function escapeHtml(str){
+      return str.replace(/[&<>"']/g, (m)=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[m]));
+    }
+
+    // ---------- Like / Share actions ----------
+    function bindPostActions(root){
+      // Like
+      $$(".btn-like", root).forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const liked = btn.dataset.liked === "1";
+          let count = Number(btn.dataset.count || "0");
+          if (liked) {
+            btn.dataset.liked = "0";
+            count = Math.max(0, count - 1);
+            toast("تم إلغاء الإعجاب");
+          } else {
+            btn.dataset.liked = "1";
+            count = count + 1;
+            toast("تم الإعجاب ❤️");
+          }
+          btn.dataset.count = String(count);
+          $(".like-count", btn).textContent = formatCount(count);
+          btn.classList.toggle("bg-secondary/10", !liked);
+        });
+      });
+
+      // Share
+      $$(".btn-share", root).forEach(btn=>{
+        btn.addEventListener("click", async ()=>{
+          const post = btn.closest(".post");
+          const text = post?.getAttribute("data-text") || "OtakuVerse";
+          try{
+            if (navigator.share) {
+              await navigator.share({ title: "OtakuVerse", text });
+              toast("تمت المشاركة ✨");
+            } else {
+              await navigator.clipboard.writeText(text);
+              toast("تم النسخ للحافظة 📋");
+            }
+          }catch(_){
+            toast("تم الإلغاء");
+          }
+        });
+      });
+    }
+
+    $$(".post").forEach(bindPostActions);
+
+    // ---------- Search (mobile + desktop) ----------
+    function applySearch(q){
+      const query = (q || "").trim().toLowerCase();
+      $$(".post").forEach(p=>{
+        const t = (p.getAttribute("data-text") || "").toLowerCase();
+        const show = !query || t.includes(query);
+        p.classList.toggle("hidden", !show);
+      });
+    }
+
+    $("#searchMobile")?.addEventListener("input", (e)=> applySearch(e.target.value));
+    $("#searchDesktop")?.addEventListener("input", (e)=> applySearch(e.target.value));
+    $("#btnClearSearch")?.addEventListener("click", ()=>{
+      if ($("#searchMobile")) $("#searchMobile").value = "";
+      if ($("#searchDesktop")) $("#searchDesktop").value = "";
+      applySearch("");
+      toast("تم مسح البحث");
+    });
+
+    // ---------- Tabs Active (bottom + desktop + drawer) ----------
+    const tabLinks = $$(".tab-link");
+    const deskLinks = $$(".desk-link");
+    const drawerLinks = $$(".drawer-link");
+
+    function setActiveTab(tab){
+      // Bottom
+      tabLinks.forEach(a=>{
+        const on = a.dataset.tab === tab;
+        a.classList.toggle("tab-active", on);
+      });
+
+      // Desktop
+      deskLinks.forEach(a=>{
+        const on = a.dataset.tab === tab;
+        a.classList.toggle("bg-gradient-to-l", on);
+        a.classList.toggle("from-brand-p/20", on);
+        a.classList.toggle("to-transparent", on);
+        a.classList.toggle("hover:from-brand-p/30", on);
+      });
+
+      // Drawer (simple glow)
+      drawerLinks.forEach(a=>{
+        const on = a.dataset.tab === tab;
+        a.classList.toggle("tab-active", on);
+      });
+    }
+
+    // Smooth scroll + active on click
+    [...tabLinks, ...deskLinks, ...drawerLinks].forEach(a=>{
+      a.addEventListener("click", (e)=>{
+        const hash = a.getAttribute("href");
+        if (!hash || !hash.startsWith("#")) return;
+        const target = document.querySelector(hash);
+        if (!target) return;
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        setActiveTab(a.dataset.tab);
+      });
+    });
+
+    // Observer to auto-highlight based on scroll
+    const sections = $$("[data-section]");
+    const io = new IntersectionObserver((entries)=>{
+      const visible = entries
+        .filter(e=>e.isIntersecting)
+        .sort((a,b)=> (b.intersectionRatio - a.intersectionRatio))[0];
+      if (visible?.target?.dataset?.section) setActiveTab(visible.target.dataset.section);
+    }, { root: null, threshold: [0.2, 0.35, 0.55] });
+
+    sections.forEach(s=> io.observe(s));
+
+    // ---------- Scroll-to-top ----------
+    const btnTop = $("#btnTop");
+    window.addEventListener("scroll", ()=>{
+      const show = window.scrollY > 700;
+      btnTop.classList.toggle("hidden", !show);
+    }, { passive:true });
+
+    btnTop?.addEventListener("click", ()=> window.scrollTo({ top: 0, behavior: "smooth" }));
+
+    // ---------- Small extras ----------
+    $("#btnAddStory")?.addEventListener("click", ()=> toast("ميزة القصص قيد التطوير 🚧"));
+    $("#btnQuickPhoto")?.addEventListener("click", ()=> toast("رفع الصور قيد التطوير 📷"));
+  </script>
+</body>
+</html>

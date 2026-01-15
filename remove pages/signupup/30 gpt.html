@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>إنشاء حساب — Voyage Signup</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          boxShadow: {
+            soft: "0 16px 40px rgba(0,0,0,.35)",
+            ring: "0 0 0 4px rgba(56,189,248,.25)",
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --ocean0:#050712;
+      --ocean1:#070a1a;
+      --ocean2:#0a1230;
+      --ink:#0b1220;
+      --parch0:#f6ecd1;
+      --parch1:#ead7ab;
+      --gold0:#f7d37a;
+      --gold1:#caa64a;
+      --wood0:#7a4a2c;
+      --wood1:#4b2b18;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --info:#38bdf8;
+    }
+
+    /* ===== Background layers (SVG/CSS generated) ===== */
+    .bg-ocean{
+      background:
+        radial-gradient(1200px 700px at 80% 10%, rgba(56,189,248,.16), transparent 60%),
+        radial-gradient(900px 600px at 10% 30%, rgba(168,85,247,.12), transparent 60%),
+        radial-gradient(700px 500px at 50% 90%, rgba(34,197,94,.10), transparent 65%),
+        linear-gradient(180deg, var(--ocean0), var(--ocean2));
+      filter: saturate(1.05);
+    }
+    .bg-waves{
+      background:
+        radial-gradient(90px 42px at 10% 15%, rgba(255,255,255,.08), transparent 60%),
+        radial-gradient(110px 50px at 25% 30%, rgba(255,255,255,.06), transparent 62%),
+        radial-gradient(140px 60px at 60% 20%, rgba(255,255,255,.07), transparent 65%),
+        radial-gradient(160px 70px at 85% 35%, rgba(255,255,255,.06), transparent 68%),
+        radial-gradient(140px 60px at 30% 70%, rgba(56,189,248,.10), transparent 64%),
+        radial-gradient(200px 90px at 75% 80%, rgba(56,189,248,.08), transparent 65%),
+        linear-gradient(180deg, rgba(56,189,248,.10), rgba(56,189,248,.02));
+      background-size: 520px 280px, 560px 300px, 620px 340px, 680px 360px, 720px 420px, 820px 520px, 100% 100%;
+      animation: wavesDrift 12s linear infinite;
+      transform: translateZ(0);
+      will-change: background-position;
+    }
+    @keyframes wavesDrift{
+      0%{ background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0; }
+      100%{ background-position: 520px 0, -560px 0, 620px 0, -680px 0, 720px 0, -820px 0, 0 0; }
+    }
+    .bg-sparkles{
+      background:
+        radial-gradient(2px 2px at 12% 22%, rgba(255,255,255,.45), transparent 55%),
+        radial-gradient(2px 2px at 32% 18%, rgba(255,255,255,.35), transparent 55%),
+        radial-gradient(2px 2px at 55% 28%, rgba(255,255,255,.30), transparent 55%),
+        radial-gradient(2px 2px at 78% 24%, rgba(255,255,255,.38), transparent 55%),
+        radial-gradient(2px 2px at 88% 54%, rgba(255,255,255,.30), transparent 55%),
+        radial-gradient(2px 2px at 22% 62%, rgba(255,255,255,.25), transparent 55%),
+        radial-gradient(2px 2px at 60% 72%, rgba(255,255,255,.22), transparent 55%),
+        radial-gradient(2px 2px at 84% 80%, rgba(255,255,255,.28), transparent 55%);
+      animation: sparkTwinkle 5.5s ease-in-out infinite;
+      opacity: .55;
+    }
+    @keyframes sparkTwinkle{
+      0%,100%{ filter: brightness(1); transform: translateY(0); }
+      50%{ filter: brightness(1.4); transform: translateY(-4px); }
+    }
+
+    /* ===== Map/Parchment panel (CSS + SVG overlay) ===== */
+    .parchment{
+      background:
+        radial-gradient(1200px 700px at 20% 0%, rgba(255,255,255,.45), rgba(255,255,255,0) 55%),
+        radial-gradient(900px 600px at 80% 100%, rgba(0,0,0,.08), rgba(0,0,0,0) 55%),
+        linear-gradient(135deg, var(--parch0), var(--parch1));
+      color: #1f2a44;
+      position: relative;
+      isolation: isolate;
+    }
+    .parchment::before{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        repeating-linear-gradient(0deg, rgba(0,0,0,.03) 0 1px, transparent 1px 7px),
+        radial-gradient(280px 220px at 18% 26%, rgba(122,74,44,.14), transparent 65%),
+        radial-gradient(220px 180px at 70% 72%, rgba(122,74,44,.10), transparent 60%);
+      mix-blend-mode:multiply;
+      opacity:.55;
+      border-radius: inherit;
+      pointer-events:none;
+      z-index: 0;
+    }
+    .parchment::after{
+      content:"";
+      position:absolute; inset:-1px;
+      border-radius: inherit;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)),
+        linear-gradient(0deg, rgba(0,0,0,.10), rgba(0,0,0,0));
+      opacity:.55;
+      pointer-events:none;
+      z-index: 0;
+    }
+
+    /* ===== Card & buttons (wood/gold vibe, modern) ===== */
+    .glass{
+      background: linear-gradient(180deg, rgba(15,23,42,.78), rgba(2,6,23,.62));
+      border: 1px solid rgba(148,163,184,.18);
+      box-shadow: 0 18px 44px rgba(0,0,0,.45);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .btn{
+      min-height: 44px;
+      border-radius: 16px;
+      padding: 12px 16px;
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      font-weight: 700;
+      outline: none;
+      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+      user-select:none;
+    }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+    .btn:focus-visible{ box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), 0 0 0 4px rgba(56,189,248,.32); }
+
+    .btn-gold{
+      background:
+        radial-gradient(900px 420px at 30% 0%, rgba(255,255,255,.26), transparent 60%),
+        linear-gradient(135deg, rgba(247,211,122,.98), rgba(202,166,74,.98));
+      color: #1b1a12;
+      border: 1px solid rgba(255,255,255,.20);
+      box-shadow: 0 14px 34px rgba(0,0,0,.35);
+    }
+    .btn-gold:hover{ filter: brightness(1.02) saturate(1.02); }
+
+    .btn-wood{
+      background:
+        radial-gradient(900px 420px at 30% 0%, rgba(255,255,255,.10), transparent 60%),
+        linear-gradient(135deg, rgba(122,74,44,.95), rgba(75,43,24,.95));
+      color: rgba(255,255,255,.92);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 14px 34px rgba(0,0,0,.35);
+    }
+    .btn-wood:hover{ filter: brightness(1.03); }
+
+    .btn-ghost{
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.90);
+      border: 1px solid rgba(148,163,184,.18);
+    }
+    .btn-ghost:hover{ background: rgba(255,255,255,.09); }
+
+    .chip{
+      border-radius: 999px;
+      padding: 10px 12px;
+      min-height: 44px;
+      border: 1px solid rgba(148,163,184,.22);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.92);
+      display:inline-flex; align-items:center; gap:10px;
+      transition: background .18s ease, border-color .18s ease, transform .18s ease;
+    }
+    .chip:hover{ background: rgba(255,255,255,.09); }
+    .chip[aria-pressed="true"]{
+      background: rgba(56,189,248,.18);
+      border-color: rgba(56,189,248,.45);
+    }
+
+    /* ===== Inputs ===== */
+    .field{
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.20);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.94);
+      padding: 12px 14px;
+      min-height: 44px;
+      width: 100%;
+      outline: none;
+      transition: box-shadow .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .field:focus{
+      border-color: rgba(56,189,248,.55);
+      box-shadow: 0 0 0 4px rgba(56,189,248,.20);
+      background: rgba(255,255,255,.08);
+    }
+    .field[aria-invalid="true"]{
+      border-color: rgba(239,68,68,.55);
+      box-shadow: 0 0 0 4px rgba(239,68,68,.16);
+    }
+    .hint{
+      font-size: 12px;
+      color: rgba(226,232,240,.78);
+      line-height: 1.6;
+    }
+    .err{
+      font-size: 12px;
+      color: rgba(252,165,165,.98);
+      line-height: 1.6;
+    }
+    .ok{
+      font-size: 12px;
+      color: rgba(134,239,172,.95);
+      line-height: 1.6;
+    }
+
+    /* ===== Screen transitions ===== */
+    .screen{ display:none; }
+    .screen.is-active{ display:block; }
+
+    /* View Transitions */
+    #cardBody{ view-transition-name: cardBody; }
+    #heroPanel{ view-transition-name: heroPanel; }
+    @supports (view-transition-name: foo){
+      ::view-transition-old(cardBody),
+      ::view-transition-new(cardBody){
+        animation-duration: 380ms;
+        animation-timing-function: cubic-bezier(.2,.9,.1,1);
+      }
+      ::view-transition-old(heroPanel),
+      ::view-transition-new(heroPanel){
+        animation-duration: 420ms;
+        animation-timing-function: cubic-bezier(.2,.9,.1,1);
+      }
+    }
+
+    /* Sail wipe overlay */
+    .sail-wipe{
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    .sail-wipe.run{
+      opacity: 1;
+      animation: sailWipe 720ms cubic-bezier(.2,.9,.1,1) both;
+    }
+    @keyframes sailWipe{
+      0%{ transform: translateX(110%); opacity:0; }
+      10%{ opacity:1; }
+      55%{ transform: translateX(0%); opacity:1; }
+      100%{ transform: translateX(-110%); opacity:0; }
+    }
+
+    /* Compass spin */
+    .spin{ animation: spin 480ms cubic-bezier(.2,.9,.1,1) both; }
+    @keyframes spin{ from{ transform: rotate(0deg);} to{ transform: rotate(160deg);} }
+
+    /* Reduced motion handling */
+    .reduced *{
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+    @media (prefers-reduced-motion: reduce){
+      .auto-reduce *{
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    /* ===== Avatar crop canvas ===== */
+    .cropWrap{
+      background:
+        radial-gradient(700px 260px at 40% 0%, rgba(255,255,255,.14), transparent 60%),
+        linear-gradient(135deg, rgba(246,236,209,.14), rgba(234,215,171,.10));
+      border: 1px solid rgba(148,163,184,.18);
+      border-radius: 24px;
+    }
+    canvas{ touch-action: none; }
+
+    /* ===== Toast ===== */
+    .toast{
+      position: fixed;
+      inset-inline-start: 16px;
+      top: 16px;
+      z-index: 60;
+      display: none;
+      max-width: min(440px, calc(100vw - 32px));
+      border-radius: 18px;
+      padding: 12px 14px;
+      background: rgba(2,6,23,.84);
+      border: 1px solid rgba(148,163,184,.18);
+      box-shadow: 0 18px 44px rgba(0,0,0,.45);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: rgba(255,255,255,.94);
+    }
+    .toast.show{ display: block; animation: toastIn 240ms ease-out both; }
+    @keyframes toastIn{ from{ transform: translateY(-6px); opacity:0; } to{ transform: translateY(0); opacity:1; } }
+
+    /* ===== Success confetti ===== */
+    .confetti{
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .confetti i{
+      position:absolute;
+      width: 10px; height: 10px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), rgba(247,211,122,.75) 55%, rgba(56,189,248,.2) 80%, transparent 82%);
+      clip-path: polygon(50% 0%, 62% 28%, 92% 35%, 70% 54%, 76% 86%, 50% 70%, 24% 86%, 30% 54%, 8% 35%, 38% 28%);
+      opacity: .95;
+      animation: confettiFall 1100ms ease-out forwards;
+    }
+    @keyframes confettiFall{
+      0%{ transform: translateY(-20px) rotate(0deg) scale(.9); opacity:0; }
+      20%{ opacity:1; }
+      100%{ transform: translateY(420px) rotate(220deg) scale(1.1); opacity:0; }
+    }
+
+    /* Safe-area padding helper */
+    .safeBottom{ padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+
+    /* Better focus outlines for non-input controls */
+    .focusRing:focus-visible{ box-shadow: 0 0 0 4px rgba(56,189,248,.30); outline: none; }
+
+  </style>
+</head>
+
+<body class="auto-reduce min-h-screen text-slate-50">
+  <!-- Background -->
+  <div aria-hidden="true" class="fixed inset-0 -z-10">
+    <div class="absolute inset-0 bg-ocean"></div>
+    <div class="absolute inset-0 bg-waves opacity-35"></div>
+    <div class="absolute inset-0 bg-sparkles opacity-35"></div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <div class="flex items-start gap-3">
+      <div class="mt-0.5 h-8 w-8 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10">
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V7l-8-3-8 3v5c0 6 8 10 8 10z"></path>
+          <path d="M9 12l2 2 4-5"></path>
+        </svg>
+      </div>
+      <div class="min-w-0">
+        <div id="toastTitle" class="font-extrabold text-sm"></div>
+        <div id="toastMsg" class="text-sm text-white/80 leading-relaxed"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top bar -->
+  <header class="relative mx-auto max-w-6xl px-4 pt-4 md:pt-8">
+    <div class="flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="h-11 w-11 rounded-2xl bg-white/10 border border-white/10 shadow-soft flex items-center justify-center">
+          <!-- Generic compass icon (no IP) -->
+          <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M12 21a9 9 0 1 0-9-9 9 9 0 0 0 9 9z"></path>
+            <path d="M14.8 9.2l-2.2 6.6-6.6 2.2 2.2-6.6 6.6-2.2z"></path>
+            <path d="M12 12l2.8-2.8"></path>
+          </svg>
+        </div>
+        <div class="leading-tight">
+          <div class="text-base md:text-lg font-extrabold tracking-tight">Sea-Map Community</div>
+          <div class="text-xs md:text-sm text-white/70">حساب جديد بأسلوب مغامرة بحرية — بدون أي IP</div>
+        </div>
+      </div>
+
+      <button id="motionToggle" class="btn btn-ghost focusRing" type="button" aria-pressed="false">
+        <span class="inline-flex items-center gap-2">
+          <svg id="motionIcon" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 3v18"></path>
+            <path d="M7 8l5-5 5 5"></path>
+            <path d="M7 16l5 5 5-5"></path>
+          </svg>
+          <span id="motionLabel">إيقاف الحركة</span>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="relative mx-auto max-w-6xl px-4 pt-4 md:pt-10 pb-28 md:pb-10">
+    <div class="grid md:grid-cols-2 gap-5 md:gap-10 items-start">
+
+      <!-- Hero (Split left) -->
+      <section class="md:sticky md:top-10 max-md:sticky max-md:top-2 z-20">
+        <div id="heroPanel" class="parchment rounded-3xl shadow-soft overflow-hidden">
+          <!-- Map overlay SVG -->
+          <svg aria-hidden="true" class="absolute inset-0 w-full h-full opacity-[.55]" viewBox="0 0 800 520" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="routeGlow" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#0ea5e9" stop-opacity=".32"/>
+                <stop offset="1" stop-color="#a78bfa" stop-opacity=".22"/>
+              </linearGradient>
+              <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="1.2" />
+              </filter>
+            </defs>
+
+            <!-- faint grid -->
+            <g opacity=".25">
+              <path d="M0 60H800M0 120H800M0 180H800M0 240H800M0 300H800M0 360H800M0 420H800M0 480H800" stroke="#1f2a44" stroke-opacity=".25" />
+              <path d="M80 0V520M160 0V520M240 0V520M320 0V520M400 0V520M480 0V520M560 0V520M640 0V520M720 0V520" stroke="#1f2a44" stroke-opacity=".2" />
+            </g>
+
+            <!-- route lines -->
+            <path d="M80 410 C160 360, 200 290, 280 270 S410 240, 520 170 S650 120, 740 140"
+                  fill="none" stroke="url(#routeGlow)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="10 10"/>
+            <path d="M90 420 C170 370, 210 300, 290 280 S420 250, 530 180 S660 130, 750 150"
+                  fill="none" stroke="#1f2a44" stroke-opacity=".25" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 9"/>
+
+            <!-- knots -->
+            <g filter="url(#soft)">
+              <circle cx="80" cy="410" r="10" fill="#0ea5e9" opacity=".25"></circle>
+              <circle cx="520" cy="170" r="10" fill="#a78bfa" opacity=".20"></circle>
+              <circle cx="740" cy="140" r="10" fill="#22c55e" opacity=".16"></circle>
+            </g>
+
+            <!-- Compass -->
+            <g transform="translate(590 310)">
+              <circle cx="90" cy="90" r="78" fill="none" stroke="#1f2a44" stroke-opacity=".35" stroke-width="3"/>
+              <circle cx="90" cy="90" r="58" fill="none" stroke="#1f2a44" stroke-opacity=".25" stroke-width="2"/>
+              <path d="M90 18V40M90 140V162M18 90H40M140 90H162" stroke="#1f2a44" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>
+              <path d="M90 90 L120 60 L98 122 Z" fill="#1f2a44" fill-opacity=".20"/>
+              <path d="M90 90 L60 120 L82 58 Z" fill="#0ea5e9" fill-opacity=".20"/>
+              <circle cx="90" cy="90" r="6" fill="#1f2a44" fill-opacity=".25"/>
+            </g>
+          </svg>
+
+          <div class="relative p-5 md:p-7">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <div class="inline-flex items-center gap-2 rounded-2xl bg-black/5 border border-black/10 px-3 py-2">
+                  <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                  <span id="heroBadge" class="text-xs font-extrabold">Voyage Log</span>
+                </div>
+                <h1 class="mt-3 text-2xl md:text-3xl font-black tracking-tight text-slate-900">
+                  <span id="heroTitle">ابدأ رحلتك… بسلاسة</span>
+                </h1>
+                <p id="heroStory" class="mt-2 text-sm md:text-base text-slate-800/90 leading-relaxed max-md:hidden">
+                  سجّل حسابك كأنك تكتب في دفتر ملاحة: بيانات واضحة، أمان قوي، ثم تختار هيئة طاقمك… وبعدها نترك لك “الباقي” كمهام خفيفة لاحقًا.
+                </p>
+              </div>
+
+              <!-- Crew badge sticker -->
+              <div class="shrink-0">
+                <div class="rotate-3 rounded-3xl bg-white/35 border border-black/10 px-4 py-3 shadow-sm">
+                  <div class="text-[11px] font-black tracking-wide text-slate-900">Crew Badge</div>
+                  <div id="crewBadgeText" class="mt-1 text-xs font-extrabold text-slate-800/90">New Recruit</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress (3 knots only) -->
+            <div class="mt-5 md:mt-6 rounded-2xl bg-white/35 border border-black/10 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-sm font-black text-slate-900">Voyage Progress</div>
+                <div class="text-xs text-slate-800/80 font-bold" id="heroMiniStatus">…</div>
+              </div>
+
+              <div class="mt-3 flex items-center gap-3">
+                <div class="flex items-center gap-3 w-full">
+                  <!-- knots -->
+                  <div class="flex items-center gap-3 w-full">
+                    <div class="flex items-center gap-3 w-full">
+                      <div class="flex items-center gap-3 w-full">
+                        <div class="flex items-center gap-3 w-full">
+                          <div class="flex items-center gap-3 w-full">
+                            <div class="flex items-center gap-3 w-full">
+                              <div class="flex items-center gap-3 w-full">
+                                <div class="flex items-center gap-3 w-full">
+                                  <div class="flex items-center gap-3 w-full"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-3 w-full">
+                    <div class="flex items-center gap-3 w-full">
+                      <div class="flex items-center gap-3 w-full">
+                        <div class="flex items-center gap-3 w-full">
+                          <div class="flex items-center gap-3 w-full"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- custom progress bar with 3 nodes -->
+              <div class="mt-3 flex items-center gap-3">
+                <div class="flex items-center gap-3 w-full">
+                  <div class="flex items-center w-full gap-3">
+                    <div class="w-full">
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                          <span id="knot1" class="h-3 w-3 rounded-full bg-slate-700/35 border border-slate-900/15"></span>
+                          <span class="text-xs font-extrabold text-slate-900">الميثاق</span>
+                        </div>
+                        <div class="h-0.5 flex-1 mx-2 bg-slate-900/15 rounded-full relative overflow-hidden">
+                          <div id="knotLine1" class="absolute inset-y-0 right-0 w-0 bg-slate-900/35"></div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span id="knot2" class="h-3 w-3 rounded-full bg-slate-700/35 border border-slate-900/15"></span>
+                          <span class="text-xs font-extrabold text-slate-900">هيئة الطاقم</span>
+                        </div>
+                        <div class="h-0.5 flex-1 mx-2 bg-slate-900/15 rounded-full relative overflow-hidden">
+                          <div id="knotLine2" class="absolute inset-y-0 right-0 w-0 bg-slate-900/35"></div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span id="knot3" class="h-3 w-3 rounded-full bg-slate-700/35 border border-slate-900/15"></span>
+                          <span class="text-xs font-extrabold text-slate-900">الإبحار</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- tasks -->
+              <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="rounded-2xl bg-white/35 border border-black/10 p-3">
+                  <div class="flex items-center gap-2">
+                    <span id="taskAccountDot" class="h-2 w-2 rounded-full bg-slate-900/20"></span>
+                    <div class="text-xs font-extrabold text-slate-900">تأكيد الحساب والأمان</div>
+                  </div>
+                  <div id="taskAccountText" class="mt-1 text-[12px] text-slate-800/80 leading-relaxed">الاسم + البريد + كلمة مرور قوية</div>
+                </div>
+
+                <div class="rounded-2xl bg-white/35 border border-black/10 p-3">
+                  <div class="flex items-center gap-2">
+                    <span id="taskHandleDot" class="h-2 w-2 rounded-full bg-slate-900/20"></span>
+                    <div class="text-xs font-extrabold text-slate-900">اختيار لقبك</div>
+                  </div>
+                  <div id="taskHandleText" class="mt-1 text-[12px] text-slate-800/80 leading-relaxed">اسم مستخدم فريد + سطر تعريف اختياري</div>
+                </div>
+
+                <div class="rounded-2xl bg-white/35 border border-black/10 p-3 md:col-span-2">
+                  <div class="flex items-center gap-2">
+                    <span id="taskAvatarDot" class="h-2 w-2 rounded-full bg-slate-900/20"></span>
+                    <div class="text-xs font-extrabold text-slate-900">Avatar Dock</div>
+                    <span class="text-[11px] font-black text-slate-900/80 bg-black/5 border border-black/10 rounded-full px-2 py-1">ميزة المنصة</span>
+                  </div>
+                  <div id="taskAvatarText" class="mt-1 text-[12px] text-slate-800/80 leading-relaxed">اقترحنا لك طاقمًا + مولّد طبقي + رفع وقص</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mobile hero strip: short hint -->
+            <div class="mt-4 md:hidden rounded-2xl bg-white/35 border border-black/10 p-4">
+              <div class="text-sm font-extrabold text-slate-900">نقطتان وتبحر:</div>
+              <div class="mt-1 text-[12px] text-slate-800/85 leading-relaxed">لا نُظهر طول الخطوات—فقط “عُقد” الرحلة. أكمل الأساسيات الآن والباقي لاحقًا.</div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- Form Card (Split right) -->
+      <section>
+        <div class="glass rounded-3xl p-5 md:p-7 shadow-soft relative overflow-hidden">
+          <div class="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-sky-400/15 blur-3xl"></div>
+          <div class="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-fuchsia-400/10 blur-3xl"></div>
+
+          <div class="relative">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <div class="inline-flex items-center gap-2 rounded-2xl bg-white/10 border border-white/10 px-3 py-2">
+                  <span class="h-2 w-2 rounded-full bg-sky-400"></span>
+                  <span id="cardKnotLabel" class="text-xs font-extrabold">الميثاق</span>
+                </div>
+                <h2 id="cardTitle" class="mt-3 text-xl md:text-2xl font-black tracking-tight">سجّل بياناتك</h2>
+                <p id="cardSub" class="mt-2 text-sm text-white/70 leading-relaxed">
+                  نُخفّف الإحساس بالطول: أساسيات الآن، والباقي Modules صغيرة قابلة للطي.
+                </p>
+              </div>
+
+              <div class="shrink-0 hidden md:flex items-center gap-2">
+                <div class="rounded-2xl bg-white/10 border border-white/10 px-3 py-2">
+                  <div class="text-[11px] font-extrabold text-white/80">حماية</div>
+                  <div id="securityPill" class="text-xs font-black">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="cardBody" class="mt-6">
+              <!-- Screen: Account -->
+              <section class="screen is-active" data-screen="account" aria-labelledby="h-account">
+                <h3 id="h-account" class="sr-only">الحساب والأمان</h3>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-extrabold mb-2" for="fullName">الاسم</label>
+                    <input id="fullName" class="field" autocomplete="name" placeholder="مثال: رائد بحري" />
+                    <div id="nameMsg" class="mt-2 hint" aria-live="polite">استخدم اسمًا واضحًا—ستراه في بطاقتك داخل المجتمع.</div>
+                  </div>
+
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-extrabold mb-2" for="email">البريد الإلكتروني</label>
+                    <input id="email" class="field" dir="ltr" inputmode="email" autocomplete="email" placeholder="name@example.com" />
+                    <div id="emailMsg" class="mt-2 hint" aria-live="polite">سنستخدمه لتأمين الدخول واستعادة الحساب.</div>
+                  </div>
+
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-extrabold mb-2" for="password">كلمة المرور</label>
+                    <div class="flex gap-2">
+                      <div class="relative flex-1">
+                        <input id="password" class="field pr-12" dir="ltr" type="password" autocomplete="new-password" placeholder="••••••••" />
+                        <button id="togglePw" type="button" class="focusRing absolute left-2 top-1/2 -translate-y-1/2 rounded-xl bg-white/10 border border-white/10 px-3 py-2 text-xs font-extrabold min-h-[44px]">
+                          إظهار
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="mt-3 rounded-2xl bg-white/5 border border-white/10 p-3">
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="text-xs font-extrabold text-white/80">قوة كلمة المرور</div>
+                        <div id="pwLabel" class="text-xs font-black">—</div>
+                      </div>
+                      <div class="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
+                        <div id="pwBar" class="h-full w-0 rounded-full bg-white/40 transition-all"></div>
+                      </div>
+                      <div id="pwTips" class="mt-2 text-[12px] text-white/65 leading-relaxed">
+                        اجعلها ≥ 8 أحرف وتضم حرفًا كبيرًا وصغيرًا ورقمًا ورمزًا.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-5 rounded-2xl bg-white/5 border border-white/10 p-4">
+                  <div class="flex items-start gap-3">
+                    <div class="h-10 w-10 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center">
+                      <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M12 22s8-4 8-10V7l-8-3-8 3v5c0 6 8 10 8 10z"></path>
+                        <path d="M9 12l2 2 4-5"></path>
+                      </svg>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="font-extrabold">Validation ذكي</div>
+                      <div class="mt-1 text-sm text-white/70 leading-relaxed">
+                        لا نزعجك برسائل كثيرة—فقط نُضيء الحقل عند الحاجة، ونفتح “الاستمرار” عندما يصبح كل شيء جاهزًا.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Screen: Handle -->
+              <section class="screen" data-screen="handle" aria-labelledby="h-handle">
+                <h3 id="h-handle" class="sr-only">اللقب</h3>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-extrabold mb-2" for="username">اسم المستخدم (فريد)</label>
+                    <div class="flex gap-2">
+                      <div class="relative flex-1">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 font-black">@</span>
+                        <input id="username" class="field pr-10" dir="ltr" autocomplete="username" placeholder="sea_navigator" />
+                      </div>
+                      <button id="suggestUser" type="button" class="btn btn-ghost focusRing whitespace-nowrap">اقتراح</button>
+                    </div>
+
+                    <div class="mt-2 flex items-center justify-between gap-3">
+                      <div id="userStatus" class="hint" aria-live="polite">اكتب لقبك… وسنحاكي فحص التفرّد.</div>
+                      <div class="inline-flex items-center gap-2 text-xs text-white/70">
+                        <span id="userSpinner" class="hidden h-3 w-3 rounded-full border-2 border-white/30 border-t-white/80 animate-spin"></span>
+                        <span id="userLatency" class="hidden">Checking…</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-extrabold mb-2" for="tagline">سطر تعريف (اختياري)</label>
+                    <input id="tagline" class="field" placeholder="مثال
