@@ -19,7 +19,10 @@ export type LoggedLayoutProps = {
   initialUser?: UserProps;
 };
 
-export function LoggedLayout({ children, initialUser }: LoggedLayoutProps) {
+export default function LoggedLayout({
+  children,
+  initialUser,
+}: LoggedLayoutProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
 

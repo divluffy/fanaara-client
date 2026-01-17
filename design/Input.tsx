@@ -388,25 +388,6 @@ export function AppInput<TFieldValues extends FieldValues>(
           "hover:bg-[var(--color-surface-soft)]"
         );
 
-  const actionBtnCls = cn(
-    "shrink-0",
-    as === "textarea" ? cn("self-start", TEXTAREA_TOP[size]) : "self-center",
-    "inline-flex items-center justify-center gap-1.5",
-    s.actionH,
-    action?.label ? "px-2.5" : s.actionW,
-    actionRadius,
-    "border",
-    "transition-[transform,box-shadow,background-color,border-color,color] duration-150 ease-out",
-    "active:translate-y-[1px]",
-    "focus-visible:outline-none focus-visible:ring-1",
-    toneCls.ring,
-    !isDisabled && "hover:shadow-[var(--shadow-xs)]",
-    actionAppearanceCls,
-    "disabled:opacity-60 disabled:cursor-not-allowed",
-    // spacing from inline-end (RTL/LTR safe)
-    "[margin-inline-end:0.25rem]"
-  );
-
   // RHF register (keeps same behavior)
   const reg = register(name, registerOptions);
 
@@ -501,7 +482,24 @@ export function AppInput<TFieldValues extends FieldValues>(
             aria-label={action.ariaLabel}
             aria-busy={isActionLoading || undefined}
             disabled={isDisabled || Boolean(action.disabled)}
-            className={actionBtnCls}
+            className={cn(
+              "shrink-0 inline-flex items-center justify-center gap-1.5 border",
+              as === "textarea"
+                ? cn("self-start", TEXTAREA_TOP[size])
+                : "self-center",
+              s.actionH,
+              action?.label ? "px-2.5" : s.actionW,
+              actionRadius,
+              "transition-[transform,box-shadow,background-color,border-color,color] duration-150 ease-out",
+              isRTL ? "-translate-x-4" : "translate-x-4",
+              "active:translate-y-[1px]",
+              "focus-visible:outline-none focus-visible:ring-1",
+              toneCls.ring,
+              !isDisabled && "hover:shadow-[var(--shadow-xs)]",
+              actionAppearanceCls,
+              "disabled:opacity-60 disabled:cursor-not-allowed",
+              "[margin-inline-end:0.25rem]"
+            )}
             whileHover={!isDisabled ? actionHoverMotion : undefined}
             whileTap={!isDisabled ? actionTapMotion : undefined}
           >

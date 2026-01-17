@@ -10,6 +10,13 @@ import "./globals.css";
 
 // Google Fonts
 import { Inter, Nunito_Sans, Noto_Sans_Arabic } from "next/font/google";
+import { Viewport } from "next";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
+};
 
 // إنجليزي (Inter)
 const englishFont = Inter({
@@ -76,6 +83,11 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <link
           href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap"
           rel="stylesheet"
+        />
+
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, interactive-widget=resizes-content"
         />
       </head>
 

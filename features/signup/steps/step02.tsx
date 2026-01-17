@@ -14,7 +14,10 @@ import { Button } from "@/design/button";
 import { cn } from "@/utils";
 
 import { SimpleDatePicker } from "@/design/DatePicker";
-import { LocalizedSelect, type SelectOption as DesignSelectOption } from "@/design/Select";
+import {
+  LocalizedSelect,
+  type SelectOption as DesignSelectOption,
+} from "@/design/Select";
 import GenderSelectGrid from "@/components/GenderSelect";
 import useCountryOptions from "@/hooks/useCountryOptions";
 
@@ -63,7 +66,13 @@ function useDebouncedValue<T>(value: T, delay = 450) {
   return debounced;
 }
 
-type UsernameStatus = "idle" | "invalid" | "checking" | "available" | "taken" | "error";
+type UsernameStatus =
+  | "idle"
+  | "invalid"
+  | "checking"
+  | "available"
+  | "taken"
+  | "error";
 
 function normalizeUsername(raw: string) {
   return (raw ?? "").trim();
@@ -99,9 +108,11 @@ function normalizeToDesignOptions(raw: unknown): DesignSelectOption[] {
     const label = item["label"];
     if (typeof value !== "string" || typeof label !== "string") continue;
 
-    const description = typeof item["description"] === "string" ? item["description"] : undefined;
+    const description =
+      typeof item["description"] === "string" ? item["description"] : undefined;
     const group = typeof item["group"] === "string" ? item["group"] : undefined;
-    const disabled = typeof item["disabled"] === "boolean" ? item["disabled"] : undefined;
+    const disabled =
+      typeof item["disabled"] === "boolean" ? item["disabled"] : undefined;
 
     out.push({ value, label, description, group, disabled });
   }
@@ -144,16 +155,21 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
     },
   });
 
-  const [usernameStatus, setUsernameStatus] = React.useState<UsernameStatus>("idle");
+  const [usernameStatus, setUsernameStatus] =
+    React.useState<UsernameStatus>("idle");
 
-  const lastResultRef = React.useRef<{ username: string; available: boolean } | null>(null);
+  const lastResultRef = React.useRef<{
+    username: string;
+    available: boolean;
+  } | null>(null);
   const requestIdRef = React.useRef(0);
 
   const usernameRaw = watch("username") ?? "";
   const usernameTrimmed = normalizeUsername(usernameRaw);
   const debouncedUsername = useDebouncedValue(usernameRaw, 500);
 
-  const isFormatValid = usernameTrimmed.length > 0 && USERNAME_REGEX.test(usernameTrimmed);
+  const isFormatValid =
+    usernameTrimmed.length > 0 && USERNAME_REGEX.test(usernameTrimmed);
 
   // Keep status coherent while typing
   React.useEffect(() => {
@@ -173,7 +189,9 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
     }
 
     if (lastResultRef.current?.username === usernameTrimmed) {
-      setUsernameStatus(lastResultRef.current.available ? "available" : "taken");
+      setUsernameStatus(
+        lastResultRef.current.available ? "available" : "taken"
+      );
       return;
     }
 
@@ -183,7 +201,12 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
 
   const usernameIcon: IconType =
     usernameStatus === "checking"
-      ? (props) => <FiLoader {...props} className={cn(props.className, "animate-spin")} />
+      ? (props) => (
+          <FiLoader
+            {...props}
+            className={cn(props.className, "animate-spin")}
+          />
+        )
       : usernameStatus === "available"
       ? FiCheck
       : usernameStatus === "taken" || usernameStatus === "error"
@@ -220,7 +243,10 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
         if (opts?.commitToField) {
           if (cached) clearErrors("username");
           else {
-            setError("username", { type: "availability", message: t("username.taken") });
+            setError("username", {
+              type: "availability",
+              message: t("username.taken"),
+            });
           }
         }
 
@@ -240,7 +266,11 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
 
         if (opts?.commitToField) {
           if (available) clearErrors("username");
-          else setError("username", { type: "availability", message: t("username.taken") });
+          else
+            setError("username", {
+              type: "availability",
+              message: t("username.taken"),
+            });
         }
 
         if (opts?.keepFocus) {
@@ -334,7 +364,9 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
           <h2 className="text-[18px] sm:text-[20px] font-extrabold leading-tight text-foreground-strong">
             {t("title")}
           </h2>
-          <p className="text-[12px] sm:text-[13px] text-foreground-muted">{t("subtitle")}</p>
+          <p className="text-[12px] sm:text-[13px] text-foreground-muted">
+            {t("subtitle")}
+          </p>
         </header>
 
         <AppInput<Step02FormValues>
@@ -415,6 +447,7 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
         <Controller
           control={control}
           name="dob"
+          defaultValue={null}
           rules={{ required: t("dob.required") }}
           render={({ field }) => (
             <div className="mt-1">
@@ -425,7 +458,9 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
                 withTime={false}
               />
               {errors.dob?.message ? (
-                <p className="mt-1 text-xs text-red-500">{String(errors.dob.message)}</p>
+                <p className="mt-1 text-xs text-red-500">
+                  {String(errors.dob.message)}
+                </p>
               ) : null}
             </div>
           )}
@@ -434,6 +469,7 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
         <Controller
           control={control}
           name="country"
+          defaultValue={null}
           rules={{ required: t("country.required") }}
           render={({ field }) => (
             <div className="mt-1">
@@ -449,7 +485,9 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
                 variant="solid"
               />
               {errors.country?.message ? (
-                <p className="mt-1 text-xs text-red-500">{String(errors.country.message)}</p>
+                <p className="mt-1 text-xs text-red-500">
+                  {String(errors.country.message)}
+                </p>
               ) : null}
             </div>
           )}
@@ -458,13 +496,23 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
         <Controller
           control={control}
           name="gender"
+          defaultValue={null}
           rules={{ required: t("gender.required") }}
           render={({ field }) => (
             <div className="mt-1 space-y-1">
-              <div className="text-sm font-medium text-foreground-strong">{t("gender.label")}</div>
-              <GenderSelectGrid value={field.value} onChange={field.onChange} />
+              <div className="text-sm font-medium text-foreground-strong">
+                {t("gender.label")}
+              </div>
+
+              <GenderSelectGrid
+                value={field.value ?? null}
+                onChange={(v) => field.onChange(v)}
+              />
+
               {errors.gender?.message ? (
-                <p className="mt-1 text-xs text-red-500">{String(errors.gender.message)}</p>
+                <p className="mt-1 text-xs text-red-500">
+                  {String(errors.gender.message)}
+                </p>
               ) : null}
             </div>
           )}
@@ -480,7 +528,9 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
             fullWidth
             isLoading={isSubmitting || isUpdating}
             loadingText={t("submit.loading")}
-            disabled={!isValid || usernameStatus === "checking" || !isUsernameAvailable}
+            disabled={
+              !isValid || usernameStatus === "checking" || !isUsernameAvailable
+            }
             className={cn(
               "shadow-[var(--shadow-glow-brand)]",
               "hover:brightness-[1.05] active:brightness-[0.98]",

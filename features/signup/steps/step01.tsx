@@ -84,10 +84,14 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
   const passwordValue = watch("password") ?? "";
 
   const passwordErrorText =
-    typeof errors.password?.message === "string" ? errors.password.message : undefined;
+    typeof errors.password?.message === "string"
+      ? errors.password.message
+      : undefined;
 
   const passwordTouched =
-    Boolean(touchedFields.password) || submitCount > 0 || passwordValue.length > 0;
+    Boolean(touchedFields.password) ||
+    submitCount > 0 ||
+    passwordValue.length > 0;
 
   const passwordCaption = passwordErrorText ? (
     <span className="text-danger-solid">{passwordErrorText}</span>
@@ -198,7 +202,9 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
                 message: t("password.pattern"),
               },
             }}
-            helperClassName={cn(passwordErrorText ? "text-danger-solid" : "text-foreground-muted")}
+            helperClassName={cn(
+              passwordErrorText ? "text-danger-solid" : "text-foreground-muted"
+            )}
           />
         </div>
 
@@ -209,8 +215,9 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
               "group flex min-w-0 items-center gap-2 rounded-xl",
               "border bg-surface/60 px-3 py-2",
               "transition hover:bg-background-elevated/60",
-              isRTL && "flex-row-reverse",
-              errors.agree?.message ? "border-danger-soft-border" : "border-border-subtle"
+              errors.agree?.message
+                ? "border-danger-soft-border"
+                : "border-border-subtle"
             )}
           >
             <input
@@ -241,7 +248,9 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
           </label>
 
           {errors.agree?.message ? (
-            <p className="text-[12px] leading-4 text-danger-solid">{t("terms.required")}</p>
+            <p className="text-[12px] leading-4 text-danger-solid">
+              {t("terms.required")}
+            </p>
           ) : null}
         </div>
 
@@ -269,12 +278,17 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
 
         <div className="mt-3.5 flex items-center gap-3">
           <div className="h-px flex-1 bg-divider" />
-          <span className="text-[11px] text-foreground-muted">{t("divider")}</span>
+          <span className="text-[11px] text-foreground-muted">
+            {t("divider")}
+          </span>
           <div className="h-px flex-1 bg-divider" />
         </div>
 
         <motion.div
-          className={cn("mt-2 flex items-center justify-center gap-2 p-2", isRTL && "flex-row-reverse")}
+          className={cn(
+            "mt-2 flex items-center justify-center gap-2 p-2",
+            isRTL && "flex-row-reverse"
+          )}
           initial={reduceMotion ? false : { opacity: 0, y: 6 }}
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.16, ease: "easeOut" }}

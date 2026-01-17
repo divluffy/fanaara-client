@@ -1,69 +1,64 @@
 // layout\PublicLayout.tsx
-"use client";
-
-import { LanguageMenuToggle, ThemeToggle } from "@/components";
-import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode } from "react";
-import RegCurrentBtn from "./components/RegCurrentBtn";
 import { cn } from "@/utils";
-import { usePathname } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import ClientNavActions from "./components/ClientNavActions";
 
 const AUTH_BG = "https://picfiles.alphacoders.com/573/thumb-1920-573235.jpg";
 
-const PublicLayout = ({ children }: { children: ReactNode }) => {
-  const t = useTranslations("g");
-  const pathname = usePathname();
-
-  const isAuthPage =
-    pathname === "/signup" ||
-    pathname?.startsWith("/signup/") ||
-    pathname === "/login" ||
-    pathname?.startsWith("/login/");
+export default async function PublicLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const t = await getTranslations("g");
 
   return (
-    <div className="min-h-screen">
-      {/* Auth-only background (fixed, fills viewport always) */}
-      {isAuthPage && (
-        <div className="pointer-events-none fixed inset-0 -z-10">
-          <Image
-            src={AUTH_BG}
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
-          {/* Blur + dim overlay */}
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
-        </div>
+    <div
+      className={cn(
+        "relative w-full",
+        "min-h-screen supports-[height:100dvh]:min-h-dvh",
+        "overflow-x-hidden"
       )}
+    >
+      {/* Background */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <Image
+          src={AUTH_BG}
+          alt="Auth background"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        {/* Overlay for readability on all devices */}
+        <div className="absolute inset-0 bg-black/60 md:bg-black/50" />
+        {/* Optional subtle gradient for nicer look */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70" />
+      </div>
 
-      <nav
-        className={cn(
-          "fixed top-4 z-20 w-full",
-          "flex items-center justify-between gap-3 px-4"
-        )}
-      >
-        <Link href="/" className="flex gap-2 items-center">
-          <Image alt="logo" src="/logo/logo.png" width={30} height={30} />
-          <h3 className="font-semibold text-xl text-white">
-            {t("platform_name")}
-          </h3>
-        </Link>
+      <nav className={cn("fixed top-4 z-20 w-full px-4")}>
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-2">
+            <Image alt="logo" src="/logo/logo.png" width={30} height={30} />
+            <h3 className="text-xl font-semibold text-white drop-shadow">
+              {t("platform_name")}
+            </h3>
+          </Link>
 
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <LanguageMenuToggle />
-          <RegCurrentBtn />
+          <ClientNavActions />
         </div>
       </nav>
 
-      {/* content */}
-      <div className="pt-20 md:pt-24">{children}</div>
+      {/* Content spacing for all screens */}
+      <main className="pt-20 md:pt-24 overflow-y-auto">
+        {/* Keep auth pages centered & responsive without forcing a specific width */}
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+          {children}
+        </div>
+      </main>
     </div>
   );
-};
-
-export default PublicLayout;
+}

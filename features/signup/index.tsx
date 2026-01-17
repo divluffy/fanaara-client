@@ -11,13 +11,14 @@ import Step05 from "./steps/step05";
 import Step06 from "./steps/step06";
 
 export default function SignupFeature() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(2);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(6);
+  console.log("hi signupppp");
   return (
     <div
       className={cn(
         "relative z-10 mx-auto w-full max-w-md px-4 pb-6",
         "flex flex-col justify-center",
-        "min-h-[calc(100svh-5rem)] md:min-h-[calc(100svh-6rem)]"
+        "min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-6rem)]"
       )}
     >
       <main

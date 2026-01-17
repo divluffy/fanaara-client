@@ -1,4 +1,9 @@
 {
+  "select": {
+    "noResults": "No results found",
+    "searchPlaceholder": "Type to search...",
+    "clear": "clear"
+  },
   "signup_steps_01": {
     "title": "Prepare your list… and start the journey!",
     "subtitle": "One account to track anime and comics and share your taste with the community.",

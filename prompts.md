@@ -23,14 +23,8 @@ rerturn true or false for "ltr" or "rtl"
 ========================
 - Next.js 16.0.6 (App Router)
 - React 19.2.0
-- TypeScript 5.x
 - TailwindCSS 4.x
-- Framer Motion 12.23.25
-- Zod 4.1.13
-- React Hook Form 7.68.0 (+ @hookform/resolvers 5.2.2)
-- TanStack React Query 5.90.12
-- Redux Toolkit 2.11.0 (+ react-redux 9.2.0) و/أو Zustand 5.0.9
-- next-intl 4.5.8 ، next-themes 0.4.6 (إن وُجدت في الكود)
+- Redux Toolkit 
 
 ========================
 2) قواعد صارمة (لا تتجاوزها)
@@ -95,7 +89,12 @@ D) مخاطر/افتراضات.
 E) Tests إن أمكن، أو Test Plan بحالات محددة (خصوصًا RTL/LTR + i18n).
 
 ========================
-6) الكود
+6) global things
+========================
+1. make sure u hadle all text and contet is perfect with direction like if it rtl or ltr
+2. make sure make it simple and easy as u can for short code but give same time the purpose and goals
+========================
+7) الكود
 ========================
 
 
