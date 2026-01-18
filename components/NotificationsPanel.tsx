@@ -62,7 +62,7 @@ export default function NotificationsPanel({
             "shadow-[var(--shadow-elevated)]",
             "border border-border-subtle",
             // ✅ إزالة border الملاصق للـ aside + rounding فقط للجهة الخارجية
-            isRTL ? "rounded-l-2xl border-r-0" : "rounded-r-2xl border-l-0"
+            isRTL ? "rounded-l-2xl border-r-0" : "rounded-r-2xl border-l-0",
           )}
         >
           {/* الآن: container فقط */}

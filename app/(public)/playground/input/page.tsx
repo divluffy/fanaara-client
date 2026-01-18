@@ -27,7 +27,7 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import { cn } from "@/utils";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppSelector } from "@/store/hooks";
 import { AppInput } from "@/design/Input";
 
 type SignupValues = {

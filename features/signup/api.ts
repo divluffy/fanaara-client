@@ -1,6 +1,6 @@
 // store/api/authApi.ts
 
-import { api } from "@/redux/api";
+import { api } from "@/store/api";
 
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({

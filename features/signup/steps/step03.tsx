@@ -1,12 +1,12 @@
 // features/signup/steps/step03.tsx
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Cropper, { Area } from "react-easy-crop";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppSelector } from "@/store/hooks";
 import type { SignupStep1Props } from "@/types";
-import { Button } from "@/design/button";
-import Modal from "@/components/Modal";
+import { Button } from "@/design";
+import { Modal } from "@/components";
 
 type PresetAvatar = { id: string; src: string };
 
@@ -110,7 +110,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 // GIF -> still PNG (so we treat GIF as a normal image)
 async function gifToStillPngBlob(
   gifUrl: string,
-  maxSize = 1400
+  maxSize = 1400,
 ): Promise<Blob> {
   const img = await loadImage(gifUrl);
 
@@ -131,7 +131,7 @@ async function gifToStillPngBlob(
   return await new Promise((resolve, reject) => {
     canvas.toBlob(
       (b) => (b ? resolve(b) : reject(new Error("toBlob failed"))),
-      "image/png"
+      "image/png",
     );
   });
 }
@@ -140,7 +140,7 @@ async function gifToStillPngBlob(
 async function cropRoundPng(
   imageSrc: string,
   area: Area,
-  outSize = 900
+  outSize = 900,
 ): Promise<Blob> {
   const img = await loadImage(imageSrc);
 
@@ -170,14 +170,14 @@ async function cropRoundPng(
     0,
     0,
     outSize,
-    outSize
+    outSize,
   );
   ctx.restore();
 
   return await new Promise((resolve, reject) => {
     canvas.toBlob(
       (b) => (b ? resolve(b) : reject(new Error("toBlob failed"))),
-      "image/png"
+      "image/png",
     );
   });
 }
@@ -191,19 +191,19 @@ export default function Step03({ onSuccess }: SignupStep1Props) {
 
   // Preset selection
   const [selectedPresetId, setSelectedPresetId] = useState<string>(
-    PRESET_GRID[0].id
+    PRESET_GRID[0].id,
   );
   const selectedPreset = useMemo(
     () => PRESET_GRID.find((p) => p.id === selectedPresetId) ?? PRESET_GRID[0],
-    [selectedPresetId]
+    [selectedPresetId],
   );
 
   // Upload state (original always kept so "crop again" is consistent)
   const [originalUploadUrl, setOriginalUploadUrl] = useState<string | null>(
-    null
+    null,
   );
   const [preparedUploadUrl, setPreparedUploadUrl] = useState<string | null>(
-    null
+    null,
   ); // GIF still
   const [croppedUploadUrl, setCroppedUploadUrl] = useState<string | null>(null);
 
@@ -363,7 +363,7 @@ export default function Step03({ onSuccess }: SignupStep1Props) {
                   }}
                   className={cx(
                     "relative h-12 w-full rounded-xl overflow-hidden bg-surface-soft",
-                    active ? "ring-2 ring-accent-ring" : "ring-1 ring-black/10"
+                    active ? "ring-2 ring-accent-ring" : "ring-1 ring-black/10",
                   )}
                 >
                   <img
@@ -435,7 +435,7 @@ export default function Step03({ onSuccess }: SignupStep1Props) {
                   const blob = await cropRoundPng(
                     cropSourceUrl,
                     croppedArea,
-                    900
+                    900,
                   );
                   const url = URL.createObjectURL(blob);
 

@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { cn } from "@/utils/cn";
+import { cn } from "@/utils";
 import {
   type ButtonElevation,
   type ButtonGradient,
@@ -17,7 +17,7 @@ import {
   Spinner,
   gradientStyles,
   toneTokens,
-} from "@/design/button";
+} from "@/design/Button";
 
 /** ===== Types ===== */
 export type IconButtonSize = "xs" | "sm" | "md" | "lg";
@@ -86,7 +86,7 @@ const buttonBase = cn(
   "motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
   "disabled:cursor-not-allowed disabled:opacity-70",
-  "touch-manipulation"
+  "touch-manipulation",
 );
 
 const sizeBtn: Record<IconButtonSize, string> = {
@@ -134,7 +134,7 @@ function getVariantToneClasses(variant: ButtonVariant, tone: ButtonTone) {
         t.solidBg,
         t.solidText,
         t.ringColor,
-        "hover:brightness-[1.05] active:brightness-[0.98]"
+        "hover:brightness-[1.05] active:brightness-[0.98]",
       );
     case "soft":
       return cn(
@@ -143,7 +143,7 @@ function getVariantToneClasses(variant: ButtonVariant, tone: ButtonTone) {
         t.softBorder,
         t.softText,
         t.ringColor,
-        "hover:brightness-[1.03] active:brightness-[0.98]"
+        "hover:brightness-[1.03] active:brightness-[0.98]",
       );
     case "outline":
       return cn(
@@ -151,7 +151,7 @@ function getVariantToneClasses(variant: ButtonVariant, tone: ButtonTone) {
         t.outlineBorder,
         t.outlineText,
         t.ringColor,
-        "hover:bg-background-soft/60 active:bg-background-soft/80"
+        "hover:bg-background-soft/60 active:bg-background-soft/80",
       );
     case "ghost":
       return cn(
@@ -159,7 +159,7 @@ function getVariantToneClasses(variant: ButtonVariant, tone: ButtonTone) {
         t.ghostText,
         t.ringColor,
         t.ghostHoverBg,
-        "active:bg-background-soft/70"
+        "active:bg-background-soft/70",
       );
     case "glass":
       return cn(
@@ -169,7 +169,7 @@ function getVariantToneClasses(variant: ButtonVariant, tone: ButtonTone) {
         "active:bg-[color-mix(in_srgb,rgba(255,255,255,0.90)_62%,var(--bg-elevated)_38%)]",
         t.glassBorder,
         t.glassText,
-        t.ringColor
+        t.ringColor,
       );
     default:
       return "";
@@ -179,7 +179,7 @@ function getVariantToneClasses(variant: ButtonVariant, tone: ButtonTone) {
 function getElevationClasses(
   tone: ButtonTone,
   elevation: ButtonElevation,
-  isGradient: boolean
+  isGradient: boolean,
 ) {
   if (isGradient) {
     // Keep gradient behavior: elevation mostly handled by gradient tokens.
@@ -201,14 +201,14 @@ function getElevationClasses(
     case "glow":
       return cn(
         "shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]",
-        toneTokens[tone].glowShadow
+        toneTokens[tone].glowShadow,
       );
     case "cta":
       return cn(
         "shadow-[var(--shadow-lg)] hover:shadow-[var(--shadow-xl)]",
         "hover:-translate-y-0.5",
         "motion-reduce:hover:translate-y-0",
-        toneTokens[tone].glowShadow
+        toneTokens[tone].glowShadow,
       );
     default:
       return "";
@@ -217,7 +217,7 @@ function getElevationClasses(
 
 function getGradientClasses(
   gradient: ButtonGradient,
-  elevation: ButtonElevation
+  elevation: ButtonElevation,
 ) {
   const g = gradientStyles[gradient];
   return cn(
@@ -227,7 +227,7 @@ function getGradientClasses(
     g.ring,
     elevation === "none" ? "shadow-none" : cn(g.shadow, g.hoverShadow),
     "focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-    "hover:brightness-[1.03] active:brightness-[0.98]"
+    "hover:brightness-[1.03] active:brightness-[0.98]",
   );
 }
 
@@ -244,49 +244,49 @@ function badgePlacementClass(p: IconBadgePlacement) {
       return cn(
         "top-0 right-0",
         "translate-x-[calc(50%+var(--badge-x))]",
-        "-translate-y-[calc(50%+var(--badge-y))]"
+        "-translate-y-[calc(50%+var(--badge-y))]",
       );
     case "top-left":
       return cn(
         "top-0 left-0",
         "-translate-x-[calc(50%+var(--badge-x))]",
-        "-translate-y-[calc(50%+var(--badge-y))]"
+        "-translate-y-[calc(50%+var(--badge-y))]",
       );
     case "bottom-right":
       return cn(
         "bottom-0 right-0",
         "translate-x-[calc(50%+var(--badge-x))]",
-        "translate-y-[calc(50%+var(--badge-y))]"
+        "translate-y-[calc(50%+var(--badge-y))]",
       );
     case "bottom-left":
       return cn(
         "bottom-0 left-0",
         "-translate-x-[calc(50%+var(--badge-x))]",
-        "translate-y-[calc(50%+var(--badge-y))]"
+        "translate-y-[calc(50%+var(--badge-y))]",
       );
     case "top":
       return cn(
         "top-0 left-1/2",
         "-translate-x-[calc(50%+var(--badge-x))]",
-        "-translate-y-[calc(50%+var(--badge-y))]"
+        "-translate-y-[calc(50%+var(--badge-y))]",
       );
     case "bottom":
       return cn(
         "bottom-0 left-1/2",
         "-translate-x-[calc(50%+var(--badge-x))]",
-        "translate-y-[calc(50%+var(--badge-y))]"
+        "translate-y-[calc(50%+var(--badge-y))]",
       );
     case "left":
       return cn(
         "left-0 top-1/2",
         "-translate-x-[calc(50%+var(--badge-x))]",
-        "-translate-y-[calc(50%+var(--badge-y))]"
+        "-translate-y-[calc(50%+var(--badge-y))]",
       );
     case "right":
       return cn(
         "right-0 top-1/2",
         "translate-x-[calc(50%+var(--badge-x))]",
-        "-translate-y-[calc(50%+var(--badge-y))]"
+        "-translate-y-[calc(50%+var(--badge-y))]",
       );
     default:
       return "";
@@ -338,7 +338,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       children,
       ...rest
     },
-    ref
+    ref,
   ) {
     const isGradient = variant === "gradient";
     const isDisabled = Boolean(disabled || isLoading);
@@ -363,7 +363,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       showBadgeDot
         ? cn("rounded-full", badgeDotSize[size])
         : cn("rounded-full font-semibold", badgePillSize[size]),
-      badgeClassName
+      badgeClassName,
     );
 
     const renderBadge = (key: string) => (
@@ -415,7 +415,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
 
             isLoading && "hover:translate-y-0 active:scale-100",
 
-            className
+            className,
           )}
           {...rest}
         >
@@ -426,7 +426,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
               "pointer-events-none absolute inset-0 rounded-[inherit] opacity-0",
               "transition-opacity duration-200",
               "group-hover:opacity-100 group-focus-within:opacity-100",
-              "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.38),transparent_55%)]"
+              "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.38),transparent_55%)]",
             )}
           />
 
@@ -438,7 +438,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
             className={cn(
               "relative z-10 inline-flex items-center justify-center leading-none",
               iconSize[size],
-              "h-[1em] w-[1em]"
+              "h-[1em] w-[1em]",
             )}
           >
             {isLoading ? <Spinner className={spinnerSize[size]} /> : children}
@@ -460,7 +460,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
               "opacity-0 translate-y-1 transition",
               "group-hover:opacity-100 group-hover:translate-y-0",
               "group-focus-within:opacity-100 group-focus-within:translate-y-0",
-              "bottom-[calc(100%+0.45rem)] left-1/2 -translate-x-1/2"
+              "bottom-[calc(100%+0.45rem)] left-1/2 -translate-x-1/2",
             )}
           >
             {tooltip}
@@ -468,5 +468,5 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         )}
       </motion.span>
     );
-  }
+  },
 );

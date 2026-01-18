@@ -13,7 +13,7 @@ import type { IconType } from "react-icons";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import { cn } from "@/utils";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppSelector } from "@/store/hooks";
 
 export type AppInputSize = "sm" | "md" | "lg";
 export type AppInputVariant = "outline" | "soft" | "filled";

@@ -3,10 +3,9 @@
 
 import React from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-
-import { Button } from "@/design/button";
+import { Button } from "@/design";
 import { cn } from "@/utils";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppSelector } from "@/store/hooks";
 import type { SignupStep1Props } from "@/types";
 
 type FollowKind = "creator" | "channel";
@@ -23,28 +22,188 @@ type FollowItem = {
 
 const BASE_ITEMS: readonly FollowItem[] = [
   // Creators
-  { id: "c1", kind: "creator", title: "KitsuneArtist", subtitle: "@kitsune", tag: "Fanart", emoji: "🦊", gradient: "bg-gradient-to-br from-fuchsia-500 via-violet-500 to-sky-500" },
-  { id: "c2", kind: "creator", title: "OniReviews", subtitle: "@oni_reviews", tag: "Reviews", emoji: "👹", gradient: "bg-gradient-to-br from-rose-500 via-red-500 to-orange-500" },
-  { id: "c3", kind: "creator", title: "ShonenDaily", subtitle: "@shonen_daily", tag: "News", emoji: "⚡", gradient: "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500" },
-  { id: "c4", kind: "creator", title: "MoonManga", subtitle: "@moon_manga", tag: "Manga", emoji: "🌙", gradient: "bg-gradient-to-br from-indigo-500 via-violet-500 to-pink-500" },
-  { id: "c5", kind: "creator", title: "MechaLab", subtitle: "@mecha_lab", tag: "Mecha", emoji: "🤖", gradient: "bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-600" },
-  { id: "c6", kind: "creator", title: "SliceClub", subtitle: "@slice_club", tag: "Slice of Life", emoji: "🍡", gradient: "bg-gradient-to-br from-emerald-400 via-sky-500 to-indigo-500" },
-  { id: "c7", kind: "creator", title: "CosplayForge", subtitle: "@cosplay_forge", tag: "Cosplay", emoji: "🧵", gradient: "bg-gradient-to-br from-orange-400 via-amber-500 to-yellow-500" },
-  { id: "c8", kind: "creator", title: "PanelBreakdown", subtitle: "@panel_breakdown", tag: "Analysis", emoji: "🧩", gradient: "bg-gradient-to-br from-violet-500 via-fuchsia-500 to-rose-500" },
-  { id: "c9", kind: "creator", title: "GhibliFrames", subtitle: "@ghibli_frames", tag: "Shots", emoji: "🎞️", gradient: "bg-gradient-to-br from-teal-400 via-cyan-500 to-sky-600" },
-  { id: "c10", kind: "creator", title: "DubOrSub", subtitle: "@dub_or_sub", tag: "Debates", emoji: "🎙️", gradient: "bg-gradient-to-br from-slate-500 via-indigo-500 to-violet-600" },
-  { id: "c11", kind: "creator", title: "LoreArchivist", subtitle: "@lore_archivist", tag: "Lore", emoji: "📜", gradient: "bg-gradient-to-br from-lime-400 via-emerald-500 to-teal-600" },
-  { id: "c12", kind: "creator", title: "SpeedLines", subtitle: "@speed_lines", tag: "Art Tips", emoji: "✍️", gradient: "bg-gradient-to-br from-pink-500 via-rose-500 to-orange-500" },
+  {
+    id: "c1",
+    kind: "creator",
+    title: "KitsuneArtist",
+    subtitle: "@kitsune",
+    tag: "Fanart",
+    emoji: "🦊",
+    gradient: "bg-gradient-to-br from-fuchsia-500 via-violet-500 to-sky-500",
+  },
+  {
+    id: "c2",
+    kind: "creator",
+    title: "OniReviews",
+    subtitle: "@oni_reviews",
+    tag: "Reviews",
+    emoji: "👹",
+    gradient: "bg-gradient-to-br from-rose-500 via-red-500 to-orange-500",
+  },
+  {
+    id: "c3",
+    kind: "creator",
+    title: "ShonenDaily",
+    subtitle: "@shonen_daily",
+    tag: "News",
+    emoji: "⚡",
+    gradient: "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500",
+  },
+  {
+    id: "c4",
+    kind: "creator",
+    title: "MoonManga",
+    subtitle: "@moon_manga",
+    tag: "Manga",
+    emoji: "🌙",
+    gradient: "bg-gradient-to-br from-indigo-500 via-violet-500 to-pink-500",
+  },
+  {
+    id: "c5",
+    kind: "creator",
+    title: "MechaLab",
+    subtitle: "@mecha_lab",
+    tag: "Mecha",
+    emoji: "🤖",
+    gradient: "bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-600",
+  },
+  {
+    id: "c6",
+    kind: "creator",
+    title: "SliceClub",
+    subtitle: "@slice_club",
+    tag: "Slice of Life",
+    emoji: "🍡",
+    gradient: "bg-gradient-to-br from-emerald-400 via-sky-500 to-indigo-500",
+  },
+  {
+    id: "c7",
+    kind: "creator",
+    title: "CosplayForge",
+    subtitle: "@cosplay_forge",
+    tag: "Cosplay",
+    emoji: "🧵",
+    gradient: "bg-gradient-to-br from-orange-400 via-amber-500 to-yellow-500",
+  },
+  {
+    id: "c8",
+    kind: "creator",
+    title: "PanelBreakdown",
+    subtitle: "@panel_breakdown",
+    tag: "Analysis",
+    emoji: "🧩",
+    gradient: "bg-gradient-to-br from-violet-500 via-fuchsia-500 to-rose-500",
+  },
+  {
+    id: "c9",
+    kind: "creator",
+    title: "GhibliFrames",
+    subtitle: "@ghibli_frames",
+    tag: "Shots",
+    emoji: "🎞️",
+    gradient: "bg-gradient-to-br from-teal-400 via-cyan-500 to-sky-600",
+  },
+  {
+    id: "c10",
+    kind: "creator",
+    title: "DubOrSub",
+    subtitle: "@dub_or_sub",
+    tag: "Debates",
+    emoji: "🎙️",
+    gradient: "bg-gradient-to-br from-slate-500 via-indigo-500 to-violet-600",
+  },
+  {
+    id: "c11",
+    kind: "creator",
+    title: "LoreArchivist",
+    subtitle: "@lore_archivist",
+    tag: "Lore",
+    emoji: "📜",
+    gradient: "bg-gradient-to-br from-lime-400 via-emerald-500 to-teal-600",
+  },
+  {
+    id: "c12",
+    kind: "creator",
+    title: "SpeedLines",
+    subtitle: "@speed_lines",
+    tag: "Art Tips",
+    emoji: "✍️",
+    gradient: "bg-gradient-to-br from-pink-500 via-rose-500 to-orange-500",
+  },
 
   // Channels
-  { id: "h1", kind: "channel", title: "One Piece", subtitle: "#onepiece", tag: "Channel", emoji: "🏴‍☠️", gradient: "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500" },
-  { id: "h2", kind: "channel", title: "Jujutsu Kaisen", subtitle: "#jjk", tag: "Channel", emoji: "🌀", gradient: "bg-gradient-to-br from-indigo-500 via-sky-500 to-cyan-400" },
-  { id: "h3", kind: "channel", title: "Attack on Titan", subtitle: "#aot", tag: "Channel", emoji: "🧱", gradient: "bg-gradient-to-br from-stone-500 via-slate-600 to-zinc-700" },
-  { id: "h4", kind: "channel", title: "RomCom", subtitle: "#romcom", tag: "Channel", emoji: "💞", gradient: "bg-gradient-to-br from-pink-500 via-fuchsia-500 to-violet-600" },
-  { id: "h5", kind: "channel", title: "Isekai", subtitle: "#isekai", tag: "Channel", emoji: "🚪", gradient: "bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600" },
-  { id: "h6", kind: "channel", title: "Manhwa", subtitle: "#manhwa", tag: "Channel", emoji: "📱", gradient: "bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700" },
-  { id: "h7", kind: "channel", title: "AMV / Edits", subtitle: "#amv", tag: "Channel", emoji: "🎧", gradient: "bg-gradient-to-br from-fuchsia-500 via-violet-500 to-indigo-600" },
-  { id: "h8", kind: "channel", title: "Cosplay", subtitle: "#cosplay", tag: "Channel", emoji: "🪡", gradient: "bg-gradient-to-br from-amber-400 via-orange-500 to-red-600" },
+  {
+    id: "h1",
+    kind: "channel",
+    title: "One Piece",
+    subtitle: "#onepiece",
+    tag: "Channel",
+    emoji: "🏴‍☠️",
+    gradient: "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500",
+  },
+  {
+    id: "h2",
+    kind: "channel",
+    title: "Jujutsu Kaisen",
+    subtitle: "#jjk",
+    tag: "Channel",
+    emoji: "🌀",
+    gradient: "bg-gradient-to-br from-indigo-500 via-sky-500 to-cyan-400",
+  },
+  {
+    id: "h3",
+    kind: "channel",
+    title: "Attack on Titan",
+    subtitle: "#aot",
+    tag: "Channel",
+    emoji: "🧱",
+    gradient: "bg-gradient-to-br from-stone-500 via-slate-600 to-zinc-700",
+  },
+  {
+    id: "h4",
+    kind: "channel",
+    title: "RomCom",
+    subtitle: "#romcom",
+    tag: "Channel",
+    emoji: "💞",
+    gradient: "bg-gradient-to-br from-pink-500 via-fuchsia-500 to-violet-600",
+  },
+  {
+    id: "h5",
+    kind: "channel",
+    title: "Isekai",
+    subtitle: "#isekai",
+    tag: "Channel",
+    emoji: "🚪",
+    gradient: "bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600",
+  },
+  {
+    id: "h6",
+    kind: "channel",
+    title: "Manhwa",
+    subtitle: "#manhwa",
+    tag: "Channel",
+    emoji: "📱",
+    gradient: "bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700",
+  },
+  {
+    id: "h7",
+    kind: "channel",
+    title: "AMV / Edits",
+    subtitle: "#amv",
+    tag: "Channel",
+    emoji: "🎧",
+    gradient: "bg-gradient-to-br from-fuchsia-500 via-violet-500 to-indigo-600",
+  },
+  {
+    id: "h8",
+    kind: "channel",
+    title: "Cosplay",
+    subtitle: "#cosplay",
+    tag: "Channel",
+    emoji: "🪡",
+    gradient: "bg-gradient-to-br from-amber-400 via-orange-500 to-red-600",
+  },
 ];
 
 function shuffle<T>(arr: T[]) {
@@ -97,7 +256,10 @@ export default function Step05({ onSuccess }: SignupStep1Props) {
     ? undefined
     : {
         hidden: { opacity: 1 },
-        show: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.02 } },
+        show: {
+          opacity: 1,
+          transition: { staggerChildren: 0.05, delayChildren: 0.02 },
+        },
       };
 
   const itemVariants = safeReduceMotion
@@ -117,11 +279,18 @@ export default function Step05({ onSuccess }: SignupStep1Props) {
         <h2 className="text-[18px] sm:text-[20px] font-extrabold text-foreground-strong">
           Follow creators & channels
         </h2>
-        <p className="text-[12.5px] text-foreground-muted">Quick picks to shape your feed.</p>
+        <p className="text-[12.5px] text-foreground-muted">
+          Quick picks to shape your feed.
+        </p>
       </motion.header>
 
       {/* top row (no extra container wrapper) */}
-      <div className={cn("flex items-center justify-between gap-2", safeIsRTL && "flex-row-reverse")}>
+      <div
+        className={cn(
+          "flex items-center justify-between gap-2",
+          safeIsRTL && "flex-row-reverse",
+        )}
+      >
         <div className="text-xs text-foreground-muted">
           {followedCount} / {total}
         </div>
@@ -135,7 +304,12 @@ export default function Step05({ onSuccess }: SignupStep1Props) {
               exit={safeReduceMotion ? undefined : { opacity: 0, y: -6 }}
               transition={{ duration: 0.16, ease: "easeOut" }}
             >
-              <Button type="button" variant="soft" tone="brand" onClick={followAll}>
+              <Button
+                type="button"
+                variant="soft"
+                tone="brand"
+                onClick={followAll}
+              >
                 Follow all
               </Button>
             </motion.div>
@@ -163,23 +337,35 @@ export default function Step05({ onSuccess }: SignupStep1Props) {
               transition={{ duration: 0.14, ease: "easeOut" }}
               className={cn(
                 "w-full rounded-3xl border border-border-subtle bg-surface p-3",
-                "shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow-sm)]"
+                "shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow-sm)]",
               )}
             >
-              <div className={cn("flex items-center gap-3", safeIsRTL && "flex-row-reverse")}>
+              <div
+                className={cn(
+                  "flex items-center gap-3",
+                  safeIsRTL && "flex-row-reverse",
+                )}
+              >
                 <div
                   className={cn(
                     "h-12 w-12 shrink-0 rounded-2xl grid place-items-center text-xl",
                     "ring-1 ring-black/5 shadow-[var(--shadow-sm)]",
-                    it.gradient
+                    it.gradient,
                   )}
                   aria-hidden
                 >
                   {it.emoji}
                 </div>
 
-                <div className={cn("min-w-0 flex-1", safeIsRTL && "text-right")}>
-                  <div className={cn("flex items-center gap-2", safeIsRTL && "justify-end")}>
+                <div
+                  className={cn("min-w-0 flex-1", safeIsRTL && "text-right")}
+                >
+                  <div
+                    className={cn(
+                      "flex items-center gap-2",
+                      safeIsRTL && "justify-end",
+                    )}
+                  >
                     <div className="truncate text-sm font-extrabold text-foreground-strong">
                       <bdi>{it.title}</bdi>
                     </div>
@@ -189,7 +375,7 @@ export default function Step05({ onSuccess }: SignupStep1Props) {
                         "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
                         it.kind === "creator"
                           ? "border-accent-border bg-accent-soft text-accent"
-                          : "border-border-subtle bg-surface/70 text-foreground-muted"
+                          : "border-border-subtle bg-surface/70 text-foreground-muted",
                       )}
                     >
                       <bdi>{it.tag}</bdi>
@@ -218,7 +404,14 @@ export default function Step05({ onSuccess }: SignupStep1Props) {
       </motion.div>
 
       <div className="pt-1">
-        <Button type="button" variant="gradient" gradient="ocean" size="xl" fullWidth onClick={onSuccess}>
+        <Button
+          type="button"
+          variant="gradient"
+          gradient="ocean"
+          size="xl"
+          fullWidth
+          onClick={onSuccess}
+        >
           Continue
         </Button>
       </div>

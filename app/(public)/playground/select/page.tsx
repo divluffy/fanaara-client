@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LocalizedSelect, SelectOption } from "@/design/Select";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppSelector } from "@/store/hooks";
 
 // ---------- helpers (avoid repetitive casts) ----------
 type SelectValue = string | string[] | null;

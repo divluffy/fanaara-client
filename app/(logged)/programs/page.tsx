@@ -5,7 +5,7 @@ import {
   useCreateWorkspaceApplicationMutation,
   useMyWorkspaceApplicationsQuery,
   type WorkspaceType,
-} from "@/redux/api";
+} from "@/store/api";
 
 const PROGRAMS: { key: WorkspaceType; title: string }[] = [
   { key: "influencer", title: "Influencer Workspace" },

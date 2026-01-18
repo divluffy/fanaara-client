@@ -33,7 +33,7 @@ import type {
   ButtonGradient,
   ButtonTone,
   ButtonVariant,
-} from "@/design/button";
+} from "@/design";
 
 /** ===== Constants (no need for useMemo) ===== */
 const VARIANTS = [

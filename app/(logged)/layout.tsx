@@ -16,5 +16,9 @@ export default async function MainLayout({
     redirect(`/login?redirect=${encodeURIComponent(path)}`);
   }
 
+  if (me.user.status === "PENDING") {
+    redirect("/signup");
+  }
+
   return <LoggedLayout initialUser={me.user}>{children}</LoggedLayout>;
 }

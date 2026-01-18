@@ -1,5 +1,5 @@
 // lib/server-auth.ts
-import { UserProps } from "@/types";
+import { UserProfileDTO } from "@/types";
 import { headers } from "next/headers";
 
 const BACKEND = process.env.BACKEND_INTERNAL_URL;
@@ -17,13 +17,14 @@ export async function serverMe() {
     headers: { cookie, accept: "application/json" },
     cache: "no-store",
   });
+  console.log("res: ", res);
 
   if (res.status === 401) return null;
   if (!res.ok) return null;
   const data = await res.json();
   console.log("data User AUTH: ", data);
 
-  return data as { user: UserProps };
+  return data as { user: UserProfileDTO };
 }
 
 export async function serverCurrentPath() {

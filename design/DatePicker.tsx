@@ -37,7 +37,7 @@ function cn(...classes: Array<string | false | null | undefined>) {
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
 const MONTH_LABELS = Array.from({ length: 12 }, (_, i) =>
-  new Date(2000, i, 1).toLocaleDateString(undefined, { month: "short" })
+  new Date(2000, i, 1).toLocaleDateString(undefined, { month: "short" }),
 );
 
 function toInt(v: string | null): number | null {
@@ -61,7 +61,7 @@ function floorToMinute(d: Date) {
     d.getHours(),
     d.getMinutes(),
     0,
-    0
+    0,
   );
 }
 function ceilToMinute(d: Date) {
@@ -91,7 +91,7 @@ function isRangeOutside(
   rangeStart: Date,
   rangeEnd: Date,
   min?: Date,
-  max?: Date
+  max?: Date,
 ) {
   if (max && rangeStart.getTime() > max.getTime()) return true;
   if (min && rangeEnd.getTime() < min.getTime()) return true;
@@ -117,7 +117,7 @@ function makeSafeDate(
   month1Based: number,
   day: number,
   hour: number,
-  minute: number
+  minute: number,
 ) {
   const dt = new Date(year, month1Based - 1, day, hour, minute, 0, 0);
 
@@ -234,7 +234,7 @@ export const SimpleDatePicker: React.FC<SimpleDatePickerProps> = ({
 
   // Last committed Date time (ms). Used to recognize value updates that originated from this picker.
   const lastCommittedMsRef = useRef<number | null>(
-    value ? value.getTime() : null
+    value ? value.getTime() : null,
   );
 
   /**
@@ -379,7 +379,7 @@ export const SimpleDatePicker: React.FC<SimpleDatePickerProps> = ({
 
     const base = Array.from(
       { length: Math.ceil(60 / step) },
-      (_, i) => i * step
+      (_, i) => i * step,
     ).filter((n) => n < 60);
 
     // Add boundary minutes (min/max) if on same Y/M/D/hour
@@ -463,8 +463,8 @@ export const SimpleDatePicker: React.FC<SimpleDatePickerProps> = ({
       const rawH = toInt(nextParts.hour);
       const rawM = toInt(nextParts.minute);
 
-      const finalH = allowPartialTime ? rawH ?? 0 : rawH;
-      const finalM = allowPartialTime ? rawM ?? 0 : rawM;
+      const finalH = allowPartialTime ? (rawH ?? 0) : rawH;
+      const finalM = allowPartialTime ? (rawM ?? 0) : rawM;
 
       // Strict time: must have both hour + minute
       if (!allowPartialTime && (finalH === null || finalM === null)) {
@@ -476,7 +476,7 @@ export const SimpleDatePicker: React.FC<SimpleDatePickerProps> = ({
         mm!,
         dayFinal!,
         finalH ?? 0,
-        finalM ?? 0
+        finalM ?? 0,
       );
       if (!candidate) return { parts: nextParts, date: null };
 
@@ -492,7 +492,7 @@ export const SimpleDatePicker: React.FC<SimpleDatePickerProps> = ({
 
       return { parts: nextParts, date: candidate };
     },
-    [allowPartialTime, withTime, minEff, maxEff]
+    [allowPartialTime, withTime, minEff, maxEff],
   );
 
   const pushCommit = useCallback(
@@ -510,7 +510,7 @@ export const SimpleDatePicker: React.FC<SimpleDatePickerProps> = ({
       // blur mode: store pending (including null), but only flush when focus leaves picker
       pendingCommitRef.current = date;
     },
-    [commitMode, onChange]
+    [commitMode, onChange],
   );
 
   const commitParts = useCallback(
@@ -519,7 +519,7 @@ export const SimpleDatePicker: React.FC<SimpleDatePickerProps> = ({
       pushCommit(date);
       return normalized;
     },
-    [computeNext, pushCommit]
+    [computeNext, pushCommit],
   );
 
   const setPart = useCallback(
@@ -539,7 +539,7 @@ export const SimpleDatePicker: React.FC<SimpleDatePickerProps> = ({
         return commitParts(cleaned);
       });
     },
-    [commitParts, disabled, withTime]
+    [commitParts, disabled, withTime],
   );
 
   const flushPending = useCallback(() => {
@@ -570,7 +570,7 @@ export const SimpleDatePicker: React.FC<SimpleDatePickerProps> = ({
         flushPending();
       }
     },
-    [commitMode, flushPending]
+    [commitMode, flushPending],
   );
 
   const selectBaseProps = useMemo(() => {
@@ -584,8 +584,8 @@ export const SimpleDatePicker: React.FC<SimpleDatePickerProps> = ({
           cn(
             "[&>button]:border-danger-500",
             "[&>button]:hover:border-danger-500",
-            "[&>button]:focus-visible:ring-[color:var(--ring-danger)]"
-          )
+            "[&>button]:focus-visible:ring-[color:var(--ring-danger)]",
+          ),
       ),
     };
   }, [size, variant, disabled, error]);

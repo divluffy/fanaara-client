@@ -4,8 +4,8 @@
 import { useEffect, useRef } from "react";
 import { Provider } from "react-redux";
 import type { ReactNode } from "react";
-import { makeStore, type AppStore } from "@/redux/store";
-import { initializeDirection, setDirection } from "@/redux/state";
+import { makeStore, type AppStore } from "@/store/store";
+import { initializeDirection, setDirection } from "@/store/state";
 import { Directions } from "@/i18n/config";
 
 export default function StoreProvider({

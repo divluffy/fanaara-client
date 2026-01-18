@@ -1,8 +1,9 @@
+// app\(public)\layout.tsx
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { serverMe } from "@/lib/server-auth";
-import PublicLayout from "@/layout/PublicLayout";
+import { PublicLayout } from "@/layout";
 import { AUTH_COOKIE } from "@/config";
 
 export default async function PublicPagesLayout({
@@ -23,6 +24,10 @@ export default async function PublicPagesLayout({
   // تحقق فعلي من الجلسة
   const me = await serverMe();
   console.log("auth from public layout >>> 3");
+
+  if (me?.user?.status === "PENDING") {
+    redirect("/signup");
+  }
 
   if (me?.user) {
     redirect("/");

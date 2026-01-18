@@ -3,7 +3,7 @@
 import {
   useDecideWorkspaceApplicationMutation,
   useListWorkspaceApplicationsQuery,
-} from "@/redux/api";
+} from "@/store/api";
 
 export default function ReviewApplicationsPage() {
   const { data, isLoading, error } = useListWorkspaceApplicationsQuery({

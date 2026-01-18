@@ -12,7 +12,7 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 
-import { Button } from "@/design/button";
+import { Button } from "@/design";
 import type {
   ButtonElevation,
   ButtonGradient,
@@ -20,10 +20,10 @@ import type {
   ButtonSize,
   ButtonTone,
   ButtonVariant,
-} from "@/design/button";
+} from "@/design";
 
 // ✅ as requested for direction
-import { useAppSelector } from "@/redux/hooks";
+import { useAppSelector } from "@/store/hooks";
 
 const VARIANTS = ["solid", "soft", "outline", "ghost", "glass", "gradient"] as const;
 const TONES = ["brand", "neutral", "success", "danger", "warning", "info"] as const;

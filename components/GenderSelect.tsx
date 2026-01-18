@@ -13,7 +13,7 @@ type Option = {
   desc: string;
 };
 
-export default function GenderSelectGrid({
+export default function GenderSelect({
   value,
   onChange,
 }: {
@@ -24,11 +24,21 @@ export default function GenderSelectGrid({
 
   const OPTIONS = React.useMemo<readonly Option[]>(
     () => [
-      { value: "male", emoji: "♂️", label: t("male.label"), desc: t("male.desc") },
-      { value: "female", emoji: "♀️", label: t("female.label"), desc: t("female.desc") },
+      {
+        value: "male",
+        emoji: "♂️",
+        label: t("male.label"),
+        desc: t("male.desc"),
+      },
+      {
+        value: "female",
+        emoji: "♀️",
+        label: t("female.label"),
+        desc: t("female.desc"),
+      },
       { value: "na", emoji: "🤐", label: t("na.label"), desc: t("na.desc") },
     ],
-    [t]
+    [t],
   );
 
   return (
@@ -40,7 +50,7 @@ export default function GenderSelectGrid({
           // 👇 ALWAYS 3 columns, even on tiny screens
           "grid grid-cols-3 gap-1",
           // 👇 helps prevent overflow issues in grid children
-          "min-w-0"
+          "min-w-0",
         )}
       >
         {OPTIONS.map((o) => {
@@ -69,7 +79,7 @@ export default function GenderSelectGrid({
                 "px-1.5 py-2 sm:px-2.5",
                 checked
                   ? "border-zinc-900 bg-zinc-900 text-white shadow-sm"
-                  : "border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50"
+                  : "border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50",
               )}
             >
               {/* 👇 stack a bit tighter on small widths */}
@@ -86,7 +96,7 @@ export default function GenderSelectGrid({
                   <div
                     className={cn(
                       "text-[10px] sm:text-[11px] leading-4 break-words",
-                      checked ? "text-white/75" : "text-zinc-500"
+                      checked ? "text-white/75" : "text-zinc-500",
                     )}
                   >
                     {o.desc}
@@ -99,7 +109,7 @@ export default function GenderSelectGrid({
                 className={cn(
                   "pointer-events-none absolute -inset-px rounded-lg opacity-0 blur-lg transition-opacity",
                   checked && "opacity-25",
-                  "bg-gradient-to-r from-indigo-500/25 via-fuchsia-500/15 to-sky-500/25"
+                  "bg-gradient-to-r from-indigo-500/25 via-fuchsia-500/15 to-sky-500/25",
                 )}
               />
             </button>

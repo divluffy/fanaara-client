@@ -1,16 +1,12 @@
 // features/signup/steps/step01.tsx
 "use client";
 
-import React, { useId, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { motion, useReducedMotion } from "framer-motion";
-
-import { AppInput } from "@/design/Input";
-import { Button } from "@/design/button";
-import { IconButton } from "@/design/icon-button";
+import { Button, IconButton, AppInput } from "@/design";
 import { cn } from "@/utils";
-
 import {
   HiOutlineMail,
   HiOutlineLockClosed,
@@ -20,8 +16,10 @@ import {
 import { useTranslations } from "next-intl";
 import { AppleIcon, GoogleIcon, MicrosoftIcon } from "@/assets";
 import { useSignupMutation } from "../api";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppSelector } from "@/store/hooks";
 import { SignupStep1Props } from "@/types";
+import { useEmailDomainBlocklist } from "@/hooks/useEmailDomainBlocklist";
+import { EMAIL_RE, PASSWORD_RE } from "@/constants";
 
 type SignupStep1Values = {
   email: string;
@@ -32,39 +30,19 @@ type SignupStep1Values = {
 const FOCUS_RING =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring-brand)]";
 
-type UnknownRecord = Record<string, unknown>;
-function isRecord(v: unknown): v is UnknownRecord {
-  return typeof v === "object" && v !== null;
-}
-
-function extractErrorMessage(err: unknown): string {
-  if (typeof err === "string") return err;
-
-  if (isRecord(err)) {
-    const data = err["data"];
-    if (isRecord(data)) {
-      const msg = data["message"];
-      if (typeof msg === "string" && msg.trim()) return msg;
-    }
-
-    const msg = err["message"];
-    if (typeof msg === "string" && msg.trim()) return msg;
-
-    const e = err["error"];
-    if (typeof e === "string" && e.trim()) return e;
-  }
-
-  return "Something went wrong. Please try again.";
-}
+const ERR_BLOCKED_DOMAIN = "blocked_domain";
 
 export default function SignupStep1({ onSuccess }: SignupStep1Props) {
   const reduceMotion = useReducedMotion();
   const { isRTL } = useAppSelector((s) => s.state);
+  const { isBlocked } = useEmailDomainBlocklist();
 
   const [showPass, setShowPass] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
-  const t = useTranslations("signup_steps_01");
+  const t = useTranslations("");
+
+  const toggleShowPass = useCallback(() => setShowPass((v) => !v), []);
+
   const [signup, { isLoading: isMutating }] = useSignupMutation();
 
   const checkboxId = useId();
@@ -74,14 +52,23 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
     handleSubmit,
     formState: { errors, isSubmitting, isValid, touchedFields, submitCount },
     watch,
+    setError,
+    clearErrors,
+    control,
   } = useForm<SignupStep1Values>({
     mode: "onChange",
-    // BUG FIX: لا تضع password افتراضيًا أبدًا في signup
     defaultValues: { email: "", password: "", agree: false },
   });
 
-  const agree = watch("agree");
-  const passwordValue = watch("password") ?? "";
+  const emailValue = useWatch({ control, name: "email" }) ?? "";
+  const passwordValue = useWatch({ control, name: "password" }) ?? "";
+  const agree = useWatch({ control, name: "agree" }) ?? false;
+
+  useEffect(() => {
+    if (errors.email?.type === ERR_BLOCKED_DOMAIN && !isBlocked(emailValue)) {
+      clearErrors("email");
+    }
+  }, [emailValue, errors.email?.type, isBlocked, clearErrors]);
 
   const passwordErrorText =
     typeof errors.password?.message === "string"
@@ -93,29 +80,66 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
     submitCount > 0 ||
     passwordValue.length > 0;
 
-  const passwordCaption = passwordErrorText ? (
-    <span className="text-danger-solid">{passwordErrorText}</span>
-  ) : (
-    <span>{t("password.hint")}</span>
-  );
+  const passwordCaption = useMemo(() => {
+    if (!passwordTouched) return undefined;
+    return passwordErrorText ? (
+      <span className="text-danger-solid">{passwordErrorText}</span>
+    ) : (
+      <span>{t("signup_steps.password.hint")}</span>
+    );
+  }, [passwordTouched, passwordErrorText, t]);
 
   const busy = isSubmitting || isMutating;
   const canSubmit = isValid && agree && !busy;
 
-  async function onSubmit(values: SignupStep1Values) {
-    setFormError(null);
-    try {
-      await signup(values).unwrap();
-      onSuccess();
-    } catch (e: unknown) {
-      setFormError(extractErrorMessage(e));
+  const emailRules = useMemo(
+    () => ({
+      required: t("messages.signup.email.required"),
+      pattern: { value: EMAIL_RE, message: t("messages.signup.email.invalid") },
+    }),
+    [t],
+  );
+
+  const passwordRules = useMemo(
+    () => ({
+      required: t("messages.signup.password.string"),
+      minLength: { value: 8, message: t("messages.signup.password.min") },
+      pattern: {
+        value: PASSWORD_RE,
+        message: t("messages.signup.password.pattern"),
+      },
+    }),
+    [t],
+  );
+
+  const onSubmit = async (values: SignupStep1Values) => {
+    // ✅ Temp email check only after clicking submit
+    if (isBlocked(values.email)) {
+      setError("email", {
+        type: ERR_BLOCKED_DOMAIN,
+        message: t("messages.signup.email.temp_not_allowed"),
+      });
+      return;
     }
-  }
+
+    try {
+      const res = await signup(values).unwrap();
+      console.log("res: ", res);
+      onSuccess();
+    } catch (e: any) {
+      console.log("e: ", e);
+
+      setError("email", {
+        type: "manual",
+        message: t(e?.data?.message || "messages.error.unknown"),
+      });
+    }
+  };
 
   function onSocial(provider: "google" | "apple" | "microsoft") {
     const api = process.env.NEXT_PUBLIC_API_URL;
     if (!api) {
-      setFormError("Missing NEXT_PUBLIC_API_URL.");
+      // handle error("Missing NEXT_PUBLIC_API_URL.");
       return;
     }
     window.location.href = `${api}/api/auth/oauth/${provider}/start`;
@@ -131,79 +155,53 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
           transition={{ duration: 0.18, ease: "easeOut" }}
         >
           <h1 className="text-[18px] sm:text-[20px] font-extrabold leading-tight text-foreground-strong">
-            {t("title")}
+            {t("signup_steps.title")}
           </h1>
 
           <p className="mx-auto mt-1.5 max-w-[40ch] text-[12.8px] sm:text-[13.2px] leading-relaxed text-foreground-muted">
-            {t("subtitle")}
+            {t("signup_steps.subtitle")}
           </p>
         </motion.header>
-
-        {formError && (
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 6 }}
-            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-            className={cn(
-              "mt-3 rounded-2xl border px-3 py-2 text-[12px] leading-5",
-              "border-danger-soft-border bg-danger-soft text-danger-solid"
-            )}
-            role="alert"
-            aria-live="polite"
-          >
-            <bdi>{formError}</bdi>
-          </motion.div>
-        )}
 
         <div className="mt-4 space-y-3">
           <AppInput
             name="email"
             register={register}
             errors={errors}
-            label={t("email.label")}
-            placeholder={t("email.placeholder")}
+            label={t("signup_steps.email.label")}
+            placeholder={t("signup_steps.email.placeholder")}
             autoComplete="email"
             inputMode="email"
             startIcon={HiOutlineMail}
             variant="outline"
             size="lg"
-            registerOptions={{
-              required: t("email.required"),
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: t("email.invalid"),
-              },
-            }}
+            registerOptions={emailRules}
           />
 
           <AppInput
             name="password"
             register={register}
             errors={errors}
-            label={t("password.label")}
-            description={passwordTouched ? passwordCaption : undefined}
-            placeholder={t("password.placeholder")}
+            label={t("signup_steps.password.label")}
+            description={passwordCaption}
+            placeholder={t("signup_steps.password.placeholder")}
             autoComplete="new-password"
             type={showPass ? "text" : "password"}
             startIcon={HiOutlineLockClosed}
             variant="outline"
             size="lg"
             action={{
-              ariaLabel: showPass ? t("password.hide") : t("password.show"),
-              onClick: () => setShowPass((v) => !v),
+              ariaLabel: showPass
+                ? t("signup_steps.password.hide")
+                : t("signup_steps.password.show"),
+              onClick: toggleShowPass,
               icon: showPass ? HiOutlineEyeOff : HiOutlineEye,
               tone: "neutral",
               appearance: "outline",
             }}
-            registerOptions={{
-              required: t("password.required"),
-              minLength: { value: 8, message: t("password.min") },
-              pattern: {
-                value: /^(?=.*[A-Za-z])(?=.*\d).{8,}$/,
-                message: t("password.pattern"),
-              },
-            }}
+            registerOptions={passwordRules}
             helperClassName={cn(
-              passwordErrorText ? "text-danger-solid" : "text-foreground-muted"
+              passwordErrorText ? "text-danger-solid" : "text-foreground-muted",
             )}
           />
         </div>
@@ -217,7 +215,7 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
               "transition hover:bg-background-elevated/60",
               errors.agree?.message
                 ? "border-danger-soft-border"
-                : "border-border-subtle"
+                : "border-border-subtle",
             )}
           >
             <input
@@ -227,29 +225,32 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
                 "h-4 w-4 rounded",
                 "border border-border-strong bg-surface",
                 "accent-[var(--color-accent)]",
-                FOCUS_RING
+                FOCUS_RING,
               )}
-              {...register("agree", { required: t("terms.required") })}
+              {...register("agree", {
+                required: t("signup_steps.terms.required"),
+              })}
             />
 
             <span className="min-w-0 truncate whitespace-nowrap text-[12.5px] leading-5 text-foreground-muted">
-              {t("terms.text")}{" "}
+              {t("signup_steps.terms.text")}{" "}
               <Link
                 href="/policy-terms-center"
+                onClick={(e) => e.stopPropagation()}
                 className={cn(
                   "text-foreground underline decoration-border-strong underline-offset-4 hover:opacity-90",
                   "rounded-md",
-                  FOCUS_RING
+                  FOCUS_RING,
                 )}
               >
-                {t("terms.link")}
+                {t("signup_steps.terms.link")}
               </Link>
             </span>
           </label>
 
           {errors.agree?.message ? (
             <p className="text-[12px] leading-4 text-danger-solid">
-              {t("terms.required")}
+              {t("signup_steps.terms.required")}
             </p>
           ) : null}
         </div>
@@ -262,24 +263,24 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
             size="xl"
             elevation="cta"
             fullWidth
-            isLoading={busy}
-            loadingText={t("submit.loading")}
+            isLoading={busy} 
+            loadingText={t("signup_steps.submit.loading")}
             disabled={!canSubmit}
             className={cn(
               "shadow-[var(--shadow-glow-brand)]",
               "hover:brightness-[1.05] active:brightness-[0.98]",
               "disabled:shadow-none",
-              FOCUS_RING
+              FOCUS_RING,
             )}
           >
-            {t("submit.button")}
+            {t("signup_steps.submit.button")}
           </Button>
         </div>
 
         <div className="mt-3.5 flex items-center gap-3">
           <div className="h-px flex-1 bg-divider" />
           <span className="text-[11px] text-foreground-muted">
-            {t("divider")}
+            {t("signup_steps.divider")}
           </span>
           <div className="h-px flex-1 bg-divider" />
         </div>
@@ -287,17 +288,18 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
         <motion.div
           className={cn(
             "mt-2 flex items-center justify-center gap-2 p-2",
-            isRTL && "flex-row-reverse"
+            isRTL && "flex-row-reverse",
           )}
           initial={reduceMotion ? false : { opacity: 0, y: 6 }}
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.16, ease: "easeOut" }}
         >
           <IconButton
+            type="button"
             aria-label="google"
             variant="soft"
             tone="brand"
-            tooltip={t("social.google")}
+            tooltip={t("signup_steps.social.google")}
             onClick={() => onSocial("google")}
             shape="rounded"
           >
@@ -305,10 +307,11 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
           </IconButton>
 
           <IconButton
+            type="button"
             aria-label="apple"
             variant="soft"
             tone="brand"
-            tooltip={t("social.apple")}
+            tooltip={t("signup_steps.social.apple")}
             onClick={() => onSocial("apple")}
             shape="rounded"
           >
@@ -316,10 +319,11 @@ export default function SignupStep1({ onSuccess }: SignupStep1Props) {
           </IconButton>
 
           <IconButton
+            type="button"
             aria-label="microsoft"
             variant="soft"
             tone="brand"
-            tooltip={t("social.microsoft")}
+            tooltip={t("signup_steps.social.microsoft")}
             onClick={() => onSocial("microsoft")}
             shape="rounded"
           >

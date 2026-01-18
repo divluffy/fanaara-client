@@ -1,22 +1,23 @@
+// layout/LoggedLayout.tsx
 "use client";
 
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { api } from "@/redux/api";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { api } from "@/store/api";
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useFullPath } from "@/hooks/useFullPath";
 import { useHideNavbarOnScroll } from "@/hooks/useHideNavbarOnScroll";
 import { MQ_DESKTOP } from "@/constants";
 import { DesktopLayout, MobileLayout } from "./components";
-import { UserProps } from "@/types";
+import { UserProfileDTO } from "@/types";
 
 export type LoggedLayoutProps = {
   children: ReactNode;
-  initialUser?: UserProps;
+  initialUser?: UserProfileDTO;
 };
 
 export default function LoggedLayout({

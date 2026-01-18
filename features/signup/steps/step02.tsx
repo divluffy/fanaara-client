@@ -8,23 +8,19 @@ import type { IconType } from "react-icons";
 import { FaUser } from "react-icons/fa";
 import { CiAt } from "react-icons/ci";
 import { FiCheck, FiLoader, FiSearch, FiX } from "react-icons/fi";
-
-import { AppInput } from "@/design/Input";
-import { Button } from "@/design/button";
-import { cn } from "@/utils";
-
-import { SimpleDatePicker } from "@/design/DatePicker";
 import {
+  Button,
+  AppInput,
+  SimpleDatePicker,
   LocalizedSelect,
-  type SelectOption as DesignSelectOption,
-} from "@/design/Select";
-import GenderSelectGrid from "@/components/GenderSelect";
+  SelectOption,
+} from "@/design";
+import { cn } from "@/utils";
+import { GenderSelect } from "@/components";
 import useCountryOptions from "@/hooks/useCountryOptions";
 
 import { useLazyCheckUsernameQuery, useUpdateProfileMutation } from "../api";
-import { SignupStep1Props } from "@/types";
-
-type Gender = "male" | "female" | "na";
+import { Gender, SignupStep1Props, UserProfileDTO } from "@/types";
 
 type Step02FormValues = {
   username: string;
@@ -35,22 +31,13 @@ type Step02FormValues = {
   gender: Gender | null;
 };
 
-type UpdateProfileDto = {
-  username: string;
-  firstName: string;
-  lastName: string;
-  dob: string | null;
-  country: string | null;
-  gender: Gender | null;
-};
-
 const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]{3,31}$/;
 
-function toDto(values: Step02FormValues): UpdateProfileDto {
+function toDto(values: Step02FormValues): UserProfileDTO {
   return {
     username: values.username.trim(),
-    firstName: values.first_name.trim(),
-    lastName: values.last_name.trim(),
+    first_name: values.first_name.trim(),
+    last_name: values.last_name.trim(),
     dob: values.dob ? values.dob.toISOString() : null,
     country: values.country ?? null,
     gender: values.gender ?? null,
@@ -98,9 +85,9 @@ function parseAvailability(res: unknown): boolean {
   return Boolean(res);
 }
 
-function normalizeToDesignOptions(raw: unknown): DesignSelectOption[] {
+function normalizeToDesignOptions(raw: unknown): SelectOption[] {
   if (!Array.isArray(raw)) return [];
-  const out: DesignSelectOption[] = [];
+  const out: SelectOption[] = [];
 
   for (const item of raw) {
     if (!isRecord(item)) continue;
@@ -129,7 +116,7 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
   const rawCountryOptions = useCountryOptions();
   const countryOptions = React.useMemo(
     () => normalizeToDesignOptions(rawCountryOptions),
-    [rawCountryOptions]
+    [rawCountryOptions],
   );
 
   const {
@@ -190,7 +177,7 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
 
     if (lastResultRef.current?.username === usernameTrimmed) {
       setUsernameStatus(
-        lastResultRef.current.available ? "available" : "taken"
+        lastResultRef.current.available ? "available" : "taken",
       );
       return;
     }
@@ -208,10 +195,10 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
           />
         )
       : usernameStatus === "available"
-      ? FiCheck
-      : usernameStatus === "taken" || usernameStatus === "error"
-      ? FiX
-      : FiSearch;
+        ? FiCheck
+        : usernameStatus === "taken" || usernameStatus === "error"
+          ? FiX
+          : FiSearch;
 
   const checkUsernameAvailability = React.useCallback(
     async (
@@ -220,7 +207,7 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
         commitToField?: boolean;
         keepFocus?: boolean;
         hardFail?: boolean;
-      }
+      },
     ): Promise<boolean | null> => {
       const v = normalizeUsername(raw);
 
@@ -297,7 +284,7 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
         return null;
       }
     },
-    [triggerCheckUsername, clearErrors, setError, setFocus, t]
+    [triggerCheckUsername, clearErrors, setError, setFocus, t],
   );
 
   // Auto-check after debounce (no focus stealing, no committing captions)
@@ -504,7 +491,7 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
                 {t("gender.label")}
               </div>
 
-              <GenderSelectGrid
+              <GenderSelect
                 value={field.value ?? null}
                 onChange={(v) => field.onChange(v)}
               />
@@ -534,7 +521,7 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
             className={cn(
               "shadow-[var(--shadow-glow-brand)]",
               "hover:brightness-[1.05] active:brightness-[0.98]",
-              "disabled:shadow-none"
+              "disabled:shadow-none",
             )}
           >
             {t("submit.continue")}

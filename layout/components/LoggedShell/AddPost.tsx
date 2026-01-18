@@ -10,7 +10,7 @@ import {
   useReducedMotion,
 } from "framer-motion";
 import { IoIosAdd } from "react-icons/io";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppSelector } from "@/store/hooks";
 
 import {
   AddPostProps,

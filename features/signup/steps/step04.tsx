@@ -1,15 +1,12 @@
 // features/signup/steps/step04.tsx
 "use client";
 
-import React from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { motion, useReducedMotion } from "framer-motion";
 import { useLocale } from "next-intl";
-
-import { LocalizedSelect, type SelectOption } from "@/design/Select";
-import { Button } from "@/design/button";
+import { Button, LocalizedSelect, SelectOption } from "@/design";
 import { cn } from "@/utils";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppSelector } from "@/store/hooks";
 import type { SignupStep1Props } from "@/types";
 
 type Step04Values = {
@@ -1126,7 +1123,7 @@ export default function Step04({ onSuccess }: SignupStep1Props) {
         <div
           className={cn(
             "rounded-2xl border border-border-subtle bg-surface/60 p-3 text-[12px] text-foreground-muted",
-            isRTL && "text-right"
+            isRTL && "text-right",
           )}
         >
           <bdi>

@@ -1,4 +1,4 @@
-// redux/api.ts
+// store/api.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { setSessionExpired } from "./auth";
 import { getCookie } from "@/lib/cookies";

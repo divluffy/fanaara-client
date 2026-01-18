@@ -1,7 +1,6 @@
 // features/signup/steps/step06.tsx
 "use client";
 
-import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -14,9 +13,9 @@ import {
   FiLayers,
 } from "react-icons/fi";
 
-import { Button } from "@/design/button";
+import { Button } from "@/design";
 import { cn } from "@/utils";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppSelector } from "@/store/hooks";
 
 const COPY = {
   ar: {
@@ -148,7 +147,7 @@ export default function Step06() {
         transition={{ duration: 0.22, ease: "easeOut" }}
         className={cn(
           "relative overflow-hidden rounded-3xl border border-border-subtle bg-surface p-5",
-          "shadow-[var(--shadow-md)]"
+          "shadow-[var(--shadow-md)]",
         )}
       >
         {/* background */}

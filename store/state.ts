@@ -1,13 +1,12 @@
-// redux/state.ts
+// store/state.ts
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { ProgramSlug } from "@/lib/programs";
 
 type Direction = "ltr" | "rtl";
 
 export interface AppState {
   direction: Direction;
   isRTL: boolean;
-  activeProgram: ProgramSlug | null;
+  activeProgram: null;
 }
 
 const initialState: AppState = {
@@ -28,7 +27,7 @@ const appState = createSlice({
       state.direction = action.payload;
       state.isRTL = action.payload === "rtl";
     },
-    setActiveProgram(state, action: PayloadAction<ProgramSlug | null>) {
+    setActiveProgram(state, action: PayloadAction<null>) {
       state.activeProgram = action.payload;
     },
   },

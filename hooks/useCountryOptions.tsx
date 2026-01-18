@@ -3,13 +3,26 @@
 import CountriesList from "@/constants/CountriesList";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
-import { countryCodeToFlagEmoji } from "@/utils/countryFlag";
 
 type CountryOption = {
   value: string;
   label: string;
   icon: any;
 };
+
+export function countryCodeToFlagEmoji(code: string) {
+  if (!code) return "";
+  const cc = code.trim().toUpperCase();
+
+  // لازم يكون حرفين A-Z
+  if (!/^[A-Z]{2}$/.test(cc)) return "";
+
+  const OFFSET = 0x1f1e6 - "A".charCodeAt(0); 
+  const first = cc.charCodeAt(0) + OFFSET;
+  const second = cc.charCodeAt(1) + OFFSET;
+
+  return String.fromCodePoint(first, second);
+}
 
 const useCountryOptions = () => {
   const t = useTranslations("countries");
@@ -24,7 +37,7 @@ const useCountryOptions = () => {
           label: t(countryCode),
         };
       }),
-    [t]
+    [t],
   );
 
   return options;

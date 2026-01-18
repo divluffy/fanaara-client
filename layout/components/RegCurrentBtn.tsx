@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/design/button";
+import { Button } from "@/design";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

@@ -3,7 +3,7 @@
 // app/(logged)/home/page.tsx
 import { LanguageMenuToggle } from "@/components";
 import { ThemeToggle } from "@/components";
-import { useLogoutMutation } from "@/redux/api";
+import { useLogoutMutation } from "@/store/api";
 import { UserProps } from "@/types";
 
 const HomePage = ({ user }: { user?: UserProps }) => {

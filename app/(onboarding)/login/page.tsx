@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useLoginMutation } from "@/redux/api";
+import { useLoginMutation } from "@/store/api";
 
 const schema = z.object({
   emailOrUsername: z

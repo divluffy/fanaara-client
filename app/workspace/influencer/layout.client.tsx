@@ -1,7 +1,7 @@
 // app/dashboard/influencer/layout.client.tsx
 "use client";
 
-import { useProgramAccessQuery } from "@/redux/api";
+import { useProgramAccessQuery } from "@/store/api";
 
 export default function DashboardProgramLayoutClient({
   children,

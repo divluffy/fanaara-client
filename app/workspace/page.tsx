@@ -4,7 +4,7 @@
 import Link from "next/link";
 import React from "react";
 
-import { useMeQuery, useMyWorkspaceApplicationsQuery } from "@/redux/api";
+import { useMeQuery, useMyWorkspaceApplicationsQuery } from "@/store/api";
 import { ProgramSlug } from "@/lib/programs";
 
 type AppStatus = "PENDING" | "APPROVED" | "REJECTED";

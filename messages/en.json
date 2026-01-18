@@ -4,29 +4,18 @@
     "searchPlaceholder": "Type to search...",
     "clear": "clear"
   },
-  "signup_steps_01": {
+  "signup_steps": {
     "title": "Prepare your list… and start the journey!",
     "subtitle": "One account to track anime and comics and share your taste with the community.",
 
     "email": {
       "label": "Email address",
-      "placeholder": "name@example.com",
-      "required": "Email is required",
-      "invalid": "Invalid email format"
-    },
-
-    "social": {
-      "google": "Continue with Google",
-      "apple": "Continue with Apple",
-      "microsoft": "Continue with Microsoft"
+      "placeholder": "name@example.com"
     },
 
     "password": {
       "label": "Password",
       "placeholder": "••••••••",
-      "required": "Password is required",
-      "min": "Password must be at least 8 characters",
-      "pattern": "Must contain letters and numbers",
       "hint": "8+ characters, must include letters and numbers.",
       "show": "Show password",
       "hide": "Hide password"
@@ -42,10 +31,13 @@
       "button": "Create account",
       "loading": "Creating account..."
     },
-
+    "social": {
+      "google": "Continue with Google",
+      "apple": "Continue with Apple",
+      "microsoft": "Continue with Microsoft"
+    },
     "divider": "or continue with"
   },
-
   "signup_steps_02": {
     "title": "Prepare your profile… and start the journey!",
     "subtitle": "A few details to personalize your experience.",
@@ -92,19 +84,16 @@
       "loading": "Saving…"
     }
   },
-
   "date": {
     "day": "Day",
     "month": "Month",
     "year": "Year"
   },
-
   "g": {
     "platform_name": "Fanara",
     "sign_up": "Sign up",
     "login": "Log in"
   },
-
   "signup_playground": {
     "pageTitle": "Pro Input + Action Ideas",
     "pageSubtitle": "Multiple action button styles (delete / searching / verifying / alert). RTL/LTR ready.",
@@ -309,6 +298,32 @@
       "madeFor": "Made for anime & manga fans. Not affiliated with any studios or publishers."
     }
   },
+
+  "messages": {
+    "unauthorized": "You need to log in again.",
+    "error": {
+      "unknown": "Something went wrong. Please try again.",
+      "validation": "Please check the highlighted fields."
+    },
+    "signup": {
+      "email": {
+        "required": "Email is required",
+        "invalid": "Email format is invalid.",
+        "temp_not_allowed": "Temporary email domains are not allowed.",
+        "taken": "This email is already used."
+      },
+      "password": {
+        "string": "Password is required.",
+        "required": "Password is required.",
+        "min": "Password must be at least 8 characters.",
+        "pattern": "Password must contain letters and numbers."
+      },
+      "agree": {
+        "required": "You must accept the terms."
+      }
+    }
+  },
+
   "countries": {
     "PS": "Palestine",
     "AD": "Andorra",
