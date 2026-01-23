@@ -1,11 +1,18 @@
 // lib/server-auth.ts
+import { AUTH_COOKIE } from "@/config";
 import { UserProfileDTO } from "@/types";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 const BACKEND = process.env.BACKEND_INTERNAL_URL;
 
 export async function serverMe() {
   console.log("check server");
+
+  const cookieStore = await cookies();
+
+  const token = cookieStore.get(AUTH_COOKIE)?.value;
+
+  if (!token) return null; // ✅ لا طلب للـ backend للزائر
 
   const h = await headers();
   const cookie = h.get("cookie") ?? "";
@@ -21,10 +28,8 @@ export async function serverMe() {
 
   if (res.status === 401) return null;
   if (!res.ok) return null;
-  const data = await res.json();
-  console.log("data User AUTH: ", data);
 
-  return data as { user: UserProfileDTO };
+  return (await res.json()) as { user: UserProfileDTO };
 }
 
 export async function serverCurrentPath() {

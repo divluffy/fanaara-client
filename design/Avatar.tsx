@@ -53,7 +53,7 @@ type AvatarProps = Omit<
   rounded?: boolean;
   className?: string;
   name?: string;
-  rankBorder?: ImageProps["src"];
+  Frame?: any;
   /** Tailwind token from default spacing scale (and px) */
   size?: AvatarSize;
   path?: string;
@@ -67,7 +67,7 @@ export function Avatar({
   name,
   style,
   src,
-  rankBorder,
+  Frame,
   size = "12",
   path,
   effects = true,
@@ -95,7 +95,7 @@ export function Avatar({
       <div
         className={cn(
           "relative h-full w-full overflow-hidden",
-          rounded ? "rounded-full" : "rounded"
+          rounded ? "rounded-full" : "rounded",
         )}
       >
         <Image
@@ -110,15 +110,9 @@ export function Avatar({
       </div>
 
       {/* rank border overlay (ما ينقص لأنه برا clipping wrapper) */}
-      {rankBorder ? (
-        <div className="pointer-events-none absolute inset-0 scale-150">
-          <Image
-            src={rankBorder}
-            alt="rank border"
-            fill
-            sizes={`${Math.round(px * 1.5)}px`}
-            className={"object-contain"}
-          />
+      {Frame ? (
+        <div className="pointer-events-none absolute inset-0 scale-120">
+          <Frame size={AVATAR_SIZES[size]?.px} className="absolute inset-0" />
         </div>
       ) : null}
     </>
@@ -130,7 +124,7 @@ export function Avatar({
     className,
     rounded ? "rounded-full" : "rounded",
     effects &&
-      "transform-gpu transition duration-200 ease-out hover:scale-105 hover:shadow-lg"
+      "transform-gpu transition duration-200 ease-out hover:scale-105 hover:shadow-lg",
   );
 
   return path ? (

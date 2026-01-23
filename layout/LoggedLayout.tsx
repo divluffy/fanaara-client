@@ -14,6 +14,7 @@ import { useHideNavbarOnScroll } from "@/hooks/useHideNavbarOnScroll";
 import { MQ_DESKTOP } from "@/constants";
 import { DesktopLayout, MobileLayout } from "./components";
 import { UserProfileDTO } from "@/types";
+import { setUser } from "@/store/auth";
 
 export type LoggedLayoutProps = {
   children: ReactNode;
@@ -32,12 +33,10 @@ export default function LoggedLayout({
   const isDesktop = useMediaQuery(MQ_DESKTOP);
   const navHidden = useHideNavbarOnScroll(!isDesktop);
 
-  // ==== Auth bootstrap (hydrate RTK Query cache) ====
+  // ✅ Save server user into Redux once
   useEffect(() => {
     if (!initialUser) return;
-
-    // ملاحظة: غيّر any لو عندك نوع response واضح ل me
-    dispatch(api.util.upsertQueryData("me", undefined, { user: initialUser }));
+    dispatch(setUser(initialUser));
   }, [dispatch, initialUser]);
 
   // ==== Redirect when session expires ====

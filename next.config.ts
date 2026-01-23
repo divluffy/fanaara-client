@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
       "picsum.photos",
       "alphacoders.com",
       "picfiles.alphacoders.com",
+      "images4.alphacoders.com",
+      "avatarfiles.alphacoders.com",
+      "images2.alphacoders.com",
+      "giffiles.alphacoders.com",
+      "media2.giphy.com","media4.giphy.com"
     ],
   },
 

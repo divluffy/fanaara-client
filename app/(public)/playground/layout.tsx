@@ -28,6 +28,8 @@ const LoggedLayout = ({ children }: { children: React.ReactNode }) => {
       </Link>{" "}
       <Link className="px-2 mx-2 bg-amber-100" href="/playground/select">
         select
+      </Link>      <Link className="px-2 mx-2 bg-amber-100" href="/playground/components">
+        components
       </Link>
       <Link className="px-2 mx-2 bg-amber-100" href="/playground/modal">
         modal

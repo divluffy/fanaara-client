@@ -20,7 +20,7 @@ export default async function PublicLayout({
       className={cn(
         "relative w-full",
         "min-h-screen supports-[height:100dvh]:min-h-dvh",
-        "overflow-x-hidden"
+        "overflow-x-hidden",
       )}
     >
       {/* Background */}

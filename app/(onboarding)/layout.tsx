@@ -11,11 +11,8 @@ export default async function OnboardingLayout({
 }) {
   const me = await serverMe();
 
-  // لو مكتمل التسجيل لا تسمح بدخول /signup
-  if (me?.user && me.user.status !== "PENDING") {
-    redirect("/");
-  }
+  // ✅ لو مكتمل التسجيل لا تسمح بدخول /signup
+  if (me?.user && me.user.status !== "PENDING") redirect("/");
 
-  // يسمح لغير المسجل + يسمح لـ PENDING يكمل
   return <PublicLayout>{children}</PublicLayout>;
 }

@@ -4,7 +4,7 @@ import * as React from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/utils";
 
-export type Gender = "male" | "female" | "na";
+export type Gender = "MALE" | "FEMALE" | "NA";
 
 type Option = {
   value: Gender;
@@ -25,18 +25,18 @@ export default function GenderSelect({
   const OPTIONS = React.useMemo<readonly Option[]>(
     () => [
       {
-        value: "male",
+        value: "MALE",
         emoji: "♂️",
         label: t("male.label"),
         desc: t("male.desc"),
       },
       {
-        value: "female",
+        value: "FEMALE",
         emoji: "♀️",
         label: t("female.label"),
         desc: t("female.desc"),
       },
-      { value: "na", emoji: "🤐", label: t("na.label"), desc: t("na.desc") },
+      { value: "NA", emoji: "🤐", label: t("na.label"), desc: t("na.desc") },
     ],
     [t],
   );

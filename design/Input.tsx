@@ -147,7 +147,7 @@ function getByPath(obj: unknown, path: string): unknown {
 
 function getErrorMessage<TFieldValues extends FieldValues>(
   errors: FieldErrors<TFieldValues> | undefined,
-  name: Path<TFieldValues>
+  name: Path<TFieldValues>,
 ): string | undefined {
   const v = getByPath(errors, String(name));
   if (!isRecord(v)) return undefined;
@@ -157,7 +157,7 @@ function getErrorMessage<TFieldValues extends FieldValues>(
 
 function renderIcon(
   icon?: IconType | React.ReactNode,
-  className?: string
+  className?: string,
 ): React.ReactNode {
   if (!icon) return null;
 
@@ -180,15 +180,15 @@ function renderIcon(
 const FRAME_VARIANT: Record<AppInputVariant, string> = {
   outline: cn(
     "bg-[var(--color-surface)]",
-    "border-[var(--color-border-subtle)]"
+    "border-[var(--color-border-subtle)]",
   ),
   soft: cn(
     "bg-[var(--color-surface-soft)]",
-    "border-[var(--color-border-subtle)]"
+    "border-[var(--color-border-subtle)]",
   ),
   filled: cn(
     "bg-[var(--color-surface-muted)]",
-    "border-[var(--color-border-subtle)]"
+    "border-[var(--color-border-subtle)]",
   ),
 };
 
@@ -214,7 +214,7 @@ const ACTION_TONE = {
 } as const;
 
 export function AppInput<TFieldValues extends FieldValues>(
-  props: AppInputProps<TFieldValues>
+  props: AppInputProps<TFieldValues>,
 ) {
   const {
     name,
@@ -271,8 +271,8 @@ export function AppInput<TFieldValues extends FieldValues>(
     shape === "square"
       ? "rounded-none"
       : shape === "pill"
-      ? "rounded-full"
-      : s.radius;
+        ? "rounded-full"
+        : s.radius;
 
   // Frame states
   const borderBase = hasError
@@ -287,12 +287,12 @@ export function AppInput<TFieldValues extends FieldValues>(
     ? cn(
         "focus-within:border-[var(--color-danger-soft-border)]",
         "focus-within:ring-1 focus-within:ring-[var(--ring-danger)]",
-        "focus-within:shadow-[var(--shadow-sm)]"
+        "focus-within:shadow-[var(--shadow-sm)]",
       )
     : cn(
         "focus-within:border-[var(--color-accent-border)]",
         "focus-within:ring-1 focus-within:ring-[var(--ring-brand)]",
-        "focus-within:shadow-[var(--shadow-sm)]"
+        "focus-within:shadow-[var(--shadow-sm)]",
       );
 
   const frameCls = cn(
@@ -315,7 +315,7 @@ export function AppInput<TFieldValues extends FieldValues>(
     "after:opacity-0 after:transition-opacity after:duration-150",
     !isDisabled &&
       "focus-within:after:opacity-100 focus-within:after:shadow-[0_0_0_1px_var(--color-accent-border)]",
-    containerClassName
+    containerClassName,
   );
 
   const startIconCls = cn(
@@ -324,7 +324,7 @@ export function AppInput<TFieldValues extends FieldValues>(
     "w-5",
     "text-[var(--color-foreground-muted)]",
     "pointer-events-none",
-    as === "textarea" ? cn("self-start", TEXTAREA_TOP[size]) : "self-center"
+    as === "textarea" ? cn("self-start", TEXTAREA_TOP[size]) : "self-center",
   );
 
   const inputBaseCls = cn(
@@ -341,11 +341,11 @@ export function AppInput<TFieldValues extends FieldValues>(
           "self-stretch resize-none",
           s.textareaMinH,
           s.textareaPy,
-          "leading-relaxed"
+          "leading-relaxed",
         ),
     inputClassName,
     // keep native className working
-    "className" in nativeProps ? nativeProps.className : undefined
+    "className" in nativeProps ? nativeProps.className : undefined,
   );
 
   // Action button
@@ -357,36 +357,36 @@ export function AppInput<TFieldValues extends FieldValues>(
     shape === "square"
       ? "rounded-none"
       : shape === "pill"
-      ? "rounded-full"
-      : "rounded-xl";
+        ? "rounded-full"
+        : "rounded-xl";
 
   const solidByTone =
     tone === "brand"
       ? cn(
           "bg-[var(--color-accent)] text-[var(--color-accent-foreground)] border-transparent",
-          "hover:bg-[var(--color-accent-strong)]"
+          "hover:bg-[var(--color-accent-strong)]",
         )
       : tone === "danger"
-      ? cn(
-          "bg-[var(--color-danger-solid)] text-[var(--color-danger-foreground)] border-transparent",
-          "hover:bg-[var(--color-danger-600)]"
-        )
-      : cn(
-          "bg-[var(--color-foreground-strong)] text-[var(--color-surface)] border-transparent",
-          "hover:opacity-95"
-        );
+        ? cn(
+            "bg-[var(--color-danger-solid)] text-[var(--color-danger-foreground)] border-transparent",
+            "hover:bg-[var(--color-danger-600)]",
+          )
+        : cn(
+            "bg-[var(--color-foreground-strong)] text-[var(--color-surface)] border-transparent",
+            "hover:opacity-95",
+          );
 
   const actionAppearanceCls =
     appearance === "solid"
       ? solidByTone
       : appearance === "soft"
-      ? cn(toneCls.softBg, toneCls.text, toneCls.border, "hover:opacity-95")
-      : cn(
-          "bg-[var(--color-surface)]",
-          toneCls.text,
-          toneCls.border,
-          "hover:bg-[var(--color-surface-soft)]"
-        );
+        ? cn(toneCls.softBg, toneCls.text, toneCls.border, "hover:opacity-95")
+        : cn(
+            "bg-[var(--color-surface)]",
+            toneCls.text,
+            toneCls.border,
+            "hover:bg-[var(--color-surface-soft)]",
+          );
 
   // RHF register (keeps same behavior)
   const reg = register(name, registerOptions);
@@ -419,7 +419,7 @@ export function AppInput<TFieldValues extends FieldValues>(
           htmlFor={inputId}
           className={cn(
             "mb-1.5 block text-sm font-medium text-[var(--color-foreground)]",
-            labelClassName
+            labelClassName,
           )}
         >
           {label}
@@ -491,14 +491,14 @@ export function AppInput<TFieldValues extends FieldValues>(
               action?.label ? "px-2.5" : s.actionW,
               actionRadius,
               "transition-[transform,box-shadow,background-color,border-color,color] duration-150 ease-out",
-              isRTL ? "-translate-x-4" : "translate-x-4",
+              isRTL ? "-translate-x-2" : "translate-x-2",
               "active:translate-y-[1px]",
               "focus-visible:outline-none focus-visible:ring-1",
               toneCls.ring,
               !isDisabled && "hover:shadow-[var(--shadow-xs)]",
               actionAppearanceCls,
               "disabled:opacity-60 disabled:cursor-not-allowed",
-              "[margin-inline-end:0.25rem]"
+              "[margin-inline-end:0.25rem]",
             )}
             whileHover={!isDisabled ? actionHoverMotion : undefined}
             whileTap={!isDisabled ? actionTapMotion : undefined}
@@ -508,7 +508,7 @@ export function AppInput<TFieldValues extends FieldValues>(
                 className={cn(
                   "h-4 w-4 rounded-full border-2",
                   "border-[var(--color-border-subtle)] border-t-[var(--color-accent)]",
-                  "animate-spin motion-reduce:animate-none"
+                  "animate-spin motion-reduce:animate-none",
                 )}
                 aria-hidden
               />
@@ -531,10 +531,10 @@ export function AppInput<TFieldValues extends FieldValues>(
               shape === "pill"
                 ? "rounded-full"
                 : shape === "square"
-                ? "rounded-none"
-                : "rounded-xl",
+                  ? "rounded-none"
+                  : "rounded-xl",
               "border border-[var(--color-border-subtle)] bg-[var(--color-surface)]",
-              "[margin-inline-end:0.25rem]"
+              "[margin-inline-end:0.25rem]",
             )}
             aria-hidden
           >
@@ -542,7 +542,7 @@ export function AppInput<TFieldValues extends FieldValues>(
               className={cn(
                 "h-4 w-4 rounded-full border-2",
                 "border-[var(--color-border-subtle)] border-t-[var(--color-accent)]",
-                "animate-spin motion-reduce:animate-none"
+                "animate-spin motion-reduce:animate-none",
               )}
             />
           </div>
@@ -556,7 +556,7 @@ export function AppInput<TFieldValues extends FieldValues>(
             id={errId}
             className={cn(
               "mt-2 text-xs leading-relaxed text-[var(--color-danger-solid)]",
-              errorClassName
+              errorClassName,
             )}
             {...helpMotion}
           >
@@ -572,7 +572,7 @@ export function AppInput<TFieldValues extends FieldValues>(
             id={descId}
             className={cn(
               "mt-2 text-xs leading-relaxed text-[var(--color-foreground-muted)]",
-              helperClassName
+              helperClassName,
             )}
             {...helpMotion}
           >

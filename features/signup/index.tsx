@@ -1,7 +1,7 @@
 // features/signup/index.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/utils";
 import Step01 from "./steps/step01";
 import Step02 from "./steps/step02";
@@ -9,14 +9,32 @@ import Step03 from "./steps/step03";
 import Step04 from "./steps/step04";
 import Step05 from "./steps/step05";
 import Step06 from "./steps/step06";
-import { useAppSelector } from "@/store/hooks";
+import { UserProfileDTO } from "@/types";
 
-export default function SignupFeature() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
-  const authStore = useAppSelector((s) => s.auth);
+function resolveStep(user: UserProfileDTO | null) {
+  if (!user) return 1;
 
-  console.log("hi signupppp");
-  console.log("authStore: ", authStore);
+  if (user.status === "PENDING") {
+    return user.username ? 3 : 2;
+  }
+
+  return 1;
+}
+
+export default function SignupFeature({
+  initialUser,
+}: {
+  initialUser: UserProfileDTO | null;
+}) {
+  // ✅ هذا يشتغل قبل أول رندر (حتى على السيرفر) => ما في فلاش
+  const [step, setStep] = useState<number>(() => resolveStep(initialUser));
+
+  // اختياري: لو initialUser ممكن يتغيّر لاحقًا (refetch) حدّث الستيب
+  useEffect(() => {
+    setStep(resolveStep(initialUser));
+    // setStep(3);
+  }, [initialUser?.status, initialUser?.username]);
+
   return (
     <div
       className={cn(
@@ -27,7 +45,7 @@ export default function SignupFeature() {
     >
       <main
         className={cn(
-          "bg-background ",
+          "bg-background",
           "relative w-full max-w-[460px] rounded-3xl",
           "border border-border-subtle/70",
           "px-4 py-5 sm:px-6 sm:py-6",

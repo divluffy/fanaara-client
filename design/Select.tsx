@@ -3,6 +3,7 @@
 
 import React, {
   useCallback,
+  useDeferredValue,
   useEffect,
   useId,
   useLayoutEffect,
@@ -14,6 +15,17 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useAppSelector } from "@/store/hooks";
 import { useTranslations } from "next-intl";
+
+const VIRTUALIZE_THRESHOLD = 250;
+const OPTION_ROW_H = 44;
+const GROUP_ROW_H = 26;
+const OVERSCAN = 8;
+
+type RenderItem =
+  | { type: "group"; key: string; label: string }
+  | { type: "option"; key: string; option: SelectOption; optionIndex: number };
+
+type MotionDivStyle = React.ComponentProps<typeof motion.div>["style"];
 
 export type SelectOption = {
   value: string;
@@ -29,7 +41,7 @@ export type SmartSelectProps = {
   value: string | string[] | null;
   onChange: (
     value: string | string[] | null,
-    selectedOptions: SelectOption[]
+    selectedOptions: SelectOption[],
   ) => void;
 
   label?: string;
@@ -41,10 +53,6 @@ export type SmartSelectProps = {
   size?: "sm" | "md" | "lg";
   variant?: "solid" | "outline" | "ghost";
 
-  /**
-   * الحد الأقصى “النظري” للارتفاع.
-   * سيتم تقليصه تلقائياً حسب مساحة الشاشة + الكيبورد.
-   */
   maxHeight?: number;
 
   noResultsText?: string;
@@ -68,39 +76,42 @@ function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
 }
 
-function getViewportMetrics() {
+function getVisualViewportRect() {
   const vv = typeof window !== "undefined" ? window.visualViewport : null;
 
+  const left = vv?.offsetLeft ?? 0;
+  const top = vv?.offsetTop ?? 0;
   const width = vv?.width ?? window.innerWidth;
   const height = vv?.height ?? window.innerHeight;
 
-  // offsets مهمة خصوصًا على iOS
-  const offsetTop = vv?.offsetTop ?? 0;
-  const offsetLeft = vv?.offsetLeft ?? 0;
+  return {
+    vv,
+    left,
+    top,
+    width,
+    height,
+    right: left + width,
+    bottom: top + height,
+  };
+}
 
-  // تقدير الكيبورد (لو > 80px اعتبره مفتوح)
-  const keyboardInset = Math.max(0, window.innerHeight - height);
-
-  return { vv, width, height, offsetTop, offsetLeft, keyboardInset };
+function isKeyboardOpen(baselineHeight: number, currentHeight: number) {
+  return baselineHeight > 0 && baselineHeight - currentHeight > 80;
 }
 
 function normalizeValueToArray(
   value: SmartSelectProps["value"],
-  multiple: boolean
+  multiple: boolean,
 ): string[] {
   if (value == null) return [];
-
-  if (Array.isArray(value)) {
-    if (multiple) return value;
-    return value.length ? [value[0]] : [];
-  }
-
+  if (Array.isArray(value))
+    return multiple ? value : value.length ? [value[0]] : [];
   return [value];
 }
 
 function buildSelectedOptions(
   options: SelectOption[],
-  selectedValues: string[]
+  selectedValues: string[],
 ) {
   if (selectedValues.length === 0) return [];
   const set = new Set(selectedValues);
@@ -116,7 +127,7 @@ function toggleValue(values: string[], value: string): string[] {
 function findNextEnabledIndex(
   options: SelectOption[],
   currentIndex: number,
-  dir: 1 | -1
+  dir: 1 | -1,
 ) {
   if (options.length === 0) return -1;
 
@@ -147,6 +158,20 @@ function findLastEnabledIndex(options: SelectOption[]) {
   return -1;
 }
 
+function findScrollParent(el: HTMLElement | null): HTMLElement | null {
+  let p = el?.parentElement ?? null;
+
+  while (p) {
+    const s = getComputedStyle(p);
+    const oy = s.overflowY;
+    if ((oy === "auto" || oy === "scroll") && p.scrollHeight > p.clientHeight)
+      return p;
+    p = p.parentElement;
+  }
+
+  return null;
+}
+
 const SIZE_STYLES = {
   sm: { trigger: "min-h-[2.25rem] text-xs", padding: "px-2.5 py-1.5" },
   md: { trigger: "min-h-[2.5rem] text-sm", padding: "px-3 py-2" },
@@ -158,22 +183,6 @@ const VARIANT_STYLES = {
   outline: "bg-transparent border-border-strong",
   ghost: "bg-transparent border-transparent shadow-none",
 } as const;
-
-function findScrollParent(el: HTMLElement | null): HTMLElement | null {
-  let p = el?.parentElement ?? null;
-
-  while (p) {
-    const s = getComputedStyle(p);
-    const oy = s.overflowY;
-    if ((oy === "auto" || oy === "scroll") && p.scrollHeight > p.clientHeight) {
-      return p;
-    }
-    p = p.parentElement;
-  }
-
-  // fallback للصفحة نفسها (لو ما في container واضح)
-  return null;
-}
 
 export const SmartSelect: React.FC<SmartSelectProps> = ({
   options,
@@ -220,33 +229,41 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
   const [search, setSearch] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
 
+  const baselineVvHeightRef = useRef(0);
+
+  const [scrollTop, setScrollTop] = useState(0);
+  const scrollRafRef = useRef<number | null>(null);
+
   type PositionState = {
     placement: Placement;
     maxHeight: number;
-    style: React.CSSProperties;
+    x: number;
+    y: number;
+    width: number;
   };
 
   const [pos, setPos] = useState<PositionState>(() => ({
     placement: "bottom",
     maxHeight,
-    style: {
-      position: "fixed",
-      left: 0,
-      top: 0,
-      width: 0,
-      maxHeight,
-      zIndex: 50,
-      willChange: "transform, top, left, bottom, opacity",
-    },
+    x: 0,
+    y: 0,
+    width: 0,
   }));
 
-  // keyboard/focus stability
   const searchFocusedRef = useRef(false);
   const placementLockRef = useRef<Placement | null>(null);
 
-  // scroll parent (لو عندك main overflow-y-auto)
   const scrollParentRef = useRef<HTMLElement | null>(null);
 
+  const posRafRef = useRef<number | null>(null);
+
+  const reservedForSearch = searchable ? 52 : 0;
+  const optionsViewportMax = Math.max(
+    0,
+    Math.floor(pos.maxHeight - reservedForSearch),
+  );
+
+  // ===== portal mount + scroll parent detect =====
   useEffect(() => {
     setPortalEl(document.body);
   }, []);
@@ -255,32 +272,105 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
     scrollParentRef.current = findScrollParent(rootRef.current);
   }, []);
 
-  const normalizedSearch = useMemo(() => search.trim().toLowerCase(), [search]);
+  // Refresh baseline when CLOSED (keyboard غالبًا مغلق)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!open)
+      baselineVvHeightRef.current =
+        window.visualViewport?.height ?? window.innerHeight;
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      setScrollTop(0);
+      if (scrollRafRef.current) cancelAnimationFrame(scrollRafRef.current);
+      scrollRafRef.current = null;
+    }
+  }, [open]);
+
+  // ===== derived data =====
+  const deferredSearch = useDeferredValue(search);
+  const normalizedSearch = useMemo(
+    () => deferredSearch.trim().toLowerCase(),
+    [deferredSearch],
+  );
 
   const selectedValues = useMemo(
     () => normalizeValueToArray(value, multiple),
-    [value, multiple]
+    [value, multiple],
   );
 
   const selectedOptions = useMemo(
     () => buildSelectedOptions(options, selectedValues),
-    [options, selectedValues]
+    [options, selectedValues],
   );
 
   const selectedSet = useMemo(() => new Set(selectedValues), [selectedValues]);
 
+  const indexed = useMemo(() => {
+    return options.map((opt) => ({
+      opt,
+      label: opt.label.toLowerCase(),
+      desc: (opt.description ?? "").toLowerCase(),
+      group: (opt.group ?? "").toLowerCase(),
+    }));
+  }, [options]);
+
   const filteredOptions = useMemo(() => {
     if (!normalizedSearch) return options;
 
-    return options.filter((opt) => {
-      const term = normalizedSearch;
-      return (
-        opt.label.toLowerCase().includes(term) ||
-        opt.description?.toLowerCase().includes(term) ||
-        opt.group?.toLowerCase().includes(term)
-      );
-    });
-  }, [options, normalizedSearch]);
+    const term = normalizedSearch;
+    return indexed
+      .filter(
+        ({ label, desc, group }) =>
+          label.includes(term) || desc.includes(term) || group.includes(term),
+      )
+      .map((x) => x.opt);
+  }, [options, indexed, normalizedSearch]);
+
+  const shouldVirtualize = filteredOptions.length >= VIRTUALIZE_THRESHOLD;
+
+  const renderItems = useMemo<RenderItem[]>(() => {
+    const items: RenderItem[] = [];
+    let lastGroup: string | undefined;
+
+    for (let i = 0; i < filteredOptions.length; i++) {
+      const opt = filteredOptions[i];
+      const g = opt.group;
+
+      if (g && g !== lastGroup)
+        items.push({ type: "group", key: `g:${g}`, label: g });
+
+      items.push({
+        type: "option",
+        key: `o:${opt.value}`,
+        option: opt,
+        optionIndex: i,
+      });
+      lastGroup = g;
+    }
+
+    return items;
+  }, [filteredOptions]);
+
+  const layout = useMemo(() => {
+    const offsets = new Array<number>(renderItems.length);
+    const optionToItemIndex = new Array<number>(filteredOptions.length).fill(
+      -1,
+    );
+
+    let total = 0;
+    for (let i = 0; i < renderItems.length; i++) {
+      offsets[i] = total;
+
+      const it = renderItems[i];
+      total += it.type === "group" ? GROUP_ROW_H : OPTION_ROW_H;
+
+      if (it.type === "option") optionToItemIndex[it.optionIndex] = i;
+    }
+
+    return { offsets, total, optionToItemIndex };
+  }, [renderItems, filteredOptions.length]);
 
   const hasSelection = selectedOptions.length > 0;
 
@@ -291,15 +381,147 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
     return filteredOptions.length === 0;
   }, [creatable, onCreateOption, normalizedSearch, filteredOptions.length]);
 
+  function findItemIndexAt(offsets: number[], y: number) {
+    let lo = 0;
+    let hi = offsets.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (offsets[mid] <= y) lo = mid + 1;
+      else hi = mid;
+    }
+    return Math.max(0, lo - 1);
+  }
+
+  const schedulePosition = useCallback(() => {
+    if (posRafRef.current) cancelAnimationFrame(posRafRef.current);
+    posRafRef.current = requestAnimationFrame(() => {
+      posRafRef.current = null;
+      // computeAndApplyPosition is stable (useCallback)
+      computeAndApplyPosition();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ===== positioning =====
+  const scrollByDelta = useCallback((dy: number) => {
+    if (!dy) return;
+    const sp = scrollParentRef.current;
+    if (sp) sp.scrollTop += dy;
+    else window.scrollBy({ top: dy, left: 0 });
+  }, []);
+
+  const ensureAnchorVisible = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const vv = window.visualViewport;
+    const vh = vv?.height ?? window.innerHeight;
+
+    const keyboardInset = Math.max(
+      0,
+      (baselineVvHeightRef.current || window.innerHeight) - vh,
+    );
+
+    const pad = 12;
+    const topLimit = pad;
+    const bottomLimit = vh - pad;
+
+    if (rect.bottom > bottomLimit) scrollByDelta(rect.bottom - bottomLimit);
+    else if (rect.top < topLimit) scrollByDelta(rect.top - topLimit);
+
+    if (keyboardInset > 80) {
+      const desiredBottom = Math.min(vh * 0.58, vh - pad);
+      if (rect.bottom > desiredBottom)
+        scrollByDelta(rect.bottom - desiredBottom);
+    }
+  }, [scrollByDelta]);
+
+  const computeAndApplyPosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const vvRect = getVisualViewportRect();
+
+    const gap = 8;
+    const pad = 10;
+
+    const visibleTop = vvRect.top + pad;
+    const visibleBottom = vvRect.bottom - pad;
+    const visibleLeft = vvRect.left + pad;
+    const visibleRight = vvRect.right - pad;
+
+    const trigTop = rect.top + vvRect.top;
+    const trigBottom = rect.bottom + vvRect.top;
+    const trigLeft = rect.left + vvRect.left;
+
+    const currentVvHeight = vvRect.height;
+    const keyboardOpen = isKeyboardOpen(
+      baselineVvHeightRef.current,
+      currentVvHeight,
+    );
+
+    const spaceAbove = Math.max(0, trigTop - visibleTop - gap);
+    const spaceBelow = Math.max(0, visibleBottom - trigBottom - gap);
+
+    let nextPlacement: Placement = spaceBelow >= spaceAbove ? "bottom" : "top";
+    if (keyboardOpen && spaceAbove >= 120) nextPlacement = "top";
+
+    if (searchFocusedRef.current) {
+      if (placementLockRef.current == null)
+        placementLockRef.current = nextPlacement;
+      nextPlacement = placementLockRef.current;
+    } else {
+      placementLockRef.current = null;
+    }
+
+    const available = nextPlacement === "bottom" ? spaceBelow : spaceAbove;
+    const safeMax = Math.max(0, Math.min(maxHeight, available));
+
+    const dropdown = dropdownRef.current;
+    const contentScrollHeight = dropdown?.scrollHeight;
+    const usedHeight = clamp(
+      contentScrollHeight != null
+        ? Math.min(contentScrollHeight, safeMax)
+        : safeMax,
+      0,
+      safeMax,
+    );
+
+    const left = clamp(
+      trigLeft,
+      visibleLeft,
+      Math.max(visibleLeft, visibleRight - rect.width),
+    );
+
+    let top =
+      nextPlacement === "bottom"
+        ? trigBottom + gap
+        : trigTop - gap - usedHeight;
+
+    top = clamp(
+      top,
+      visibleTop,
+      Math.max(visibleTop, visibleBottom - usedHeight),
+    );
+
+    setPos({
+      placement: nextPlacement,
+      maxHeight: safeMax,
+      x: left,
+      y: top,
+      width: rect.width,
+    });
+  }, [maxHeight]);
+
+  // ===== selection helpers =====
   const closeDropdown = useCallback(() => {
     setOpen(false);
     setActiveIndex(-1);
     setSearch("");
     searchFocusedRef.current = false;
     placementLockRef.current = null;
-
-    document.documentElement.style.scrollPaddingBottom = "";
-    document.body.style.scrollPaddingBottom = "";
   }, []);
 
   const commitChange = useCallback(
@@ -307,12 +529,11 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
       const nextArray = Array.isArray(nextValue)
         ? nextValue
         : typeof nextValue === "string"
-        ? [nextValue]
-        : [];
-
+          ? [nextValue]
+          : [];
       onChange(nextValue, buildSelectedOptions(options, nextArray));
     },
-    [onChange, options]
+    [onChange, options],
   );
 
   const handleSelectOption = useCallback(
@@ -327,7 +548,7 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
       commitChange(option.value);
       closeDropdown();
     },
-    [disabled, multiple, selectedValues, commitChange, closeDropdown]
+    [disabled, multiple, selectedValues, commitChange, closeDropdown],
   );
 
   const handleClear = useCallback(
@@ -339,7 +560,7 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
       setSearch("");
       setActiveIndex(-1);
     },
-    [disabled, multiple, commitChange]
+    [disabled, multiple, commitChange],
   );
 
   const handleRemoveChip = useCallback(
@@ -348,7 +569,7 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
       if (!multiple || disabled) return;
       commitChange(selectedValues.filter((v) => v !== valueToRemove));
     },
-    [multiple, disabled, selectedValues, commitChange]
+    [multiple, disabled, selectedValues, commitChange],
   );
 
   const moveActive = useCallback(
@@ -356,136 +577,31 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
       const next = findNextEnabledIndex(filteredOptions, activeIndex, dir);
       if (next !== -1) setActiveIndex(next);
     },
-    [filteredOptions, activeIndex]
+    [filteredOptions, activeIndex],
   );
 
-  const scrollByDelta = useCallback((dy: number) => {
-    if (!dy) return;
-    const sp = scrollParentRef.current;
-    if (sp) sp.scrollTop += dy;
-    else window.scrollBy({ top: dy, left: 0 });
-  }, []);
-
-  const ensureAnchorVisible = useCallback(() => {
-    const trigger = triggerRef.current;
-    if (!trigger) return;
-
-    const rect = trigger.getBoundingClientRect();
-    const { height: vh, keyboardInset } = getViewportMetrics();
-
-    const pad = 12;
-    const topLimit = pad;
-    const bottomLimit = vh - pad;
-
-    if (rect.bottom > bottomLimit) {
-      scrollByDelta(rect.bottom - bottomLimit);
-    } else if (rect.top < topLimit) {
-      scrollByDelta(rect.top - topLimit);
+  const getPreferredActiveIndex = useCallback(() => {
+    // الأفضل: الخيار المحدد (أول واحد) ثم أول خيار غير معطل
+    const firstSelected = selectedValues[0];
+    if (firstSelected) {
+      const idx = filteredOptions.findIndex(
+        (o) => o.value === firstSelected && !o.disabled,
+      );
+      if (idx >= 0) return idx;
     }
+    return findFirstEnabledIndex(filteredOptions);
+  }, [filteredOptions, selectedValues]);
 
-    // ✅ لما الكيبورد مفتوح: ارفع الـ trigger لفوق شوي عشان القائمة يكون لها مساحة
-    if (keyboardInset > 80) {
-      const desiredBottom = Math.min(vh * 0.58, vh - pad);
-      if (rect.bottom > desiredBottom) {
-        scrollByDelta(rect.bottom - desiredBottom);
-      }
-    }
-  }, [scrollByDelta]);
-
-  const computeAndApplyPosition = useCallback(() => {
-    const trigger = triggerRef.current;
-    if (!trigger) return;
-
-    const rect = trigger.getBoundingClientRect();
-    const {
-      width: vw,
-      height: vh,
-      offsetTop,
-      offsetLeft,
-      keyboardInset,
-      vv,
-    } = getViewportMetrics();
-
-    const gap = 8;
-    const keyboardOpen = keyboardInset > 80;
-
-    // المساحات في إحداثيات الـ visual viewport (rect هو نفسه visual)
-    const spaceAbove = Math.max(0, rect.top - gap);
-    const spaceBelow = Math.max(0, vh - rect.bottom - gap);
-
-    const minComfort = 180;
-
-    let nextPlacement: Placement;
-
-    if (keyboardOpen) {
-      // ✅ وقت الكيبورد: الأفضل دائمًا نخلي القائمة فوق إذا ممكن
-      nextPlacement = spaceAbove >= 140 ? "top" : "bottom";
-    } else {
-      nextPlacement =
-        spaceBelow < minComfort && spaceAbove > spaceBelow + 24
-          ? "top"
-          : "bottom";
-    }
-
-    // ثبات أثناء focus (عشان ما يصير flicker)
-    if (searchFocusedRef.current) {
-      if (placementLockRef.current == null)
-        placementLockRef.current = nextPlacement;
-      nextPlacement = placementLockRef.current;
-    } else {
-      placementLockRef.current = null;
-    }
-
-    const available = nextPlacement === "bottom" ? spaceBelow : spaceAbove;
-    const safeMax = Math.min(maxHeight, Math.max(0, available));
-
-    // Left في إحداثيات الـ layout viewport (fixed)، لذا نضيف offsetLeft
-    const desiredLeft = rect.left + offsetLeft;
-    const minLeft = offsetLeft + gap;
-    const maxLeft = offsetLeft + vw - rect.width - gap;
-    const left = clamp(desiredLeft, minLeft, Math.max(minLeft, maxLeft));
-
-    const base: React.CSSProperties = {
-      position: "fixed",
-      left,
-      width: rect.width,
-      maxHeight: safeMax,
-      zIndex: 50,
-      willChange: "transform, top, left, bottom, opacity",
-    };
-
-    // Top/Bottom في layout viewport (fixed) => نضيف offsetTop
-    const style: React.CSSProperties =
-      nextPlacement === "bottom"
-        ? { ...base, top: rect.bottom + offsetTop + gap, bottom: "auto" }
-        : {
-            ...base,
-            top: "auto",
-            // bottom محسوب بالنسبة لـ window.innerHeight (layout viewport)
-            bottom: window.innerHeight - (rect.top + offsetTop) + gap,
-          };
-
-    setPos({ placement: nextPlacement, maxHeight: safeMax, style });
-
-    // scrollPadding يساعد المتصفح يرفع المحتوى فوق الكيبورد أثناء التركيز
-    if (searchFocusedRef.current && vv) {
-      const kb = Math.max(0, keyboardInset);
-      const v = `${kb + 16}px`;
-      document.documentElement.style.scrollPaddingBottom = v;
-      document.body.style.scrollPaddingBottom = v;
-    } else {
-      document.documentElement.style.scrollPaddingBottom = "";
-      document.body.style.scrollPaddingBottom = "";
-    }
-  }, [maxHeight]);
-
+  // ===== open / toggle =====
   const openDropdown = useCallback(() => {
     if (disabled) return;
-    computeAndApplyPosition();
+
+    ensureAnchorVisible();
     setOpen(true);
-    setActiveIndex(-1);
-    // لا focus تلقائي على input (حسب فكرتك)
-  }, [disabled, computeAndApplyPosition]);
+
+    // لا تفرض activeIndex هنا دائمًا (قد يكون المستخدم يبحث/يتنقل)
+    setActiveIndex((prev) => (prev === -1 ? getPreferredActiveIndex() : prev));
+  }, [disabled, ensureAnchorVisible, getPreferredActiveIndex]);
 
   const toggleDropdown = useCallback(() => {
     if (disabled) return;
@@ -494,21 +610,20 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
       const next = !prev;
 
       if (next) {
-        computeAndApplyPosition();
-        setActiveIndex(-1);
+        ensureAnchorVisible();
+        setActiveIndex(getPreferredActiveIndex());
       } else {
         setActiveIndex(-1);
         setSearch("");
         searchFocusedRef.current = false;
         placementLockRef.current = null;
-        document.documentElement.style.scrollPaddingBottom = "";
       }
 
       return next;
     });
-  }, [disabled, computeAndApplyPosition]);
+  }, [disabled, ensureAnchorVisible, getPreferredActiveIndex]);
 
-  // Close on outside click (supports portal)
+  // ===== outside click (portal-safe) =====
   useEffect(() => {
     if (!open) return;
 
@@ -523,8 +638,9 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
       closeDropdown();
     };
 
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () =>
+      document.removeEventListener("pointerdown", onPointerDown, true);
   }, [open, closeDropdown]);
 
   // Emit search term
@@ -532,16 +648,14 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
     onSearchChange?.(search);
   }, [search, onSearchChange]);
 
-  // Recompute while open (scroll/resize/keyboard) — raf throttled
+  // ===== while open: keep positioned (scroll/resize/keyboard/content) =====
   useLayoutEffect(() => {
     if (!open) return;
 
     let raf = 0;
     const schedule = () => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        computeAndApplyPosition();
-      });
+      raf = requestAnimationFrame(() => computeAndApplyPosition());
     };
 
     schedule();
@@ -553,8 +667,13 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
     vv?.addEventListener("resize", schedule);
     vv?.addEventListener("scroll", schedule);
 
-    const ro = new ResizeObserver(schedule);
-    if (rootRef.current) ro.observe(rootRef.current);
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(schedule);
+      if (rootRef.current) ro.observe(rootRef.current);
+      if (triggerRef.current) ro.observe(triggerRef.current);
+      if (dropdownRef.current) ro.observe(dropdownRef.current);
+    }
 
     return () => {
       cancelAnimationFrame(raf);
@@ -562,32 +681,74 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
       window.removeEventListener("scroll", schedule, true);
       vv?.removeEventListener("resize", schedule);
       vv?.removeEventListener("scroll", schedule);
-      ro.disconnect();
+      ro?.disconnect();
     };
   }, [open, computeAndApplyPosition]);
+
+  // ===== focus management on open =====
+  useEffect(() => {
+    if (!open) return;
+
+    // بعد الرندر مباشرة (وجود dropdownRef)
+    requestAnimationFrame(() => {
+      computeAndApplyPosition();
+
+      if (searchable && searchRef.current) {
+        searchFocusedRef.current = true;
+        placementLockRef.current = null;
+        searchRef.current.focus();
+        searchRef.current.select();
+      } else {
+        listRef.current?.focus?.();
+      }
+    });
+  }, [open, searchable, computeAndApplyPosition]);
 
   // Keep activeIndex valid
   useEffect(() => {
     if (!open) return;
+    if (filteredOptions.length === 0) {
+      if (activeIndex !== -1) setActiveIndex(-1);
+      return;
+    }
     if (activeIndex === -1) return;
-    if (activeIndex < filteredOptions.length) return;
-    setActiveIndex(findFirstEnabledIndex(filteredOptions));
-  }, [open, activeIndex, filteredOptions]);
+    if (
+      activeIndex < filteredOptions.length &&
+      !filteredOptions[activeIndex]?.disabled
+    )
+      return;
 
-  // Scroll active option into view
+    setActiveIndex(getPreferredActiveIndex());
+  }, [open, activeIndex, filteredOptions, getPreferredActiveIndex]);
+
+  // Scroll active option into view (virtual + normal)
   useEffect(() => {
     if (!open || activeIndex < 0) return;
-
     const container = listRef.current;
     if (!container) return;
 
-    const el = container.querySelector<HTMLElement>(
-      `[data-option-index="${activeIndex}"]`
-    );
-    el?.scrollIntoView({ block: "nearest" });
-  }, [open, activeIndex]);
+    if (!shouldVirtualize) {
+      const el = container.querySelector<HTMLElement>(
+        `[data-option-index="${activeIndex}"]`,
+      );
+      el?.scrollIntoView({ block: "nearest" });
+      return;
+    }
 
-  // Global keyboard handler (works inside portal)
+    const itemIndex = layout.optionToItemIndex[activeIndex];
+    if (itemIndex < 0) return;
+
+    const top = layout.offsets[itemIndex];
+    const bottom = top + OPTION_ROW_H;
+    const viewTop = container.scrollTop;
+    const viewBottom = viewTop + optionsViewportMax;
+
+    if (top < viewTop) container.scrollTop = top;
+    else if (bottom > viewBottom)
+      container.scrollTop = Math.max(0, bottom - optionsViewportMax);
+  }, [open, activeIndex, shouldVirtualize, layout, optionsViewportMax]);
+
+  // Global keyboard handler (portal-safe)
   useEffect(() => {
     if (!open) return;
 
@@ -651,9 +812,8 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
         return;
       }
 
-      const isTextInput =
-        (e.target as HTMLElement | null)?.tagName === "INPUT" ||
-        (e.target as HTMLElement | null)?.tagName === "TEXTAREA";
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      const isTextInput = tag === "INPUT" || tag === "TEXTAREA";
 
       if (e.key === "Backspace" && multiple && !search && !isTextInput) {
         if (selectedValues.length === 0) return;
@@ -680,13 +840,29 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
     commitChange,
   ]);
 
-  const reservedForSearch = searchable ? 52 : 0;
-  const optionsViewportMax = Math.max(
-    0,
-    Math.floor(pos.maxHeight - reservedForSearch)
-  );
+  // cleanup rafs
+  useEffect(() => {
+    return () => {
+      if (posRafRef.current) cancelAnimationFrame(posRafRef.current);
+      if (scrollRafRef.current) cancelAnimationFrame(scrollRafRef.current);
+    };
+  }, []);
 
-  // very light animation (fast, avoids jank)
+  const dropdownStyle = useMemo<MotionDivStyle>(() => {
+    return {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: pos.width,
+      maxHeight: pos.maxHeight,
+      zIndex: 50,
+      willChange: "transform,opacity",
+      x: pos.x,
+      y: pos.y,
+      transformOrigin: pos.placement === "bottom" ? "top" : "bottom",
+    };
+  }, [pos]);
+
   const motionDropdown = prefersReducedMotion
     ? { initial: { opacity: 1 }, animate: { opacity: 1 }, exit: { opacity: 1 } }
     : {
@@ -703,7 +879,7 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
     VARIANT_STYLES[variant],
     SIZE_STYLES[size].trigger,
     SIZE_STYLES[size].padding,
-    isRTL && "flex-row-reverse"
+    isRTL && "flex-row-reverse",
   );
 
   return (
@@ -712,7 +888,7 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
       dir={direction}
       className={cn(
         "relative inline-flex w-full max-w-md flex-col gap-1 text-foreground",
-        className
+        className,
       )}
     >
       {label && (
@@ -721,7 +897,7 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
         </div>
       )}
 
-      {/* Trigger (DIV not BUTTON to avoid nested button error) */}
+      {/* Trigger (DIV not BUTTON لتجنب nested button داخل chips) */}
       <div
         ref={triggerRef}
         role="combobox"
@@ -731,6 +907,7 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
         aria-expanded={open}
         aria-controls={listboxId}
         aria-labelledby={label ? labelId : undefined}
+        aria-autocomplete={searchable ? "list" : "none"}
         aria-activedescendant={
           open && activeIndex >= 0
             ? `${listboxId}-opt-${activeIndex}`
@@ -744,11 +921,9 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
             if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
               e.preventDefault();
               openDropdown();
-              setActiveIndex(findFirstEnabledIndex(filteredOptions));
               return;
             }
           } else {
-            // when open, allow escape here too
             if (e.key === "Escape") {
               e.preventDefault();
               closeDropdown();
@@ -760,7 +935,7 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
         <div
           className={cn(
             "flex flex-1 flex-wrap items-center gap-1.5 text-left",
-            isRTL && "flex-row-reverse"
+            isRTL && "flex-row-reverse",
           )}
         >
           {!hasSelection && (
@@ -774,7 +949,7 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
                   key={opt.value}
                   className={cn(
                     "inline-flex items-center gap-1 rounded-full border border-accent-border bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-foreground",
-                    isRTL && "flex-row-reverse"
+                    isRTL && "flex-row-reverse",
                   )}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -838,7 +1013,7 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
           <motion.span
             className={cn(
               "flex h-5 w-5 items-center justify-center rounded-full bg-surface-muted text-foreground-soft",
-              "transition-transform"
+              "transition-transform",
             )}
             aria-hidden
             animate={
@@ -859,7 +1034,6 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
         </div>
       </div>
 
-      {/* Dropdown via Portal */}
       {portalEl &&
         createPortal(
           <div dir={direction}>
@@ -869,11 +1043,11 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
                   key="dropdown"
                   ref={dropdownRef}
                   className="rounded-xl border border-border-strong bg-surface shadow-[var(--shadow-elevated)] outline-none ring-1 ring-[color:var(--border-subtle)]"
-                  style={pos.style}
+                  style={dropdownStyle}
                   initial={motionDropdown.initial}
                   animate={motionDropdown.animate}
                   exit={motionDropdown.exit}
-                  transition={{ duration: 0.14, ease: "easeOut" }}
+                  transition={{ duration: 0.12, ease: "easeOut" }}
                 >
                   {/* Search */}
                   {searchable && (
@@ -901,24 +1075,29 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
                         </svg>
 
                         <input
+                          type="search"
+                          inputMode="search"
+                          enterKeyHint="search"
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
                           ref={searchRef}
                           value={search}
                           onChange={(e) => {
                             setSearch(e.target.value);
                             setActiveIndex(-1);
+                            // إعادة تمركز خفيفة مع تغيّر المحتوى
+                            schedulePosition();
                           }}
                           onFocus={() => {
                             searchFocusedRef.current = true;
                             placementLockRef.current = null;
-                            ensureAnchorVisible();
-                            computeAndApplyPosition();
+                            schedulePosition();
                           }}
                           onBlur={() => {
                             searchFocusedRef.current = false;
                             placementLockRef.current = null;
-                            document.documentElement.style.scrollPaddingBottom =
-                              "";
-                            computeAndApplyPosition();
+                            schedulePosition();
                           }}
                           placeholder={searchPlaceholder}
                           className="w-full bg-transparent text-[11px] text-foreground outline-none placeholder:text-foreground-soft"
@@ -933,79 +1112,212 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
                     id={listboxId}
                     role="listbox"
                     aria-multiselectable={multiple || undefined}
-                    className="scroll-thin overflow-y-auto py-1"
+                    aria-labelledby={label ? labelId : undefined}
+                    className="scroll-thin overflow-y-auto overscroll-contain py-1"
                     style={{ maxHeight: optionsViewportMax }}
+                    tabIndex={-1}
+                    onScroll={(e) => {
+                      if (!shouldVirtualize) return;
+                      const el = e.currentTarget;
+                      if (scrollRafRef.current)
+                        cancelAnimationFrame(scrollRafRef.current);
+                      scrollRafRef.current = requestAnimationFrame(() =>
+                        setScrollTop(el.scrollTop),
+                      );
+                    }}
                   >
-                    {filteredOptions.map((opt, index) => {
-                      const selected = selectedSet.has(opt.value);
-                      const isActive = activeIndex === index;
+                    {(() => {
+                      if (!shouldVirtualize) {
+                        return (
+                          <>
+                            {filteredOptions.map((opt, index) => {
+                              const selected = selectedSet.has(opt.value);
+                              const isActive = activeIndex === index;
 
-                      const showGroupLabel =
-                        !!opt.group &&
-                        (index === 0 ||
-                          filteredOptions[index - 1]?.group !== opt.group);
+                              const showGroupLabel =
+                                !!opt.group &&
+                                (index === 0 ||
+                                  filteredOptions[index - 1]?.group !==
+                                    opt.group);
+
+                              return (
+                                <div key={opt.value}>
+                                  {showGroupLabel && (
+                                    <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-foreground-soft">
+                                      {opt.group}
+                                    </div>
+                                  )}
+
+                                  <button
+                                    id={`${listboxId}-opt-${index}`}
+                                    type="button"
+                                    role="option"
+                                    aria-selected={selected}
+                                    aria-disabled={opt.disabled || undefined}
+                                    disabled={opt.disabled}
+                                    data-option-index={index}
+                                    onMouseEnter={() => {
+                                      if (!opt.disabled) setActiveIndex(index);
+                                    }}
+                                    onClick={() => handleSelectOption(opt)}
+                                    className={cn(
+                                      "flex w-full items-start gap-2 px-3 py-2 text-left text-xs transition",
+                                      "border border-transparent",
+                                      isActive &&
+                                        !selected &&
+                                        "bg-surface-soft",
+                                      selected &&
+                                        "border-accent-border bg-accent-soft text-foreground-strong",
+                                      opt.disabled &&
+                                        "cursor-not-allowed opacity-50 hover:bg-transparent",
+                                      "cursor-pointer",
+                                      isRTL && "flex-row-reverse text-right",
+                                    )}
+                                  >
+                                    {opt.icon && (
+                                      <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-surface-muted text-[10px]">
+                                        {opt.icon}
+                                      </span>
+                                    )}
+
+                                    <div className="flex-1">
+                                      <div className="flex items-center justify-between gap-2">
+                                        <span className="text-[11px] font-medium text-foreground">
+                                          {opt.label}
+                                        </span>
+
+                                        {selected && (
+                                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[9px] text-accent-foreground shadow-soft">
+                                            ✓
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      {opt.description && (
+                                        <p className="mt-0.5 text-[10px] text-foreground-muted">
+                                          {opt.description}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </>
+                        );
+                      }
+
+                      // Virtualized rendering
+                      const yMax =
+                        scrollTop +
+                        optionsViewportMax +
+                        OVERSCAN * OPTION_ROW_H;
+                      const startIdx = Math.max(
+                        0,
+                        findItemIndexAt(layout.offsets, scrollTop) - OVERSCAN,
+                      );
+
+                      let endIdx = startIdx;
+                      while (
+                        endIdx < renderItems.length &&
+                        layout.offsets[endIdx] < yMax
+                      )
+                        endIdx++;
+
+                      const windowItems = renderItems.slice(startIdx, endIdx);
 
                       return (
-                        <div key={opt.value}>
-                          {showGroupLabel && (
-                            <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-foreground-soft">
-                              {opt.group}
-                            </div>
-                          )}
+                        <div
+                          style={{ height: layout.total, position: "relative" }}
+                        >
+                          {windowItems.map((it, localI) => {
+                            const itemIndex = startIdx + localI;
+                            const top = layout.offsets[itemIndex];
 
-                          <button
-                            id={`${listboxId}-opt-${index}`}
-                            type="button"
-                            role="option"
-                            aria-selected={selected}
-                            aria-disabled={opt.disabled || undefined}
-                            disabled={opt.disabled}
-                            data-option-index={index}
-                            onMouseEnter={() => {
-                              if (!opt.disabled) setActiveIndex(index);
-                            }}
-                            onClick={() => handleSelectOption(opt)}
-                            className={cn(
-                              "flex w-full items-start gap-2 px-3 py-2 text-left text-xs transition",
-                              "border border-transparent",
-                              isActive && !selected && "bg-surface-soft",
-                              selected &&
-                                "border-accent-border bg-accent-soft text-foreground-strong",
-                              opt.disabled &&
-                                "cursor-not-allowed opacity-50 hover:bg-transparent",
-                              "cursor-pointer",
-                              isRTL && "flex-row-reverse text-right"
-                            )}
-                          >
-                            {opt.icon && (
-                              <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-surface-muted text-[10px]">
-                                {opt.icon}
-                              </span>
-                            )}
+                            if (it.type === "group") {
+                              return (
+                                <div
+                                  key={it.key}
+                                  style={{
+                                    position: "absolute",
+                                    top,
+                                    left: 0,
+                                    right: 0,
+                                    height: GROUP_ROW_H,
+                                  }}
+                                  className="px-3 text-[10px] font-semibold uppercase tracking-wide text-foreground-soft flex items-center"
+                                >
+                                  {it.label}
+                                </div>
+                              );
+                            }
 
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-[11px] font-medium text-foreground">
-                                  {opt.label}
-                                </span>
+                            const opt = it.option;
+                            const index = it.optionIndex;
+                            const selected = selectedSet.has(opt.value);
+                            const isActive = activeIndex === index;
 
-                                {selected && (
-                                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[9px] text-accent-foreground shadow-soft">
-                                    ✓
+                            return (
+                              <button
+                                key={it.key}
+                                id={`${listboxId}-opt-${index}`}
+                                type="button"
+                                role="option"
+                                aria-selected={selected}
+                                aria-disabled={opt.disabled || undefined}
+                                disabled={opt.disabled}
+                                data-option-index={index}
+                                onMouseEnter={() => {
+                                  if (!opt.disabled) setActiveIndex(index);
+                                }}
+                                onClick={() => handleSelectOption(opt)}
+                                style={{
+                                  position: "absolute",
+                                  top,
+                                  left: 0,
+                                  right: 0,
+                                  height: OPTION_ROW_H,
+                                }}
+                                className={cn(
+                                  "flex w-full items-center gap-2 px-3 text-left text-xs transition",
+                                  "border border-transparent",
+                                  isActive && !selected && "bg-surface-soft",
+                                  selected &&
+                                    "border-accent-border bg-accent-soft text-foreground-strong",
+                                  opt.disabled &&
+                                    "cursor-not-allowed opacity-50 hover:bg-transparent",
+                                  "cursor-pointer",
+                                  isRTL && "flex-row-reverse text-right",
+                                )}
+                                title={opt.label}
+                              >
+                                {opt.icon && (
+                                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-muted text-[10px]">
+                                    {opt.icon}
                                   </span>
                                 )}
-                              </div>
 
-                              {opt.description && (
-                                <p className="mt-0.5 text-[10px] text-foreground-muted">
-                                  {opt.description}
-                                </p>
-                              )}
-                            </div>
-                          </button>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="truncate text-[11px] font-medium text-foreground">
+                                      {opt.label}
+                                    </span>
+
+                                    {selected && (
+                                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[9px] text-accent-foreground shadow-soft">
+                                        ✓
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* في virtualized mode نخفي الوصف لتثبيت الارتفاع وتقليل الحمل */}
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
                       );
-                    })}
+                    })()}
 
                     {!filteredOptions.length && !showCreateAction && (
                       <div className="px-3 py-3 text-center text-[11px] text-foreground-soft">
@@ -1018,15 +1330,17 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
                         type="button"
                         className={cn(
                           "mt-1 flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-accent transition hover:bg-accent-soft",
-                          isRTL && "flex-row-reverse text-right"
+                          isRTL && "flex-row-reverse text-right",
                         )}
                         onClick={() => {
                           if (!onCreateOption) return;
                           const labelToCreate = search.trim();
                           if (!labelToCreate) return;
+
                           onCreateOption(labelToCreate);
                           setSearch("");
                           setActiveIndex(-1);
+                          schedulePosition();
                         }}
                       >
                         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent-soft text-[12px]">
@@ -1037,7 +1351,7 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
                           <span
                             className={cn(
                               "font-semibold",
-                              isRTL ? "me-1" : "ms-1"
+                              isRTL ? "me-1" : "ms-1",
                             )}
                           >
                             {search.trim()}
@@ -1050,7 +1364,7 @@ export const SmartSelect: React.FC<SmartSelectProps> = ({
               )}
             </AnimatePresence>
           </div>,
-          portalEl
+          portalEl,
         )}
     </div>
   );

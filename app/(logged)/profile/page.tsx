@@ -1,7 +1,8 @@
+import UserProfileFeature from "@/features/profiles/user/UserProfileFeature";
 import React from "react";
 
 const ProfilePage = () => {
-  return <div>main profile for current user</div>;
+  return <UserProfileFeature />;
 };
 
 export default ProfilePage;

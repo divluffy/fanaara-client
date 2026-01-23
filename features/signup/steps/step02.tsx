@@ -9,6 +9,13 @@ import { FaUser } from "react-icons/fa";
 import { CiAt } from "react-icons/ci";
 import { FiCheck, FiLoader, FiSearch, FiX } from "react-icons/fi";
 import {
+  AnimatePresence,
+  LazyMotion,
+  domAnimation,
+  m,
+  useReducedMotion,
+} from "framer-motion";
+import {
   Button,
   AppInput,
   SimpleDatePicker,
@@ -81,7 +88,6 @@ function parseAvailability(res: unknown): boolean {
     if (typeof ia === "boolean") return ia;
   }
 
-  // preserve previous fallback behavior
   return Boolean(res);
 }
 
@@ -109,6 +115,7 @@ function normalizeToDesignOptions(raw: unknown): SelectOption[] {
 
 export default function Step02({ onSuccess }: SignupStep1Props) {
   const t = useTranslations("signup_steps_02");
+  const reduceMotion = useReducedMotion();
 
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
   const [triggerCheckUsername] = useLazyCheckUsernameQuery();
@@ -158,6 +165,90 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
   const isFormatValid =
     usernameTrimmed.length > 0 && USERNAME_REGEX.test(usernameTrimmed);
 
+  // ---------- Unified typography (section headings) ----------
+  const sectionTitleCls =
+    "text-[18px] sm:text-[20px] font-extrabold leading-tight text-foreground-strong";
+  const sectionSubtitleCls = "text-[12px] sm:text-[13px] text-foreground-muted";
+  // match the visual tone of other field labels
+  const sectionLabelCls =
+    "text-sm font-medium text-foreground-strong leading-none";
+
+  // ---------- Motion (fast + smooth) ----------
+  const spring = React.useMemo(
+    () =>
+      reduceMotion
+        ? { duration: 0 }
+        : { type: "spring", stiffness: 340, damping: 30, mass: 0.6 },
+    [reduceMotion],
+  );
+
+  const v = React.useMemo(() => {
+    const y = (n: number) => (reduceMotion ? 0 : n);
+    const x = (n: number) => (reduceMotion ? 0 : n);
+    const s = (n: number) => (reduceMotion ? 1 : n);
+
+    return {
+      container: {
+        hidden: {},
+        show: {
+          transition: reduceMotion
+            ? { staggerChildren: 0 }
+            : { staggerChildren: 0.075, delayChildren: 0.03 },
+        },
+      },
+      header: {
+        hidden: { opacity: 0, y: y(-12) },
+        show: { opacity: 1, y: 0, transition: spring },
+      },
+      fieldUp: {
+        hidden: { opacity: 0, y: y(14), scale: s(0.99) },
+        show: { opacity: 1, y: 0, scale: 1, transition: spring },
+      },
+      fieldLeft: {
+        hidden: { opacity: 0, x: x(-16), scale: s(0.99) },
+        show: { opacity: 1, x: 0, scale: 1, transition: spring },
+      },
+      fieldRight: {
+        hidden: { opacity: 0, x: x(16), scale: s(0.99) },
+        show: { opacity: 1, x: 0, scale: 1, transition: spring },
+      },
+      scaleIn: {
+        hidden: { opacity: 0, scale: s(0.965) },
+        show: { opacity: 1, scale: 1, transition: spring },
+      },
+      cta: {
+        hidden: { opacity: 0, y: y(10), scale: s(0.985) },
+        show: { opacity: 1, y: 0, scale: 1, transition: spring },
+      },
+      microMsg: {
+        initial: { opacity: 0, y: y(-3) },
+        animate: {
+          opacity: 1,
+          y: 0,
+          transition: reduceMotion ? { duration: 0 } : { duration: 0.18 },
+        },
+        exit: {
+          opacity: 0,
+          y: y(3),
+          transition: reduceMotion ? { duration: 0 } : { duration: 0.12 },
+        },
+      },
+      microErr: {
+        initial: { opacity: 0, y: y(-4) },
+        animate: {
+          opacity: 1,
+          y: 0,
+          transition: reduceMotion ? { duration: 0 } : { duration: 0.16 },
+        },
+        exit: {
+          opacity: 0,
+          y: y(4),
+          transition: reduceMotion ? { duration: 0 } : { duration: 0.12 },
+        },
+      },
+    };
+  }, [reduceMotion, spring]);
+
   // Keep status coherent while typing
   React.useEffect(() => {
     if (errors.username?.type === "availability") {
@@ -182,7 +273,6 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
       return;
     }
 
-    // valid format but not checked yet / changed since last check
     if (usernameStatus !== "checking") setUsernameStatus("idle");
   }, [usernameTrimmed, errors.username?.type, clearErrors, usernameStatus]);
 
@@ -289,22 +379,41 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
 
   // Auto-check after debounce (no focus stealing, no committing captions)
   React.useEffect(() => {
-    const v = normalizeUsername(debouncedUsername);
-    if (!v) return;
-    if (!USERNAME_REGEX.test(v)) return;
-    if (lastResultRef.current?.username === v) return;
+    const v2 = normalizeUsername(debouncedUsername);
+    if (!v2) return;
+    if (!USERNAME_REGEX.test(v2)) return;
+    if (lastResultRef.current?.username === v2) return;
 
-    void checkUsernameAvailability(v, { commitToField: false });
+    void checkUsernameAvailability(v2, { commitToField: false });
   }, [debouncedUsername, checkUsernameAvailability]);
 
   const canManualCheck = isFormatValid && usernameStatus !== "checking";
 
-  const usernameDescription =
-    usernameStatus === "checking" ? (
-      <span className="text-[11px] text-foreground-muted">جاري التحقق…</span>
-    ) : usernameStatus === "available" ? (
-      <span className="text-[11px] text-foreground-muted">متاح ✅</span>
-    ) : null;
+  const usernameDescription = (
+    <AnimatePresence mode="wait" initial={false}>
+      {usernameStatus === "checking" ? (
+        <m.span
+          key="checking"
+          className="text-[11px] text-foreground-muted"
+          initial={v.microMsg.initial}
+          animate={v.microMsg.animate}
+          exit={v.microMsg.exit}
+        >
+          جاري التحقق…
+        </m.span>
+      ) : usernameStatus === "available" ? (
+        <m.span
+          key="available"
+          className="text-[11px] text-foreground-muted"
+          initial={v.microMsg.initial}
+          animate={v.microMsg.animate}
+          exit={v.microMsg.exit}
+        >
+          متاح ✅
+        </m.span>
+      ) : null}
+    </AnimatePresence>
+  );
 
   const isUsernameAvailable =
     isFormatValid &&
@@ -318,22 +427,13 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
       return;
     }
 
-    const available = await checkUsernameAvailability(values.username, {
-      commitToField: true,
-      keepFocus: true,
-      hardFail: true,
-    });
-
-    if (available !== true) {
-      setFocus("username");
-      return;
-    }
-
     try {
       const dto = toDto(values);
-      await updateProfile(dto).unwrap();
+      const res = await updateProfile(dto).unwrap();
+      console.log("res update: ", res);
       onSuccess?.();
-    } catch {
+    } catch (err) {
+      console.log("err update: ", err);
       setError("username", {
         type: "validate",
         message: "حدث خطأ أثناء حفظ البيانات. حاول مرة أخرى.",
@@ -345,189 +445,286 @@ export default function Step02({ onSuccess }: SignupStep1Props) {
   const inputBase = { register, errors } as const;
 
   return (
-    <div className="w-full">
-      <form onSubmit={handleSubmit(onSubmit)} className="relative space-y-3">
-        <header className="text-center space-y-1">
-          <h2 className="text-[18px] sm:text-[20px] font-extrabold leading-tight text-foreground-strong">
-            {t("title")}
-          </h2>
-          <p className="text-[12px] sm:text-[13px] text-foreground-muted">
-            {t("subtitle")}
-          </p>
-        </header>
-
-        <AppInput<Step02FormValues>
-          {...inputBase}
-          name="username"
-          label={t("username.label")}
-          placeholder={t("username.placeholder")}
-          autoComplete="off"
-          startIcon={CiAt}
-          description={usernameDescription}
-          registerOptions={{
-            required: t("username.required"),
-            pattern: { value: USERNAME_REGEX, message: t("username.invalid") },
-            onBlur: async () => {
-              const v = normalizeUsername(usernameRaw);
-              if (!USERNAME_REGEX.test(v)) return;
-              await checkUsernameAvailability(v, { commitToField: true });
-            },
-          }}
-          action={{
-            icon: usernameIcon,
-            ariaLabel: "فحص توفر اسم المستخدم",
-            appearance: "outline",
-            tone: "brand",
-            loading: usernameStatus === "checking",
-            disabled: !canManualCheck,
-            onClick: async () => {
-              const valid = await trigger("username");
-              if (!valid) {
-                setFocus("username");
-                return;
-              }
-
-              await checkUsernameAvailability(usernameRaw, {
-                commitToField: true,
-                keepFocus: true,
-              });
-            },
-          }}
-        />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <AppInput<Step02FormValues>
-            {...inputBase}
-            name="first_name"
-            label={t("first_name.label")}
-            placeholder={t("first_name.placeholder")}
-            autoComplete="given-name"
-            inputMode="text"
-            startIcon={FaUser}
-            registerOptions={{
-              required: t("first_name.required"),
-              pattern: {
-                value: /^[A-Za-z\u0600-\u06FF][A-Za-z\u0600-\u06FF\s'-]{1,}$/u,
-                message: t("first_name.invalid"),
-              },
-            }}
-          />
-
-          <AppInput<Step02FormValues>
-            {...inputBase}
-            name="last_name"
-            label={t("last_name.label")}
-            placeholder={t("last_name.placeholder")}
-            autoComplete="family-name"
-            inputMode="text"
-            startIcon={FaUser}
-            registerOptions={{
-              required: t("last_name.required"),
-              pattern: {
-                value: /^[A-Za-z\u0600-\u06FF][A-Za-z\u0600-\u06FF\s'-]{1,}$/u,
-                message: t("last_name.invalid"),
-              },
-            }}
-          />
-        </div>
-
-        <Controller
-          control={control}
-          name="dob"
-          defaultValue={null}
-          rules={{ required: t("dob.required") }}
-          render={({ field }) => (
-            <div className="mt-1">
-              <SimpleDatePicker
-                label={t("dob.label")}
-                value={field.value}
-                onChange={field.onChange}
-                withTime={false}
-              />
-              {errors.dob?.message ? (
-                <p className="mt-1 text-xs text-red-500">
-                  {String(errors.dob.message)}
-                </p>
-              ) : null}
-            </div>
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="country"
-          defaultValue={null}
-          rules={{ required: t("country.required") }}
-          render={({ field }) => (
-            <div className="mt-1">
-              <LocalizedSelect
-                label={t("country.label")}
-                placeholder={t("country.placeholder")}
-                options={countryOptions}
-                value={field.value}
-                onChange={(val) => {
-                  field.onChange(typeof val === "string" ? val : null);
-                }}
-                searchable
-                variant="solid"
-              />
-              {errors.country?.message ? (
-                <p className="mt-1 text-xs text-red-500">
-                  {String(errors.country.message)}
-                </p>
-              ) : null}
-            </div>
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="gender"
-          defaultValue={null}
-          rules={{ required: t("gender.required") }}
-          render={({ field }) => (
-            <div className="mt-1 space-y-1">
-              <div className="text-sm font-medium text-foreground-strong">
-                {t("gender.label")}
-              </div>
-
-              <GenderSelect
-                value={field.value ?? null}
-                onChange={(v) => field.onChange(v)}
-              />
-
-              {errors.gender?.message ? (
-                <p className="mt-1 text-xs text-red-500">
-                  {String(errors.gender.message)}
-                </p>
-              ) : null}
-            </div>
-          )}
-        />
-
-        <div className="pt-1">
-          <Button
-            type="submit"
-            variant="solid"
-            tone="brand"
-            size="xl"
-            elevation="cta"
-            fullWidth
-            isLoading={isSubmitting || isUpdating}
-            loadingText={t("submit.loading")}
-            disabled={
-              !isValid || usernameStatus === "checking" || !isUsernameAvailable
+    <LazyMotion features={domAnimation}>
+      <div className="w-full">
+        <m.form
+          onSubmit={handleSubmit(onSubmit)}
+          className="relative space-y-3"
+          variants={v.container}
+          initial="hidden"
+          animate="show"
+        >
+          <m.header
+            variants={v.header}
+            className="text-center space-y-1 transform-gpu"
+            style={
+              reduceMotion ? undefined : { willChange: "transform, opacity" }
             }
-            className={cn(
-              "shadow-[var(--shadow-glow-brand)]",
-              "hover:brightness-[1.05] active:brightness-[0.98]",
-              "disabled:shadow-none",
-            )}
           >
-            {t("submit.continue")}
-          </Button>
-        </div>
-      </form>
-    </div>
+            <h2 className={sectionTitleCls}>{t("title")}</h2>
+            <p className={sectionSubtitleCls}>{t("subtitle")}</p>
+          </m.header>
+
+          <m.div
+            variants={v.fieldUp}
+            className="transform-gpu"
+            style={
+              reduceMotion ? undefined : { willChange: "transform, opacity" }
+            }
+          >
+            <AppInput<Step02FormValues>
+              {...inputBase}
+              name="username"
+              label={t("username.label")}
+              placeholder={t("username.placeholder")}
+              autoComplete="off"
+              startIcon={CiAt}
+              description={usernameDescription}
+              registerOptions={{
+                required: t("username.required"),
+                pattern: {
+                  value: USERNAME_REGEX,
+                  message: t("username.invalid"),
+                },
+                onBlur: async () => {
+                  const v2 = normalizeUsername(usernameRaw);
+                  if (!USERNAME_REGEX.test(v2)) return;
+                  await checkUsernameAvailability(v2, { commitToField: true });
+                },
+              }}
+              action={{
+                icon: usernameIcon,
+                ariaLabel: "فحص توفر اسم المستخدم",
+                appearance: "outline",
+                tone: "brand",
+                loading: usernameStatus === "checking",
+                disabled: !canManualCheck,
+                onClick: async () => {
+                  const valid = await trigger("username");
+                  if (!valid) {
+                    setFocus("username");
+                    return;
+                  }
+
+                  await checkUsernameAvailability(usernameRaw, {
+                    commitToField: true,
+                    keepFocus: true,
+                  });
+                },
+              }}
+            />
+          </m.div>
+
+          <m.div
+            variants={v.scaleIn}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-2 transform-gpu"
+            style={
+              reduceMotion ? undefined : { willChange: "transform, opacity" }
+            }
+          >
+            <m.div variants={v.fieldLeft} className="transform-gpu">
+              <AppInput<Step02FormValues>
+                {...inputBase}
+                name="first_name"
+                label={t("first_name.label")}
+                placeholder={t("first_name.placeholder")}
+                autoComplete="given-name"
+                inputMode="text"
+                startIcon={FaUser}
+                registerOptions={{
+                  required: t("first_name.required"),
+                  pattern: {
+                    value:
+                      /^[A-Za-z\u0600-\u06FF][A-Za-z\u0600-\u06FF\s'-]{1,}$/u,
+                    message: t("first_name.invalid"),
+                  },
+                }}
+              />
+            </m.div>
+
+            <m.div variants={v.fieldRight} className="transform-gpu">
+              <AppInput<Step02FormValues>
+                {...inputBase}
+                name="last_name"
+                label={t("last_name.label")}
+                placeholder={t("last_name.placeholder")}
+                autoComplete="family-name"
+                inputMode="text"
+                startIcon={FaUser}
+                registerOptions={{
+                  required: t("last_name.required"),
+                  pattern: {
+                    value:
+                      /^[A-Za-z\u0600-\u06FF][A-Za-z\u0600-\u06FF\s'-]{1,}$/u,
+                    message: t("last_name.invalid"),
+                  },
+                }}
+              />
+            </m.div>
+          </m.div>
+
+          <m.div
+            variants={v.fieldUp}
+            className="transform-gpu"
+            style={
+              reduceMotion ? undefined : { willChange: "transform, opacity" }
+            }
+          >
+            <Controller
+              control={control}
+              name="dob"
+              defaultValue={null}
+              rules={{ required: t("dob.required") }}
+              render={({ field }) => (
+                <div className="mt-1">
+                  <SimpleDatePicker
+                    label={t("dob.label")}
+                    value={field.value}
+                    onChange={field.onChange}
+                    withTime={false}
+                    minDate={new Date(new Date().getFullYear(), 0, 1)}
+                    maxDate={new Date(new Date().getFullYear(), 11, 31, 23, 59)}
+                    size="sm"
+                    variant="solid"
+                  />
+
+                  <AnimatePresence initial={false}>
+                    {errors.dob?.message ? (
+                      <m.p
+                        key="dob-err"
+                        className="mt-1 text-xs text-red-500"
+                        initial={v.microErr.initial}
+                        animate={v.microErr.animate}
+                        exit={v.microErr.exit}
+                      >
+                        {String(errors.dob.message)}
+                      </m.p>
+                    ) : null}
+                  </AnimatePresence>
+                </div>
+              )}
+            />
+          </m.div>
+
+          <m.div
+            variants={v.fieldUp}
+            className="transform-gpu"
+            style={
+              reduceMotion ? undefined : { willChange: "transform, opacity" }
+            }
+          >
+            <Controller
+              control={control}
+              name="country"
+              defaultValue={null}
+              rules={{ required: t("country.required") }}
+              render={({ field }) => (
+                <div className="mt-1">
+                  <LocalizedSelect
+                    label={t("country.label")}
+                    placeholder={t("country.placeholder")}
+                    options={countryOptions}
+                    value={field.value}
+                    onChange={(val) => {
+                      field.onChange(typeof val === "string" ? val : null);
+                    }}
+                    searchable
+                    variant="solid"
+                  />
+
+                  <AnimatePresence initial={false}>
+                    {errors.country?.message ? (
+                      <m.p
+                        key="country-err"
+                        className="mt-1 text-xs text-red-500"
+                        initial={v.microErr.initial}
+                        animate={v.microErr.animate}
+                        exit={v.microErr.exit}
+                      >
+                        {String(errors.country.message)}
+                      </m.p>
+                    ) : null}
+                  </AnimatePresence>
+                </div>
+              )}
+            />
+          </m.div>
+
+          <m.div
+            variants={v.scaleIn}
+            className="transform-gpu"
+            style={
+              reduceMotion ? undefined : { willChange: "transform, opacity" }
+            }
+          >
+            <Controller
+              control={control}
+              name="gender"
+              defaultValue={null}
+              rules={{ required: t("gender.required") }}
+              render={({ field }) => (
+                <div className="mt-1 space-y-1">
+                  <div className={sectionLabelCls}>{t("gender.label")}</div>
+
+                  <m.div variants={v.fieldUp} className="transform-gpu">
+                    <GenderSelect
+                      value={field.value ?? null}
+                      onChange={(v2) => field.onChange(v2)}
+                    />
+                  </m.div>
+
+                  <AnimatePresence initial={false}>
+                    {errors.gender?.message ? (
+                      <m.p
+                        key="gender-err"
+                        className="mt-1 text-xs text-red-500"
+                        initial={v.microErr.initial}
+                        animate={v.microErr.animate}
+                        exit={v.microErr.exit}
+                      >
+                        {String(errors.gender.message)}
+                      </m.p>
+                    ) : null}
+                  </AnimatePresence>
+                </div>
+              )}
+            />
+          </m.div>
+
+          <m.div
+            variants={v.cta}
+            className="pt-1 transform-gpu"
+            style={
+              reduceMotion ? undefined : { willChange: "transform, opacity" }
+            }
+            whileHover={reduceMotion ? undefined : { scale: 1.01 }}
+            whileTap={reduceMotion ? undefined : { scale: 0.99 }}
+          >
+            <Button
+              type="submit"
+              variant="solid"
+              tone="brand"
+              size="xl"
+              elevation="cta"
+              fullWidth
+              isLoading={isSubmitting || isUpdating}
+              loadingText={t("submit.loading")}
+              // disabled={
+              //   !isValid ||
+              //   usernameStatus === "checking" ||
+              //   !isUsernameAvailable
+              // }
+              className={cn(
+                "shadow-[var(--shadow-glow-brand)]",
+                "hover:brightness-[1.05] active:brightness-[0.98]",
+                "disabled:shadow-none",
+              )}
+            >
+              {t("submit.continue")}
+            </Button>
+          </m.div>
+        </m.form>
+      </div>
+    </LazyMotion>
   );
 }

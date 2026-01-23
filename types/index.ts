@@ -11,10 +11,12 @@ export type UserProfileDTO = {
   username: string;
   email: string;
   rank?: string;
-  dob: string | null;
+  dob: Date | string | null;
   country: string | null;
   gender: Gender | null;
   status: string;
+  avatar: any;
+  bg: any;
 };
 
 export type SignupStep1Props = {

@@ -20,7 +20,7 @@ import type {
   ButtonSize,
   ButtonTone,
   ButtonVariant,
-} from "@/design";
+} from "@/design/Button";
 
 // ✅ as requested for direction
 import { useAppSelector } from "@/store/hooks";

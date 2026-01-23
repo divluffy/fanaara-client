@@ -1,4 +1,4 @@
-// design\DatePicker.tsx
+// design/DatePicker.tsx
 "use client";
 
 import React, {
@@ -683,7 +683,7 @@ export const SimpleDatePicker: React.FC<SimpleDatePickerProps> = ({
             initial={prefersReducedMotion ? false : { opacity: 0, y: 4 }}
             animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
             exit={prefersReducedMotion ? undefined : { opacity: 0, y: 4 }}
-            transition={{ duration: 0.14, ease: "easeOut" }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
           >
             {error}
           </motion.p>

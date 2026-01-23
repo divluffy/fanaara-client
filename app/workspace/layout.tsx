@@ -1,18 +1,12 @@
-// app/dashboard/layout.tsx
+// app/(logged)/workspace/layout.tsx
 import type { ReactNode } from "react";
+import { requireUser } from "@/lib/guards";
 
-export default async function Layout({
+export default async function WorkspaceLayout({
   children,
-  params,
 }: {
   children: ReactNode;
-  params: { programId: string };
 }) {
-  const { programId } = params;
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-4">
-      <div className="rounded-xl border p-4">{children}</div>
-    </div>
-  );
+  await requireUser({ roles: ["CREATOR", "ADMIN"] });
+  return <>{children}</>;
 }

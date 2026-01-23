@@ -13,7 +13,11 @@ import {
 } from "./aside";
 import { MockUser } from "@/constants";
 import { useAttachedPanel } from "@/hooks/useAttachedPanel";
-import { NotificationsPanel } from "@/components";
+import {
+  LanguageMenuToggle,
+  NotificationsPanel,
+  ThemeToggle,
+} from "@/components";
 
 function isActive(pathname: string, href: string, exact?: boolean) {
   if (exact) return pathname === href;
@@ -22,7 +26,7 @@ function isActive(pathname: string, href: string, exact?: boolean) {
 
 function resolveDir(
   direction: string | undefined,
-  isRTL: boolean
+  isRTL: boolean,
 ): "rtl" | "ltr" {
   if (direction === "rtl" || direction === "ltr") return direction;
   return isRTL ? "rtl" : "ltr";
@@ -58,7 +62,7 @@ export default function LoggedAside() {
       chatUnread: chatUnreadCount,
       notifications: notificationsCount,
     }),
-    [chatUnreadCount, notificationsCount]
+    [chatUnreadCount, notificationsCount],
   );
 
   const onAction = React.useCallback(
@@ -67,11 +71,11 @@ export default function LoggedAside() {
         ? T extends { actionKey: infer K }
           ? K
           : never
-        : never
+        : never,
     ) => {
       if (actionKey === "openNotifications") noti.toggle();
     },
-    [noti]
+    [noti],
   );
 
   return (
@@ -82,7 +86,7 @@ export default function LoggedAside() {
         className={cn(
           "bg-background-elevated w-64 p-4 h-dvh sticky top-0",
           "flex flex-col gap-3",
-          "border-e border-accent-border/80"
+          "border-e border-accent-border/80",
         )}
       >
         <nav aria-label="Sidebar">
@@ -147,7 +151,10 @@ export default function LoggedAside() {
             })}
           </ul>
         </nav>
-
+        <div className="flex">
+          <ThemeToggle />
+          <LanguageMenuToggle />
+        </div>
         <ProfileCard
           user={MockUser}
           profileHref="/profile"
