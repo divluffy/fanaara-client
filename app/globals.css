@@ -7,8 +7,8 @@
 
 :root {
   /* قائمة fallback للإيموجي (خطوط نظام) */
-  --font-emoji: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol";
+  --font-emoji:
+    "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 
   --emoji-fallback: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 
@@ -293,10 +293,51 @@
 
   --divider: color-mix(in srgb, var(--border-subtle) 75%, transparent);
 
-  --shadow-glass: 0 0 0 1px color-mix(in srgb, #000 12%, transparent),
+  --shadow-glass:
+    0 0 0 1px color-mix(in srgb, #000 12%, transparent),
     0 18px 70px rgba(11, 18, 32, 0.14);
-  --shadow-glass-strong: 0 0 0 1px color-mix(in srgb, #000 16%, transparent),
+  --shadow-glass-strong:
+    0 0 0 1px color-mix(in srgb, #000 16%, transparent),
     0 26px 120px rgba(11, 18, 32, 0.2);
+
+  /* =========================================================
+     EXTRA TONES (Purple / Pink / Lime / Cyan)
+     ========================================================= */
+
+  --purple-500: #7c3aed;
+  --pink-500: #ec4899;
+  --lime-500: #84cc16;
+  --cyan-500: #06b6d4;
+
+  --purple-soft-bg: color-mix(in srgb, var(--purple-500) 12%, transparent);
+  --purple-soft-border: color-mix(in srgb, var(--purple-500) 30%, transparent);
+  --purple-soft-ring: color-mix(in srgb, var(--purple-500) 72%, transparent);
+  --purple-solid-bg: var(--purple-500);
+  --purple-on-solid: #ffffff;
+
+  --pink-soft-bg: color-mix(in srgb, var(--pink-500) 12%, transparent);
+  --pink-soft-border: color-mix(in srgb, var(--pink-500) 30%, transparent);
+  --pink-soft-ring: color-mix(in srgb, var(--pink-500) 72%, transparent);
+  --pink-solid-bg: var(--pink-500);
+  --pink-on-solid: #ffffff;
+
+  --lime-soft-bg: color-mix(in srgb, var(--lime-500) 14%, transparent);
+  --lime-soft-border: color-mix(in srgb, var(--lime-500) 34%, transparent);
+  --lime-soft-ring: color-mix(in srgb, var(--lime-500) 78%, transparent);
+  --lime-solid-bg: var(--lime-500);
+  --lime-on-solid: var(--neutral-charcoal); /* على lime الأفضل نص داكن */
+
+  --cyan-soft-bg: color-mix(in srgb, var(--cyan-500) 14%, transparent);
+  --cyan-soft-border: color-mix(in srgb, var(--cyan-500) 34%, transparent);
+  --cyan-soft-ring: color-mix(in srgb, var(--cyan-500) 78%, transparent);
+  --cyan-solid-bg: var(--cyan-500);
+  --cyan-on-solid: var(--neutral-charcoal);
+
+  /* Glows */
+  --shadow-glow-purple: 0 0 22px rgba(124, 58, 237, 0.55);
+  --shadow-glow-pink: 0 0 22px rgba(236, 72, 153, 0.55);
+  --shadow-glow-lime: 0 0 22px rgba(132, 204, 22, 0.45);
+  --shadow-glow-cyan: 0 0 22px rgba(6, 182, 212, 0.45);
 }
 
 /* =========================================================
@@ -436,16 +477,45 @@
 
   --divider: color-mix(in srgb, var(--border-subtle) 85%, transparent);
 
-  --shadow-glass: 0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 22px 85px rgba(0, 0, 0, 0.55);
-  --shadow-glass-strong: 0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 34px 140px rgba(0, 0, 0, 0.7);
+  --shadow-glass:
+    0 0 0 1px rgba(255, 255, 255, 0.06), 0 22px 85px rgba(0, 0, 0, 0.55);
+  --shadow-glass-strong:
+    0 0 0 1px rgba(255, 255, 255, 0.08), 0 34px 140px rgba(0, 0, 0, 0.7);
 
   /* Language menu في الدارك */
   --lang-option-hover-bg: rgba(255, 255, 255, 0.06);
   --lang-option-active: var(--brand-400);
   --lang-ring: var(--brand-400);
   --lang-ring-offset: var(--neutral-charcoal);
+
+  --purple-soft-bg: rgba(124, 58, 237, 0.22);
+  --purple-soft-border: rgba(124, 58, 237, 0.55);
+  --purple-soft-ring: rgba(124, 58, 237, 0.9);
+  --purple-solid-bg: #8b5cf6;
+  --purple-on-solid: #0b1220;
+
+  --pink-soft-bg: rgba(236, 72, 153, 0.22);
+  --pink-soft-border: rgba(236, 72, 153, 0.55);
+  --pink-soft-ring: rgba(236, 72, 153, 0.9);
+  --pink-solid-bg: #fb7185;
+  --pink-on-solid: #0b1220;
+
+  --lime-soft-bg: rgba(132, 204, 22, 0.22);
+  --lime-soft-border: rgba(132, 204, 22, 0.55);
+  --lime-soft-ring: rgba(132, 204, 22, 0.9);
+  --lime-solid-bg: #a3e635;
+  --lime-on-solid: #0b1220;
+
+  --cyan-soft-bg: rgba(6, 182, 212, 0.22);
+  --cyan-soft-border: rgba(6, 182, 212, 0.55);
+  --cyan-soft-ring: rgba(6, 182, 212, 0.9);
+  --cyan-solid-bg: #22d3ee;
+  --cyan-on-solid: #0b1220;
+
+  --shadow-glow-purple: 0 0 26px rgba(139, 92, 246, 0.7);
+  --shadow-glow-pink: 0 0 26px rgba(251, 113, 133, 0.7);
+  --shadow-glow-lime: 0 0 26px rgba(163, 230, 53, 0.55);
+  --shadow-glow-cyan: 0 0 26px rgba(34, 211, 238, 0.55);
 }
 
 /* =========================================================
@@ -604,24 +674,50 @@ body {
   color: var(--fg-default);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-    "Segoe UI", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "Segoe UI",
+    sans-serif;
 }
 
 /* EN */
 body.font-latin {
-  font-family: var(--font-latin), system-ui, -apple-system, "Segoe UI", Roboto,
-    Helvetica, Arial, var(--font-emoji);
+  font-family:
+    var(--font-latin),
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    var(--font-emoji);
 }
 
 body.font-latin-ext {
-  font-family: var(--font-latin-ext), system-ui, -apple-system, "Segoe UI",
-    Roboto, Helvetica, Arial, var(--font-emoji);
+  font-family:
+    var(--font-latin-ext),
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    var(--font-emoji);
 }
 
 body.font-arabic {
-  font-family: var(--font-arabic), system-ui, -apple-system, "Segoe UI", Roboto,
-    Helvetica, Arial, var(--font-emoji);
+  font-family:
+    var(--font-arabic),
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    var(--font-emoji);
 }
 
 /* اختيار النص */
@@ -713,7 +809,8 @@ body.font-arabic {
 
   /* Full للدسكتوب */
   .animate-sakura {
-    animation: sakura-fall var(--dur, 12s) linear infinite,
+    animation:
+      sakura-fall var(--dur, 12s) linear infinite,
       sakura-drift calc(var(--dur, 12s) * 0.9) ease-in-out infinite;
   }
 
@@ -746,7 +843,8 @@ body.font-arabic {
   }
 
   .animate-aurora {
-    animation: aurora-move 18s ease-in-out infinite alternate,
+    animation:
+      aurora-move 18s ease-in-out infinite alternate,
       aurora-hue 10s linear infinite;
   }
 

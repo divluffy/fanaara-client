@@ -1,20 +1,12 @@
-// app\(public)\playground\icon-buttons\page.tsx
+// app/(public)/playground/icon-buttons/page.tsx
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
-import { motion } from "framer-motion";
+import type { ReactNode } from "react";
 import {
   FiHome,
   FiSearch,
   FiBell,
   FiMail,
-  FiUser,
   FiSettings,
   FiMoreHorizontal,
   FiPlus,
@@ -29,20 +21,6 @@ import {
   FiFlag,
   FiSlash,
   FiTrash2,
-  FiEye,
-  FiZap,
-  FiChevronLeft,
-  FiChevronRight,
-  FiPlay,
-  FiPause,
-  FiVolume2,
-  FiUpload,
-  FiImage,
-  FiVideo,
-  FiMic,
-  FiSend,
-  FiSmile,
-  // extra (عامّة + حالات توثيق)
   FiCheckCircle,
   FiClock,
   FiAlertTriangle,
@@ -59,186 +37,22 @@ import {
   FiTag,
   FiRefreshCw,
   FiCamera,
+  FiPlay,
+  FiPause,
+  FiVolume2,
+  FiUpload,
+  FiImage,
+  FiVideo,
+  FiMic,
+  FiSend,
+  FiSmile,
 } from "react-icons/fi";
 
-import { IconButton, type IconButtonProps } from "@/design/IconButton";
-import { cn } from "@/utils";
+import { IconButton } from "@/design/IconButton";
+import { CopyWrap, Toast, useCopyToast } from "../_shared/copy";
 
-type Sample = {
-  props: Omit<IconButtonProps, "children">;
-  icon: ReactNode;
-  code: string;
-};
 
-const V = {
-  card: {
-    hidden: { opacity: 0, y: 12 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.35, ease: "easeOut" },
-    },
-  },
-  grid: {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.035, delayChildren: 0.05 } },
-  },
-  item: {
-    hidden: { opacity: 0, y: 10, scale: 0.985 },
-    show: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: { duration: 0.2, ease: "easeOut" },
-    },
-  },
-} as const;
-
-const ICONS = {
-  home: { name: "FiHome", node: <FiHome /> },
-  search: { name: "FiSearch", node: <FiSearch /> },
-  bell: { name: "FiBell", node: <FiBell /> },
-  mail: { name: "FiMail", node: <FiMail /> },
-  user: { name: "FiUser", node: <FiUser /> },
-  settings: { name: "FiSettings", node: <FiSettings /> },
-  more: { name: "FiMoreHorizontal", node: <FiMoreHorizontal /> },
-  plus: { name: "FiPlus", node: <FiPlus /> },
-
-  heart: { name: "FiHeart", node: <FiHeart /> },
-  star: { name: "FiStar", node: <FiStar /> },
-  bookmark: { name: "FiBookmark", node: <FiBookmark /> },
-  comment: { name: "FiMessageCircle", node: <FiMessageCircle /> },
-  share: { name: "FiShare2", node: <FiShare2 /> },
-
-  edit: { name: "FiEdit2", node: <FiEdit2 /> },
-  users: { name: "FiUsers", node: <FiUsers /> },
-  lock: { name: "FiLock", node: <FiLock /> },
-  flag: { name: "FiFlag", node: <FiFlag /> },
-  slash: { name: "FiSlash", node: <FiSlash /> },
-  trash: { name: "FiTrash2", node: <FiTrash2 /> },
-  eye: { name: "FiEye", node: <FiEye /> },
-  zap: { name: "FiZap", node: <FiZap /> },
-
-  left: { name: "FiChevronLeft", node: <FiChevronLeft /> },
-  right: { name: "FiChevronRight", node: <FiChevronRight /> },
-
-  play: { name: "FiPlay", node: <FiPlay /> },
-  pause: { name: "FiPause", node: <FiPause /> },
-  volume: { name: "FiVolume2", node: <FiVolume2 /> },
-
-  upload: { name: "FiUpload", node: <FiUpload /> },
-  image: { name: "FiImage", node: <FiImage /> },
-  video: { name: "FiVideo", node: <FiVideo /> },
-  mic: { name: "FiMic", node: <FiMic /> },
-  send: { name: "FiSend", node: <FiSend /> },
-  smile: { name: "FiSmile", node: <FiSmile /> },
-
-  // status / verified
-  verified: { name: "FiCheckCircle", node: <FiCheckCircle /> },
-  pending: { name: "FiClock", node: <FiClock /> },
-  alert: { name: "FiAlertTriangle", node: <FiAlertTriangle /> },
-  shield: { name: "FiShield", node: <FiShield /> },
-  banned: { name: "FiXCircle", node: <FiXCircle /> },
-
-  // utility / commerce
-  link: { name: "FiLink", node: <FiLink /> },
-  copy: { name: "FiCopy", node: <FiCopy /> },
-  external: { name: "FiExternalLink", node: <FiExternalLink /> },
-  globe: { name: "FiGlobe", node: <FiGlobe /> },
-  cart: { name: "FiShoppingCart", node: <FiShoppingCart /> },
-  gift: { name: "FiGift", node: <FiGift /> },
-  card: { name: "FiCreditCard", node: <FiCreditCard /> },
-  calendar: { name: "FiCalendar", node: <FiCalendar /> },
-  tag: { name: "FiTag", node: <FiTag /> },
-  refresh: { name: "FiRefreshCw", node: <FiRefreshCw /> },
-  camera: { name: "FiCamera", node: <FiCamera /> },
-} as const;
-
-type IconKey = keyof typeof ICONS;
-
-function propsToJsx(props: Record<string, unknown>) {
-  return Object.entries(props)
-    .filter(([, v]) => v !== undefined)
-    .map(([k, v]) => {
-      if (typeof v === "boolean") return v ? k : `${k}={false}`;
-      if (typeof v === "number") return `${k}={${v}}`;
-      if (typeof v === "string") return `${k}=${JSON.stringify(v)}`;
-      return `${k}={${JSON.stringify(v)}}`;
-    })
-    .join(" ");
-}
-
-function S(
-  icon: IconKey,
-  aria: string,
-  p: Partial<Omit<IconButtonProps, "children" | "aria-label">> = {},
-): Sample {
-  const { name, node } = ICONS[icon];
-  const props = { "aria-label": aria, ...p } as Omit<
-    IconButtonProps,
-    "children"
-  >;
-  return {
-    props,
-    icon: node,
-    code: `<IconButton ${propsToJsx(props)}><${name} /></IconButton>`,
-  };
-}
-
-async function copyToClipboard(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    try {
-      const el = document.createElement("textarea");
-      el.value = text;
-      el.style.position = "fixed";
-      el.style.left = "-9999px";
-      document.body.appendChild(el);
-      el.focus();
-      el.select();
-      const ok = document.execCommand("copy");
-      document.body.removeChild(el);
-      return ok;
-    } catch {
-      return false;
-    }
-  }
-}
-
-function Toast({ text }: { text: string }) {
-  return (
-    <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full border border-border-subtle bg-background-elevated/95 px-4 py-2 text-xs text-foreground shadow-[var(--shadow-md)]">
-      {text}
-    </div>
-  );
-}
-
-function CopyBtn({
-  sample,
-  onCopied,
-}: {
-  sample: Sample;
-  onCopied: (ok: boolean) => void;
-}) {
-  const onClick = useCallback(
-    async (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onCopied(await copyToClipboard(sample.code));
-    },
-    [sample.code, onCopied],
-  );
-
-  return (
-    <IconButton {...sample.props} type="button" onClick={onClick}>
-      {sample.icon}
-    </IconButton>
-  );
-}
-
-function Card({
+function Section({
   title,
   subtitle,
   children,
@@ -250,13 +64,7 @@ function Card({
   bodyClassName?: string;
 }) {
   return (
-    <motion.section
-      variants={V.card}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.2 }}
-      className="space-y-3 rounded-3xl border border-border-subtle bg-surface p-5 shadow-[var(--shadow-sm)]"
-    >
+    <section className="space-y-3 rounded-3xl border border-border-subtle bg-surface p-5 shadow-[var(--shadow-sm)]">
       <div className="space-y-1">
         <h2 className="text-sm font-semibold text-foreground-strong">
           {title}
@@ -266,264 +74,36 @@ function Card({
         )}
       </div>
 
-      <motion.div
-        variants={V.grid}
-        className={cn(
-          "grid grid-cols-6 gap-3 sm:grid-cols-8 md:grid-cols-12",
-          bodyClassName,
-        )}
+      <div
+        className={
+          "grid grid-cols-6 gap-3 sm:grid-cols-8 md:grid-cols-12 " +
+          (bodyClassName ?? "")
+        }
       >
         {children}
-      </motion.div>
-    </motion.section>
+      </div>
+    </section>
   );
 }
 
-function AnimatedSamples({
-  samples,
+function C({
+  code,
   onCopied,
+  children,
 }: {
-  samples: Sample[];
+  code: string;
   onCopied: (ok: boolean) => void;
+  children: ReactNode;
 }) {
-  return samples.map((s, i) => (
-    <motion.div key={i} variants={V.item} className="inline-flex">
-      <CopyBtn sample={s} onCopied={onCopied} />
-    </motion.div>
-  ));
+  return (
+    <CopyWrap code={code} onCopied={onCopied}>
+      {children}
+    </CopyWrap>
+  );
 }
 
-// ================== SAMPLES (مختصرة + متنوعة) ==================
-const headerSamples: Sample[] = [
-  S("home", "Home", { variant: "ghost", tooltip: "الرئيسية" }),
-  S("search", "Search", {
-    variant: "ghost",
-    tooltip: "بحث",
-    tooltipPlacement: "bottom",
-  }),
-  S("bell", "Notifications", {
-    tooltip: "الإشعارات",
-    badgeCount: 12,
-    badgeTone: "danger",
-  }),
-  S("mail", "Messages", {
-    tooltip: "رسائل جديدة",
-    showBadgeDot: true,
-    badgeTone: "info",
-  }),
-  S("settings", "Settings", { variant: "outline", tooltip: "الإعدادات" }),
-  S("more", "More", { variant: "plain", tooltip: "المزيد" }),
-  S("plus", "Create", {
-    variant: "gradient",
-    gradient: "aurora",
-    elevation: "cta",
-    tooltip: "إنشاء",
-  }),
-  S("bell", "Loading", {
-    variant: "solid",
-    tone: "brand",
-    tooltip: "تحميل",
-    isLoading: true,
-  }),
-  S("settings", "Disabled", {
-    variant: "outline",
-    tooltip: "معطّل",
-    disabled: true,
-  }),
-];
-
-const postSamples: Sample[] = [
-  S("heart", "Like", { tooltip: "إعجاب" }),
-  S("heart", "Liked", { tone: "danger", tooltip: "تم الإعجاب" }),
-  S("star", "Rate", { tone: "warning", tooltip: "تقييم" }),
-  S("bookmark", "Save", { tooltip: "حفظ" }),
-  S("comment", "Comments", {
-    tooltip: "تعليقات",
-    badgeCount: 34,
-    badgeTone: "info",
-  }),
-  S("comment", "New comments", {
-    tooltip: "تعليقات جديدة",
-    showBadgeDot: true,
-    badgeTone: "info",
-  }),
-  S("share", "Share", { tooltip: "مشاركة" }),
-  S("more", "More post", {
-    variant: "ghost",
-    tooltip: "المزيد",
-    tooltipPlacement: "bottom",
-  }),
-];
-
-const profileSamples: Sample[] = [
-  S("users", "Followers", {
-    tooltip: "المتابعين",
-    badgeCount: 99,
-    badgeTone: "brand",
-  }),
-  S("mail", "Message", { tone: "info", tooltip: "رسالة" }),
-  S("edit", "Edit", { variant: "outline", tooltip: "تعديل" }),
-  S("lock", "Private", { tone: "warning", tooltip: "حساب خاص" }),
-  S("flag", "Report", {
-    variant: "outline",
-    tone: "warning",
-    tooltip: "تبليغ",
-  }),
-  S("slash", "Block", { variant: "solid", tone: "danger", tooltip: "حظر" }),
-];
-
-const verifySamples: Sample[] = [
-  S("verified", "Verified soft", { tone: "brand", tooltip: "تم التوثيق" }),
-  S("verified", "Verified solid", {
-    variant: "solid",
-    tone: "brand",
-    tooltip: "موثّق",
-  }),
-  S("shield", "Moderator", { tone: "info", tooltip: "مشرف" }),
-  S("pending", "Pending", { tone: "warning", tooltip: "قيد المراجعة" }),
-  S("alert", "Need verification", {
-    variant: "outline",
-    tone: "warning",
-    tooltip: "بحاجة توثيق",
-  }),
-  S("banned", "Banned", { variant: "solid", tone: "danger", tooltip: "محظور" }),
-];
-
-const utilitySamples: Sample[] = [
-  S("link", "Copy link", { variant: "ghost", tooltip: "نسخ الرابط" }),
-  S("copy", "Copy", { variant: "soft", tooltip: "نسخ" }),
-  S("external", "Open", { variant: "outline", tooltip: "فتح خارجي" }),
-  S("globe", "Website", { variant: "soft", tone: "info", tooltip: "الموقع" }),
-  S("refresh", "Refresh", { variant: "plain", tooltip: "تحديث" }),
-  S("camera", "Camera", { variant: "soft", tooltip: "كاميرا" }),
-];
-
-const commerceSamples: Sample[] = [
-  S("cart", "Cart", {
-    tone: "brand",
-    tooltip: "السلة",
-    badgeCount: 3,
-    badgeTone: "danger",
-  }),
-  S("gift", "Gift", { variant: "soft", tone: "warning", tooltip: "هدية" }),
-  S("card", "Pay", { variant: "outline", tooltip: "الدفع" }),
-  S("tag", "Coupon", { variant: "ghost", tooltip: "قسيمة" }),
-  S("calendar", "Schedule", { variant: "soft", tooltip: "جدولة" }),
-];
-
-const chatSamples: Sample[] = [
-  S("smile", "Emoji", { variant: "plain", tooltip: "إيموجي" }),
-  S("upload", "Attach", { variant: "plain", tooltip: "مرفق" }),
-  S("image", "Photo", { variant: "plain", tooltip: "صورة" }),
-  S("video", "Video", { variant: "plain", tooltip: "فيديو" }),
-  S("mic", "Voice", { variant: "plain", tooltip: "تسجيل" }),
-  S("send", "Send", {
-    variant: "solid",
-    tone: "brand",
-    tooltip: "إرسال",
-    tooltipPlacement: "bottom",
-  }),
-  S("send", "Sending", {
-    variant: "solid",
-    tone: "brand",
-    tooltip: "جاري الإرسال",
-    isLoading: true,
-  }),
-];
-
-const sizes: IconButtonProps["size"][] = ["xs", "sm", "md", "lg"];
-const shapes: IconButtonProps["shape"][] = ["circle", "rounded", "square"];
-
-const sizeShapeSamples: Sample[] = sizes.flatMap((size) =>
-  shapes.map((shape) =>
-    S("bell", `Size ${size} ${shape}`, {
-      size,
-      shape,
-      variant: "soft",
-      tooltip: `${size} • ${shape}`,
-    }),
-  ),
-);
-
-const badgePlacementSamples: Sample[] = (
-  [
-    "top-right",
-    "top-left",
-    "bottom-right",
-    "bottom-left",
-    "left",
-    "right",
-    "top",
-    "bottom",
-  ] as const
-).map((placement) =>
-  S("bell", `badge ${placement}`, {
-    tooltip: placement,
-    badgeCount: 7,
-    badgeTone: "danger",
-    badgePlacement: placement,
-  }),
-);
-
-const overlayDarkSamples: Sample[] = [
-  S("left", "Back", {
-    variant: "plain",
-    tooltip: "رجوع",
-    iconClassName: "text-white",
-  }),
-  S("right", "Next", {
-    variant: "plain",
-    tooltip: "التالي",
-    iconClassName: "text-white",
-  }),
-  S("play", "Play", { variant: "inverse", tooltip: "تشغيل" }),
-  S("pause", "Pause", { variant: "inverse", tooltip: "إيقاف" }),
-  S("volume", "Volume", { variant: "inverse", tooltip: "الصوت" }),
-  S("upload", "Upload", { variant: "inverse", tooltip: "رفع" }),
-];
-
-const imageBgSamples: Sample[] = [
-  S("more", "Plain white", {
-    variant: "plain",
-    iconClassName: "text-white",
-    tooltip: "plain",
-  }),
-  S("bell", "Inverse", { variant: "inverse", tooltip: "inverse" }),
-  S("verified", "Glass", { variant: "glass", tooltip: "glass" }),
-  S("link", "Outline", {
-    variant: "outline",
-    tone: "neutral",
-    tooltip: "outline",
-  }),
-  S("heart", "Soft brand", { variant: "soft", tone: "brand", tooltip: "soft" }),
-  S("trash", "Solid danger", {
-    variant: "solid",
-    tone: "danger",
-    tooltip: "solid",
-  }),
-  S("plus", "Gradient CTA", {
-    variant: "gradient",
-    gradient: "aurora",
-    elevation: "cta",
-    tooltip: "CTA",
-  }),
-];
-
 export default function IconButtonsExamplesPage() {
-  const [toast, setToast] = useState<string | null>(null);
-  const timerRef = useRef<number | null>(null);
-
-  const onCopied = useCallback((ok: boolean) => {
-    setToast(ok ? "✅ تم نسخ الكود" : "❌ فشل النسخ");
-    if (timerRef.current) window.clearTimeout(timerRef.current);
-    timerRef.current = window.setTimeout(() => setToast(null), 1100);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) window.clearTimeout(timerRef.current);
-    };
-  }, []);
+  const { toast, show } = useCopyToast(1100);
 
   return (
     <main className="min-h-screen bg-background text-foreground p-6">
@@ -533,114 +113,1088 @@ export default function IconButtonsExamplesPage() {
             IconButton Examples
           </h1>
           <p className="text-sm text-foreground-muted">
-            اضغط على أي أيقونة لنسخ كودها ✅ — مع Animation عند الظهور + Tooltip
-            متمركز فوق/تحت.
+            اضغط على أي زر لنسخ الكود ✅ — أمثلة كثيرة تغطي كل props.
           </p>
         </header>
 
         <div className="grid gap-6">
-          <Card
+          {/* ================= Header / Navbar ================= */}
+          <Section
             title="Header / Navbar"
-            subtitle="تنقّل + إشعارات + loading/disabled + CTA"
+            subtitle="ghost/plain + tooltip + badge + loading + disabled + gradient CTA"
           >
-            <AnimatedSamples samples={headerSamples} onCopied={onCopied} />
-          </Card>
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Home" variant="ghost" tooltip="الرئيسية"><FiHome /></IconButton>`}
+            >
+              <IconButton aria-label="Home" variant="ghost" tooltip="الرئيسية">
+                <FiHome />
+              </IconButton>
+            </C>
 
-          <Card
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Search" variant="ghost" tooltip="بحث" tooltipPlacement="bottom"><FiSearch /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Search"
+                variant="ghost"
+                tooltip="بحث"
+                tooltipPlacement="bottom"
+              >
+                <FiSearch />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Notifications" tooltip="الإشعارات" badgeCount={12} badgeTone="danger"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Notifications"
+                tooltip="الإشعارات"
+                badgeCount={12}
+                badgeTone="danger"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Messages" tooltip="رسائل جديدة" showBadgeDot badgeTone="info"><FiMail /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Messages"
+                tooltip="رسائل جديدة"
+                showBadgeDot
+                badgeTone="info"
+              >
+                <FiMail />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Settings" variant="outline" tooltip="الإعدادات"><FiSettings /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Settings"
+                variant="outline"
+                tooltip="الإعدادات"
+              >
+                <FiSettings />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="More" variant="plain" tooltip="المزيد"><FiMoreHorizontal /></IconButton>`}
+            >
+              <IconButton aria-label="More" variant="plain" tooltip="المزيد">
+                <FiMoreHorizontal />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Create" variant="gradient" gradient="aurora" elevation="cta" tooltip="إنشاء"><FiPlus /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Create"
+                variant="gradient"
+                gradient="aurora"
+                elevation="cta"
+                tooltip="إنشاء"
+              >
+                <FiPlus />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Loading" variant="solid" tone="brand" tooltip="تحميل" isLoading><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Loading"
+                variant="solid"
+                tone="brand"
+                tooltip="تحميل"
+                isLoading
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Disabled" variant="outline" tooltip="معطّل" disabled><FiSettings /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Disabled"
+                variant="outline"
+                tooltip="معطّل"
+                disabled
+              >
+                <FiSettings />
+              </IconButton>
+            </C>
+          </Section>
+
+          {/* ================= Variants & Tones ================= */}
+          <Section
+            title="Variants & Tones"
+            subtitle="نفس الشكل/الحجم — اختلاف variant/tone (ألوان كثيرة)"
+          >
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Solid Brand" variant="solid" tone="brand" tooltip="solid brand"><FiStar /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Solid Brand"
+                variant="solid"
+                tone="brand"
+                tooltip="solid brand"
+              >
+                <FiStar />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Soft Success" variant="soft" tone="success" tooltip="soft success"><FiCheckCircle /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Soft Success"
+                variant="soft"
+                tone="success"
+                tooltip="soft success"
+              >
+                <FiCheckCircle />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Outline Danger" variant="outline" tone="danger" tooltip="outline danger"><FiTrash2 /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Outline Danger"
+                variant="outline"
+                tone="danger"
+                tooltip="outline danger"
+              >
+                <FiTrash2 />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Ghost Warning" variant="ghost" tone="warning" tooltip="ghost warning"><FiAlertTriangle /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Ghost Warning"
+                variant="ghost"
+                tone="warning"
+                tooltip="ghost warning"
+              >
+                <FiAlertTriangle />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Glass Info" variant="glass" tone="info" tooltip="glass info"><FiGlobe /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Glass Info"
+                variant="glass"
+                tone="info"
+                tooltip="glass info"
+              >
+                <FiGlobe />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Solid Purple" variant="solid" tone="purple" tooltip="solid purple"><FiHeart /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Solid Purple"
+                variant="solid"
+                tone="purple"
+                tooltip="solid purple"
+              >
+                <FiHeart />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Soft Pink" variant="soft" tone="pink" tooltip="soft pink"><FiHeart /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Soft Pink"
+                variant="soft"
+                tone="pink"
+                tooltip="soft pink"
+              >
+                <FiHeart />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Outline Lime" variant="outline" tone="lime" tooltip="outline lime"><FiZap /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Outline Lime"
+                variant="outline"
+                tone="lime"
+                tooltip="outline lime"
+              >
+                {/* FiZap موجود عندك سابقاً، لو غير موجود استبدله */}
+                <FiPlus />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Solid Cyan" variant="solid" tone="cyan" tooltip="solid cyan"><FiCamera /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Solid Cyan"
+                variant="solid"
+                tone="cyan"
+                tooltip="solid cyan"
+              >
+                <FiCamera />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Gradient Mango" variant="gradient" gradient="mango" elevation="soft" tooltip="gradient mango"><FiStar /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Gradient Mango"
+                variant="gradient"
+                gradient="mango"
+                elevation="soft"
+                tooltip="gradient mango"
+              >
+                <FiStar />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Gradient Neon" variant="gradient" gradient="neon" elevation="cta" tooltip="gradient neon"><FiPlus /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Gradient Neon"
+                variant="gradient"
+                gradient="neon"
+                elevation="cta"
+                tooltip="gradient neon"
+              >
+                <FiPlus />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Gradient Midnight" variant="gradient" gradient="midnight" elevation="strong" tooltip="gradient midnight"><FiShield /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Gradient Midnight"
+                variant="gradient"
+                gradient="midnight"
+                elevation="strong"
+                tooltip="gradient midnight"
+              >
+                <FiShield />
+              </IconButton>
+            </C>
+          </Section>
+
+          {/* ================= Feed / Post Actions ================= */}
+          <Section
             title="Feed / Post Actions"
-            subtitle="inactive/active + count/dot + مشاركة"
+            subtitle="inactive/active + count/dot + tooltip top/bottom"
           >
-            <AnimatedSamples samples={postSamples} onCopied={onCopied} />
-          </Card>
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Like" tooltip="إعجاب"><FiHeart /></IconButton>`}
+            >
+              <IconButton aria-label="Like" tooltip="إعجاب">
+                <FiHeart />
+              </IconButton>
+            </C>
 
-          <Card
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Liked" tone="danger" tooltip="تم الإعجاب"><FiHeart /></IconButton>`}
+            >
+              <IconButton aria-label="Liked" tone="danger" tooltip="تم الإعجاب">
+                <FiHeart />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Rate" tone="warning" tooltip="تقييم" tooltipPlacement="bottom"><FiStar /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Rate"
+                tone="warning"
+                tooltip="تقييم"
+                tooltipPlacement="bottom"
+              >
+                <FiStar />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Save" tooltip="حفظ"><FiBookmark /></IconButton>`}
+            >
+              <IconButton aria-label="Save" tooltip="حفظ">
+                <FiBookmark />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Comments" tooltip="تعليقات" badgeCount={34} badgeTone="info"><FiMessageCircle /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Comments"
+                tooltip="تعليقات"
+                badgeCount={34}
+                badgeTone="info"
+              >
+                <FiMessageCircle />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="New comments" tooltip="تعليقات جديدة" showBadgeDot badgeTone="info"><FiMessageCircle /></IconButton>`}
+            >
+              <IconButton
+                aria-label="New comments"
+                tooltip="تعليقات جديدة"
+                showBadgeDot
+                badgeTone="info"
+              >
+                <FiMessageCircle />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Share" tooltip="مشاركة"><FiShare2 /></IconButton>`}
+            >
+              <IconButton aria-label="Share" tooltip="مشاركة">
+                <FiShare2 />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="More post" variant="ghost" tooltip="المزيد" tooltipPlacement="bottom"><FiMoreHorizontal /></IconButton>`}
+            >
+              <IconButton
+                aria-label="More post"
+                variant="ghost"
+                tooltip="المزيد"
+                tooltipPlacement="bottom"
+              >
+                <FiMoreHorizontal />
+              </IconButton>
+            </C>
+          </Section>
+
+          {/* ================= Profile Actions ================= */}
+          <Section
             title="Profile Actions"
             subtitle="رسالة/تعديل/متابعين + أمان (تبليغ/حظر)"
           >
-            <AnimatedSamples samples={profileSamples} onCopied={onCopied} />
-          </Card>
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Followers" tooltip="المتابعين" badgeCount={99} badgeTone="brand"><FiUsers /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Followers"
+                tooltip="المتابعين"
+                badgeCount={99}
+                badgeTone="brand"
+              >
+                <FiUsers />
+              </IconButton>
+            </C>
 
-          <Card
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Message" tone="info" tooltip="رسالة"><FiMail /></IconButton>`}
+            >
+              <IconButton aria-label="Message" tone="info" tooltip="رسالة">
+                <FiMail />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Edit" variant="outline" tooltip="تعديل"><FiEdit2 /></IconButton>`}
+            >
+              <IconButton aria-label="Edit" variant="outline" tooltip="تعديل">
+                <FiEdit2 />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Private" tone="warning" tooltip="حساب خاص"><FiLock /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Private"
+                tone="warning"
+                tooltip="حساب خاص"
+              >
+                <FiLock />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Report" variant="outline" tone="warning" tooltip="تبليغ"><FiFlag /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Report"
+                variant="outline"
+                tone="warning"
+                tooltip="تبليغ"
+              >
+                <FiFlag />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Block" variant="solid" tone="danger" tooltip="حظر"><FiSlash /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Block"
+                variant="solid"
+                tone="danger"
+                tooltip="حظر"
+              >
+                <FiSlash />
+              </IconButton>
+            </C>
+          </Section>
+
+          {/* ================= Verification / Status ================= */}
+          <Section
             title="Verification / Status"
-            subtitle="أمثلة كثيرة لنفس السيناريو: موثّق/معلق/بحاجة توثيق/محظور/مشرف"
+            subtitle="موثّق/معلّق/بحاجة توثيق/محظور/مشرف"
           >
-            <AnimatedSamples samples={verifySamples} onCopied={onCopied} />
-          </Card>
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Verified" tone="brand" tooltip="تم التوثيق"><FiCheckCircle /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Verified"
+                tone="brand"
+                tooltip="تم التوثيق"
+              >
+                <FiCheckCircle />
+              </IconButton>
+            </C>
 
-          <Card
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Verified solid" variant="solid" tone="brand" tooltip="موثّق"><FiCheckCircle /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Verified solid"
+                variant="solid"
+                tone="brand"
+                tooltip="موثّق"
+              >
+                <FiCheckCircle />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Moderator" tone="info" tooltip="مشرف"><FiShield /></IconButton>`}
+            >
+              <IconButton aria-label="Moderator" tone="info" tooltip="مشرف">
+                <FiShield />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Pending" tone="warning" tooltip="قيد المراجعة"><FiClock /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Pending"
+                tone="warning"
+                tooltip="قيد المراجعة"
+              >
+                <FiClock />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Need verification" variant="outline" tone="warning" tooltip="بحاجة توثيق"><FiAlertTriangle /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Need verification"
+                variant="outline"
+                tone="warning"
+                tooltip="بحاجة توثيق"
+              >
+                <FiAlertTriangle />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Banned" variant="solid" tone="danger" tooltip="محظور"><FiXCircle /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Banned"
+                variant="solid"
+                tone="danger"
+                tooltip="محظور"
+              >
+                <FiXCircle />
+              </IconButton>
+            </C>
+          </Section>
+
+          {/* ================= Utility / Links ================= */}
+          <Section
             title="Utility / Links"
-            subtitle="روابط + نسخ + فتح خارجي + تحديث"
+            subtitle="روابط + نسخ + فتح خارجي + تحديث + tooltipPlacement"
           >
-            <AnimatedSamples samples={utilitySamples} onCopied={onCopied} />
-          </Card>
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Copy link" variant="ghost" tooltip="نسخ الرابط"><FiLink /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Copy link"
+                variant="ghost"
+                tooltip="نسخ الرابط"
+              >
+                <FiLink />
+              </IconButton>
+            </C>
 
-          <Card title="Commerce" subtitle="سلة + هدية + دفع + كوبون + جدولة">
-            <AnimatedSamples samples={commerceSamples} onCopied={onCopied} />
-          </Card>
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Copy" variant="soft" tooltip="نسخ" tooltipPlacement="bottom"><FiCopy /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Copy"
+                variant="soft"
+                tooltip="نسخ"
+                tooltipPlacement="bottom"
+              >
+                <FiCopy />
+              </IconButton>
+            </C>
 
-          <Card
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Open" variant="outline" tooltip="فتح خارجي"><FiExternalLink /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Open"
+                variant="outline"
+                tooltip="فتح خارجي"
+              >
+                <FiExternalLink />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Website" variant="soft" tone="info" tooltip="الموقع"><FiGlobe /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Website"
+                variant="soft"
+                tone="info"
+                tooltip="الموقع"
+              >
+                <FiGlobe />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Refresh" variant="plain" tooltip="تحديث"><FiRefreshCw /></IconButton>`}
+            >
+              <IconButton aria-label="Refresh" variant="plain" tooltip="تحديث">
+                <FiRefreshCw />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Camera" variant="soft" tooltip="كاميرا"><FiCamera /></IconButton>`}
+            >
+              <IconButton aria-label="Camera" variant="soft" tooltip="كاميرا">
+                <FiCamera />
+              </IconButton>
+            </C>
+          </Section>
+
+          {/* ================= Commerce ================= */}
+          <Section
+            title="Commerce"
+            subtitle="سلة + هدية + دفع + كوبون + جدولة + badgeAnchor"
+          >
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Cart" tone="brand" tooltip="السلة" badgeCount={3} badgeTone="danger"><FiShoppingCart /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Cart"
+                tone="brand"
+                tooltip="السلة"
+                badgeCount={3}
+                badgeTone="danger"
+              >
+                <FiShoppingCart />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Gift" variant="soft" tone="warning" tooltip="هدية"><FiGift /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Gift"
+                variant="soft"
+                tone="warning"
+                tooltip="هدية"
+              >
+                <FiGift />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Pay" variant="outline" tooltip="الدفع"><FiCreditCard /></IconButton>`}
+            >
+              <IconButton aria-label="Pay" variant="outline" tooltip="الدفع">
+                <FiCreditCard />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Coupon" variant="ghost" tooltip="قسيمة"><FiTag /></IconButton>`}
+            >
+              <IconButton aria-label="Coupon" variant="ghost" tooltip="قسيمة">
+                <FiTag />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Schedule" variant="soft" tooltip="جدولة"><FiCalendar /></IconButton>`}
+            >
+              <IconButton aria-label="Schedule" variant="soft" tooltip="جدولة">
+                <FiCalendar />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Cart badge on button" tone="brand" tooltip="badge على الزر" badgeCount={8} badgeTone="danger" badgeAnchor="button"><FiShoppingCart /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Cart badge on button"
+                tone="brand"
+                tooltip="badge على الزر"
+                badgeCount={8}
+                badgeTone="danger"
+                badgeAnchor="button"
+              >
+                <FiShoppingCart />
+              </IconButton>
+            </C>
+          </Section>
+
+          {/* ================= Chat / Messaging ================= */}
+          <Section
             title="Chat / Messaging"
-            subtitle="plain حول الإدخال + إرسال (loading)"
+            subtitle="plain حول الإدخال + إرسال (loading) + media"
           >
-            <AnimatedSamples samples={chatSamples} onCopied={onCopied} />
-          </Card>
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Emoji" variant="plain" tooltip="إيموجي"><FiSmile /></IconButton>`}
+            >
+              <IconButton aria-label="Emoji" variant="plain" tooltip="إيموجي">
+                <FiSmile />
+              </IconButton>
+            </C>
 
-          <Card
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Attach" variant="plain" tooltip="مرفق"><FiUpload /></IconButton>`}
+            >
+              <IconButton aria-label="Attach" variant="plain" tooltip="مرفق">
+                <FiUpload />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Photo" variant="plain" tooltip="صورة"><FiImage /></IconButton>`}
+            >
+              <IconButton aria-label="Photo" variant="plain" tooltip="صورة">
+                <FiImage />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Video" variant="plain" tooltip="فيديو"><FiVideo /></IconButton>`}
+            >
+              <IconButton aria-label="Video" variant="plain" tooltip="فيديو">
+                <FiVideo />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Voice" variant="plain" tooltip="تسجيل"><FiMic /></IconButton>`}
+            >
+              <IconButton aria-label="Voice" variant="plain" tooltip="تسجيل">
+                <FiMic />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Send" variant="solid" tone="brand" tooltip="إرسال" tooltipPlacement="bottom"><FiSend /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Send"
+                variant="solid"
+                tone="brand"
+                tooltip="إرسال"
+                tooltipPlacement="bottom"
+              >
+                <FiSend />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Sending" variant="solid" tone="brand" tooltip="جاري الإرسال" isLoading><FiSend /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Sending"
+                variant="solid"
+                tone="brand"
+                tooltip="جاري الإرسال"
+                isLoading
+              >
+                <FiSend />
+              </IconButton>
+            </C>
+          </Section>
+
+          {/* ================= Sizes & Shapes ================= */}
+          <Section
             title="Sizes & Shapes"
-            subtitle="xs/sm/md/lg + circle/rounded/square (أمثلة تولد تلقائياً)"
+            subtitle="xs/sm/md/lg + circle/rounded/square (بدون توليد)"
           >
-            <AnimatedSamples samples={sizeShapeSamples} onCopied={onCopied} />
-          </Card>
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="xs circle" size="xs" shape="circle" tooltip="xs circle"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="xs circle"
+                size="xs"
+                shape="circle"
+                tooltip="xs circle"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
 
-          <Card
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="xs rounded" size="xs" shape="rounded" tooltip="xs rounded"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="xs rounded"
+                size="xs"
+                shape="rounded"
+                tooltip="xs rounded"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="xs square" size="xs" shape="square" tooltip="xs square"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="xs square"
+                size="xs"
+                shape="square"
+                tooltip="xs square"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="sm circle" size="sm" shape="circle" tooltip="sm circle"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="sm circle"
+                size="sm"
+                shape="circle"
+                tooltip="sm circle"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="md rounded" size="md" shape="rounded" tooltip="md rounded"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="md rounded"
+                size="md"
+                shape="rounded"
+                tooltip="md rounded"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="lg square" size="lg" shape="square" tooltip="lg square"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="lg square"
+                size="lg"
+                shape="square"
+                tooltip="lg square"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+          </Section>
+
+          {/* ================= Badge Placement ================= */}
+          <Section
             title="Badges Placement"
-            subtitle="كل اتجاهات الـ badge على نفس الزر"
+            subtitle="كل الاتجاهات + badgeOffset مثال"
           >
-            <AnimatedSamples
-              samples={badgePlacementSamples}
-              onCopied={onCopied}
-            />
-          </Card>
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="top-right" tooltip="top-right" badgeCount={7} badgeTone="danger" badgePlacement="top-right"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="top-right"
+                tooltip="top-right"
+                badgeCount={7}
+                badgeTone="danger"
+                badgePlacement="top-right"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
 
-          <Card
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="top-left" tooltip="top-left" badgeCount={7} badgeTone="danger" badgePlacement="top-left"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="top-left"
+                tooltip="top-left"
+                badgeCount={7}
+                badgeTone="danger"
+                badgePlacement="top-left"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="bottom-right" tooltip="bottom-right" badgeCount={7} badgeTone="danger" badgePlacement="bottom-right"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="bottom-right"
+                tooltip="bottom-right"
+                badgeCount={7}
+                badgeTone="danger"
+                badgePlacement="bottom-right"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="bottom-left" tooltip="bottom-left" badgeCount={7} badgeTone="danger" badgePlacement="bottom-left"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="bottom-left"
+                tooltip="bottom-left"
+                badgeCount={7}
+                badgeTone="danger"
+                badgePlacement="bottom-left"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="left" tooltip="left" badgeCount={7} badgeTone="danger" badgePlacement="left"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="left"
+                tooltip="left"
+                badgeCount={7}
+                badgeTone="danger"
+                badgePlacement="left"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="right" tooltip="right" badgeCount={7} badgeTone="danger" badgePlacement="right"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="right"
+                tooltip="right"
+                badgeCount={7}
+                badgeTone="danger"
+                badgePlacement="right"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="top" tooltip="top" badgeCount={7} badgeTone="danger" badgePlacement="top"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="top"
+                tooltip="top"
+                badgeCount={7}
+                badgeTone="danger"
+                badgePlacement="top"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="bottom" tooltip="bottom" badgeCount={7} badgeTone="danger" badgePlacement="bottom"><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="bottom"
+                tooltip="bottom"
+                badgeCount={7}
+                badgeTone="danger"
+                badgePlacement="bottom"
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="offset" tooltip="offset +2/-2" badgeCount={7} badgeTone="danger" badgePlacement="top-right" badgeOffset={{x:2,y:-2}}><FiBell /></IconButton>`}
+            >
+              <IconButton
+                aria-label="offset"
+                tooltip="offset +2/-2"
+                badgeCount={7}
+                badgeTone="danger"
+                badgePlacement="top-right"
+                badgeOffset={{ x: 2, y: -2 }}
+              >
+                <FiBell />
+              </IconButton>
+            </C>
+          </Section>
+
+          {/* ================= Overlay / Dark ================= */}
+          <Section
             title="Overlay / Dark"
-            subtitle='plain + iconClassName="text-white" و variant="inverse" على خلفية داكنة'
+            subtitle='variant="inverse" + plain مع iconClassName="text-white"'
             bodyClassName="rounded-2xl bg-black/90 p-4"
           >
-            <AnimatedSamples samples={overlayDarkSamples} onCopied={onCopied} />
-          </Card>
-
-          <Card
-            title="Image Background Showcase"
-            subtitle="خلفية صورة + أيقونات بدرجات مختلفة + بدون خلفية"
-          >
-            <motion.div
-              variants={V.item}
-              className="col-span-full overflow-hidden rounded-2xl border border-border-subtle"
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Play" variant="inverse" tooltip="تشغيل"><FiPlay /></IconButton>`}
             >
-              <div className="relative">
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{
-                    backgroundImage:
-                      "url(https://images3.alphacoders.com/132/thumbbig-1323165.webp)",
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/25 to-black/55" />
-                <div className="relative z-10 p-4">
-                  <motion.div
-                    variants={V.grid}
-                    className="grid grid-cols-6 gap-3 sm:grid-cols-8 md:grid-cols-12"
-                  >
-                    <AnimatedSamples
-                      samples={imageBgSamples}
-                      onCopied={onCopied}
-                    />
-                  </motion.div>
-                </div>
-              </div>
-            </motion.div>
-          </Card>
+              <IconButton aria-label="Play" variant="inverse" tooltip="تشغيل">
+                <FiPlay />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Pause" variant="inverse" tooltip="إيقاف"><FiPause /></IconButton>`}
+            >
+              <IconButton aria-label="Pause" variant="inverse" tooltip="إيقاف">
+                <FiPause />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Volume" variant="inverse" tooltip="الصوت"><FiVolume2 /></IconButton>`}
+            >
+              <IconButton aria-label="Volume" variant="inverse" tooltip="الصوت">
+                <FiVolume2 />
+              </IconButton>
+            </C>
+
+            <C
+              onCopied={show}
+              code={`<IconButton aria-label="Plain white icon" variant="plain" iconClassName="text-white" tooltip="plain"><FiMoreHorizontal /></IconButton>`}
+            >
+              <IconButton
+                aria-label="Plain white icon"
+                variant="plain"
+                iconClassName="text-white"
+                tooltip="plain"
+              >
+                <FiMoreHorizontal />
+              </IconButton>
+            </C>
+          </Section>
         </div>
 
         {toast && <Toast text={toast} />}

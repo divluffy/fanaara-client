@@ -40,6 +40,7 @@ const AVATAR_SIZES = {
   "72": { className: "h-72 w-72", px: 288 },
   "80": { className: "h-80 w-80", px: 320 },
   "96": { className: "h-96 w-96", px: 384 },
+  auto: { className: "", px: 128 },
 } as const;
 
 export type AvatarSize = keyof typeof AVATAR_SIZES;
@@ -54,7 +55,6 @@ type AvatarProps = Omit<
   className?: string;
   name?: string;
   Frame?: any;
-  /** Tailwind token from default spacing scale (and px) */
   size?: AvatarSize;
   path?: string;
   effects?: boolean;
@@ -71,9 +71,10 @@ export function Avatar({
   size = "12",
   path,
   effects = true,
+  sizes,
 }: AvatarProps) {
   const { className: sizeClass, px } = AVATAR_SIZES[size];
-
+  const finalSizes = sizes ?? `${px}px`;
   const finalAlt = name ? `Avatar of ${name}` : "User avatar";
 
   // blurHash -> CSS placeholder
@@ -94,7 +95,7 @@ export function Avatar({
       {/* clipping wrapper (عشان الصورة تتقص صح) */}
       <div
         className={cn(
-          "relative h-full w-full overflow-hidden",
+          "relative h-full w-full overflow-hidden pointer-events-none select-none",
           rounded ? "rounded-full" : "rounded",
         )}
       >
@@ -103,16 +104,23 @@ export function Avatar({
           alt={finalAlt}
           fill
           placeholder="empty"
-          sizes={`${px}px`}
-          className={cn("object-cover", rounded ? "rounded-full" : undefined)}
+          sizes={finalSizes}
+          className={cn(
+            "object-cover",
+            rounded ? "rounded-full" : undefined,
+            "pointer-events-none select-none",
+          )}
           style={{ ...(placeholderStyle ?? {}), ...(style ?? {}) }}
         />
       </div>
 
       {/* rank border overlay (ما ينقص لأنه برا clipping wrapper) */}
       {Frame ? (
-        <div className="pointer-events-none absolute inset-0 scale-120">
-          <Frame size={AVATAR_SIZES[size]?.px} className="absolute inset-0" />
+        <div className="pointer-events-none absolute inset-0 scale-[1.15]">
+          <Frame
+            size={AVATAR_SIZES[size]?.px}
+            className="absolute inset-0 h-full w-full"
+          />
         </div>
       ) : null}
     </>

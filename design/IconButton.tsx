@@ -1,4 +1,4 @@
-// design/icon-button.tsx
+// design/IconButton.tsx
 "use client";
 
 import {
@@ -8,16 +8,22 @@ import {
   type ReactNode,
   useId,
 } from "react";
-import { cn } from "@/utils";
+import { cn } from "@/utils/cn";
 import {
   type ButtonElevation,
   type ButtonGradient,
   type ButtonTone,
   type ButtonVariant,
   Spinner,
-  gradientStyles,
+  baseInteractive,
+  pressMotion,
+  shapeClass,
+  variantToneClasses,
+  elevationClasses,
+  gradientClasses,
   toneTokens,
-} from "@/design/Button";
+  type CSSVars,
+} from "@/design/common/button-theme";
 
 export type IconButtonSize = "xs" | "sm" | "md" | "lg";
 export type IconButtonShape = "circle" | "rounded" | "square";
@@ -34,11 +40,6 @@ export type IconBadgePlacement =
   | "right";
 
 export type IconBadgeAnchor = "icon" | "button";
-
-type CSSVars = CSSProperties & {
-  ["--badge-x"]?: string;
-  ["--badge-y"]?: string;
-};
 
 export type IconButtonProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
@@ -72,18 +73,6 @@ export type IconButtonProps = Omit<
 
   children: ReactNode;
 };
-
-const base = cn(
-  "relative inline-flex items-center justify-center select-none",
-  "transition-[background-color,box-shadow,transform,color,border-color,opacity] duration-150 ease-out",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-  "disabled:cursor-not-allowed disabled:opacity-70",
-);
-
-const pressMotion = cn(
-  "hover:-translate-y-px active:translate-y-0 active:scale-[0.985]",
-  "motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100",
-);
 
 const sizeBtn: Record<IconButtonSize, string> = {
   xs: "h-8 w-8",
@@ -119,12 +108,6 @@ const badgePillSize: Record<IconButtonSize, string> = {
   md: "h-[1.05rem] min-w-[1.15rem] px-1.5 text-[10px] leading-[15px]",
   lg: "h-[1.10rem] min-w-[1.20rem] px-1.5 text-[10px] leading-[16px]",
 };
-
-function shapeClass(shape: IconButtonShape) {
-  if (shape === "circle") return "rounded-full";
-  if (shape === "square") return "rounded-xl";
-  return "rounded-2xl";
-}
 
 function badgeText(count?: number) {
   if (!count || count <= 0) return "";
@@ -185,8 +168,6 @@ function badgePlacementClass(p: IconBadgePlacement) {
 }
 
 function variantClasses(variant: IconButtonVariant, tone: ButtonTone) {
-  const t = toneTokens[tone];
-
   if (variant === "gradient") return "";
   if (variant === "inverse") {
     return cn(
@@ -196,100 +177,12 @@ function variantClasses(variant: IconButtonVariant, tone: ButtonTone) {
     );
   }
   if (variant === "plain") {
-    return cn("bg-transparent border-0 shadow-none", t.ringColor);
+    return cn(
+      "bg-transparent border-0 shadow-none",
+      toneTokens[tone].ringColor,
+    );
   }
-
-  switch (variant) {
-    case "solid":
-      return cn(t.solidBg, t.solidText, t.ringColor, "hover:brightness-[1.05]");
-    case "soft":
-      return cn(
-        "border",
-        t.softBg,
-        t.softBorder,
-        t.softText,
-        t.ringColor,
-        "hover:brightness-[1.03]",
-      );
-    case "outline":
-      return cn(
-        "border bg-transparent",
-        t.outlineBorder,
-        t.outlineText,
-        t.ringColor,
-        "hover:bg-background-soft/60 active:bg-background-soft/80",
-      );
-    case "ghost":
-      return cn(
-        "bg-transparent",
-        t.ghostText,
-        t.ringColor,
-        t.ghostHoverBg,
-        "active:bg-background-soft/70",
-      );
-    case "glass":
-      return cn(
-        "border backdrop-blur-xl",
-        "bg-[color-mix(in_srgb,rgba(255,255,255,0.90)_70%,var(--bg-elevated)_30%)]",
-        "hover:bg-[color-mix(in_srgb,rgba(255,255,255,0.96)_72%,var(--bg-elevated)_28%)]",
-        "active:bg-[color-mix(in_srgb,rgba(255,255,255,0.90)_62%,var(--bg-elevated)_38%)]",
-        t.glassBorder,
-        t.glassText,
-        t.ringColor,
-      );
-    default:
-      return "";
-  }
-}
-
-function elevationClasses(
-  tone: ButtonTone,
-  elevation: ButtonElevation,
-  isGradient: boolean,
-  isPlain: boolean,
-) {
-  if (isPlain) return "shadow-none";
-  if (isGradient) {
-    if (elevation === "none") return "shadow-none";
-    if (elevation === "cta") return "hover:-translate-y-0.5";
-    return "";
-  }
-
-  switch (elevation) {
-    case "none":
-      return "shadow-none";
-    case "soft":
-      return "shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow-sm)]";
-    case "medium":
-      return "shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]";
-    case "strong":
-      return "shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)]";
-    case "glow":
-      return cn(
-        "shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]",
-        toneTokens[tone].glowShadow,
-      );
-    case "cta":
-      return cn(
-        "shadow-[var(--shadow-lg)] hover:shadow-[var(--shadow-xl)]",
-        "hover:-translate-y-0.5",
-        toneTokens[tone].glowShadow,
-      );
-    default:
-      return "";
-  }
-}
-
-function gradientClasses(gradient: ButtonGradient, elevation: ButtonElevation) {
-  const g = gradientStyles[gradient];
-  return cn(
-    "border-0",
-    g.bg,
-    g.text,
-    g.ring,
-    elevation === "none" ? "shadow-none" : cn(g.shadow, g.hoverShadow),
-    "hover:brightness-[1.03] active:brightness-[0.98]",
-  );
+  return variantToneClasses(variant, tone);
 }
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
@@ -336,10 +229,11 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     const showBadge = Boolean(showBadgeDot) || hasCount;
 
     const badgeTokens = toneTokens[badgeTone];
+
     const badgeStyle: CSSVars = {
-      "--badge-x": `${badgeOffset?.x ?? 0}px`,
-      "--badge-y": `${badgeOffset?.y ?? 0}px`,
-    };
+      ["--badge-x"]: `${badgeOffset?.x ?? 0}px`,
+      ["--badge-y"]: `${badgeOffset?.y ?? 0}px`,
+    } as CSSProperties;
 
     const badgeCls = cn(
       "pointer-events-none absolute z-20",
@@ -364,10 +258,8 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       tooltipPlacement === "top"
         ? "bottom-[calc(100%+0.65rem)]"
         : "top-[calc(100%+0.65rem)]";
-
     const tooltipArrowPos =
       tooltipPlacement === "top" ? "before:-bottom-1" : "before:-top-1";
-
     const tooltipStart =
       tooltipPlacement === "top" ? "translate-y-1" : "-translate-y-1";
 
@@ -383,18 +275,22 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
           title={tooltip ? undefined : nativeTitle}
           className={cn(
             "peer",
-            base,
+            baseInteractive,
+            "cursor-pointer",
             sizeBtn[size],
             shapeClass(shape),
-            "cursor-pointer",
+
             !isPlain && pressMotion,
             isPlain && "hover:translate-y-0 active:scale-100",
+
             variantClasses(variant, tone),
             elevationClasses(tone, elevation, isGradient, isPlain),
             isGradient && gradientClasses(gradient, elevation),
+
             (variant === "solid" || variant === "gradient") &&
               "ring-1 ring-black/5",
             isLoading && "hover:translate-y-0 active:scale-100",
+
             className,
           )}
           {...rest}
@@ -430,7 +326,6 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
               "transition-[opacity,transform] duration-150 ease-out",
               "peer-hover:opacity-100 peer-hover:scale-100 peer-hover:translate-y-0",
               "peer-focus-visible:opacity-100 peer-focus-visible:scale-100 peer-focus-visible:translate-y-0",
-              // arrow
               "before:content-[''] before:absolute before:left-1/2 before:-translate-x-1/2",
               "before:h-2 before:w-2 before:rotate-45",
               "before:border before:border-border-subtle before:bg-background-elevated/95",
