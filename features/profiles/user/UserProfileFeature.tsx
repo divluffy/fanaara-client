@@ -8,6 +8,7 @@ import { Avatar } from "@/design/Avatar";
 import {
   FiActivity,
   FiBell,
+  FiBellOff,
   FiBookOpen,
   FiCamera,
   FiEdit2,
@@ -52,6 +53,24 @@ import {
   TrendingUp,
   Trophy,
 } from "lucide-react";
+import ShareModal from "@/components/ShareModal";
+import PopularitySendModal from "@/components/PopularitySendModal";
+import PopularityGiftModal from "@/components/PopularitySendModal";
+import SenkoGiftModal from "@/components/SenkoGiftModal";
+import { FaGift } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import AnimePostCard from "@/components/post/AnimePostCard";
+import AnimePostMockCard from "@/components/post/AnimePostMockCard";
+import EnhancedAnimePost from "@/components/post/EnhancedAnimePost";
+import AnimePostCardSimple from "@/components/post/AnimePostCardSimple";
+import AnimePostMobileOptimized from "@/components/post/AnimePostMobileOptimized";
+import AnimePostCardV2 from "@/components/post/AnimePostCardV2";
+import AnimePostHUD from "@/components/post/AnimePostHUD";
+import PostCard from "@/components/post/PostCard";
+import PostCardV2 from "@/components/post/PostCardV2";
+import PostV2 from "@/components/post/PostCard";
+import PostBox from "@/components/PostBox";
+import { useAppSelector } from "@/store/hooks";
 
 /** ✅ rank borders */
 const RanksBorders = {
@@ -64,7 +83,7 @@ const user: any = {
   username: "dev_luffy",
   first_name: "ibrahim",
   last_name: "jomaa",
-  country: "ps",
+  country: "PS",
   dob: new Date("25/08/2000"),
   gender: "male",
   rank_title: "new_otaku",
@@ -73,12 +92,57 @@ const user: any = {
     blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
   },
   bg: {
+    // lg: "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExZjU1MTV5OWxqNGNya2d1dHN5bWV6ODM1NXQ4dGx6Zjg3ZmR6bW0yMSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2Pk9newN8fkbu/200.webp",
     lg: "https://images3.alphacoders.com/132/thumbbig-1323165.webp",
     blurHash: "L+SPFEe.%joznRaekVkCtAj[WRaf",
   },
   border: {},
   verified: true,
 };
+// Fake friendsList (User[])
+export const friendsList = Array.from({ length: 28 }).map((_, i) => ({
+  id: `u-${i + 1}`,
+  name:
+    [
+      "Rin",
+      "Kaito",
+      "Mika",
+      "Hana",
+      "Sora",
+      "Yuki",
+      "Kenji",
+      "Aoi",
+      "Nana",
+      "Toshi",
+      "Luna",
+      "Hiro",
+      "Mei",
+      "Ren",
+      "Akira",
+      "Saya",
+      "Jin",
+      "Ema",
+      "Noa",
+      "Riku",
+      "Aya",
+      "Kai",
+      "Momo",
+      "Haru",
+      "Fuyu",
+      "Yuna",
+      "Shin",
+      "Kyo",
+    ][i] ?? `Nakama ${i + 1}`,
+  handle: `@nakama_${String(i + 1).padStart(2, "0")}`,
+  avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=${i + 101}&backgroundColor=b6e3f4`,
+  status: Math.random() > 0.65 ? "online" : "offline",
+})) satisfies Array<{
+  id: string;
+  name: string;
+  handle: string;
+  avatar: string;
+  status?: "online" | "offline";
+}>;
 
 type TabKey =
   | "overview"
@@ -90,9 +154,153 @@ type TabKey =
   | "achievements"
   | "reviews";
 
-const UserProfileFeature = () => {
-  const [tab, setTab] = useState<TabKey>("overview");
+type ResponsiveActionProps = {
+  label: string;
+  icon: React.ReactNode;
 
+  // لو عندك props مختلفة للزرين
+  onClick?: () => void;
+  disabled?: boolean;
+
+  // Button props الأساسية (عدّلها حسب Button عندك)
+  variant?: "solid" | "outline" | "ghost" | "inverse";
+  tone?: "neutral" | "brand" | "danger" | string;
+
+  className?: string;
+};
+
+function ResponsiveActionButton({
+  label,
+  icon,
+  onClick,
+  disabled,
+  variant = "solid",
+  tone = "neutral",
+  className,
+}: ResponsiveActionProps) {
+  return (
+    <>
+      {/* Mobile: IconButton فقط */}
+      <span className="contents sm:hidden">
+        <IconButton
+          aria-label={label}
+          tooltip={label}
+          onClick={onClick}
+          disabled={disabled}
+          size="md"
+          shape="square"
+          variant={variant}
+          className={cn("h-9 w-9 sm:hidden", className)}
+        >
+          {icon}
+        </IconButton>
+      </span>
+
+      {/* >= sm: Button عادي فقط */}
+      <span className="hidden sm:contents">
+        <Button
+          onClick={onClick}
+          disabled={disabled}
+          variant={variant as any}
+          tone={tone as any}
+          leftIcon={icon}
+          className={cn("hidden sm:inline-flex h-10 px-4 text-sm", className)}
+        >
+          {label}
+        </Button>
+      </span>
+    </>
+  );
+}
+const NotificationButton = () => {
+  // حالة افتراضية: الإشعارات مفعلة (غير مكتومة)
+  const [isMuted, setIsMuted] = useState(false);
+
+  // إعدادات الحركة المرنة للحصول على شعور "مطاطي" مميز
+  const springTransition = {
+    type: "spring",
+    stiffness: 500,
+    damping: 25,
+    mass: 1,
+  };
+
+  const iconVariants = {
+    initial: { scale: 0, opacity: 0, rotate: -45 },
+    animate: { scale: 1, opacity: 1, rotate: 0 },
+    exit: { scale: 0, opacity: 0, rotate: 45, transition: { duration: 0.15 } },
+  };
+
+  return (
+    <IconButton
+      onClick={() => setIsMuted(!isMuted)}
+      aria-label={isMuted ? "Unmute Notifications" : "Mute Notifications"}
+      size="md"
+      shape="square"
+      // نلغي الـ variant الافتراضي لنتحكم نحن بالألوان بالكامل
+      variant="ghost"
+      className={cn(
+        "relative h-10 w-10 overflow-hidden border transition-all duration-300 ease-out group",
+        isMuted
+          ? /* تنسيق حالة الكتم: رمادي باهت */
+            "bg-zinc-900/50 border-zinc-700/50 text-zinc-500 hover:bg-zinc-800/80 hover:border-zinc-600 hover:text-zinc-300"
+          : /* تنسيق الحالة المفعلة: أزرق نيلي زجاجي */
+            "bg-indigo-500/15 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/25 hover:border-indigo-400/50 hover:text-indigo-300 shadow-[0_0_15px_-3px_rgba(99,102,241,0.15)]",
+      )}
+    >
+      {/* AnimatePresence يسمح بحركة خروج العنصر قبل دخول الجديد */}
+      <AnimatePresence mode="wait" initial={false}>
+        {isMuted ? (
+          <motion.div
+            key="muted-icon"
+            variants={iconVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={springTransition}
+            className="flex items-center justify-center"
+          >
+            <FiBellOff className="h-5 w-5" />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="active-icon"
+            variants={iconVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={springTransition}
+            className="relative flex items-center justify-center"
+          >
+            {/* الأيقونة الأساسية */}
+            <FiBell className="h-5 w-5 z-10" />
+
+            {/* تأثير تموج خفيف جداً خلف الجرس عند التفعيل */}
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute inset-0 bg-indigo-400/20 rounded-full blur-md z-0"
+            />
+
+            {/* نقطة تنبيه صغيرة أنيقة */}
+            <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-60"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500 border-2 border-black/80"></span>
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </IconButton>
+  );
+};
+const UserProfileFeature = () => {
+  const router = useRouter();
+  const { isRTL, direction } = useAppSelector(({ state }) => state);
+
+  const [tab, setTab] = useState<TabKey>("overview");
+  const [open, setOpen] = useState(false);
+  const [openGitf, setOpenGitf] = useState(false);
+  const [openShare, setOpenShare] = useState(false);
+  const [openPopularity, setOpenPopularity] = useState(false);
   const flag = countryCodeToFlagEmoji(user?.country);
   const t = useTranslations();
 
@@ -138,6 +346,9 @@ const UserProfileFeature = () => {
     },
   ];
 
+  const eventTitle = "Anime Night — مشاهدة جماعية";
+  const eventUrl = "https://your-domain.com/events/123";
+
   return (
     <main className="mx-auto w-full overflow-x-hidden">
       {/* <header className="relative w-full overflow-hidden   h-48 sm:h-52 md:h-64 lg:h-80 xl:h-96  p-2"> */}
@@ -159,14 +370,28 @@ const UserProfileFeature = () => {
         {/* Top actions */}
         <div className="absolute inset-x-0 top-0 z-20 flex justify-between p-3">
           {/* <div className="w-full flex justify-between"> */}
-          <IconButton aria-label="Inverse" variant="inverse">
+          <IconButton
+            aria-label="Inverse"
+            variant="inverse"
+            onClick={() => setOpen(true)}
+          >
             <SlOptions />
           </IconButton>
 
-          <IconButton aria-label="Inverse" variant="inverse">
+          <IconButton
+            onClick={() => setOpenShare(true)}
+            aria-label="Inverse"
+            variant="inverse"
+          >
             <FiShare />
           </IconButton>
         </div>
+
+        <ShareModal
+          open={openShare}
+          onOpenChange={setOpenShare}
+          shareUrl="https://example.com/awesome-post"
+        />
 
         {/* Profile center block */}
         <div className="relative z-10 flex h-full flex-col items-center justify-end gap-3 pt-10 text-center">
@@ -187,18 +412,17 @@ const UserProfileFeature = () => {
           {/* Name + username */}
           <div className="flex flex-col gap-2 items-center">
             <div className="flex gap-2 items-center">
-              <h2 className="tracking-tight sm:text-3xl text-white">
+              <h2 className="tracking-tight sm:text-3xl font-bold text-white">
                 {user?.first_name} {user?.last_name}
               </h2>
               {user?.verified && <VerifiedBadge size={28} />}
             </div>
 
-            <div className="flex gap-2 text-white">
-              <span className="">@{user?.username}</span>
-              <p>|</p>
-              <span className="">
-                {flag} {t(`countries.${user?.country.toUpperCase()}`)}
+            <div dir="ltr" className="flex gap-2 text-white">
+              <span dir="ltr" className="">
+                @{user?.username}
               </span>
+              <span className="">{flag}</span>
             </div>
           </div>
 
@@ -206,48 +430,69 @@ const UserProfileFeature = () => {
           <div className="flex"></div>
 
           {/* Buttons row */}
+
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button
+            <ResponsiveActionButton
+              label="Follow"
+              icon={<FiUserPlus />}
               variant="solid"
               tone="neutral"
-              leftIcon={<FiUserPlus />}
-              className="h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm"
-            >
-              Follow
-            </Button>
+              onClick={() => {
+                // follow logic
+              }}
+            />
 
-            <Button
+            <ResponsiveActionButton
+              label="Chat"
+              icon={<FiMessageCircle />}
               variant="solid"
               tone="neutral"
-              leftIcon={<FiMessageCircle />}
-              className="h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm"
-            >
-              Chat
-            </Button>
+              onClick={() => {
+                router.push(`/chat/${user?.username}`);
+              }}
+            />
 
-            <Button
+            <ResponsiveActionButton
+              label="send gift"
+              icon={<FaGift />}
               variant="solid"
               tone="neutral"
-              leftIcon={<BsFire />}
-              className="h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm"
-            >
-              send popularity
-            </Button>
+              onClick={() => {
+                setOpenGitf(true);
+              }}
+            />
 
-            <IconButton
-              aria-label="Get Notifications"
-              size="md"
-              shape="square"
+            <ResponsiveActionButton
+              label="send popularity"
+              icon={<BsFire />}
               variant="solid"
-              tooltip="Get Notifications"
-              className="h-9 w-9 sm:h-10 sm:w-10"
-            >
-              <FiBell />
-            </IconButton>
+              tone="neutral"
+              onClick={() => {
+                setOpenPopularity(true);
+              }}
+            />
+
+            <NotificationButton />
           </div>
         </div>
       </header>
-
+      <PopularityGiftModal
+        open={openPopularity}
+        onOpenChange={setOpenPopularity}
+        initialBalance={980}
+      />
+      <SenkoGiftModal
+        open={openGitf}
+        onOpenChange={setOpenGitf}
+        targetUser={{
+          id: "u-10",
+          name: "Luffy Dev",
+          avatar:
+            "https://api.dicebear.com/9.x/avataaars/svg?seed=Luffy&backgroundColor=b6e3f4",
+          title: "ملك القراصنة 🏴‍☠️",
+        }}
+        initialBalance={1540}
+      />
       {/* tabs profile */}
       <section className="w-full">
         <div
@@ -315,6 +560,457 @@ const UserProfileFeature = () => {
           </p>
         </div>
       </section>
+
+      <PostBox
+        isRTL={isRTL}
+        direction={direction}
+        postData={{
+          publisher: {
+            id: "u1",
+            name: "Yumi Kisaragi",
+            username: "@kisaragi.yumi",
+            avatar: {
+              sm: "https://avatarfiles.alphacoders.com/367/thumb-350-367476.webp",
+              blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
+            },
+            rank: {
+              id: "s_rank",
+              label: "S-Rank",
+            },
+            border: {},
+            verified: true,
+            country: "PS",
+          },
+          // post deatils
+          id: "p_01",
+          createAt: "2026-01-25T10:30:00Z",
+          title: "Paneling tip for action pages",
+          text: "Panel tip: use one wide ‘anchor’ frame for geography,i meet @dev.luffy last day with #event_anime and #expo then cut to hands/eyes/impact frames for speed.\n#Manga #Panels #Art\nWhat’s your favorite action page? now we can go to new country to check if we can create a new anime comics manga we love all things here around us i also need yopu baby to go with me to gaza i mess al nabolsia and shaowrma plus man plzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          hashtags: ["anime", "love", "expo2025", "attach_on_titen"],
+          //        media: {
+          //   type: "image",
+          //   sources: [
+          //     {
+          //       id: "1",
+          //       sm: "...w=640",
+          //       md: "...w=1200",
+          //       lg: "...w=2400",
+          //       w: 2400,
+          //       h: 1600,
+          //       alt: "....",
+          //       blurDataURL: "data:image/jpeg;base64,..." // optional
+          //     }
+          //   ]
+          // }
+          media: {
+            type: "image",
+            sources: [
+              {
+                id: "1",
+                lg: "https://images.unsplash.com/photo-1762446263896-ac93605b47d8?auto=format&fit=crop&fm=jpg&q=80&w=2400",
+                alt: "Manga pages spread open",
+              },
+              {
+                id: "2",
+                lg: "https://images.unsplash.com/photo-1750365866655-e712abd3ad46?auto=format&fit=crop&fm=jpg&q=80&w=2400",
+                alt: "Neon street in Tokyo at night",
+              },
+              {
+                id: "3",
+                lg: "https://images.unsplash.com/photo-1760954076011-d7ba1f26b71c?auto=format&fit=crop&fm=jpg&q=80&w=2400",
+                alt: "Torii gate at a shrine at night",
+              },
+              {
+                id: "4",
+                lg: "https://avatarfiles.alphacoders.com/367/thumb-350-367476.webp",
+                alt: "Anime vibes",
+              },
+              {
+                id: "5",
+                lg: "https://wallpapers.com/images/featured/anime-iphone-psdmm565oizldbbg.jpg",
+                alt: "Anime vibes",
+              },
+            ],
+          },
+          stats: {
+            likes: 18320,
+            comments: 286,
+            saves: 2210,
+            popularity: 412,
+            shares: 980,
+          },
+          viewerState: {
+            liked: false,
+            saved: false,
+            followed: false,
+          },
+        }}
+      />
+
+      <PostBox
+        isRTL={isRTL}
+        direction={direction}
+        postData={{
+          publisher: {
+            id: "u1",
+            name: "Yumi Kisaragi",
+            username: "@kisaragi.yumi",
+            avatar: {
+              sm: "https://avatarfiles.alphacoders.com/367/thumb-350-367476.webp",
+              blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
+            },
+            rank: {
+              id: "s_rank",
+              label: "S-Rank",
+            },
+            border: {},
+            verified: true,
+            country: "JP",
+          },
+          // post deatils
+          id: "p_01",
+          createAt: "2026-01-25T10:30:00Z",
+          title: "Paneling tip for action pages",
+          text: "Panel tip: use one wide ‘anchor’ frame for geography,i meet @dev.luffy last day with #event_anime and #expo then cut to hands/eyes/impact frames for speed.\n#Manga #Panels #Art\nWhat’s your favorite action page? now we can go to new country to check if we can create a new anime comics manga we love all things here around us i also need yopu baby to go with me to gaza i mess al nabolsia and shaowrma plus man plzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          hashtags: ["anime", "love", "expo2025", "attach_on_titen"],
+          media: {
+            type: "image",
+            sources: [
+              {
+                id: "1",
+                lg: "https://mfiles.alphacoders.com/100/thumb-350-1008214.png",
+                alt: "Manga pages spread open",
+                blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
+              },
+              {
+                id: "2",
+                lg: "https://mfiles.alphacoders.com/101/thumb-350-1013144.png",
+                alt: "Neon street in Tokyo at night",
+                blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
+              },
+              {
+                id: "3",
+                lg: "https://mfiles.alphacoders.com/101/thumb-350-1012864.png",
+                alt: "Torii gate at a shrine at night",
+                blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
+              },
+              {
+                id: "4",
+                lg: "https://mfiles.alphacoders.com/101/thumb-350-1012748.png",
+                alt: "Anime vibes",
+                blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
+              },
+              {
+                id: "5",
+                lg: "https://mfiles.alphacoders.com/101/thumb-350-1012645.png",
+                alt: "Anime vibes",
+                blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
+              },
+              {
+                id: "6",
+                lg: "https://mfiles.alphacoders.com/101/thumb-350-1012400.png",
+                alt: "Anime vibes",
+                blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
+              },
+            ],
+          },
+          stats: {
+            likes: 18320,
+            comments: 286,
+            saves: 2210,
+            popularity: 412,
+            shares: 980,
+          },
+          viewerState: {
+            liked: false,
+            saved: false,
+            followed: false,
+          },
+        }}
+      />
+      <PostBox
+        isRTL={isRTL}
+        direction={direction}
+        postData={{
+          publisher: {
+            id: "u1",
+            name: "Yumi Kisaragi",
+            username: "@kisaragi.yumi",
+            avatar: {
+              sm: "https://avatarfiles.alphacoders.com/367/thumb-350-367476.webp",
+              blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
+            },
+            rank: {
+              id: "s_rank",
+              label: "S-Rank",
+            },
+            border: {},
+            verified: true,
+            country: "SA",
+          },
+          // post deatils
+          id: "p_01",
+          createAt: "2026-01-25T10:30:00Z",
+          title: "Paneling tip for action pages",
+          media: {
+            type: "video",
+            sources: [
+              {
+                id: "1",
+                mp4: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                poster:
+                  "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg",
+                alt: "Manga pages spread open",
+              },
+            ],
+          },
+          stats: {
+            likes: 18320,
+            comments: 286,
+            saves: 2210,
+            popularity: 412,
+            shares: 980,
+          },
+          viewerState: {
+            liked: true,
+            saved: true,
+            followed: true,
+          },
+        }}
+      />
+      <PostBox
+        isRTL={isRTL}
+        direction={direction}
+        postData={{
+          publisher: {
+            id: "u1",
+            name: "Yumi Kisaragi",
+            username: "@kisaragi.yumi",
+            avatar: {
+              sm: "https://avatarfiles.alphacoders.com/367/thumb-350-367476.webp",
+              blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
+            },
+            rank: {
+              id: "s_rank",
+              label: "S-Rank",
+            },
+            border: {},
+            verified: true,
+            country: "ps",
+          },
+          // post deatils
+          id: "p_01",
+          createAt: "2026-01-25T10:30:00Z",
+          title: "love you guys ♥",
+          text: "",
+          hashtags: [],
+          media: {
+            type: "image",
+            // type: "video",
+            sources: [
+              {
+                id: "1",
+                lg: "https://images.unsplash.com/photo-1762446263896-ac93605b47d8?auto=format&fit=crop&fm=jpg&q=80&w=2400",
+                alt: "Manga pages spread open",
+              },
+            ],
+          },
+          stats: {
+            likes: 18320,
+            comments: 286,
+            saves: 2210,
+            popularity: 412,
+            shares: 980,
+          },
+          viewerState: {
+            liked: true,
+            saved: true,
+            followed: true,
+          },
+        }}
+      />
+
+      <PostBox
+        isRTL={isRTL}
+        direction={direction}
+        postData={{
+          publisher: {
+            id: "u1",
+            name: "Yumi Kisaragi",
+            username: "@kisaragi.yumi",
+            avatar: {
+              sm: "https://avatarfiles.alphacoders.com/367/thumb-350-367476.webp",
+              blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
+            },
+            rank: {
+              id: "s_rank",
+              label: "S-Rank",
+            },
+            border: {},
+            verified: true,
+            country: "ps",
+          },
+          // post deatils
+          id: "p_01",
+          createAt: "2026-01-25T10:30:00Z",
+          title: "love you guys ♥ :)",
+          text: "",
+          hashtags: [],
+          stats: {
+            likes: 18320,
+            comments: 286,
+            saves: 2210,
+            popularity: 412,
+            shares: 980,
+          },
+          viewerState: {
+            liked: true,
+            saved: true,
+            followed: true,
+          },
+        }}
+      />
+      <PostBox
+        isRTL={isRTL}
+        direction={direction}
+        postData={{
+          publisher: {
+            id: "u1",
+            name: "Yumi Kisaragi",
+            username: "@kisaragi.yumi",
+            avatar: {
+              sm: "https://avatarfiles.alphacoders.com/367/thumb-350-367476.webp",
+              blurHash: "L27dqL?byX~W-BM{00Di9tM{~WIo",
+            },
+            rank: {
+              id: "biggener_otaku",
+              label: "Biggener Otaku",
+            },
+            border: {},
+            verified: true,
+            country: "ps",
+          },
+          id: "p_01",
+          createAt: "2026-01-25T10:30:00Z",
+          media: {
+            type: "image",
+            sources: [
+              {
+                id: "2",
+                lg: "https://images.unsplash.com/photo-1760954076011-d7ba1f26b71c?auto=format&fit=crop&fm=jpg&q=80&w=2400",
+                alt: "Torii gate at a shrine at night",
+              },
+              {
+                id: "4",
+                lg: "https://images.unsplash.com/photo-1520975869010-3ff97dfbef6b?auto=format&fit=crop&fm=jpg&q=80&w=2400",
+                alt: "Anime vibes",
+              },
+            ],
+          },
+          stats: {
+            likes: 0,
+            comments: 0,
+            saves: 0,
+            popularity: 0,
+            shares: 0,
+          },
+          viewerState: {
+            liked: false,
+            saved: false,
+            followed: false,
+          },
+        }}
+      />
+      <br />
+      <hr />
+      <br />
+      <h1>111</h1>
+      <br />
+      <PostV2
+        post={{
+          id: "p_01",
+          user: {
+            id: "u1",
+            name: "Yumi Kisaragi",
+            handle: "@kisaragi.yumi",
+            avatar:
+              "https://images.unsplash.com/photo-1742299899537-c765ac3fda5c?auto=format&fit=crop&fm=jpg&q=80&w=600",
+            rank: { label: "S-Rank Creator", tone: "brand" },
+          },
+          time: "Today • 9:14 PM",
+          title: "Paneling tip for action pages",
+          text: "Panel tip: use one wide ‘anchor’ frame for geography, then cut to hands/eyes/impact frames for speed.\n\n#Manga #Panels #Art\n\nWhat’s your favorite action page?",
+          media: [
+            {
+              src: "https://images.unsplash.com/photo-1762446263896-ac93605b47d8?auto=format&fit=crop&fm=jpg&q=80&w=2400",
+              alt: "Manga pages spread open",
+            },
+            {
+              src: "https://images.unsplash.com/photo-1750365866655-e712abd3ad46?auto=format&fit=crop&fm=jpg&q=80&w=2400",
+              alt: "Neon street in Tokyo at night",
+            },
+            {
+              src: "https://images.unsplash.com/photo-1760954076011-d7ba1f26b71c?auto=format&fit=crop&fm=jpg&q=80&w=2400",
+              alt: "Torii gate at a shrine at night",
+            },
+            {
+              src: "https://images.unsplash.com/photo-1520975869010-3ff97dfbef6b?auto=format&fit=crop&fm=jpg&q=80&w=2400",
+              alt: "Anime vibes",
+            },
+          ],
+          stats: {
+            likes: 18320,
+            comments: 286,
+            saves: 2210,
+            popularity: 412,
+            shares: 980,
+          },
+          viewerState: { liked: false, saved: true, followed: false },
+          url: "https://fanaara.com/post/p_01",
+        }}
+        viewerId="viewer_01"
+        className="max-w-2xl mx-auto"
+      />
+      <br />
+      <hr />
+      <br />
+      <h1>2222</h1>
+      <br />
+      <PostCardV2 />
+      <br />
+      <hr />
+      <br />
+      <AnimePostHUD />
+      <br />
+      <hr />
+      <br />
+      <AnimePostCard />
+      <br />
+      <hr />
+      <br />
+      <AnimePostMockCard />
+      <br />
+      <hr />
+      <br />
+      <EnhancedAnimePost />
+      <br />
+      <hr />
+      <br />
+      <AnimePostCardSimple />
+      <br />
+      <hr />
+      <br />
+      <AnimePostMobileOptimized />
+      <br />
+      <hr />
+      <br />
+      <AnimePostCardV2 />
+      <br />
+      <hr />
+      <br />
+      <br />
+      <hr />
+      <br />
     </main>
   );
 };

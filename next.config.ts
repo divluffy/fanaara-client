@@ -27,7 +27,10 @@ const nextConfig: NextConfig = {
       "avatarfiles.alphacoders.com",
       "images2.alphacoders.com",
       "giffiles.alphacoders.com",
-      "media2.giphy.com","media4.giphy.com"
+      "media2.giphy.com",
+      "media4.giphy.com",
+      "upload.wikimedia.org",
+      "wallpapers.com",
     ],
   },
 

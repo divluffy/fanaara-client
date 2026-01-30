@@ -1,3 +1,4 @@
+// layout\components\LoggedShell\MobileLayout.tsx
 import type { ReactNode } from "react";
 
 import NavbarPhone from "./NavbarPhone";
@@ -35,17 +36,17 @@ export function MobileLayout({ children, navHidden }: Props) {
         </div>
       </div>
 
+      {/* Main */}
+      <main className="min-h-[100dvh] w-full pt-[calc(var(--mobile-nav-h)+env(safe-area-inset-top))] pb-[calc(var(--mobile-footer-h)+env(safe-area-inset-bottom))]">
+        {children}
+      </main>
+
       {/* Footer */}
       <div className="fixed bottom-0 left-0 right-0 z-50 pb-[env(safe-area-inset-bottom)]">
         <div className="h-[var(--mobile-footer-h)] border-t border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75">
           <FooterPhone />
         </div>
       </div>
-
-      {/* Main */}
-      <main className="min-h-[100dvh] w-full pt-[calc(var(--mobile-nav-h)+env(safe-area-inset-top))] pb-[calc(var(--mobile-footer-h)+env(safe-area-inset-bottom))]">
-        {children}
-      </main>
     </div>
   );
 }

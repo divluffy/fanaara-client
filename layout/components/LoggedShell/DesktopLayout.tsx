@@ -1,3 +1,4 @@
+// layout\components\LoggedShell\DesktopLayout.tsx
 import type { ReactNode } from "react";
 
 import LoggedAside from "./LoggedAside";

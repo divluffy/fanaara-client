@@ -13,6 +13,8 @@ const LoggedLayout = ({ children }: { children: React.ReactNode }) => {
       </Link>{" "}
       <Link className="px-2 mx-2 bg-amber-100" href="/playground/icon-buttons">
         icon-buttons
+      </Link>      <Link className="px-2 mx-2 bg-amber-100" href="/playground/de-btn">
+        de btn
       </Link>
       <Link className="px-2 mx-2 bg-amber-100" href="/playground/image">
         image
@@ -33,6 +35,8 @@ const LoggedLayout = ({ children }: { children: React.ReactNode }) => {
       </Link>
       <Link className="px-2 mx-2 bg-amber-100" href="/playground/modal">
         modal
+      </Link>      <Link className="px-2 mx-2 bg-amber-100" href="/playground/options">
+        options
       </Link>
       <hr />
       {children}

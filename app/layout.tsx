@@ -7,7 +7,7 @@ import { Providers } from "./providers";
 import StoreProvider from "./StoreProvider";
 import { AppLocale, getDirection } from "@/i18n/config";
 import "./globals.css";
-
+import "./class.css";
 // Google Fonts
 import { Inter, Nunito_Sans, Noto_Sans_Arabic } from "next/font/google";
 import { Viewport } from "next";
@@ -84,16 +84,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap"
           rel="stylesheet"
         />
-
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, interactive-widget=resizes-content"
-        />
       </head>
-
       <body
         className={`${fontClass} bg-background text-foreground antialiased`}
-        style={{ direction: dir }}
       >
         <StoreProvider initialDirection={dir}>
           <Providers>
@@ -101,6 +94,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
               {children}
             </NextIntlClientProvider>
           </Providers>
+
+          <div id="modal-root" className="relative z-2147483647" />
         </StoreProvider>
       </body>
     </html>

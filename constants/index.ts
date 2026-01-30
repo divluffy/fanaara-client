@@ -1,3 +1,4 @@
+// constants\index.ts
 import { BORDER_ZORO_REMOTE } from "@/config";
 
 export const MQ_DESKTOP = "(min-width: 768px)";

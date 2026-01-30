@@ -1,3 +1,4 @@
+// layout\components\LoggedShell\LoggedAside.tsx
 "use client";
 
 import * as React from "react";

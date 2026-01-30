@@ -6,91 +6,79 @@ import { createPortal } from "react-dom";
 import {
   AnimatePresence,
   motion,
-  useReducedMotion,
   useDragControls,
+  useReducedMotion,
 } from "framer-motion";
 import { IoClose } from "react-icons/io5";
 import { useModalStack } from "@/app/ModalProvider";
 
-type Dir = "auto" | "rtl" | "ltr";
-type Overlay = "blur" | "dim" | "none";
-type Mode = "center" | "sheet";
-type Responsive<T> = T | { desktop?: T; mobile?: T };
-
-function useMediaQuery(query: string) {
-  const [match, setMatch] = useState(false);
-  useEffect(() => {
-    const m = window.matchMedia(query);
-    const onChange = () => setMatch(m.matches);
-    onChange();
-    m.addEventListener?.("change", onChange);
-    return () => m.removeEventListener?.("change", onChange);
-  }, [query]);
-  return match;
-}
-
-function getDocDir(): "rtl" | "ltr" {
-  if (typeof document === "undefined") return "ltr";
-  const d = document.documentElement.getAttribute("dir");
-  return d === "rtl" ? "rtl" : "ltr";
-}
-
-function resolveResponsive<T>(
-  value: Responsive<T> | undefined,
-  isMobile: boolean,
-  fallback: T
-): T {
-  if (value === undefined) return fallback;
-  if (
-    typeof value === "object" &&
-    value !== null &&
-    ("desktop" in value || "mobile" in value)
-  ) {
-    return (isMobile ? value.mobile : value.desktop) ?? fallback;
-  }
-  return value as T;
-}
-
-function getFocusable(container: HTMLElement): HTMLElement[] {
-  const selector = [
-    "a[href]",
-    "button:not([disabled])",
-    "textarea:not([disabled])",
-    "input:not([disabled])",
-    "select:not([disabled])",
-    "[tabindex]:not([tabindex='-1'])",
-  ].join(",");
-  return Array.from(container.querySelectorAll(selector)).filter(
-    (el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden")
-  ) as HTMLElement[];
-}
+import {
+  clamp,
+  cx,
+  Dir,
+  getDocDir,
+  Mode,
+  Overlay,
+  resolveResponsive,
+  SheetDragMode,
+} from "./modal/utils";
+import {
+  useFocusTrap,
+  useMediaQuery,
+  useMobileBackClose,
+  usePortalRoot,
+  useSortedSnapPoints,
+  useVisualViewportHeight,
+} from "./modal/hooks";
 
 export type ModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 
-  mode?: Responsive<Mode>;
+  mode?: Mode | { desktop?: Mode; mobile?: Mode };
   overlay?: Overlay;
   dir?: Dir;
 
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
 
-  showHeader?: Responsive<boolean>;
-  showClose?: Responsive<boolean>;
   preset?: "default" | "comments";
 
   closeOnBackdrop?: boolean;
   closeOnEsc?: boolean;
-  sheetDragToClose?: boolean;
 
-  sheetMaxHeight?: number;
+  trapFocus?: boolean;
 
   maxWidthClass?: string;
-  className?: string;
+  panelClassName?: string;
+  headerClassName?: string;
+  contentClassName?: string;
+  footerClassName?: string;
+
+  contentPadding?: "default" | "none";
+
+  // sheet behavior
+  sheetDragMode?: SheetDragMode; // "binary" | "legacy" | "none"
+  sheetCollapsedFraction?: number; // default 0.6 ✅
+  sheetFullFraction?: number; // default 0.98
+  sheetInitialState?: "collapsed" | "full"; // default collapsed
+  sheetDragEnabled?: boolean; // default true
+  sheetDragToClose?: boolean; // default true
+  sheetDragThresholdUp?: number; // px
+  sheetDragThresholdDown?: number; // px
+
+  // legacy
+  sheetSnapPoints?: number[];
+  sheetInitialSnap?: number;
+
+  sheetTopBar?: React.ReactNode;
+  sheetTopBarClassName?: string;
 
   footer?: React.ReactNode;
   children: React.ReactNode;
+
+  mountChildren?: "immediate" | "after-open";
+  loadingFallback?: React.ReactNode;
 };
 
 export default function Modal({
@@ -105,33 +93,67 @@ export default function Modal({
   subtitle,
 
   preset = "default",
-  showHeader,
-  showClose,
 
   closeOnBackdrop = true,
   closeOnEsc = true,
-  sheetDragToClose = true,
 
-  sheetMaxHeight = 0.66,
+  trapFocus = true,
 
   maxWidthClass = "max-w-lg",
-  className = "",
+  panelClassName,
+  headerClassName,
+  contentClassName,
+  footerClassName,
+
+  contentPadding = "default",
+
+  sheetDragMode,
+  sheetCollapsedFraction = 0.7,
+  sheetFullFraction = 0.98,
+  sheetInitialState = "collapsed",
+  sheetDragEnabled = true,
+  sheetDragToClose = true,
+  sheetDragThresholdUp = 14,
+  sheetDragThresholdDown = 8,
+
+  sheetSnapPoints,
+  sheetInitialSnap,
+
+  sheetTopBar,
+  sheetTopBarClassName,
 
   footer,
   children,
+
+  mountChildren,
+  loadingFallback,
 }: ModalProps) {
-  const reduceMotion = useReducedMotion();
-  const isMobile = useMediaQuery("(max-width: 640px)");
-  const [mounted, setMounted] = useState(false);
+  const reduceMotion = !!useReducedMotion();
+
+  // Phone detection
+  const isSmall = useMediaQuery("(max-width: 768px)");
+  const isCoarse = useMediaQuery("(pointer: coarse)");
+  const isPhone = isSmall && isCoarse;
+
+  const viewportH = useVisualViewportHeight();
+  const portalRoot = usePortalRoot("modal-root");
 
   const id = useId();
   const stack = useModalStack();
 
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const lastActiveRef = useRef<HTMLElement | null>(null);
+  const blockNextClickRef = useRef(false);
 
-  // ✅ Drag only from handle (prevents heavy/slow scroll on mobile)
-  const dragControls = useDragControls();
+  // register in stack
+  useEffect(() => {
+    if (!stack) return;
+    if (open) stack.open(id);
+    else stack.close(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const isTop = stack ? stack.isTop(id) : true;
+  const zIndexBase = stack ? 1000 + Math.max(0, stack.getIndex(id)) * 10 : 1000;
 
   const resolvedDir = useMemo(() => {
     if (dir === "rtl" || dir === "ltr") return dir;
@@ -140,90 +162,34 @@ export default function Modal({
 
   const resolvedMode = resolveResponsive<Mode>(
     mode,
-    isMobile,
-    isMobile ? "sheet" : "center"
+    isSmall,
+    isSmall ? "sheet" : "center",
   );
 
-  const defaultHeader =
-    preset === "comments"
-      ? { desktop: true, mobile: false }
-      : { desktop: true, mobile: true };
+  // overlay: blur on phone expensive → dim
+  const effectiveOverlay: Overlay =
+    isPhone && overlay === "blur" ? "dim" : overlay;
 
-  const defaultClose =
-    preset === "comments"
-      ? { desktop: true, mobile: false }
-      : { desktop: true, mobile: true };
+  const overlayVisualClass =
+    effectiveOverlay === "none"
+      ? "bg-transparent"
+      : effectiveOverlay === "dim"
+        ? "bg-black/45"
+        : "bg-black/28 backdrop-blur-[14px]";
 
-  const resolvedShowHeader = resolveResponsive(
-    showHeader,
-    isMobile,
-    isMobile ? defaultHeader.mobile : defaultHeader.desktop
-  );
-  const resolvedShowClose = resolveResponsive(
-    showClose,
-    isMobile,
-    isMobile ? defaultClose.mobile : defaultClose.desktop
-  );
+  const safeVH =
+    viewportH || (typeof window !== "undefined" ? window.innerHeight : 800);
 
-  const hasHeader = resolvedShowHeader && (title || subtitle);
+  // ✅ Back/Swipe => close ONLY top modal (fixed: no double-back)
+  useMobileBackClose({
+    open,
+    enabled: isPhone,
+    isTop,
+    id,
+    onClose: () => onOpenChange(false),
+  });
 
-  const isTop = stack ? stack.isTop(id) : true;
-  const zIndexBase = (() => {
-    if (!stack) return 1000;
-    const idx = stack.getIndex(id);
-    return 1000 + Math.max(0, idx) * 10;
-  })();
-
-  useEffect(() => setMounted(true), []);
-
-  // Register/unregister in stack when open changes
-  useEffect(() => {
-    if (!stack) return;
-    if (open) stack.open(id);
-    else stack.close(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  // ✅ Lock body scroll while modal is open (prevents background scroll/jank)
-  useEffect(() => {
-    if (!open) return;
-    const body = document.body;
-
-    const prevOverflow = body.style.overflow;
-    const prevPaddingRight = body.style.paddingRight;
-
-    // avoid layout shift on desktop (scrollbar width)
-    const scrollbarWidth =
-      window.innerWidth - document.documentElement.clientWidth;
-    body.style.overflow = "hidden";
-    if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`;
-
-    return () => {
-      body.style.overflow = prevOverflow;
-      body.style.paddingRight = prevPaddingRight;
-    };
-  }, [open]);
-
-  // remember focus + restore focus
-  useEffect(() => {
-    if (!open) {
-      lastActiveRef.current?.focus?.();
-      return;
-    }
-    lastActiveRef.current = document.activeElement as HTMLElement | null;
-
-    const t = window.setTimeout(() => {
-      const panel = panelRef.current;
-      if (!panel) return;
-      const focusables = getFocusable(panel);
-      if (focusables.length) focusables[0].focus();
-      else panel.focus();
-    }, 0);
-
-    return () => window.clearTimeout(t);
-  }, [open]);
-
-  // ESC closes ONLY top modal
+  // ESC closes only top modal
   useEffect(() => {
     if (!open || !closeOnEsc) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -235,275 +201,451 @@ export default function Modal({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, closeOnEsc, isTop, onOpenChange]);
 
-  // Focus trap
-  const onKeyDownCapture = (e: React.KeyboardEvent) => {
-    if (e.key !== "Tab") return;
-    const panel = panelRef.current;
-    if (!panel) return;
+  // focus trap
+  useFocusTrap({
+    enabled: open && trapFocus,
+    containerEl: panelRef.current,
+    initialFocus: "first",
+    restoreFocus: true,
+  });
 
-    const focusables = getFocusable(panel);
-    if (!focusables.length) {
-      e.preventDefault();
+  // mount children after shell
+  const mountMode = mountChildren ?? (isPhone ? "after-open" : "immediate");
+  const [showChildren, setShowChildren] = useState(
+    open && mountMode === "immediate",
+  );
+
+  useEffect(() => {
+    if (!open) {
+      setShowChildren(false);
       return;
     }
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    const active = document.activeElement as HTMLElement;
-
-    if (!e.shiftKey && active === last) {
-      e.preventDefault();
-      first.focus();
-    } else if (e.shiftKey && active === first) {
-      e.preventDefault();
-      last.focus();
+    if (mountMode === "immediate") {
+      setShowChildren(true);
+      return;
     }
+    setShowChildren(false);
+    const r = requestAnimationFrame(() => setShowChildren(true));
+    return () => cancelAnimationFrame(r);
+  }, [open, mountMode]);
+
+  // sheet sizing
+  const snaps = useSortedSnapPoints(sheetSnapPoints);
+
+  const collapsedFrac = clamp(sheetCollapsedFraction, 0.2, 0.98);
+  const fullFrac = clamp(sheetFullFraction, 0.2, 0.98);
+
+  const collapsedH = Math.round(safeVH * collapsedFrac);
+  const fullH = Math.round(safeVH * fullFrac);
+  const collapsedOffset = Math.max(0, fullH - collapsedH);
+
+  const effectiveSheetMode: SheetDragMode =
+    resolvedMode === "sheet" && isPhone ? (sheetDragMode ?? "binary") : "none";
+
+  const binarySheet =
+    resolvedMode === "sheet" &&
+    isPhone &&
+    effectiveSheetMode === "binary" &&
+    sheetDragEnabled;
+
+  const [sheetState, setSheetState] = useState<"collapsed" | "full">(
+    sheetInitialState,
+  );
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (binarySheet) {
+      setSheetState(sheetInitialState);
+      return;
+    }
+
+    // legacy fallback
+    const initialIdx = clamp(sheetInitialSnap ?? 0, 0, snaps.length - 1);
+    setSheetState(initialIdx <= 0 ? "collapsed" : "full");
+  }, [open, binarySheet, sheetInitialState, snaps, sheetInitialSnap]);
+
+  const requestClose = () => {
+    if (!isTop) return;
+    onOpenChange(false);
   };
 
-  // ✅ Blur is expensive on mobile → fallback to dim for better performance
-  const effectiveOverlay: Overlay =
-    isMobile && overlay === "blur" ? "dim" : overlay;
+  const wrapperPadding =
+    resolvedMode === "sheet" ? "px-0 pb-0 pt-0 sm:p-6" : "p-4 sm:p-6";
 
-  const overlayClass =
-    effectiveOverlay === "none"
-      ? "bg-transparent"
-      : effectiveOverlay === "dim"
-      ? "bg-black/45"
-      : "bg-black/28 backdrop-blur-[14px]";
+  const contentPadClass = contentPadding === "none" ? "p-0" : "px-4 py-4";
+
+  const safeBottomPad =
+    resolvedMode === "sheet" && !footer
+      ? "pb-[calc(env(safe-area-inset-bottom)+12px)]"
+      : "";
+
+  const contentWrapperClass = cx(
+    "relative flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain",
+    contentPadClass,
+    safeBottomPad,
+    isPhone ? "no-scrollbar" : "",
+    contentClassName,
+  );
+
+  const panelBaseClass = cx(
+    "relative flex w-full flex-col overflow-hidden",
+    "bg-background-elevated text-foreground border border-border-subtle",
+    "shadow-[var(--shadow-elevated)]",
+    resolvedMode === "sheet"
+      ? "rounded-t-2xl max-w-none"
+      : cx("rounded-2xl", maxWidthClass),
+    panelClassName,
+  );
+
+  const headerClass = cx(
+    "border-b border-border-subtle/70 bg-background-elevated px-4 pt-2 pb-3",
+    headerClassName,
+  );
+
+  const footerClass = cx(
+    "border-t border-border-subtle/70 bg-background-elevated px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)]",
+    footerClassName,
+  );
+
+  const hasHeader = preset !== "comments" && (title || subtitle);
+  const showClose = preset !== "comments";
 
   const rowDir =
     resolvedDir === "rtl"
       ? "flex-row-reverse text-right"
       : "flex-row text-left";
 
-  const sheetMax = Math.max(0.2, Math.min(0.95, sheetMaxHeight));
-  const sheetMaxHeightStyle = `${Math.round(sheetMax * 100)}svh`;
+  const overlayAnim = reduceMotion
+    ? { initial: { opacity: 1 }, animate: { opacity: 1 }, exit: { opacity: 1 } }
+    : {
+        initial: { opacity: 0 },
+        animate: { opacity: 1, transition: { duration: 0.11 } },
+        exit: { opacity: 0, transition: { duration: 0.11 } },
+      };
 
-  const backdropVariants = {
-    open: { opacity: 1, transition: { duration: reduceMotion ? 0.001 : 0.18 } },
-    closed: {
-      opacity: 0,
-      transition: { duration: reduceMotion ? 0.001 : 0.14 },
-    },
+  const centerAnim = reduceMotion
+    ? {
+        initial: { opacity: 1, y: 0, scale: 1 },
+        animate: { opacity: 1, y: 0, scale: 1 },
+        exit: { opacity: 1, y: 0, scale: 1 },
+        transition: { duration: 0.001 },
+      }
+    : {
+        initial: { opacity: 0, y: 10, scale: 0.99 },
+        animate: {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          transition: { duration: 0.14, ease: "easeOut" },
+        },
+        exit: {
+          opacity: 0,
+          y: 8,
+          scale: 0.99,
+          transition: { duration: 0.12, ease: "easeIn" },
+        },
+      };
+
+  // ✅ enter/exit offset صغير (يمنع "overlay فقط" لو تعطل animation)
+  const sheetTween = reduceMotion
+    ? { duration: 0.001 }
+    : { duration: 0.16, ease: "easeOut" };
+
+  // prevent click-through after backdrop close
+  useEffect(() => {
+    if (!open) return;
+
+    const onClickCapture = (e: MouseEvent) => {
+      if (!blockNextClickRef.current) return;
+      e.preventDefault();
+      e.stopPropagation();
+      blockNextClickRef.current = false;
+    };
+
+    document.addEventListener("click", onClickCapture, true);
+    return () => {
+      document.removeEventListener("click", onClickCapture, true);
+      blockNextClickRef.current = false;
+    };
+  }, [open]);
+
+  const dragControls = useDragControls();
+
+  const startDragIfAllowed = (e: React.PointerEvent) => {
+    if (!binarySheet) return;
+    if (reduceMotion) return;
+    if (!isTop) return;
+    dragControls.start(e);
   };
 
-  const panelVariants =
-    resolvedMode === "sheet"
-      ? {
-          open: {
-            opacity: 1,
-            y: 0,
-            transition: reduceMotion
-              ? { duration: 0.001 }
-              : { type: "spring", stiffness: 520, damping: 36 },
-          },
-          closed: {
-            opacity: 0,
-            y: 28,
-            transition: reduceMotion
-              ? { duration: 0.001 }
-              : { duration: 0.16, ease: [0.2, 0.9, 0.2, 1] },
-          },
-        }
-      : {
-          open: {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            transition: reduceMotion
-              ? { duration: 0.001 }
-              : { type: "spring", stiffness: 540, damping: 34 },
-          },
-          closed: {
-            opacity: 0,
-            y: 10,
-            scale: 0.985,
-            transition: reduceMotion
-              ? { duration: 0.001 }
-              : { duration: 0.16, ease: [0.2, 0.9, 0.2, 1] },
-          },
-        };
+  const onBinaryDragEnd = (
+    _: any,
+    info: { offset: { y: number }; velocity: { y: number } },
+  ) => {
+    if (!binarySheet) return;
 
-  if (!mounted) return null;
+    const dy = info.offset.y; // + down, - up
+    const vy = info.velocity.y;
 
-  const wrapperPadding =
-    resolvedMode === "sheet" ? "px-0 pb-0 pt-6 sm:p-6" : "p-4 sm:p-6";
+    if (sheetDragToClose && (dy > sheetDragThresholdDown || vy > 650)) {
+      requestClose();
+      return;
+    }
 
-  const panelStyle: React.CSSProperties =
-    resolvedMode === "sheet"
-      ? { maxHeight: sheetMaxHeightStyle, willChange: "transform" }
-      : { maxHeight: "80svh", willChange: "transform" };
+    if (dy < -sheetDragThresholdUp || vy < -650) {
+      setSheetState("full");
+      return;
+    }
 
-  const showSheetHandle = resolvedMode === "sheet";
+    setSheetState((s) => s);
+  };
+
+  if (!portalRoot) return null;
 
   const ui = (
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0" style={{ zIndex: zIndexBase }}>
           <motion.div
-            className={`absolute inset-0 ${overlayClass}`}
-            initial="closed"
-            animate="open"
-            exit="closed"
-            variants={backdropVariants}
-            style={{ zIndex: zIndexBase, willChange: "opacity" }}
+            className={cx(
+              "absolute inset-0 pointer-events-none",
+              overlayVisualClass,
+            )}
+            {...overlayAnim}
+            style={{ willChange: "opacity" }}
           />
 
           <div
-            className={`absolute inset-0 flex ${
+            className={cx(
+              "absolute inset-0 flex",
               resolvedMode === "sheet"
                 ? "items-end justify-center"
-                : "items-center justify-center"
-            } ${wrapperPadding}`}
+                : "items-center justify-center",
+              wrapperPadding,
+            )}
             style={{ zIndex: zIndexBase + 1 }}
-            onPointerDown={(e) => {
+            onClick={(e) => {
               if (!closeOnBackdrop) return;
               if (!isTop) return;
-              if (e.target === e.currentTarget) onOpenChange(false);
+              if (e.target !== e.currentTarget) return;
+
+              blockNextClickRef.current = true;
+              requestClose();
             }}
-            onKeyDownCapture={onKeyDownCapture}
           >
-            <motion.div
-              ref={panelRef}
-              role="dialog"
-              aria-modal="true"
-              tabIndex={-1}
-              dir={resolvedDir}
-              initial="closed"
-              animate="open"
-              exit="closed"
-              variants={panelVariants}
-              onPointerDown={(e) => e.stopPropagation()}
-              style={panelStyle}
-              className={`
-                relative flex w-full flex-col overflow-hidden
-                bg-background-elevated text-foreground
-                border border-border-subtle
-                shadow-[var(--shadow-elevated)]
-                ${
-                  resolvedMode === "sheet"
-                    ? "rounded-t-2xl max-w-none"
-                    : `rounded-2xl ${maxWidthClass}`
-                }
-                ${className}
-              `}
-              // ✅ drag only for sheet, but start it manually from handle
-              drag={
-                resolvedMode === "sheet" && sheetDragToClose && !reduceMotion
-                  ? "y"
-                  : false
-              }
-              dragControls={dragControls}
-              dragListener={false}
-              dragConstraints={
-                resolvedMode === "sheet" ? { top: 0, bottom: 0 } : undefined
-              }
-              dragElastic={resolvedMode === "sheet" ? 0.12 : undefined}
-              dragMomentum={false}
-              onDragEnd={(_, info) => {
-                if (
-                  resolvedMode !== "sheet" ||
-                  !sheetDragToClose ||
-                  reduceMotion
-                )
-                  return;
-                if (!isTop) return;
+            {resolvedMode === "sheet" ? (
+              binarySheet ? (
+                <motion.div
+                  ref={panelRef}
+                  role="dialog"
+                  aria-modal="true"
+                  tabIndex={-1}
+                  dir={resolvedDir}
+                  className={panelBaseClass}
+                  style={{
+                    maxHeight: fullH,
+                    willChange: "transform,height",
+                    contain: "layout paint",
+                  }}
+                  initial={{
+                    y: reduceMotion ? 0 : 24,
+                    height: sheetInitialState === "full" ? fullH : collapsedH,
+                    opacity: reduceMotion ? 1 : 1,
+                  }}
+                  animate={{
+                    y: 0,
+                    height: sheetState === "full" ? fullH : collapsedH,
+                    opacity: 1,
+                  }}
+                  exit={{
+                    y: reduceMotion ? 0 : 24,
+                    opacity: reduceMotion ? 1 : 0.98,
+                  }}
+                  transition={sheetTween}
+                  drag="y"
+                  dragControls={dragControls}
+                  dragListener={false}
+                  dragConstraints={{ top: -1, bottom: fullH }} // ✅ يمنع الرفع للأعلى فعليًا
+                  dragElastic={0}
+                  onDragEnd={onBinaryDragEnd}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
 
-                const shouldClose =
-                  info.offset.y > 120 || info.velocity.y > 900;
-                if (shouldClose) onOpenChange(false);
-              }}
-            >
-              {/* accent hairline */}
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
-
-              {/* ✅ Sheet handle (even if header is hidden by preset) */}
-              {showSheetHandle && (
-                <div className="pt-3 pb-2">
-                  <div className="flex justify-center">
-                    <button
-                      type="button"
-                      aria-label="Drag to close"
-                      className="touch-none"
-                      onPointerDown={(e) => {
-                        if (!sheetDragToClose || reduceMotion) return;
-                        dragControls.start(e);
-                      }}
-                    >
-                      <span
-                        aria-hidden
-                        className="block h-1.5 w-12 rounded-full bg-border-strong/40 transition-all duration-200"
-                      />
-                    </button>
+                  <div
+                    className="pt-3 pb-2"
+                    style={{ touchAction: "none" }}
+                    onPointerDown={startDragIfAllowed}
+                  >
+                    <div className="flex justify-center">
+                      <span className="block h-1.5 w-12 rounded-full bg-border-strong/40" />
+                    </div>
                   </div>
-                </div>
-              )}
 
-              {/* Header */}
-              {hasHeader && (
-                <div className="border-b border-border-subtle/70 bg-background-elevated px-4 pt-2 pb-3">
-                  <div className={`flex ${rowDir} items-start gap-3`}>
-                    <div className="flex-1 space-y-1">
-                      {title && (
-                        <div className="text-base font-semibold text-foreground-strong">
-                          {title}
-                        </div>
+                  {sheetTopBar && (
+                    <div
+                      className={cx(
+                        "px-4 pb-2 select-none",
+                        sheetTopBarClassName,
                       )}
-                      {subtitle && (
-                        <div className="text-sm text-foreground-muted">
-                          {subtitle}
+                    >
+                      {sheetTopBar}
+                    </div>
+                  )}
+
+                  <div
+                    className={contentWrapperClass}
+                    style={{
+                      WebkitOverflowScrolling: "touch",
+                      touchAction: "pan-y",
+                    }}
+                  >
+                    {showChildren ? children : loadingFallback}
+                  </div>
+
+                  {footer && <div className={footerClass}>{footer}</div>}
+                </motion.div>
+              ) : (
+                <motion.div
+                  ref={panelRef}
+                  role="dialog"
+                  aria-modal="true"
+                  tabIndex={-1}
+                  dir={resolvedDir}
+                  className={panelBaseClass}
+                  style={{
+                    height: Math.round(
+                      safeVH * (snaps[snaps.length - 1] ?? 0.92),
+                    ),
+                    maxHeight: Math.round(
+                      safeVH * (snaps[snaps.length - 1] ?? 0.92),
+                    ),
+                    willChange: "transform",
+                    transform: "translateY(0)",
+                  }}
+                  initial={{ y: 18, opacity: 0 }}
+                  animate={{
+                    y: 0,
+                    opacity: 1,
+                    transition: { duration: 0.16, ease: "easeOut" },
+                  }}
+                  exit={{
+                    y: 18,
+                    opacity: 0,
+                    transition: { duration: 0.12, ease: "easeIn" },
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <div className="pt-3 pb-2">
+                    <div className="flex justify-center">
+                      <span className="block h-1.5 w-12 rounded-full bg-border-strong/40" />
+                    </div>
+                  </div>
+
+                  {hasHeader && (
+                    <div className={headerClass}>
+                      <div className={cx("flex items-start gap-3", rowDir)}>
+                        <div className="flex-1 space-y-1">
+                          {title && (
+                            <div className="text-base font-semibold text-foreground-strong">
+                              {title}
+                            </div>
+                          )}
+                          {subtitle && (
+                            <div className="text-sm text-foreground-muted">
+                              {subtitle}
+                            </div>
+                          )}
                         </div>
+
+                        {showClose && (
+                          <button
+                            type="button"
+                            onClick={requestClose}
+                            className={cx(
+                              "group grid size-9 place-items-center rounded-full",
+                              "bg-surface-soft/80 border border-border-subtle text-foreground-strong",
+                            )}
+                            aria-label="إغلاق"
+                          >
+                            <IoClose className="size-5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div
+                    className={contentWrapperClass}
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    {children}
+                  </div>
+
+                  {footer && <div className={footerClass}>{footer}</div>}
+                </motion.div>
+              )
+            ) : (
+              <motion.div
+                ref={panelRef}
+                role="dialog"
+                aria-modal="true"
+                tabIndex={-1}
+                dir={resolvedDir}
+                className={panelBaseClass}
+                style={{ maxHeight: "80svh", willChange: "transform" }}
+                {...centerAnim}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                {hasHeader && (
+                  <div className={headerClass}>
+                    <div className={cx("flex items-start gap-3", rowDir)}>
+                      <div className="flex-1 space-y-1">
+                        {title && (
+                          <div className="text-base font-semibold text-foreground-strong">
+                            {title}
+                          </div>
+                        )}
+                        {subtitle && (
+                          <div className="text-sm text-foreground-muted">
+                            {subtitle}
+                          </div>
+                        )}
+                      </div>
+
+                      {showClose && (
+                        <button
+                          type="button"
+                          onClick={requestClose}
+                          className={cx(
+                            "group grid size-9 place-items-center rounded-full",
+                            "bg-surface-soft/80 border border-border-subtle text-foreground-strong",
+                          )}
+                          aria-label="إغلاق"
+                        >
+                          <IoClose className="size-5" />
+                        </button>
                       )}
                     </div>
-
-                    {resolvedShowClose && (
-                      <button
-                        type="button"
-                        onClick={() => onOpenChange(false)}
-                        className="
-                          group grid size-9 place-items-center rounded-full
-                          bg-surface-soft/80 border border-border-subtle
-                          text-foreground-strong shadow-[var(--shadow-sm)]
-                          transition-all duration-200
-                          hover:-translate-y-[1px] hover:bg-accent-subtle hover:border-accent-border hover:shadow-[var(--shadow-lg)]
-                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring
-                          focus-visible:ring-offset-2 focus-visible:ring-offset-background
-                        "
-                        aria-label="إغلاق"
-                      >
-                        <IoClose className="size-5 transition-transform duration-200 group-hover:rotate-90" />
-                      </button>
-                    )}
                   </div>
-                </div>
-              )}
-
-              {/* Content */}
-              <div
-                className={[
-                  "relative flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 overscroll-contain",
-                  isMobile ? "no-scrollbar" : "",
-                ].join(" ")}
-                style={{ WebkitOverflowScrolling: "touch" }}
-              >
-                {/* ✅ Avoid expensive background gradient on mobile while scrolling */}
-                {!isMobile && (
-                  <div className="pointer-events-none absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_15%_10%,var(--color-accent-subtle),transparent_60%)]" />
                 )}
-                <div className="relative">{children}</div>
-              </div>
 
-              {/* Footer */}
-              {footer && (
-                <div className="border-t border-border-subtle/70 bg-background-elevated px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
-                  {footer}
+                <div
+                  className={contentWrapperClass}
+                  style={{ WebkitOverflowScrolling: "touch" }}
+                >
+                  {showChildren ? children : loadingFallback}
                 </div>
-              )}
-            </motion.div>
+
+                {footer && <div className={footerClass}>{footer}</div>}
+              </motion.div>
+            )}
           </div>
         </div>
       )}
     </AnimatePresence>
   );
 
-  return createPortal(ui, document.body);
+  return createPortal(ui, portalRoot);
 }

@@ -1,3 +1,4 @@
+// design\Avatar.tsx
 import Image, { ImageProps } from "next/image";
 import { blurhashToImageCssObject } from "@unpic/placeholder";
 import { cn } from "@/utils/cn";
