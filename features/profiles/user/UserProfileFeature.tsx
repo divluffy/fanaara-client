@@ -292,6 +292,7 @@ const NotificationButton = () => {
     </IconButton>
   );
 };
+
 const UserProfileFeature = () => {
   const router = useRouter();
   const { isRTL, direction } = useAppSelector(({ state }) => state);
