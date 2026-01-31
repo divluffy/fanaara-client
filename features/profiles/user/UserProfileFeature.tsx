@@ -71,6 +71,7 @@ import PostCardV2 from "@/components/post/PostCardV2";
 import PostV2 from "@/components/post/PostCard";
 import PostBox from "@/components/PostBox";
 import { useAppSelector } from "@/store/hooks";
+import { NotificationButton } from "../components/NotificationButton";
 
 /** ✅ rank borders */
 const RanksBorders = {
@@ -212,86 +213,86 @@ function ResponsiveActionButton({
     </>
   );
 }
-const NotificationButton = () => {
-  // حالة افتراضية: الإشعارات مفعلة (غير مكتومة)
-  const [isMuted, setIsMuted] = useState(false);
+// const NotificationButton = () => {
+//   // حالة افتراضية: الإشعارات مفعلة (غير مكتومة)
+//   const [isMuted, setIsMuted] = useState(false);
 
-  // إعدادات الحركة المرنة للحصول على شعور "مطاطي" مميز
-  const springTransition = {
-    type: "spring",
-    stiffness: 500,
-    damping: 25,
-    mass: 1,
-  };
+//   // إعدادات الحركة المرنة للحصول على شعور "مطاطي" مميز
+//   const springTransition = {
+//     type: "spring",
+//     stiffness: 500,
+//     damping: 25,
+//     mass: 1,
+//   };
 
-  const iconVariants = {
-    initial: { scale: 0, opacity: 0, rotate: -45 },
-    animate: { scale: 1, opacity: 1, rotate: 0 },
-    exit: { scale: 0, opacity: 0, rotate: 45, transition: { duration: 0.15 } },
-  };
+//   const iconVariants = {
+//     initial: { scale: 0, opacity: 0, rotate: -45 },
+//     animate: { scale: 1, opacity: 1, rotate: 0 },
+//     exit: { scale: 0, opacity: 0, rotate: 45, transition: { duration: 0.15 } },
+//   };
 
-  return (
-    <IconButton
-      onClick={() => setIsMuted(!isMuted)}
-      aria-label={isMuted ? "Unmute Notifications" : "Mute Notifications"}
-      size="md"
-      shape="square"
-      // نلغي الـ variant الافتراضي لنتحكم نحن بالألوان بالكامل
-      variant="ghost"
-      className={cn(
-        "relative h-10 w-10 overflow-hidden border transition-all duration-300 ease-out group",
-        isMuted
-          ? /* تنسيق حالة الكتم: رمادي باهت */
-            "bg-zinc-900/50 border-zinc-700/50 text-zinc-500 hover:bg-zinc-800/80 hover:border-zinc-600 hover:text-zinc-300"
-          : /* تنسيق الحالة المفعلة: أزرق نيلي زجاجي */
-            "bg-indigo-500/15 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/25 hover:border-indigo-400/50 hover:text-indigo-300 shadow-[0_0_15px_-3px_rgba(99,102,241,0.15)]",
-      )}
-    >
-      {/* AnimatePresence يسمح بحركة خروج العنصر قبل دخول الجديد */}
-      <AnimatePresence mode="wait" initial={false}>
-        {isMuted ? (
-          <motion.div
-            key="muted-icon"
-            variants={iconVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={springTransition}
-            className="flex items-center justify-center"
-          >
-            <FiBellOff className="h-5 w-5" />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="active-icon"
-            variants={iconVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={springTransition}
-            className="relative flex items-center justify-center"
-          >
-            {/* الأيقونة الأساسية */}
-            <FiBell className="h-5 w-5 z-10" />
+//   return (
+//     <IconButton
+//       onClick={() => setIsMuted(!isMuted)}
+//       aria-label={isMuted ? "Unmute Notifications" : "Mute Notifications"}
+//       size="md"
+//       shape="square"
+//       // نلغي الـ variant الافتراضي لنتحكم نحن بالألوان بالكامل
+//       variant="ghost"
+//       className={cn(
+//         "relative h-10 w-10 overflow-hidden border transition-all duration-300 ease-out group",
+//         isMuted
+//           ? /* تنسيق حالة الكتم: رمادي باهت */
+//             "bg-zinc-900/50 border-zinc-700/50 text-zinc-500 hover:bg-zinc-800/80 hover:border-zinc-600 hover:text-zinc-300"
+//           : /* تنسيق الحالة المفعلة: أزرق نيلي زجاجي */
+//             "bg-indigo-500/15 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/25 hover:border-indigo-400/50 hover:text-indigo-300 shadow-[0_0_15px_-3px_rgba(99,102,241,0.15)]",
+//       )}
+//     >
+//       {/* AnimatePresence يسمح بحركة خروج العنصر قبل دخول الجديد */}
+//       <AnimatePresence mode="wait" initial={false}>
+//         {isMuted ? (
+//           <motion.div
+//             key="muted-icon"
+//             variants={iconVariants}
+//             initial="initial"
+//             animate="animate"
+//             exit="exit"
+//             transition={springTransition}
+//             className="flex items-center justify-center"
+//           >
+//             <FiBellOff className="h-5 w-5" />
+//           </motion.div>
+//         ) : (
+//           <motion.div
+//             key="active-icon"
+//             variants={iconVariants}
+//             initial="initial"
+//             animate="animate"
+//             exit="exit"
+//             transition={springTransition}
+//             className="relative flex items-center justify-center"
+//           >
+//             {/* الأيقونة الأساسية */}
+//             <FiBell className="h-5 w-5 z-10" />
 
-            {/* تأثير تموج خفيف جداً خلف الجرس عند التفعيل */}
-            <motion.div
-              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute inset-0 bg-indigo-400/20 rounded-full blur-md z-0"
-            />
+//             {/* تأثير تموج خفيف جداً خلف الجرس عند التفعيل */}
+//             <motion.div
+//               animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
+//               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+//               className="absolute inset-0 bg-indigo-400/20 rounded-full blur-md z-0"
+//             />
 
-            {/* نقطة تنبيه صغيرة أنيقة */}
-            <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-60"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500 border-2 border-black/80"></span>
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </IconButton>
-  );
-};
+//             {/* نقطة تنبيه صغيرة أنيقة */}
+//             <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-2.5 w-2.5">
+//               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-60"></span>
+//               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500 border-2 border-black/80"></span>
+//             </span>
+//           </motion.div>
+//         )}
+//       </AnimatePresence>
+//     </IconButton>
+//   );
+// };
 
 const UserProfileFeature = () => {
   const router = useRouter();

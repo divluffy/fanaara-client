@@ -1,3 +1,4 @@
+// layout\components\RegCurrentBtn.tsx
 "use client";
 
 import { Button } from "@/design";

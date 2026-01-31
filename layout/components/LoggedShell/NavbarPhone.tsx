@@ -1,3 +1,4 @@
+// layout\components\LoggedShell\NavbarPhone.tsx
 "use client";
 
 import * as React from "react";

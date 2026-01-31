@@ -9,8 +9,9 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="system"
-      enableSystem
+      defaultTheme="light"
+      enableSystem={false}
+      themes={["light", "dark", "onepiece"]}
       disableTransitionOnChange
     >
       <ModalStackProvider>{children}</ModalStackProvider>

@@ -339,6 +339,19 @@
   --shadow-glow-pink: 0 0 22px rgba(236, 72, 153, 0.55);
   --shadow-glow-lime: 0 0 22px rgba(132, 204, 22, 0.45);
   --shadow-glow-cyan: 0 0 22px rgba(6, 182, 212, 0.45);
+
+  /* =========================================================
+     One Piece Palette Tokens (fallbacks)
+     - موجودة دائمًا، ويتم override لها في .onepiece
+     ========================================================= */
+  --op-parchment: var(--neutral-ice); /* background paper */
+  --op-ink: var(--neutral-charcoal); /* text ink */
+  --op-ocean: var(--brand-teal); /* ocean blue */
+  --op-sky: var(--brand-aqua); /* sky highlight */
+  --op-straw: var(--accent-yellow); /* straw hat */
+  --op-straw-deep: var(--accent-amber); /* deeper straw */
+  --op-pirate-red: var(--danger-500); /* pirate red */
+  --op-wood: #8b5a2b; /* ship wood (fallback) */
 }
 
 /* =========================================================
@@ -520,6 +533,110 @@
 }
 
 /* =========================================================
+   8b) One Piece Theme – overrides (Grand Line / Straw Hat)
+   ========================================================= */
+
+.onepiece {
+  color-scheme: light;
+
+  /* ---------- One Piece core palette ---------- */
+  --op-parchment: #fff4db; /* warm parchment */
+  --op-ink: #0b1f3a; /* navy ink */
+  --op-ocean: #0284c7; /* ocean (sky-600 vibe) */
+  --op-sky: #38bdf8; /* sky highlight */
+  --op-straw: #fbbf24; /* straw hat */
+  --op-straw-deep: #f59e0b; /* amber deep */
+  --op-pirate-red: #ef4444; /* pirate red */
+  --op-wood: #8b5a2b; /* wood */
+
+  /* ---------- Tie One Piece palette into your design system ---------- */
+  /* Neutrals */
+  --neutral-ice: var(--op-parchment);
+  --neutral-charcoal: var(--op-ink);
+
+  /* Brand = ocean/sky */
+  --brand-aqua: var(--op-sky);
+  --brand-teal: var(--op-ocean);
+  --brand-deep: #0b2a5b; /* deeper navy for 600-ish feel */
+
+  /* Accents */
+  --accent-yellow: var(--op-straw);
+  --accent-amber: var(--op-straw-deep);
+  --accent-orange: #f97316; /* tangerine/pop */
+
+  /* Optional: warm monochrome surfaces (so cards feel like paper) */
+  --mono-0: #fffdf7;
+  --mono-5: #fffaf0;
+  --mono-10: #fff5e4;
+  --mono-20: #ffecd0;
+  --mono-30: #ffe2b3;
+
+  /* ---------- Semantic tokens tweaks (keep your structure) ---------- */
+  /* Backgrounds / Surfaces */
+  --bg-page: var(--neutral-ice);
+  --bg-subtle: color-mix(in srgb, var(--neutral-ice) 60%, var(--mono-20));
+  --bg-elevated: var(--mono-0);
+  --bg-soft-strong: #071427; /* deep overlay background */
+
+  --surface-default: var(--mono-0);
+  --surface-soft: var(--mono-5);
+  --surface-muted: var(--mono-10);
+
+  /* Text */
+  --fg-strong: var(--neutral-charcoal);
+  --fg-default: color-mix(in srgb, var(--neutral-charcoal) 88%, #ffffff);
+  --fg-muted: color-mix(in srgb, var(--neutral-charcoal) 64%, #ffffff);
+  --fg-soft: color-mix(in srgb, var(--neutral-charcoal) 46%, #ffffff);
+  --fg-disabled: rgba(11, 31, 58, 0.38);
+
+  /* Borders */
+  --border-subtle: color-mix(in srgb, var(--neutral-charcoal) 12%, transparent);
+  --border-strong: color-mix(in srgb, var(--neutral-charcoal) 20%, transparent);
+
+  /* Brand semantic: Blue buttons, white text */
+  --brand-solid: var(--brand-500);
+  --brand-solid-strong: var(--brand-600);
+  --brand-on-solid: #ffffff;
+
+  --brand-soft-bg: color-mix(in srgb, var(--brand-500) 12%, transparent);
+  --brand-soft-border: color-mix(in srgb, var(--brand-600) 30%, transparent);
+  --brand-subtle-bg: color-mix(in srgb, var(--brand-500) 6%, transparent);
+  --brand-subtle-ring: color-mix(in srgb, var(--brand-400) 80%, transparent);
+
+  /* Glows/Shadows: inkier but still soft */
+  --shadow-sm: 0 2px 6px rgba(11, 31, 58, 0.1);
+  --shadow-md: 0 10px 20px rgba(11, 31, 58, 0.12);
+  --shadow-lg: 0 16px 30px rgba(11, 31, 58, 0.14);
+
+  --shadow-glow-brand: 0 0 28px
+    color-mix(in srgb, var(--brand-400) 55%, transparent);
+  --shadow-glow-warning: 0 0 24px rgba(245, 158, 11, 0.55);
+  --shadow-glow-danger: 0 0 22px rgba(239, 68, 68, 0.55);
+
+  /* Gradients */
+  --gradient-brand-soft: linear-gradient(
+    135deg,
+    var(--brand-400),
+    var(--brand-600)
+  );
+  --gradient-brand-strong: linear-gradient(
+    135deg,
+    var(--brand-700),
+    var(--neutral-charcoal)
+  );
+
+  /* Glass/Card/Nav feels warmer */
+  --glass-bg: color-mix(in srgb, var(--surface-default) 80%, transparent);
+  --glass-border: color-mix(in srgb, var(--border-strong) 24%, transparent);
+
+  --card-bg: color-mix(in srgb, var(--surface-default) 92%, transparent);
+  --card-border: color-mix(in srgb, var(--border-strong) 26%, transparent);
+
+  --nav-bg: color-mix(in srgb, var(--surface-default) 74%, transparent);
+  --nav-border: color-mix(in srgb, var(--border-strong) 24%, transparent);
+}
+
+/* =========================================================
    9) ربط التوكنز مع Tailwind v4 – @theme inline
    ========================================================= */
 
@@ -647,6 +764,56 @@
   --color-lang-ring: var(--lang-ring);
   --color-lang-ring-offset: var(--lang-ring-offset);
   --color-lang-hover: var(--lang-option-hover-bg);
+
+  /* =========================================================
+     EXTRA TONES (Anime-friendly) – Tailwind utilities ready
+     usage examples:
+     - bg-extra-purple-soft / bg-extra-purple-solid
+     - text-extra-pink / text-extra-cyan
+     ========================================================= */
+
+  --color-extra-purple: var(--purple-500);
+  --color-extra-purple-soft: var(--purple-soft-bg);
+  --color-extra-purple-border: var(--purple-soft-border);
+  --color-extra-purple-ring: var(--purple-soft-ring);
+  --color-extra-purple-solid: var(--purple-solid-bg);
+  --color-extra-purple-foreground: var(--purple-on-solid);
+
+  --color-extra-pink: var(--pink-500);
+  --color-extra-pink-soft: var(--pink-soft-bg);
+  --color-extra-pink-border: var(--pink-soft-border);
+  --color-extra-pink-ring: var(--pink-soft-ring);
+  --color-extra-pink-solid: var(--pink-solid-bg);
+  --color-extra-pink-foreground: var(--pink-on-solid);
+
+  --color-extra-lime: var(--lime-500);
+  --color-extra-lime-soft: var(--lime-soft-bg);
+  --color-extra-lime-border: var(--lime-soft-border);
+  --color-extra-lime-ring: var(--lime-soft-ring);
+  --color-extra-lime-solid: var(--lime-solid-bg);
+  --color-extra-lime-foreground: var(--lime-on-solid);
+
+  --color-extra-cyan: var(--cyan-500);
+  --color-extra-cyan-soft: var(--cyan-soft-bg);
+  --color-extra-cyan-border: var(--cyan-soft-border);
+  --color-extra-cyan-ring: var(--cyan-soft-ring);
+  --color-extra-cyan-solid: var(--cyan-solid-bg);
+  --color-extra-cyan-foreground: var(--cyan-on-solid);
+
+  /* =========================================================
+     One Piece tokens – Tailwind utilities ready
+     usage:
+     - bg-op-parchment / text-op-ink
+     - text-op-straw / bg-op-ocean / text-op-sky
+     ========================================================= */
+  --color-op-parchment: var(--op-parchment);
+  --color-op-ink: var(--op-ink);
+  --color-op-ocean: var(--op-ocean);
+  --color-op-sky: var(--op-sky);
+  --color-op-straw: var(--op-straw);
+  --color-op-straw-deep: var(--op-straw-deep);
+  --color-op-pirate: var(--op-pirate-red);
+  --color-op-wood: var(--op-wood);
 }
 
 /* =========================================================
