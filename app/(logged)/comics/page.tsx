@@ -1,9 +1,8 @@
-import React from 'react'
+import ComicsMainPage from "@/features/comics/ComicsMainPage";
+import React from "react";
 
 const ComicsPage = () => {
-  return (
-    <div>ComicsPage</div>
-  )
-}
+  return <ComicsMainPage />;
+};
 
-export default ComicsPage
+export default ComicsPage;

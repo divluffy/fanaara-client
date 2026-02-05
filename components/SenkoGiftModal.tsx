@@ -1,264 +1,363 @@
+// components/SenkoGiftModal.tsx
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+
+import DeModal, { type DeModalProps } from "@/design/DeModal";
+
 import {
-  IoAdd,
+  IoCartOutline,
   IoChevronForward,
   IoFlash,
-  IoRemove,
-  IoSearch,
-  IoStar,
-  IoStarOutline,
-  IoTimeOutline,
-  IoCartOutline,
   IoSparkles,
 } from "react-icons/io5";
-import { FaCrown, FaHistory } from "react-icons/fa";
-import Modal, { ModalProps } from "./Modal";
+import {
+  FaBroadcastTower,
+  FaBuilding,
+  FaCameraRetro,
+  FaChessKnight,
+  FaCrown,
+  FaDragon,
+  FaFeatherAlt,
+  FaFire,
+  FaFish,
+  FaGamepad,
+  FaGem,
+  FaGhost,
+  FaHandshake,
+  FaHatWizard,
+  FaHeart,
+  FaHistory,
+  FaInfinity,
+  FaLeaf,
+  FaMagic,
+  FaMeteor,
+  FaMoon,
+  FaRocket,
+  FaScroll,
+  FaShieldAlt,
+  FaSkullCrossbones,
+  FaStar,
+  FaSun,
+  FaUser,
+  FaVideo,
+  FaBookOpen,
+  FaBolt,
+} from "react-icons/fa";
 
 // ===================================
 // Types
 // ===================================
 
-type Rarity = "common" | "rare" | "epic" | "legendary";
-type GiftCategory = "all" | "stickers" | "power" | "scene" | "legendary";
+export type SupportTargetType = "user" | "business" | "live" | "other";
 
-interface GiftItem {
+type GiftTier = "common" | "rare" | "epic" | "legendary" | "mythic";
+type IconType = React.ComponentType<{ className?: string }>;
+
+type TargetInfo = {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  subtitle?: string;
+};
+
+type GiftBundle = {
   id: string;
   name: string;
   cost: number; // Senko
-  icon: string; // emoji for now
-  rarity: Rarity;
-  category: Exclude<GiftCategory, "all">;
-  aura: number; // تأثير/نقاط دعم (غير العملة)
-  tagline: string;
-  limitedUntil?: string; // ISO date string
-}
+  tier: GiftTier;
+  Icon: IconType;
+};
 
-interface User {
-  id: string;
-  name: string;
-  avatar: string;
-  title: string;
-}
-
-interface HistoryEntry {
+type HistoryEntry = {
   id: number;
-  giftId: string;
-  giftName: string;
-  giftIcon: string;
-  quantity: number;
-  cost: number; // total
-  aura: number; // total
-  timestamp: string;
-  isCombo?: boolean;
-}
+  bundleId: string;
+  bundleName: string;
+  qty: number;
+  totalCost: number;
+  tsLabel: string;
+};
 
-interface SenkoGiftModalProps extends Omit<ModalProps, "children"> {
-  targetUser?: User;
+export type SenkoGiftModalProps = Omit<
+  DeModalProps,
+  "children" | "title" | "subtitle" | "footer" | "preset"
+> & {
+  target: TargetInfo;
+  targetType: SupportTargetType;
+
   initialBalance?: number;
-}
 
-// ===================================
-// Currency
-// ===================================
+  /** إذا الرصيد غير كافي أو المستخدم ضغط زر الرصيد */
+  topUpHref?: string;
 
-const CURRENCY = {
-  nameAr: "سينكو",
-  nameEn: "Senko",
-  code: "SNK",
-  icon: <IoFlash className="text-yellow-400 text-base" />,
+  /** Optional hook to call your API */
+  onSendGift?: (payload: {
+    targetId: string;
+    targetType: SupportTargetType;
+    bundleId: string;
+    quantity: number;
+    totalCost: number;
+  }) => Promise<void> | void;
 };
 
 // ===================================
-// Mock
+// Data (30+ bundles)
 // ===================================
 
-const MOCK_TARGET_USER: User = {
-  id: "u-99",
-  name: "Kira Senpai",
-  avatar:
-    "https://api.dicebear.com/9.x/avataaars/svg?seed=Felix&backgroundColor=ffdfbf",
-  title: "صائد الشياطين ⚔️",
-};
+const BUNDLES: GiftBundle[] = [
+  // Common (500 -> 5000)
+  {
+    id: "b-500",
+    name: "شرارة ساكورا",
+    cost: 500,
+    tier: "common",
+    Icon: FaLeaf,
+  },
+  { id: "b-750", name: "نبضة قلب", cost: 750, tier: "common", Icon: FaHeart },
+  {
+    id: "b-1000",
+    name: "نجمة كاوايي",
+    cost: 1000,
+    tier: "common",
+    Icon: FaStar,
+  },
+  { id: "b-1500", name: "ومضة سرعة", cost: 1500, tier: "common", Icon: FaBolt },
+  {
+    id: "b-2000",
+    name: "ريشة لطيفة",
+    cost: 2000,
+    tier: "common",
+    Icon: FaFeatherAlt,
+  },
+  { id: "b-2500", name: "لمسة سحر", cost: 2500, tier: "common", Icon: FaMagic },
+  { id: "b-3000", name: "حجر بريق", cost: 3000, tier: "common", Icon: FaGem },
+  { id: "b-4000", name: "شعلة حماس", cost: 4000, tier: "common", Icon: FaFire },
+  { id: "b-5000", name: "قمر هادئ", cost: 5000, tier: "common", Icon: FaMoon },
 
-/**
- * أفكار جديدة:
- * - تصنيفات Gifts Tabs
- * - مفضلة ⭐ (تحفظ محلياً)
- * - هدايا “محدودة الوقت” مع عدّاد
- * - “Aura” كنقاط تأثير منفصلة عن العملة
- * - Quick Multipliers +/-
- */
-
-const GIFT_ITEMS: GiftItem[] = [
-  // Stickers
+  // Rare (7500 -> 30000)
+  { id: "b-7500", name: "شمس طاقة", cost: 7500, tier: "rare", Icon: FaSun },
   {
-    id: "st-1",
-    name: "ملصق تشيبي",
-    cost: 6,
-    icon: "🧸",
-    rarity: "common",
-    category: "stickers",
-    aura: 3,
-    tagline: "لطيف وسريع… يرفع المزاج!",
+    id: "b-10000",
+    name: "درع داعم",
+    cost: 10000,
+    tier: "rare",
+    Icon: FaShieldAlt,
+  },
+  { id: "b-12500", name: "طيف لطيف", cost: 12500, tier: "rare", Icon: FaGhost },
+  {
+    id: "b-15000",
+    name: "تنين صغير",
+    cost: 15000,
+    tier: "rare",
+    Icon: FaDragon,
   },
   {
-    id: "st-2",
-    name: "ملصق كاوايي",
-    cost: 12,
-    icon: "🌸",
-    rarity: "common",
-    category: "stickers",
-    aura: 6,
-    tagline: "وردي لطيف… للكلام الحلو.",
+    id: "b-20000",
+    name: "تاج سينباي",
+    cost: 20000,
+    tier: "rare",
+    Icon: FaCrown,
   },
   {
-    id: "st-3",
-    name: "ملصق ناروتو ستايل",
-    cost: 30,
-    icon: "🌀",
-    rarity: "rare",
-    category: "stickers",
-    aura: 15,
-    tagline: "طاقة واندفاع… زي النينجا!",
-  },
-
-  // Power
-  {
-    id: "pw-1",
-    name: "شحنة طاقة",
-    cost: 40,
-    icon: "⚡",
-    rarity: "common",
-    category: "power",
-    aura: 25,
-    tagline: "دفعه بسيطة… بس محسوسة.",
+    id: "b-25000",
+    name: "صاروخ تشجيع",
+    cost: 25000,
+    tier: "rare",
+    Icon: FaRocket,
   },
   {
-    id: "pw-2",
-    name: "بوستر Hype",
-    cost: 120,
-    icon: "🔥",
-    rarity: "rare",
-    category: "power",
-    aura: 80,
-    tagline: "خلي الشات يولّع!",
-  },
-  {
-    id: "pw-3",
-    name: "كرة روح",
-    cost: 350,
-    icon: "🔮",
-    rarity: "epic",
-    category: "power",
-    aura: 260,
-    tagline: "هالة قوية… واضحة للجميع.",
+    id: "b-30000",
+    name: "علامة أرك",
+    cost: 30000,
+    tier: "rare",
+    Icon: FaScroll,
   },
 
-  // Scene (مؤثرات/مشاهد)
+  // Epic (40000 -> 100000)
   {
-    id: "sc-1",
-    name: "سحاب سرعة",
-    cost: 55,
-    icon: "💨",
-    rarity: "common",
-    category: "scene",
-    aura: 35,
-    tagline: "إرسال سريع… ويمرّق!",
+    id: "b-40000",
+    name: "هيبة فارسة",
+    cost: 40000,
+    tier: "epic",
+    Icon: FaChessKnight,
   },
   {
-    id: "sc-2",
-    name: "نجمة لامعة",
-    cost: 180,
-    icon: "✨",
-    rarity: "rare",
-    category: "scene",
-    aura: 130,
-    tagline: "تأثير لامع… مناسب للّحظات الحلوة.",
+    id: "b-50000",
+    name: "قبعة ساحر",
+    cost: 50000,
+    tier: "epic",
+    Icon: FaHatWizard,
   },
   {
-    id: "sc-3",
-    name: "بوابة آرك",
-    cost: 650,
-    icon: "🌀",
-    rarity: "epic",
-    category: "scene",
-    aura: 520,
-    tagline: "إعلان دخول… وكأنه بداية آرك جديد.",
+    id: "b-60000",
+    name: "يد تحية",
+    cost: 60000,
+    tier: "epic",
+    Icon: FaHandshake,
+  },
+  {
+    id: "b-75000",
+    name: "وضع لعب",
+    cost: 75000,
+    tier: "epic",
+    Icon: FaGamepad,
+  },
+  {
+    id: "b-100000",
+    name: "مشهد فيديو",
+    cost: 100000,
+    tier: "epic",
+    Icon: FaVideo,
   },
 
-  // Legendary
+  // Legendary (125000 -> 300000)
   {
-    id: "lg-1",
-    name: "تاج السينباي",
-    cost: 2200,
-    icon: "👑",
-    rarity: "legendary",
-    category: "legendary",
-    aura: 2000,
-    tagline: "الهيبة وصلت… خلها تنكتب بالسجل.",
+    id: "b-125000",
+    name: "لقطة أسطورية",
+    cost: 125000,
+    tier: "legendary",
+    Icon: FaCameraRetro,
   },
   {
-    id: "lg-2",
-    name: "تنين الهالة",
-    cost: 6000,
-    icon: "🐉",
-    rarity: "legendary",
-    category: "legendary",
-    aura: 6500,
-    tagline: "أسطوري… وتستاهلها اللحظة.",
+    id: "b-150000",
+    name: "مخطوطة قديمة",
+    cost: 150000,
+    tier: "legendary",
+    Icon: FaBookOpen,
   },
   {
-    id: "lg-3",
-    name: "سوبرنوفا",
-    cost: 12000,
-    icon: "☄️",
-    rarity: "legendary",
-    category: "legendary",
-    aura: 14000,
-    tagline: "انفجار دعم… يغير مود البث.",
-    // مثال محدود الوقت (غيّرها حسب نظامك)
-    limitedUntil: "2026-12-31T23:59:59.000Z",
+    id: "b-200000",
+    name: "عاصفة جماجم",
+    cost: 200000,
+    tier: "legendary",
+    Icon: FaSkullCrossbones,
+  },
+  {
+    id: "b-250000",
+    name: "نيزك دعم",
+    cost: 250000,
+    tier: "legendary",
+    Icon: FaMeteor,
+  },
+  {
+    id: "b-300000",
+    name: "سمكة الحظ",
+    cost: 300000,
+    tier: "legendary",
+    Icon: FaFish,
+  },
+
+  // Mythic (400000 -> 1,000,000)
+  {
+    id: "b-400000",
+    name: "شعلة لا تنطفئ",
+    cost: 400000,
+    tier: "mythic",
+    Icon: FaFire,
+  },
+  {
+    id: "b-500000",
+    name: "بريق لانهائي",
+    cost: 500000,
+    tier: "mythic",
+    Icon: FaInfinity,
+  },
+  {
+    id: "b-750000",
+    name: "تنين القمة",
+    cost: 750000,
+    tier: "mythic",
+    Icon: FaDragon,
+  },
+  {
+    id: "b-1000000",
+    name: "تاج المليون",
+    cost: 1000000,
+    tier: "mythic",
+    Icon: FaCrown,
   },
 ];
 
 // ===================================
-// Helpers
+// Styling helpers (theme tokens friendly)
 // ===================================
 
-const getRarityTheme = (rarity: Rarity) => {
-  switch (rarity) {
-    case "legendary":
-      return "border-yellow-500 shadow-[0_0_18px_rgba(234,179,8,0.35)] bg-gradient-to-b from-[#2a2d36] to-[#3a2a0d]";
-    case "epic":
-      return "border-purple-500 shadow-[0_0_16px_rgba(168,85,247,0.35)] bg-gradient-to-b from-[#2a2d36] to-[#240a3a]";
-    case "rare":
-      return "border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.25)]";
-    default:
-      return "border-transparent hover:border-white/20";
+const tierStyles: Record<
+  GiftTier,
+  {
+    cardBase: string;
+    iconWrap: string;
+    dot: string;
+    activeRing: string;
   }
+> = {
+  common: {
+    cardBase: "bg-surface hover:bg-surface-soft border-border-subtle",
+    iconWrap: "bg-brand-50 text-brand-700 border border-brand-200/40",
+    dot: "bg-brand-400",
+    activeRing: "ring-brand-400/30 border-brand-400/60",
+  },
+  rare: {
+    cardBase: "bg-surface hover:bg-surface-soft border-border-subtle",
+    iconWrap:
+      "bg-extra-cyan-soft text-extra-cyan border border-extra-cyan-border/60",
+    dot: "bg-extra-cyan",
+    activeRing: "ring-extra-cyan/30 border-extra-cyan/70",
+  },
+  epic: {
+    cardBase: "bg-surface hover:bg-surface-soft border-border-subtle",
+    iconWrap:
+      "bg-extra-purple-soft text-extra-purple border border-extra-purple-border/60",
+    dot: "bg-extra-purple",
+    activeRing: "ring-extra-purple-ring/40 border-extra-purple/70",
+  },
+  legendary: {
+    cardBase: "bg-surface hover:bg-surface-soft border-border-subtle",
+    iconWrap:
+      "bg-warning-soft text-warning-foreground border border-warning-soft-border/80",
+    dot: "bg-warning-500",
+    activeRing: "ring-warning-soft-ring/40 border-warning-500/70",
+  },
+  mythic: {
+    cardBase: "bg-surface hover:bg-surface-soft border-border-subtle",
+    iconWrap:
+      "bg-gradient-to-br from-brand-400/20 to-extra-pink-soft text-foreground-strong border border-border-subtle",
+    dot: "bg-extra-pink",
+    activeRing: "ring-brand-400/25 border-brand-400/70",
+  },
 };
 
-const formatCompact = (n: number) => n.toLocaleString();
+function formatSenko(n: number) {
+  return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
 
-const msLeft = (iso?: string) => {
-  if (!iso) return null;
-  const left = new Date(iso).getTime() - Date.now();
-  return left;
-};
+// level indicator (very small + in header)
+function computeLevel(totalSentThisSession: number) {
+  // بسيطة ومشجّعة، بدون أي ذكر دولار
+  const thresholds = [0, 10_000, 50_000, 200_000, 750_000, 1_500_000];
+  const labels = ["LV.1", "LV.2", "LV.3", "LV.4", "LV.5", "LV.MAX"];
 
-const formatRemaining = (ms: number) => {
-  const sec = Math.max(0, Math.floor(ms / 1000));
-  const d = Math.floor(sec / 86400);
-  const h = Math.floor((sec % 86400) / 3600);
-  const m = Math.floor((sec % 3600) / 60);
+  let idx = 0;
+  for (let i = 0; i < thresholds.length; i++) {
+    if (totalSentThisSession >= thresholds[i]) idx = i;
+  }
+  return { label: labels[idx] };
+}
 
-  if (d > 0) return `${d}ي ${h}س`;
-  if (h > 0) return `${h}س ${m}د`;
-  return `${m}د`;
-};
+function targetMeta(t: SupportTargetType) {
+  switch (t) {
+    case "user":
+      return { label: "مستخدم", Icon: FaUser };
+    case "business":
+      return { label: "عمل", Icon: FaBuilding };
+    case "live":
+      return { label: "بث مباشر", Icon: FaBroadcastTower };
+    default:
+      return { label: "دعم", Icon: IoSparkles };
+  }
+}
 
 // ===================================
 // Component
@@ -267,767 +366,603 @@ const formatRemaining = (ms: number) => {
 export default function SenkoGiftModal({
   open,
   onOpenChange,
-  targetUser = MOCK_TARGET_USER,
+
+  target,
+  targetType,
+
   initialBalance = 1540,
-  ...props
+  topUpHref = "/wallet/topup",
+
+  onSendGift,
+
+  // DeModal props passthrough
+  overlay = "blur",
+  mode,
+  dir = "auto",
+  sheetDragMode = "binary",
+  sheetAutoFit = true,
+  closeOnBackdrop = true,
+  closeOnEsc = true,
+
+  panelClassName,
+  contentClassName,
+  ...rest
 }: SenkoGiftModalProps) {
-  // Wallet
+  const router = useRouter();
+
+  // wallet
   const [balance, setBalance] = useState(initialBalance);
 
-  // Selection
-  const [selectedGiftId, setSelectedGiftId] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
+  // selection
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [qty, setQty] = useState(1);
 
-  // UX
-  const [showHistory, setShowHistory] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  // New ideas
-  const [tab, setTab] = useState<GiftCategory>("all");
-  const [query, setQuery] = useState("");
-  const [sessionAura, setSessionAura] = useState(0);
-
-  // Favorites (local)
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const favoritesLoaded = useRef(false);
-
-  // History
+  // history
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
 
-  // Limited gifts countdown ticker
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setTick((x) => x + 1), 1000);
-    return () => clearInterval(t);
-  }, []);
+  // effects
+  const [sendingFx, setSendingFx] = useState<null | {
+    name: string;
+    qty: number;
+    Icon: IconType;
+  }>(null);
 
-  // Load favorites
-  useEffect(() => {
-    if (favoritesLoaded.current) return;
-    favoritesLoaded.current = true;
-
-    try {
-      const raw = localStorage.getItem("gift_favorites_v1");
-      if (raw) {
-        const arr: string[] = JSON.parse(raw);
-        setFavorites(new Set(arr));
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  // Save favorites
-  useEffect(() => {
-    if (!favoritesLoaded.current) return;
-    try {
-      localStorage.setItem(
-        "gift_favorites_v1",
-        JSON.stringify(Array.from(favorites)),
-      );
-    } catch {
-      // ignore
-    }
-  }, [favorites]);
-
-  const selectedGift = useMemo(
-    () => GIFT_ITEMS.find((g) => g.id === selectedGiftId),
-    [selectedGiftId],
+  const selected = useMemo(
+    () => BUNDLES.find((b) => b.id === selectedId) ?? null,
+    [selectedId],
   );
 
-  const totalCost = selectedGift ? selectedGift.cost * quantity : 0;
-  const totalAura = selectedGift ? selectedGift.aura * quantity : 0;
-  const canAfford = balance >= totalCost;
+  const totalCost = useMemo(
+    () => (selected ? selected.cost * qty : 0),
+    [selected, qty],
+  );
 
-  const filteredGifts = useMemo(() => {
-    const q = query.trim().toLowerCase();
+  const canAfford = selected ? balance >= totalCost : false;
 
-    const byTab = (g: GiftItem) => {
-      if (tab === "all") return true;
-      return g.category === tab;
-    };
+  const sessionSent = useMemo(
+    () => history.reduce((acc, h) => acc + h.totalCost, 0),
+    [history],
+  );
 
-    const byQuery = (g: GiftItem) => {
-      if (!q) return true;
-      return (
-        g.name.toLowerCase().includes(q) ||
-        g.tagline.toLowerCase().includes(q) ||
-        g.rarity.toLowerCase().includes(q)
-      );
-    };
+  const level = useMemo(() => computeLevel(sessionSent), [sessionSent]);
 
-    const notExpired = (g: GiftItem) => {
-      const left = msLeft(g.limitedUntil);
-      return left === null ? true : left > 0;
-    };
+  const meta = useMemo(() => targetMeta(targetType), [targetType]);
 
-    const list = GIFT_ITEMS.filter(
-      (g) => byTab(g) && byQuery(g) && notExpired(g),
-    );
+  const goTopUp = () => router.push(topUpHref);
 
-    // Favorites first (idea جديدة)
-    list.sort((a, b) => {
-      const af = favorites.has(a.id) ? 1 : 0;
-      const bf = favorites.has(b.id) ? 1 : 0;
-      if (af !== bf) return bf - af;
-      return a.cost - b.cost;
-    });
-
-    return list;
-  }, [tab, query, favorites, tick]);
-
-  const handleNavigateToShop = () => {
-    // TODO: اربطها بصفحة الشحن/المتجر عندك
-    console.log("Navigate to shop / top-up balance");
-  };
-
-  const handleGiftClick = (giftId: string) => {
-    if (selectedGiftId === giftId) {
-      // نفس فكرة الشعبية: الضغط على نفس الهدية يزيد الكومبو
-      setQuantity((prev) => Math.min(prev + 1, 99));
-    } else {
-      setSelectedGiftId(giftId);
-      setQuantity(1);
-    }
-  };
-
-  const adjustQuantity = (delta: number) => {
-    setQuantity((prev) => Math.max(1, Math.min(prev + delta, 999)));
-  };
-
-  const setQuickQty = (value: number) => {
-    setQuantity(Math.max(1, Math.min(value, 999)));
-  };
-
-  const toggleFavorite = (giftId: string) => {
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(giftId)) next.delete(giftId);
-      else next.add(giftId);
-      return next;
+  const onPick = (bundleId: string) => {
+    setSelectedId((prev) => {
+      if (prev === bundleId) {
+        setQty((q) => Math.min(99, q + 1));
+        return prev;
+      }
+      setQty(1);
+      return bundleId;
     });
   };
 
-  const handleSend = () => {
-    if (!selectedGift) return;
+  const setQuick = (n: number) => setQty(Math.max(1, Math.min(99, n)));
+
+  const send = async () => {
+    if (!selected) return;
 
     if (!canAfford) {
-      handleNavigateToShop();
+      goTopUp();
       return;
     }
 
-    setIsAnimating(true);
-    setBalance((prev) => prev - totalCost);
-    setSessionAura((prev) => prev + totalAura);
-
-    const newEntry: HistoryEntry = {
-      id: Date.now(),
-      giftId: selectedGift.id,
-      giftName: selectedGift.name,
-      giftIcon: selectedGift.icon,
-      quantity,
-      cost: totalCost,
-      aura: totalAura,
-      timestamp: "الآن",
-      isCombo: quantity > 1,
+    // optimistic UI
+    const payload = {
+      targetId: target.id,
+      targetType,
+      bundleId: selected.id,
+      quantity: qty,
+      totalCost,
     };
-    setHistory((prev) => [newEntry, ...prev]);
 
-    setTimeout(() => setIsAnimating(false), 850);
+    try {
+      await onSendGift?.(payload);
+    } catch {
+      // حتى لو فشل API عندك، UI ما نكبّره هنا
+      // الأفضل تربطه بتوست عندك
+    }
+
+    setBalance((b) => b - totalCost);
+
+    setHistory((prev) => [
+      {
+        id: Date.now(),
+        bundleId: selected.id,
+        bundleName: selected.name,
+        qty,
+        totalCost,
+        tsLabel: "الآن",
+      },
+      ...prev,
+    ]);
+
+    setSendingFx({ name: selected.name, qty, Icon: selected.Icon });
+    window.setTimeout(() => setSendingFx(null), 650);
   };
 
   // Reset on close
   useEffect(() => {
     if (!open) {
-      setTimeout(() => {
-        setSelectedGiftId(null);
-        setQuantity(1);
-        setShowHistory(false);
-        setQuery("");
-        setTab("all");
-      }, 250);
+      const t = window.setTimeout(() => {
+        setSelectedId(null);
+        setQty(1);
+        setHistoryOpen(false);
+        setSendingFx(null);
+        setBalance(initialBalance);
+        setHistory([]);
+      }, 220);
+      return () => window.clearTimeout(t);
     }
-  }, [open]);
+  }, [open, initialBalance]);
 
-  const auraProgress = useMemo(() => {
-    // فكرة جديدة بسيطة: “رتبة” داخل الجلسة حسب Aura
-    // غيّر thresholds حسب نظامك
-    const thresholds = [0, 250, 800, 2000, 5000, 12000];
-    const labels = ["مبتدئ", "داعِم", "مشعل", "أسطوري", "مجرة", "ميتافي"];
-    const idx =
-      thresholds.findIndex(
-        (t, i) => i < thresholds.length - 1 && sessionAura < thresholds[i + 1],
-      ) === -1
-        ? thresholds.length - 1
-        : thresholds.findIndex(
-            (t, i) =>
-              i < thresholds.length - 1 && sessionAura < thresholds[i + 1],
-          );
-
-    const currentMin = thresholds[idx];
-    const nextMin = thresholds[Math.min(idx + 1, thresholds.length - 1)];
-    const pct =
-      nextMin === currentMin
-        ? 100
-        : Math.min(
-            100,
-            Math.floor(
-              ((sessionAura - currentMin) / (nextMin - currentMin)) * 100,
-            ),
-          );
-
-    return { label: labels[idx], pct, nextMin };
-  }, [sessionAura]);
+  const slideFromX = dir === "rtl" ? "-100%" : "100%";
+  const backIconClass = dir === "rtl" ? "" : "rotate-180";
 
   return (
-    <Modal
+    <DeModal
       open={open}
       onOpenChange={onOpenChange}
-      title={null}
+      overlay={overlay}
+      mode={mode}
+      dir={dir}
+      preset="comments"
       contentPadding="none"
-      sheetDragMode="binary"
-      panelClassName="bg-[#0f1115] text-white h-[90vh] sm:h-[820px] w-full max-w-lg flex flex-col shadow-2xl overflow-hidden border border-white/5 rounded-t-3xl sm:rounded-3xl font-sans"
-      {...props}
+      sheetDragMode={sheetDragMode}
+      sheetAutoFit={sheetAutoFit}
+      closeOnBackdrop={closeOnBackdrop}
+      closeOnEsc={closeOnEsc}
+      panelClassName={[
+        // modal shell
+        "w-full max-w-lg h-[90vh] sm:h-[820px]",
+        "bg-background-elevated text-foreground",
+        "border border-border-subtle rounded-t-3xl sm:rounded-3xl overflow-hidden",
+        "shadow-[var(--shadow-elevated)]",
+        panelClassName ?? "",
+      ].join(" ")}
+      // IMPORTANT: prevent double scroll; we manage scroll inside
+      contentClassName={["p-0 overflow-hidden", contentClassName ?? ""].join(
+        " ",
+      )}
+      {...rest}
     >
-      <div className="flex flex-col h-full relative" dir="rtl">
+      <div className="relative h-full flex flex-col">
+        {/* Top subtle glow line */}
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-brand-400/40 to-transparent" />
+
         {/* =======================
-            HEADER
+            HEADER (short)
            ======================= */}
-        <div className="shrink-0 p-5 bg-[#16181d] border-b border-white/5 relative z-20 shadow-md">
-          <div className="flex items-start justify-between gap-4">
+        <div className="shrink-0 px-4 pt-4 pb-3 border-b border-border-subtle bg-background-elevated">
+          <div className="flex items-center justify-between gap-3">
             {/* Target */}
-            <div className="flex items-center gap-4">
-              <div className="relative group cursor-pointer">
-                <div className="absolute inset-0 bg-purple-600 rounded-full blur opacity-35 group-hover:opacity-55 transition-opacity" />
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 rounded-full blur-md opacity-40 bg-brand-400/40" />
                 <img
-                  src={targetUser.avatar}
-                  className="w-14 h-14 rounded-full border-2 border-purple-500 relative z-10 bg-[#0f1115]"
-                  alt={targetUser.name}
+                  src={target.avatarUrl}
+                  alt={target.name}
+                  className="relative z-10 size-11 rounded-full border border-border-subtle bg-surface"
                 />
-                <div className="absolute -bottom-1 -right-1 z-20 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg">
-                  LV.99
-                </div>
               </div>
 
-              <div className="flex flex-col">
-                <span className="text-xs text-gray-400 mb-0.5">
-                  إرسال هدايا
-                </span>
-                <span className="font-bold text-lg leading-none tracking-wide text-white">
-                  {targetUser.name}
-                </span>
-                <span className="text-[11px] text-purple-400 mt-1 flex items-center gap-1">
-                  <FaCrown className="text-[10px]" /> {targetUser.title}
-                </span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="font-extrabold text-foreground-strong truncate">
+                    {target.name}
+                  </div>
 
-                {/* Aura mini rank */}
-                <div className="mt-2 w-[220px] max-w-[55vw]">
-                  <div className="flex items-center justify-between text-[10px] text-gray-400 mb-1">
-                    <span className="flex items-center gap-1">
-                      <IoSparkles className="text-yellow-300" />
-                      رتبتك في الجلسة:{" "}
-                      <span className="text-white font-bold">
-                        {auraProgress.label}
-                      </span>
-                    </span>
-                    <span className="text-gray-500">{auraProgress.pct}%</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-black/40 border border-white/5 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-purple-600 to-blue-600"
-                      style={{ width: `${auraProgress.pct}%` }}
-                    />
-                  </div>
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] border border-border-subtle bg-surface-soft text-foreground-muted">
+                    <meta.Icon className="text-[11px]" />
+                    {meta.label}
+                  </span>
                 </div>
+
+                {target.subtitle ? (
+                  <div className="mt-0.5 text-[11px] text-foreground-muted truncate">
+                    {target.subtitle}
+                  </div>
+                ) : null}
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-col items-end gap-2">
-              <button
-                onClick={() => setShowHistory(true)}
-                className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-                title="سجل الهدايا"
-              >
-                <FaHistory />
-              </button>
-
-              <div className="flex items-center gap-2 bg-[#0a0b0e] pl-2 pr-3 py-1.5 rounded-full border border-white/10">
-                {CURRENCY.icon}
-                <span className="font-mono font-bold text-yellow-400 text-sm tracking-wider">
-                  {formatCompact(balance)}
-                </span>
-                <span className="text-[10px] text-yellow-300/90 font-semibold">
-                  {CURRENCY.nameEn}
-                </span>
+            {/* Actions: balance + history */}
+            <div className="flex flex-col items-end gap-1.5 shrink-0">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={goTopUp}
+                  className={[
+                    "h-10 px-3 rounded-2xl",
+                    "border border-border-subtle bg-surface-soft",
+                    "hover:bg-surface transition",
+                    "flex items-center gap-2",
+                  ].join(" ")}
+                  title="الرصيد"
+                >
+                  <IoFlash className="text-warning-500" />
+                  <bdi
+                    dir="ltr"
+                    className="font-mono font-extrabold tabular-nums text-foreground-strong"
+                  >
+                    {formatSenko(balance)}
+                  </bdi>
+                  <span className="text-[10px] text-foreground-muted">
+                    سينكو
+                  </span>
+                </button>
 
                 <button
-                  onClick={handleNavigateToShop}
-                  className="w-7 h-7 bg-yellow-500 hover:bg-yellow-400 text-black rounded-full flex items-center justify-center transition-colors mr-1"
-                  title="شحن الرصيد"
+                  type="button"
+                  onClick={() => setHistoryOpen(true)}
+                  className={[
+                    "size-10 rounded-2xl",
+                    "border border-border-subtle bg-surface-soft",
+                    "hover:bg-surface transition",
+                    "grid place-items-center",
+                  ].join(" ")}
+                  title="السجل"
+                  aria-label="السجل"
                 >
-                  <IoAdd className="text-sm font-bold" />
+                  <FaHistory className="text-foreground-strong" />
                 </button>
               </div>
-            </div>
-          </div>
 
-          {/* Search + Tabs */}
-          <div className="mt-4 flex items-center gap-2">
-            <div className="flex-1 flex items-center gap-2 bg-[#0a0b0e] border border-white/10 rounded-xl px-3 py-2">
-              <IoSearch className="text-gray-400" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="ابحث عن هدية…"
-                className="w-full bg-transparent outline-none text-sm placeholder:text-gray-500"
-              />
+              {/* Current level indicator (tiny) */}
+              <div className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] border border-border-subtle bg-surface-soft text-foreground-muted">
+                <IoSparkles className="text-brand-500" />
+                <span className="font-semibold">{level.label}</span>
+              </div>
             </div>
-          </div>
-
-          <div className="mt-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {[
-              { key: "all", label: "الكل" },
-              { key: "stickers", label: "ملصقات" },
-              { key: "power", label: "طاقة" },
-              { key: "scene", label: "مشاهد" },
-              { key: "legendary", label: "أسطوري" },
-            ].map((t) => {
-              const active = tab === (t.key as GiftCategory);
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => setTab(t.key as GiftCategory)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors whitespace-nowrap
-                    ${
-                      active
-                        ? "bg-white/10 border-white/15 text-white"
-                        : "bg-black/30 border-white/5 text-gray-400 hover:text-white hover:border-white/10"
-                    }`}
-                >
-                  {t.label}
-                </button>
-              );
-            })}
           </div>
         </div>
 
         {/* =======================
-            BODY
+            BODY (packages)
            ======================= */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 bg-[#0f1115] relative">
-          {/* Send Animation Overlay */}
-          <AnimatePresence>
-            {isAnimating && selectedGift && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.86, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 1.15, filter: "blur(10px)" }}
-                className="absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-none bg-black/60 backdrop-blur-sm"
-              >
-                <div className="relative">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="absolute inset-0 -m-10 border-2 border-dashed border-purple-500/30 rounded-full"
-                  />
-                  <div className="text-9xl mb-4 drop-shadow-[0_0_30px_rgba(168,85,247,0.6)]">
-                    {selectedGift.icon}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <h2 className="text-4xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 drop-shadow-lg">
-                    GIFT x{quantity}
-                  </h2>
-                  <p className="text-white/80 font-medium mt-2">
-                    تم الإرسال إلى {targetUser.name}
-                  </p>
-                  <p className="text-[11px] text-yellow-200/80 mt-2">
-                    +{formatCompact(totalAura)} Aura
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Grid */}
-          {filteredGifts.length === 0 ? (
-            <div className="h-[60%] flex flex-col items-center justify-center text-center">
-              <div className="w-24 h-24 mb-6 bg-[#181a20] rounded-full flex items-center justify-center border-2 border-dashed border-gray-700">
-                <IoSearch className="text-4xl text-gray-600" />
-              </div>
-              <h4 className="text-xl font-bold text-white mb-2">
-                ما لقينا شيء
-              </h4>
-              <p className="text-gray-400 text-sm max-w-[260px] leading-relaxed">
-                جرّب كلمة مختلفة أو غيّر التصنيف.
+        <div className="relative flex-1 min-h-0 overflow-y-auto app-scroll">
+          {/* micro note (short + meaningful) */}
+          <div className="px-4 pt-3">
+            <div className="rounded-2xl border border-border-subtle bg-surface-soft px-3 py-2 text-[12px] text-foreground-muted flex items-start gap-2">
+              <IoSparkles className="mt-0.5 text-brand-500 shrink-0" />
+              <p className="leading-relaxed">
+                دعمك يصنع فرقًا ويعطي دفعة حقيقية للمبدعين والأعمال لإنتاج محتوى
+                أفضل واستمرارية أقوى.
               </p>
             </div>
-          ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pb-44">
-              {filteredGifts.map((gift) => {
-                const isActive = selectedGiftId === gift.id;
-                const isFav = favorites.has(gift.id);
-                const left = msLeft(gift.limitedUntil);
-                const isLimited = left !== null;
-                const limitedText =
-                  left !== null ? formatRemaining(left) : null;
+          </div>
+
+          {/* packages grid */}
+          <div className={["p-4", selected ? "pb-28" : "pb-6"].join(" ")}>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              {BUNDLES.map((b, idx) => {
+                const active = b.id === selectedId;
+                const s = tierStyles[b.tier];
+                const tooExpensiveForSingle = balance < b.cost;
 
                 return (
-                  <button
-                    key={gift.id}
-                    onClick={() => handleGiftClick(gift.id)}
-                    className={`
-                      relative group flex flex-col items-center p-3 rounded-2xl border-2 transition-all duration-200
-                      ${
-                        isActive
-                          ? `${getRarityTheme(gift.rarity)} -translate-y-1 bg-[#23262f]`
-                          : "bg-[#181a20] border-transparent hover:bg-[#23262f] hover:border-white/5"
-                      }
-                    `}
+                  <motion.button
+                    key={b.id}
+                    type="button"
+                    onClick={() => onPick(b.id)}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.18,
+                      delay: Math.min(0.18, idx * 0.006),
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    className={[
+                      "relative rounded-2xl border p-3 text-center",
+                      "transition-[transform,box-shadow,background,border] duration-200",
+                      s.cardBase,
+                      active
+                        ? ["ring-2", s.activeRing, "bg-background"].join(" ")
+                        : "ring-0",
+                    ].join(" ")}
                   >
-                    {/* Fav */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(gift.id);
-                      }}
-                      className="absolute top-2 left-2 w-8 h-8 rounded-full bg-black/40 border border-white/10 flex items-center justify-center hover:bg-black/55"
-                      title={isFav ? "إزالة من المفضلة" : "إضافة للمفضلة"}
-                    >
-                      {isFav ? (
-                        <IoStar className="text-yellow-300" />
-                      ) : (
-                        <IoStarOutline className="text-gray-300/70" />
-                      )}
-                    </button>
+                    {/* tier dot */}
+                    <span
+                      className={[
+                        "absolute top-2 start-2 size-2 rounded-full",
+                        s.dot,
+                        "opacity-80",
+                      ].join(" ")}
+                    />
 
-                    {/* Limited Badge */}
-                    {isLimited && (
-                      <div className="absolute top-2 right-2 flex items-center gap-1 bg-red-500/15 border border-red-500/25 text-red-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        <IoTimeOutline className="text-[12px]" />
-                        {limitedText}
-                      </div>
-                    )}
+                    {/* not enough for 1x (still selectable) */}
+                    {tooExpensiveForSingle ? (
+                      <span className="absolute top-2 end-2 rounded-full px-2 py-0.5 text-[10px] border border-danger-500/30 bg-danger-soft text-danger-foreground">
+                        غير كافٍ
+                      </span>
+                    ) : null}
 
                     {/* Icon */}
                     <div
-                      className={`text-4xl mb-3 transition-transform duration-300 ${
-                        isActive
-                          ? "scale-110 drop-shadow-lg"
-                          : "grayscale-[0.25] group-hover:grayscale-0"
-                      }`}
+                      className={[
+                        "mx-auto mb-2 grid place-items-center",
+                        "size-12 rounded-2xl",
+                        s.iconWrap,
+                      ].join(" ")}
                     >
-                      {gift.icon}
+                      <b.Icon className="text-[20px]" />
                     </div>
 
                     {/* Name */}
-                    <span
-                      className={`text-[11px] font-bold text-center w-full truncate mb-1 ${
-                        isActive ? "text-white" : "text-gray-300/80"
-                      }`}
-                    >
-                      {gift.name}
-                    </span>
+                    <div className="text-[11px] font-bold text-foreground-strong truncate">
+                      {b.name}
+                    </div>
 
                     {/* Cost */}
-                    <div
-                      className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                        isActive
-                          ? "bg-yellow-500/20 text-yellow-400"
-                          : "text-gray-500 bg-black/20"
-                      }`}
-                    >
-                      <IoFlash />
-                      {gift.cost}{" "}
-                      <span className="opacity-80">{CURRENCY.code}</span>
+                    <div className="mt-1 text-[10px] text-foreground-muted">
+                      <bdi
+                        dir="ltr"
+                        className="font-mono font-extrabold tabular-nums text-foreground-strong"
+                      >
+                        {formatSenko(b.cost)}
+                      </bdi>{" "}
+                      <span className="opacity-80">سينكو</span>
                     </div>
 
-                    {/* Aura */}
-                    <div className="mt-2 text-[10px] text-purple-200/80 bg-purple-500/10 border border-purple-500/15 px-2 py-0.5 rounded-full">
-                      +{gift.aura} Aura
-                    </div>
-
-                    {/* Quantity badge */}
-                    {isActive && quantity > 1 && (
-                      <div className="absolute -bottom-2 right-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm border border-blue-400/40">
-                        x{quantity}
+                    {/* Quantity badge for active */}
+                    {active && qty > 1 ? (
+                      <div className="absolute -bottom-2 end-2 rounded-full px-2 py-0.5 text-[10px] font-extrabold border border-border-subtle bg-surface shadow-[var(--shadow-sm)]">
+                        x<bdi dir="ltr">{qty}</bdi>
                       </div>
-                    )}
-                  </button>
+                    ) : null}
+                  </motion.button>
                 );
               })}
             </div>
-          )}
+          </div>
+
+          {/* Send FX overlay */}
+          <AnimatePresence>
+            {sendingFx ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-30 grid place-items-center bg-black/45 backdrop-blur-sm pointer-events-none"
+              >
+                <motion.div
+                  initial={{ scale: 0.92, y: 10 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 1.04, y: -6, opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                  className="rounded-3xl border border-white/10 bg-background-elevated px-6 py-5 shadow-[var(--shadow-xl)] text-center"
+                >
+                  <div className="mx-auto mb-2 size-14 rounded-3xl bg-gradient-to-br from-brand-400/20 to-extra-purple-soft grid place-items-center">
+                    <sendingFx.Icon className="text-[26px]" />
+                  </div>
+                  <div className="text-sm font-extrabold text-foreground-strong">
+                    تم الإرسال
+                    <span className="ms-2 text-brand-500">
+                      x<bdi dir="ltr">{sendingFx.qty}</bdi>
+                    </span>
+                  </div>
+                  <div className="mt-1 text-[11px] text-foreground-muted truncate max-w-[240px]">
+                    {sendingFx.name}
+                  </div>
+                </motion.div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </div>
 
         {/* =======================
-            FOOTER: Selected + Controls
+            FOOTER (appears only on selection)
            ======================= */}
-        <div className="absolute bottom-0 left-0 right-0 bg-[#16181d] border-t border-white/5 z-30">
-          {/* Selected Preview */}
-          <div className="px-4 pt-4">
-            <div className="rounded-2xl bg-[#0a0b0e] border border-white/10 p-3">
-              {!selectedGift ? (
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-400">
-                    اختر هدية… وخلّها تنكتب في السجل ✨
-                  </div>
-                  <div className="text-[10px] text-gray-500">
-                    العملة:{" "}
-                    <span className="text-yellow-300 font-bold">
-                      {CURRENCY.nameEn}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-[#181a20] border border-white/5 flex items-center justify-center text-2xl">
-                      {selectedGift.icon}
-                    </div>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-white">
-                          {selectedGift.name}
-                        </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-gray-300">
-                          {selectedGift.rarity.toUpperCase()}
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-gray-400 mt-1 leading-relaxed">
-                        {selectedGift.tagline}
-                      </span>
-                      <div className="mt-2 flex items-center gap-2 text-[11px]">
-                        <span className="text-yellow-300 font-bold">
-                          {formatCompact(selectedGift.cost)} {CURRENCY.code}
-                        </span>
-                        <span className="text-gray-500">×</span>
-                        <span className="text-white font-bold">{quantity}</span>
-                        <span className="text-gray-500">=</span>
-                        <span className="text-yellow-200 font-extrabold">
-                          {formatCompact(totalCost)} {CURRENCY.code}
-                        </span>
-                        <span className="text-gray-600">|</span>
-                        <span className="text-purple-200/90">
-                          +{formatCompact(totalAura)} Aura
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quick qty */}
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="flex items-center gap-1">
-                      {[1, 5, 10].map((n) => (
-                        <button
-                          key={n}
-                          onClick={() => setQuickQty(n)}
-                          className={`px-2 py-1 rounded-lg text-[10px] font-bold border transition-colors
-                            ${
-                              quantity === n
-                                ? "bg-white/10 border-white/15 text-white"
-                                : "bg-black/25 border-white/5 text-gray-400 hover:text-white hover:border-white/10"
-                            }`}
-                        >
-                          x{n}
-                        </button>
-                      ))}
-                      <button
-                        onClick={() => setQuickQty(99)}
-                        className={`px-2 py-1 rounded-lg text-[10px] font-bold border transition-colors
-                          ${
-                            quantity === 99
-                              ? "bg-white/10 border-white/15 text-white"
-                              : "bg-black/25 border-white/5 text-gray-400 hover:text-white hover:border-white/10"
-                          }`}
-                        title="أقصى كومبو سريع"
-                      >
-                        MAX
-                      </button>
-                    </div>
-
-                    <div className="flex items-center bg-black/25 border border-white/10 rounded-xl px-1">
-                      <button
-                        onClick={() => adjustQuantity(-1)}
-                        className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-white active:scale-90 transition-transform"
-                        title="تقليل"
-                      >
-                        <IoRemove />
-                      </button>
-                      <div className="w-10 text-center font-bold text-lg text-white font-mono">
-                        {quantity}
-                      </div>
-                      <button
-                        onClick={() => adjustQuantity(1)}
-                        className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-white active:scale-90 transition-transform"
-                        title="زيادة"
-                      >
-                        <IoAdd />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Send Button */}
-          <div className="p-4 pt-3">
-            <button
-              disabled={!selectedGift}
-              onClick={handleSend}
-              className={`w-full h-14 rounded-2xl font-bold text-base flex flex-col items-center justify-center gap-0.5 shadow-lg transition-all active:scale-95 overflow-hidden relative
-                ${
-                  !selectedGift
-                    ? "bg-[#23262f] text-gray-600 cursor-not-allowed border border-white/5"
-                    : !canAfford
-                      ? "bg-gradient-to-r from-red-900 to-red-700 text-red-100 border border-red-500/30 hover:brightness-110"
-                      : "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-purple-500/25 hover:shadow-purple-500/40 border border-purple-400/20"
-                }
-              `}
+        <AnimatePresence>
+          {selected ? (
+            <motion.div
+              initial={{ y: 80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 80, opacity: 0 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="absolute inset-x-0 bottom-0 z-20 border-t border-border-subtle bg-background-elevated/95 backdrop-blur-md"
             >
-              {!selectedGift ? (
-                <span className="flex items-center gap-2 text-sm">
-                  اختر هدية للبدء
-                </span>
-              ) : !canAfford ? (
-                <>
-                  <span className="flex items-center gap-2">
-                    شحن رصيد {CURRENCY.nameAr}{" "}
-                    <IoCartOutline className="text-lg" />
-                  </span>
-                  <span className="text-[10px] opacity-85 font-normal">
-                    تحتاج{" "}
-                    <span className="font-bold text-yellow-200">
-                      {formatCompact(totalCost - balance)} {CURRENCY.nameAr}
-                    </span>{" "}
-                    إضافية
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="flex items-center gap-2 text-lg">
-                    إرسال الهدية
-                    {quantity > 1 && (
-                      <span className="text-yellow-300 italic">
-                        x{quantity}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-[10px] bg-black/20 px-2 rounded-full text-white/90">
-                    المجموع: {formatCompact(totalCost)} {CURRENCY.code} • +
-                    {formatCompact(totalAura)} Aura
-                  </span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+              <div className="px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
+                <div className="flex items-stretch gap-3">
+                  {/* Send */}
+                  <button
+                    type="button"
+                    onClick={send}
+                    className={[
+                      "flex-1 rounded-2xl px-4 py-3",
+                      "border transition active:scale-[0.99]",
+                      "shadow-[var(--shadow-md)]",
+                      canAfford
+                        ? "border-brand-400/25 bg-gradient-to-r from-brand-500 to-brand-700 text-accent-foreground hover:brightness-110"
+                        : "border-danger-500/30 bg-gradient-to-r from-danger-700 to-danger-500 text-danger-foreground hover:brightness-110",
+                    ].join(" ")}
+                  >
+                    <div className="flex items-center justify-center gap-2 font-extrabold">
+                      {canAfford ? (
+                        <>
+                          إرسال
+                          <span className="opacity-90">
+                            x<bdi dir="ltr">{qty}</bdi>
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          شحن رصيد
+                          <IoCartOutline className="text-lg" />
+                        </>
+                      )}
+                    </div>
+
+                    <div className="mt-1 text-center text-[11px] opacity-90">
+                      {canAfford ? (
+                        <>
+                          المجموع:{" "}
+                          <bdi
+                            dir="ltr"
+                            className="font-mono font-extrabold tabular-nums"
+                          >
+                            {formatSenko(totalCost)}
+                          </bdi>{" "}
+                          سينكو
+                        </>
+                      ) : (
+                        <>
+                          المطلوب:{" "}
+                          <bdi
+                            dir="ltr"
+                            className="font-mono font-extrabold tabular-nums"
+                          >
+                            {formatSenko(Math.max(0, totalCost - balance))}
+                          </bdi>{" "}
+                          سينكو
+                        </>
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Multipliers (ONLY 3) */}
+                  <div className="w-[92px] flex flex-col gap-2">
+                    {[
+                      { label: "x10", value: 10 },
+                      { label: "x25", value: 25 },
+                      { label: "MAX", value: 99 },
+                    ].map((m) => {
+                      const active = qty === m.value;
+                      return (
+                        <button
+                          key={m.label}
+                          type="button"
+                          onClick={() => setQuick(m.value)}
+                          className={[
+                            "h-11 rounded-2xl text-xs font-extrabold",
+                            "border transition active:scale-[0.98]",
+                            active
+                              ? "bg-surface border-brand-400/50 ring-2 ring-brand-400/20 text-foreground-strong"
+                              : "bg-surface-soft border-border-subtle text-foreground-muted hover:bg-surface",
+                          ].join(" ")}
+                        >
+                          {m.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
 
         {/* =======================
             HISTORY OVERLAY
            ======================= */}
         <AnimatePresence>
-          {showHistory && (
+          {historyOpen ? (
             <motion.div
-              initial={{ x: "100%" }}
+              initial={{ x: slideFromX }}
               animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="absolute inset-0 z-50 bg-[#0f1115] flex flex-col"
+              exit={{ x: slideFromX }}
+              transition={{ type: "spring", stiffness: 320, damping: 34 }}
+              className="absolute inset-0 z-40 bg-background flex flex-col"
             >
-              <div className="shrink-0 flex items-center gap-3 p-4 border-b border-white/5 bg-[#16181d]">
-                <button
-                  onClick={() => setShowHistory(false)}
-                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
-                >
-                  <IoChevronForward className="text-xl rotate-180 text-white" />
-                </button>
-                <div className="flex flex-col">
-                  <h3 className="font-bold text-lg text-white">سجل الهدايا</h3>
-                  <span className="text-[11px] text-gray-400">
-                    رصيدك الحالي:{" "}
-                    <span className="text-yellow-300 font-bold">
-                      {formatCompact(balance)} {CURRENCY.code}
-                    </span>{" "}
-                    • Aura في الجلسة:{" "}
-                    <span className="text-purple-200 font-bold">
-                      {formatCompact(sessionAura)}
+              <div className="shrink-0 px-4 py-4 border-b border-border-subtle bg-background-elevated">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setHistoryOpen(false)}
+                      className="size-10 rounded-2xl border border-border-subtle bg-surface-soft hover:bg-surface transition grid place-items-center"
+                      aria-label="رجوع"
+                    >
+                      <IoChevronForward
+                        className={["text-xl", backIconClass].join(" ")}
+                      />
+                    </button>
+
+                    <div className="flex flex-col">
+                      <div className="font-extrabold text-foreground-strong">
+                        السجل
+                      </div>
+                      <div className="text-[11px] text-foreground-muted">
+                        الرصيد:{" "}
+                        <bdi
+                          dir="ltr"
+                          className="font-mono font-extrabold tabular-nums text-foreground-strong"
+                        >
+                          {formatSenko(balance)}
+                        </bdi>{" "}
+                        سينكو
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="inline-flex items-center gap-2 rounded-2xl px-3 py-2 border border-border-subtle bg-surface-soft">
+                    <IoFlash className="text-warning-500" />
+                    <span className="text-[11px] font-bold text-foreground-muted">
+                      مستواك:{" "}
+                      <span className="text-foreground-strong">
+                        {level.label}
+                      </span>
                     </span>
-                  </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto app-scroll p-4">
                 {history.length === 0 ? (
-                  <div
-                    className="flex flex-col items-center justify-center h-[70%] text-center opacity-0 animate-fade-in"
-                    style={{ animationFillMode: "forwards" }}
-                  >
-                    <div className="w-24 h-24 mb-6 bg-[#181a20] rounded-full flex items-center justify-center border-2 border-dashed border-gray-700">
-                      <IoTimeOutline className="text-5xl text-gray-600" />
+                  <div className="h-[70%] grid place-items-center text-center">
+                    <div className="rounded-3xl border border-border-subtle bg-surface-soft px-5 py-6 max-w-[320px]">
+                      <div className="mx-auto mb-3 size-14 rounded-3xl bg-brand-50 border border-brand-200/40 grid place-items-center">
+                        <IoSparkles className="text-2xl text-brand-600" />
+                      </div>
+                      <div className="font-extrabold text-foreground-strong">
+                        السجل فارغ
+                      </div>
+                      <div className="mt-1 text-[12px] text-foreground-muted">
+                        اختر حزمة وابدأ دعمك — تأثيره يبان فورًا.
+                      </div>
                     </div>
-                    <h4 className="text-xl font-bold text-white mb-2">
-                      السجل فارغ!
-                    </h4>
-                    <p className="text-gray-400 text-sm max-w-[250px] leading-relaxed">
-                      أول هدية منك بتصير “لحظة” في المجتمع.
-                      <br />
-                      <span className="text-purple-400">
-                        اختار هدية وابدأ 👑
-                      </span>
-                    </p>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">
-                    {history.map((item) => (
+                    {history.map((h) => (
                       <div
-                        key={item.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-[#181a20] border border-white/5 hover:border-white/10 transition-colors"
+                        key={h.id}
+                        className="rounded-2xl border border-border-subtle bg-surface px-4 py-3 flex items-center justify-between gap-3"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-lg bg-[#23262f] flex items-center justify-center text-2xl shadow-inner">
-                            {item.giftIcon}
+                        <div className="min-w-0">
+                          <div className="font-bold text-foreground-strong truncate">
+                            {h.bundleName}{" "}
+                            <span className="text-brand-500">
+                              x<bdi dir="ltr">{h.qty}</bdi>
+                            </span>
                           </div>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-bold text-white flex items-center gap-2">
-                              {item.giftName}{" "}
-                              {item.quantity > 1 && (
-                                <span className="text-[10px] bg-blue-500/15 text-blue-200 border border-blue-500/20 px-2 rounded-full">
-                                  x{item.quantity}
-                                </span>
-                              )}
-                              {item.isCombo && (
-                                <span className="text-[9px] bg-red-500/15 text-red-200 border border-red-500/20 px-1.5 rounded">
-                                  COMBO
-                                </span>
-                              )}
-                            </span>
-                            <span className="text-[10px] text-gray-500">
-                              {item.timestamp} • +{formatCompact(item.aura)}{" "}
-                              Aura
-                            </span>
+                          <div className="text-[11px] text-foreground-muted">
+                            {h.tsLabel}
                           </div>
                         </div>
 
-                        <span className="font-mono font-bold text-red-300 text-sm">
-                          -{formatCompact(item.cost)} {CURRENCY.code}
-                        </span>
+                        <div className="shrink-0 text-right">
+                          <div className="text-[11px] text-foreground-muted">
+                            الإجمالي
+                          </div>
+                          <div className="font-mono font-extrabold tabular-nums text-danger-foreground">
+                            -<bdi dir="ltr">{formatSenko(h.totalCost)}</bdi>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             </motion.div>
-          )}
+          ) : null}
         </AnimatePresence>
       </div>
-    </Modal>
+    </DeModal>
   );
 }

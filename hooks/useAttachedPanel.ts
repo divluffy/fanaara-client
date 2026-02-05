@@ -2,40 +2,63 @@
 
 import * as React from "react";
 
-type Dir = "rtl" | "ltr";
+export type Dir = "rtl" | "ltr";
 
-type Options = {
+export type AttachedPanelOptions = {
   dir: Dir;
-  panelWidth?: number; // default 350
-  overlapPx?: number;  // default 1 (يغطي border بين aside والpanel)
+  panelWidth?: number; // default 360
+  overlapPx?: number; // default 1
+  screenPaddingPx?: number; // default 12
   closeOnEscape?: boolean;
 };
 
-type PanelPos = {
+export type AttachedPanelPosition = {
   top: number;
   left: number;
   height: number;
   width: number;
 };
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function samePos(a: AttachedPanelPosition, b: AttachedPanelPosition) {
+  return (
+    a.top === b.top &&
+    a.left === b.left &&
+    a.height === b.height &&
+    a.width === b.width
+  );
+}
+
 export function useAttachedPanel({
   dir,
-  panelWidth = 350,
+  panelWidth = 360,
   overlapPx = 1,
+  screenPaddingPx = 12,
   closeOnEscape = true,
-}: Options) {
+}: AttachedPanelOptions) {
   const [open, setOpen] = React.useState(false);
 
-  // anchor: aside نفسه (لأننا نريد الالتصاق الحقيقي)
-  const asideRef = React.useRef<HTMLElement | null>(null);
+  // The element the panel attaches to (aside)
+  const anchorRef = React.useRef<HTMLElement | null>(null);
 
-  // trigger: فقط زر الإشعارات (أو wrapper له) حتى لا يُغلق عند الضغط عليه
+  // The element that toggles the panel (notifications item wrapper/button)
   const triggerRef = React.useRef<HTMLElement | null>(null);
 
-  // panel
+  // The panel itself
   const panelRef = React.useRef<HTMLDivElement | null>(null);
 
-  const [pos, setPos] = React.useState<PanelPos>(() => ({
+  const setAnchorRef = React.useCallback((node: HTMLElement | null) => {
+    anchorRef.current = node;
+  }, []);
+
+  const setTriggerRef = React.useCallback((node: HTMLElement | null) => {
+    triggerRef.current = node;
+  }, []);
+
+  const [pos, setPos] = React.useState<AttachedPanelPosition>(() => ({
     top: 0,
     left: 0,
     height: 0,
@@ -43,49 +66,79 @@ export function useAttachedPanel({
   }));
 
   const close = React.useCallback(() => setOpen(false), []);
-  const toggle = React.useCallback(() => setOpen((p) => !p), []);
 
-  const rafMeasure = React.useRef<number | null>(null);
+  const rafMeasureId = React.useRef<number | null>(null);
 
   const measure = React.useCallback(() => {
-    const aside = asideRef.current;
-    if (!aside) return;
+    const anchor = anchorRef.current;
+    if (!anchor) return;
 
-    const rect = aside.getBoundingClientRect();
-    const width = panelWidth;
+    const rect = anchor.getBoundingClientRect();
 
-    const top = Math.round(rect.top);
-    const height = Math.round(rect.height);
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
 
-    // LTR: panel على يمين aside
-    // RTL: panel على يسار aside
+    // Width clamps to available viewport space
+    const maxWidth = Math.max(0, viewportW - screenPaddingPx * 2);
+    const width = clamp(panelWidth, 0, maxWidth);
+
+    // Top/height clamps to viewport
+    const rawTop = Math.round(rect.top);
+    const top = clamp(
+      rawTop,
+      screenPaddingPx,
+      Math.max(screenPaddingPx, viewportH - screenPaddingPx),
+    );
+
+    const maxHeight = Math.max(0, viewportH - top - screenPaddingPx);
+    const height = clamp(Math.round(rect.height), 0, maxHeight);
+
+    // LTR: panel on the right of anchor
+    // RTL: panel on the left of anchor
     const rawLeft =
       dir === "rtl"
         ? Math.round(rect.left - width + overlapPx)
         : Math.round(rect.right - overlapPx);
 
-    // clamp (احتياطي لو الشاشة ضيقة)
-    const maxLeft = Math.max(0, window.innerWidth - width);
-    const left = Math.min(Math.max(0, rawLeft), maxLeft);
+    const left = clamp(
+      rawLeft,
+      screenPaddingPx,
+      Math.max(screenPaddingPx, viewportW - width - screenPaddingPx),
+    );
 
-    setPos({ top, left, height, width });
-  }, [dir, panelWidth, overlapPx]);
+    const next = { top, left, height, width };
+    setPos((prev) => (samePos(prev, next) ? prev : next));
+  }, [dir, overlapPx, panelWidth, screenPaddingPx]);
 
   const scheduleMeasure = React.useCallback(() => {
-    if (rafMeasure.current != null) return;
-    rafMeasure.current = window.requestAnimationFrame(() => {
-      rafMeasure.current = null;
+    if (rafMeasureId.current != null) return;
+
+    rafMeasureId.current = window.requestAnimationFrame(() => {
+      rafMeasureId.current = null;
       measure();
     });
   }, [measure]);
 
-  // قياس أولي + عند تغيير dir/عرض
+  const openPanel = React.useCallback(() => {
+    scheduleMeasure();
+    setOpen(true);
+  }, [scheduleMeasure]);
+
+  const toggle = React.useCallback(() => {
+    setOpen((prev) => {
+      const next = !prev;
+      if (!prev && next) scheduleMeasure(); // measure when opening
+      return next;
+    });
+  }, [scheduleMeasure]);
+
+  // Keep next open position correct when dir/width changes
   React.useLayoutEffect(() => {
     scheduleMeasure();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dir, panelWidth]);
 
-  // أثناء الفتح: راقب resize/scroll/تغير حجم aside
+  // While open: follow resize/scroll/layout changes
   React.useEffect(() => {
     if (!open) return;
 
@@ -95,11 +148,10 @@ export function useAttachedPanel({
     const onScroll = () => scheduleMeasure();
 
     window.addEventListener("resize", onResize);
-    // true حتى يلتقط scroll داخل أي container
     window.addEventListener("scroll", onScroll, true);
 
     const ro = new ResizeObserver(() => scheduleMeasure());
-    if (asideRef.current) ro.observe(asideRef.current);
+    if (anchorRef.current) ro.observe(anchorRef.current);
 
     return () => {
       window.removeEventListener("resize", onResize);
@@ -108,17 +160,16 @@ export function useAttachedPanel({
     };
   }, [open, measure, scheduleMeasure]);
 
-  // click outside + escape (بدون كسر تفاعل الضغط بالخارج)
+  // Outside click + Escape
   React.useEffect(() => {
     if (!open) return;
 
-    let rafClose: number | null = null;
+    let rafCloseId: number | null = null;
 
     const scheduleClose = () => {
-      if (rafClose != null) return;
-      // يغلق بعد ما التفاعل ينفذ طبيعي
-      rafClose = window.requestAnimationFrame(() => {
-        rafClose = null;
+      if (rafCloseId != null) return;
+      rafCloseId = window.requestAnimationFrame(() => {
+        rafCloseId = null;
         close();
       });
     };
@@ -134,16 +185,12 @@ export function useAttachedPanel({
 
       const insidePanel =
         !!panel && (path.includes(panel) || panel.contains(target));
-      const insideTrigger =
-        !!trigger && (path.includes(trigger) || trigger.contains(target));
-
-      // داخل panel: لا تغلق
       if (insidePanel) return;
 
-      // ضغط على trigger: لا تعتبره خارج (الزر نفسه مسؤول عن toggle)
+      const insideTrigger =
+        !!trigger && (path.includes(trigger) || trigger.contains(target));
       if (insideTrigger) return;
 
-      // أي مكان آخر (حتى داخل aside أو داخل الصفحة): اغلق
       scheduleClose();
     };
 
@@ -158,16 +205,17 @@ export function useAttachedPanel({
     return () => {
       document.removeEventListener("pointerdown", onPointerDownCapture, true);
       document.removeEventListener("keydown", onKeyDown);
-      if (rafClose != null) cancelAnimationFrame(rafClose);
+      if (rafCloseId != null) cancelAnimationFrame(rafCloseId);
     };
   }, [open, close, closeOnEscape]);
 
   return {
     open,
+    openPanel,
     toggle,
     close,
-    asideRef,
-    triggerRef,
+    setAnchorRef,
+    setTriggerRef,
     panelRef,
     panelStyle: pos,
   };

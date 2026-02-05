@@ -1,4 +1,4 @@
-// layout\PublicLayout.tsx
+// layout/PublicLayout.tsx
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode } from "react";
@@ -33,9 +33,7 @@ export default async function PublicLayout({
           sizes="100vw"
           className="object-cover object-center"
         />
-        {/* Overlay for readability on all devices */}
         <div className="absolute inset-0 bg-black/60 md:bg-black/50" />
-        {/* Optional subtle gradient for nicer look */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70" />
       </div>
 
@@ -52,9 +50,7 @@ export default async function PublicLayout({
         </div>
       </nav>
 
-      {/* Content spacing for all screens */}
-      <main className="pt-20 md:pt-24 overflow-y-auto">
-        {/* Keep auth pages centered & responsive without forcing a specific width */}
+      <main className="pt-20 md:pt-24">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
           {children}
         </div>

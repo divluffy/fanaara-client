@@ -70,7 +70,22 @@ export const api = createApi({
   }),
   refetchOnFocus: false, // نوقف الطلبات عند التركيز
   refetchOnReconnect: true,
-  tagTypes: ["Me", "Programs", "Permissions", "Roles", "Applications"],
+  tagTypes: [
+    "Me",
+    "Programs",
+    "Permissions",
+    "Roles",
+    "Applications",
+
+    // ✅ Creator Comics
+  "CreatorWorks",
+  "CreatorWork",
+  "CreatorChapter",
+  "CreatorDraft",
+  "CreatorPages",
+  "CreatorAnalysisJob",
+  "CreatorAnnotations",
+  ],
   endpoints: (builder) => ({
     // --- Auth ---
 

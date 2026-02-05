@@ -13,7 +13,8 @@ const LoggedLayout = ({ children }: { children: React.ReactNode }) => {
       </Link>{" "}
       <Link className="px-2 mx-2 bg-amber-100" href="/playground/icon-buttons">
         icon-buttons
-      </Link>      <Link className="px-2 mx-2 bg-amber-100" href="/playground/de-btn">
+      </Link>{" "}
+      <Link className="px-2 mx-2 bg-amber-100" href="/playground/de-btn">
         de btn
       </Link>
       <Link className="px-2 mx-2 bg-amber-100" href="/playground/image">
@@ -21,22 +22,38 @@ const LoggedLayout = ({ children }: { children: React.ReactNode }) => {
       </Link>{" "}
       <Link className="px-2 mx-2 bg-amber-100" href="/playground/avatar">
         avatar
+      </Link>      <Link className="px-2 mx-2 bg-amber-100" href="/playground/de-avatar">
+        de-avatar
       </Link>
       <Link className="px-2 mx-2 bg-amber-100" href="/playground/input">
         input
+      </Link>{" "}
+      <Link className="px-2 mx-2 bg-amber-100" href="/playground/de-input">
+        de-input
       </Link>
       <Link className="px-2 mx-2 bg-amber-100" href="/playground/dater">
         dater
+      </Link>{" "}      <Link className="px-2 mx-2 bg-amber-100" href="/playground/de-dater">
+        de-dater
       </Link>{" "}
       <Link className="px-2 mx-2 bg-amber-100" href="/playground/select">
         select
-      </Link>      <Link className="px-2 mx-2 bg-amber-100" href="/playground/components">
+      </Link>{" "}      <Link className="px-2 mx-2 bg-amber-100" href="/playground/de-select">
+        de-select
+      </Link>{" "}
+      <Link className="px-2 mx-2 bg-amber-100" href="/playground/components">
         components
       </Link>
       <Link className="px-2 mx-2 bg-amber-100" href="/playground/modal">
         modal
-      </Link>      <Link className="px-2 mx-2 bg-amber-100" href="/playground/options">
+      </Link>{" "}
+      <Link className="px-2 mx-2 bg-amber-100" href="/playground/de-modal">
+        de-modal
+      </Link>{" "}
+      <Link className="px-2 mx-2 bg-amber-100" href="/playground/options">
         options
+      </Link>      <Link className="px-2 mx-2 bg-amber-100" href="/playground/de-options">
+        de-options
       </Link>
       <hr />
       {children}

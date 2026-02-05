@@ -1,4 +1,3 @@
-// layout/components/aside/aside.config.ts
 import type { IconType } from "react-icons";
 import { AiFillHome } from "react-icons/ai";
 import {
@@ -13,8 +12,8 @@ import {
   LuSwords,
 } from "react-icons/lu";
 
-type BadgeKey = "chatUnread" | "notifications";
-type ActionKey = "openNotifications";
+export type BadgeKey = "chatUnread" | "notifications";
+export type ActionKey = "openNotifications";
 
 export type AsideItemConfig =
   | {

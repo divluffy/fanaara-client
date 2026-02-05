@@ -1,10 +1,11 @@
-// layout/components/aside/ProfileCard.tsx
+// layout\components\LoggedShell\aside\ProfileCard.tsx
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { FiMenu } from "react-icons/fi";
 import { Avatar } from "@/design";
-import { cn } from "@/utils";
+import { cn } from "@/utils/cn";
 
 type User = {
   name: string;
@@ -22,7 +23,7 @@ type Props = {
   onOpenMenu: () => void;
 };
 
-export function ProfileCard({
+export const ProfileCard = React.memo(function ProfileCard({
   user,
   profileHref,
   profileAriaLabel,
@@ -37,7 +38,7 @@ export function ProfileCard({
         "shadow-[var(--shadow-sm)]",
         "transition duration-200 ease-out",
         "hover:border-accent-border/60 hover:shadow-[var(--shadow-lg)]",
-        "hover:bg-accent-soft/95"
+        "hover:bg-accent-soft/95",
       )}
     >
       <div className="flex items-center gap-2">
@@ -49,7 +50,7 @@ export function ProfileCard({
             "transition duration-200",
             "hover:bg-background/25 active:bg-background/35",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring",
-            "focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            "focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           )}
         >
           <Avatar
@@ -69,7 +70,6 @@ export function ProfileCard({
           </div>
         </Link>
 
-        {/* زر المنيو: مميز عند hover/press + وصول ممتاز */}
         <button
           type="button"
           onClick={onOpenMenu}
@@ -83,7 +83,7 @@ export function ProfileCard({
             "active:bg-accent/28 active:scale-[0.96]",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring",
             "focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-            "cursor-pointer"
+            "cursor-pointer",
           )}
         >
           <FiMenu className="size-5" />
@@ -91,4 +91,4 @@ export function ProfileCard({
       </div>
     </div>
   );
-}
+});

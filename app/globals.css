@@ -834,7 +834,7 @@ body {
 
 html {
   scroll-behavior: smooth;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -924,8 +924,7 @@ body.font-arabic {
 /* الكلاس اللي مستخدمه عندك: app-scroll */
 .app-scroll {
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-
+  overscroll-behavior-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--scroll-thumb) var(--scroll-track);
 }
@@ -1038,4 +1037,12 @@ body.font-arabic {
       filter: hue-rotate(40deg) saturate(1.2);
     }
   }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

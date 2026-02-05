@@ -1,571 +1,1024 @@
+// components\ShareModal.tsx
 "use client";
 
-import React, { useState, useMemo, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  IoSearch,
   IoClose,
-  IoCopyOutline,
-  IoQrCodeOutline,
-  IoPaperPlane,
+  IoSearch,
+  IoCheckmark,
   IoArrowBack,
+  IoCopyOutline,
   IoDownloadOutline,
+  IoPaperPlane,
+  IoQrCodeOutline,
+  IoLogoWhatsapp,
   IoLogoTwitter,
   IoLogoFacebook,
-  IoLogoWhatsapp,
   IoLogoLinkedin,
   IoLogoReddit,
-  IoCheckmark,
+  IoMailOutline,
+  IoChatbubbleEllipsesOutline,
   IoShareSocial,
 } from "react-icons/io5";
 import { FaDiscord, FaTelegramPlane } from "react-icons/fa";
-import Modal, { ModalProps } from "./Modal";
 
-// --- Configuration & Types ---
+import DeModal, { type DeModalProps } from "@/design/DeModal";
 
-interface User {
+// ---------------------------------------------
+// Types
+// ---------------------------------------------
+type Dir = "rtl" | "ltr";
+
+type User = {
   id: string;
   name: string;
   handle: string;
   avatar: string;
   status?: "online" | "offline";
-}
+  lastMessage?: string;
+  lastTime?: string; // keep as string for UI (ex: "2m", "Yesterday")
+  unread?: number;
+};
 
-interface ShareModalProps extends Omit<ModalProps, "children"> {
-  shareUrl?: string;
+type ShareModalProps = Omit<
+  DeModalProps,
+  "children" | "title" | "subtitle" | "footer"
+> & {
+  shareUrl: string;
   shareTitle?: string;
-}
 
-// Generates 20 mock users
-const MOCK_USERS: User[] = Array.from({ length: 24 }).map((_, i) => ({
+  /** optional: pass real recent chats from backend */
+  recentUsers?: User[];
+
+  /** optional: when user sends to selected chat */
+  onSendToUser?: (payload: {
+    userId: string;
+    message: string;
+    shareUrl: string;
+  }) => void;
+
+  /** optional: logo in QR center (ex: /logo-mark.png) */
+  qrLogoSrc?: string;
+};
+
+// ---------------------------------------------
+// Mock (fallback) recent chats
+// ---------------------------------------------
+const MOCK_RECENTS: User[] = Array.from({ length: 16 }).map((_, i) => ({
   id: `u-${i}`,
   name: i === 0 ? "You" : `Nakama ${i}`,
   handle: `@user_${i}`,
   avatar: `https://api.dicebear.com/9.x/avataaars/svg?seed=${i + 10}&backgroundColor=b6e3f4`,
-  status: Math.random() > 0.7 ? "online" : "offline",
+  status: Math.random() > 0.75 ? "online" : "offline",
+  lastMessage:
+    i % 3 === 0
+      ? "Bro… this panel is insane 🔥"
+      : i % 3 === 1
+        ? "Send me the link pls"
+        : "Luffy energy 💀",
+  lastTime: i < 3 ? `${i + 1}m` : i < 7 ? "Today" : "Yesterday",
+  unread: i % 5 === 0 ? 2 : 0,
 }));
 
-// --- Sub-Components ---
-
-/**
- * Social Action Button
- * Renders differently based on screen size (handled by parent CSS Grid/Flex)
- */
-const SocialAction = ({
-  icon: Icon,
-  label,
-  color,
-  bg,
-  onClick,
-}: {
-  icon: any;
-  label: string;
-  color: string;
-  bg: string;
-  onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className="group flex flex-col items-center gap-2 min-w-[72px] sm:min-w-0 sm:w-full p-2 rounded-xl transition-all hover:bg-surface-soft active:scale-95"
-  >
-    <div
-      className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-transparent transition-all group-hover:scale-110 ${bg} ${color}`}
-    >
-      <Icon />
-    </div>
-    <span className="text-[10px] sm:text-xs font-medium text-fg-muted group-hover:text-fg-strong">
-      {label}
-    </span>
-  </button>
-);
-
-// --- Main Component ---
-
+// ---------------------------------------------
+// Main Component
+// ---------------------------------------------
 export default function ShareModal({
   open,
   onOpenChange,
-  shareUrl = "https://your-anime-platform.com/post/8823",
+  shareUrl,
   shareTitle = "Check this out!",
-  ...props
+  recentUsers,
+  onSendToUser,
+  qrLogoSrc,
+  ...modalProps
 }: ShareModalProps) {
-  // State
   const [view, setView] = useState<"share" | "qr">("share");
-  const [isSearchActive, setIsSearchActive] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [message, setMessage] = useState("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset State on Close
+  // Header search
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Selection (single user as requested)
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
+  // Composer
+  const [message, setMessage] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  // dir
+  const dir: Dir = useMemo(() => {
+    if (typeof document === "undefined") return "ltr";
+    const d = (
+      document.documentElement.getAttribute("dir") || "ltr"
+    ).toLowerCase();
+    return d === "rtl" ? "rtl" : "ltr";
+  }, []);
+  const isRTL = dir === "rtl";
+
+  const users = recentUsers?.length ? recentUsers : MOCK_RECENTS;
+
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return users;
+    return users.filter(
+      (u) =>
+        u.name.toLowerCase().includes(s) ||
+        u.handle.toLowerCase().includes(s) ||
+        (u.lastMessage || "").toLowerCase().includes(s),
+    );
+  }, [q, users]);
+
+  const selectedUser = useMemo(() => {
+    if (!selectedUserId) return null;
+    return users.find((u) => u.id === selectedUserId) || null;
+  }, [selectedUserId, users]);
+
+  // Reset on close
   useEffect(() => {
     if (!open) {
-      setTimeout(() => {
+      const t = setTimeout(() => {
         setView("share");
-        setIsSearchActive(false);
-        setSearchQuery("");
-        setSelectedUsers([]);
+        setSearchOpen(false);
+        setQ("");
+        setSelectedUserId(null);
         setMessage("");
-      }, 300);
+        setCopied(false);
+      }, 200);
+      return () => clearTimeout(t);
     }
   }, [open]);
 
-  // Focus Input when Search Becomes Active
+  // Focus search when opened
   useEffect(() => {
-    if (isSearchActive && searchInputRef.current) {
-      searchInputRef.current.focus();
+    if (searchOpen) {
+      const t = setTimeout(() => searchRef.current?.focus(), 50);
+      return () => clearTimeout(t);
     }
-  }, [isSearchActive]);
+  }, [searchOpen]);
 
-  // Filter Users
-  const filteredUsers = useMemo(() => {
-    if (!searchQuery) return MOCK_USERS;
-    const q = searchQuery.toLowerCase();
-    return MOCK_USERS.filter(
-      (u) =>
-        u.name.toLowerCase().includes(q) || u.handle.toLowerCase().includes(q),
-    );
-  }, [searchQuery]);
+  const close = () => onOpenChange(false);
 
-  // Handlers
-  const toggleUser = (id: string) => {
-    setSelectedUsers((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 900);
+    } catch {
+      // fallback: do nothing (or show toast in your system)
+      setCopied(false);
+    }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(shareUrl);
-    // Add toast notification logic here
+  const sendToUser = () => {
+    if (!selectedUserId) return;
+    const text = message.trim();
+    if (!text) return;
+
+    onSendToUser?.({ userId: selectedUserId, message: text, shareUrl });
+
+    // UX: clear message but keep selection (or close modal if you prefer)
+    setMessage("");
   };
 
-  // --- Render ---
+  const quickSuggestions = useMemo(() => {
+    // Keep it short + anime vibe but professional
+    return [
+      "🔥 This is a must-see",
+      "Thoughts?",
+      "No spoilers 😄",
+      "Look at this panel",
+      "This is peak",
+      "Save it for later",
+    ];
+  }, []);
+
+  const openUrl = (url: string) =>
+    window.open(url, "_blank", "noopener,noreferrer");
+
+  const shareTargets = useMemo(() => {
+    const encUrl = encodeURIComponent(shareUrl);
+    const encTitle = encodeURIComponent(shareTitle);
+
+    return [
+      {
+        key: "copy",
+        label: copied ? "Copied" : "Copy",
+        icon: IoCopyOutline,
+        onClick: copyLink,
+      },
+      {
+        key: "qr",
+        label: "QR",
+        icon: IoQrCodeOutline,
+        onClick: () => setView("qr"),
+      },
+      {
+        key: "whatsapp",
+        label: "WhatsApp",
+        icon: IoLogoWhatsapp,
+        onClick: () =>
+          openUrl(
+            `https://wa.me/?text=${encodeURIComponent(`${shareTitle} ${shareUrl}`)}`,
+          ),
+      },
+      {
+        key: "telegram",
+        label: "Telegram",
+        icon: FaTelegramPlane,
+        onClick: () =>
+          openUrl(`https://t.me/share/url?url=${encUrl}&text=${encTitle}`),
+      },
+      {
+        key: "twitter",
+        label: "X",
+        icon: IoLogoTwitter,
+        onClick: () =>
+          openUrl(
+            `https://twitter.com/intent/tweet?url=${encUrl}&text=${encTitle}`,
+          ),
+      },
+      {
+        key: "facebook",
+        label: "Facebook",
+        icon: IoLogoFacebook,
+        onClick: () =>
+          openUrl(`https://www.facebook.com/sharer/sharer.php?u=${encUrl}`),
+      },
+      {
+        key: "linkedin",
+        label: "LinkedIn",
+        icon: IoLogoLinkedin,
+        onClick: () =>
+          openUrl(
+            `https://www.linkedin.com/sharing/share-offsite/?url=${encUrl}`,
+          ),
+      },
+      {
+        key: "reddit",
+        label: "Reddit",
+        icon: IoLogoReddit,
+        onClick: () =>
+          openUrl(
+            `https://www.reddit.com/submit?url=${encUrl}&title=${encTitle}`,
+          ),
+      },
+      {
+        key: "discord",
+        label: "Discord",
+        icon: FaDiscord,
+        onClick: copyLink,
+      },
+      {
+        key: "email",
+        label: "Email",
+        icon: IoMailOutline,
+        onClick: () =>
+          openUrl(
+            `mailto:?subject=${encTitle}&body=${encodeURIComponent(`${shareTitle}\n\n${shareUrl}`)}`,
+          ),
+      },
+      {
+        key: "sms",
+        label: "SMS",
+        icon: IoChatbubbleEllipsesOutline,
+        onClick: () =>
+          openUrl(
+            `sms:&body=${encodeURIComponent(`${shareTitle} ${shareUrl}`)}`,
+          ),
+      },
+      {
+        key: "more",
+        label: "More",
+        icon: IoShareSocial,
+        onClick: async () => {
+          // Web Share API
+          try {
+            // @ts-expect-error - navigator.share may not exist in TS lib
+            if (navigator.share) {
+              // @ts-expect-error
+              await navigator.share({
+                title: shareTitle,
+                url: shareUrl,
+                text: shareTitle,
+              });
+              return;
+            }
+          } catch {
+            // ignore
+          }
+          copyLink();
+        },
+      },
+    ];
+  }, [copied, shareTitle, shareUrl]);
 
   return (
-    <Modal
+    <DeModal
       open={open}
       onOpenChange={onOpenChange}
-      title={null}
+      dir="auto"
       contentPadding="none"
       sheetDragMode="binary"
-      panelClassName="bg-bg-elevated h-[85vh] sm:h-[680px] w-full max-w-lg flex flex-col shadow-2xl overflow-hidden"
-      {...props}
+      sheetAutoFit
+      panelClassName="bg-background-elevated w-full max-w-lg h-[82vh] sm:h-[680px] flex flex-col overflow-hidden"
+      preset="comments"
+      {...modalProps}
     >
-      <div className="flex flex-col h-full relative font-sans">
-        {/* =======================
-            VIEW: SHARE (MAIN)
-           ======================= */}
+      <div className="flex h-full flex-col" dir={dir}>
+        {/* ---------------------------
+            VIEW: SHARE
+        ---------------------------- */}
         <AnimatePresence mode="wait">
           {view === "share" && (
             <motion.div
-              key="view-share"
+              key="share-view"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col h-full"
+              className="flex h-full flex-col"
             >
-              {/* --- Header: Adaptive Search --- */}
-              <div className="shrink-0 px-5 pt-5 pb-2 z-20 bg-bg-elevated">
-                <div className="h-12 flex items-center justify-between relative">
-                  {/* Title (Hides when searching) */}
-                  <AnimatePresence>
-                    {!isSearchActive && (
-                      <motion.h2
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10, position: "absolute" }}
-                        className="text-xl font-bold text-fg-strong tracking-tight"
-                      >
-                        Share to...
-                      </motion.h2>
-                    )}
-                  </AnimatePresence>
+              {/* Header (small) */}
+              <div className="shrink-0 border-b border-border-subtle bg-background-elevated px-3 pt-2 pb-2">
+                <div
+                  className={[
+                    "flex items-center gap-2",
+                    isRTL ? "flex-row-reverse" : "flex-row",
+                  ].join(" ")}
+                >
+                  <DeIconButton
+                    ariaLabel="Close"
+                    onClick={close}
+                    icon={<IoClose className="size-5" />}
+                  />
 
-                  {/* Search Interaction */}
-                  <motion.div
-                    layout
-                    className={`flex items-center bg-surface-soft rounded-2xl transition-all ${isSearchActive ? "w-full ring-2 ring-brand-500/20" : "w-10 h-10 bg-transparent hover:bg-surface-soft"}`}
-                  >
-                    {/* Search Icon / Toggle */}
-                    <button
-                      onClick={() => setIsSearchActive(true)}
-                      className={`shrink-0 w-10 h-10 flex items-center justify-center rounded-full text-fg-strong ${isSearchActive ? "pointer-events-none" : ""}`}
-                    >
-                      <IoSearch className="text-xl" />
-                    </button>
+                  <div className="flex-1 min-w-0">
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      {!searchOpen ? (
+                        <motion.div
+                          key="title"
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          className={[
+                            "text-sm font-semibold text-foreground-strong",
+                            isRTL ? "text-right" : "text-left",
+                          ].join(" ")}
+                        >
+                          Share
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="search"
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          className="w-full"
+                        >
+                          <DeInput
+                            ref={searchRef}
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)}
+                            placeholder={
+                              isRTL
+                                ? "ابحث بالاسم أو @..."
+                                : "Search name or @..."
+                            }
+                            startIcon={<IoSearch className="size-4" />}
+                            endIcon={
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSearchOpen(false);
+                                  setQ("");
+                                }}
+                                className="grid size-7 place-items-center rounded-full hover:bg-surface-muted"
+                                aria-label="Clear search"
+                              >
+                                <IoClose className="size-4" />
+                              </button>
+                            }
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
 
-                    {/* Input Field */}
-                    {isSearchActive && (
-                      <motion.input
-                        ref={searchInputRef}
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: "100%" }}
-                        exit={{ opacity: 0, width: 0 }}
-                        type="text"
-                        placeholder="Search name or @handle..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-transparent h-full w-full outline-none text-sm text-fg-strong placeholder:text-fg-muted min-w-0"
-                      />
-                    )}
-
-                    {/* Close Search Button */}
-                    {isSearchActive && (
-                      <button
-                        onClick={() => {
-                          setIsSearchActive(false);
-                          setSearchQuery("");
-                        }}
-                        className="shrink-0 w-10 h-10 flex items-center justify-center text-fg-muted hover:text-fg-strong"
-                      >
-                        <IoClose className="text-lg" />
-                      </button>
-                    )}
-                  </motion.div>
+                  {!searchOpen && (
+                    <DeIconButton
+                      ariaLabel="Search"
+                      onClick={() => setSearchOpen(true)}
+                      icon={<IoSearch className="size-5" />}
+                    />
+                  )}
                 </div>
               </div>
 
-              {/* --- Body: User Grid --- */}
-              <div
-                className="flex-1 overflow-y-auto custom-scrollbar px-4 py-2"
-                style={{ contain: "content" }}
-              >
-                <motion.div
-                  className="grid grid-cols-4 sm:grid-cols-5 gap-y-6 gap-x-2 pb-4"
-                  initial="hidden"
-                  animate="visible"
-                  variants={{
-                    visible: { transition: { staggerChildren: 0.03 } },
-                  }}
-                >
-                  {filteredUsers.map((user) => {
-                    const isSelected = selectedUsers.includes(user.id);
-                    return (
-                      <motion.button
-                        key={user.id}
-                        variants={{
-                          hidden: { opacity: 0, y: 10 },
-                          visible: { opacity: 1, y: 0 },
-                        }}
-                        onClick={() => toggleUser(user.id)}
-                        className="group flex flex-col items-center gap-2 relative p-1 outline-none"
-                      >
-                        {/* Avatar Wrapper */}
-                        <div className="relative w-[60px] h-[60px] sm:w-[68px] sm:h-[68px]">
-                          <div
-                            className={`absolute inset-0 rounded-full border-2 transition-all duration-300 ${isSelected ? "border-brand-500 scale-105" : "border-transparent group-hover:bg-surface-soft"}`}
-                          />
-                          <img
-                            src={user.avatar}
-                            className="relative w-full h-full rounded-full object-cover p-1"
-                            alt={user.name}
-                            loading="lazy"
-                          />
+              {/* Content: users grid */}
+              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+                <div className="px-3 py-3">
+                  <motion.div
+                    className="grid grid-cols-4 sm:grid-cols-5 gap-3"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      visible: { transition: { staggerChildren: 0.03 } },
+                    }}
+                  >
+                    {filtered.map((u) => {
+                      const active = u.id === selectedUserId;
+                      return (
+                        <UserTile
+                          key={u.id}
+                          user={u}
+                          active={active}
+                          onClick={() =>
+                            setSelectedUserId((prev) =>
+                              prev === u.id ? null : u.id,
+                            )
+                          }
+                        />
+                      );
+                    })}
+                  </motion.div>
 
-                          {/* Online Status */}
-                          {user.status === "online" && !isSelected && (
-                            <div className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-success-500 border-2 border-bg-elevated rounded-full" />
-                          )}
-
-                          {/* Selection Indicator (Animated) */}
-                          <AnimatePresence>
-                            {isSelected && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                exit={{ scale: 0 }}
-                                className="absolute bottom-0 right-0 bg-brand-500 text-white rounded-full p-1 border-2 border-bg-elevated shadow-md z-10"
-                              >
-                                <IoCheckmark className="text-xs stroke-2" />
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-
-                        {/* Name */}
-                        <div className="text-center w-full px-1">
-                          <p
-                            className={`text-xs font-medium truncate transition-colors ${isSelected ? "text-brand-600" : "text-fg-strong"}`}
-                          >
-                            {user.name}
-                          </p>
-                          <p className="text-[10px] text-fg-muted truncate opacity-80">
-                            {user.handle}
-                          </p>
-                        </div>
-                      </motion.button>
-                    );
-                  })}
-                </motion.div>
-
-                {/* Empty State */}
-                {filteredUsers.length === 0 && (
-                  <div className="flex flex-col items-center justify-center h-40 text-fg-muted">
-                    <p className="text-sm">No users found.</p>
-                  </div>
-                )}
+                  {filtered.length === 0 && (
+                    <div className="grid place-items-center py-10 text-sm text-foreground-muted">
+                      {isRTL ? "لا يوجد نتائج" : "No results found."}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* --- Footer: Dynamic Bottom Sheet --- */}
-              <div className="shrink-0 bg-bg-elevated border-t border-border-subtle z-30 pb-[env(safe-area-inset-bottom)] shadow-[0_-5px_20px_rgba(0,0,0,0.03)]">
-                <AnimatePresence mode="wait">
-                  {/* MODE 1: SEND MESSAGE (When users selected) */}
-                  {selectedUsers.length > 0 ? (
-                    <motion.div
-                      key="send-mode"
-                      initial={{ y: "100%", opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: "100%", opacity: 0, position: "absolute" }}
-                      transition={{
-                        type: "spring",
-                        bounce: 0.2,
-                        duration: 0.4,
-                      }}
-                      className="p-4 w-full"
+              {/* Composer (smooth) when selected */}
+              <AnimatePresence>
+                {selectedUser && (
+                  <motion.div
+                    key="composer"
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 14 }}
+                    transition={{ type: "spring", damping: 22, stiffness: 260 }}
+                    className="shrink-0 border-t border-border-subtle bg-background-elevated px-3 py-3"
+                  >
+                    {/* To */}
+                    <div
+                      className={[
+                        "mb-2 flex items-center justify-between gap-2",
+                        isRTL ? "flex-row-reverse" : "flex-row",
+                      ].join(" ")}
                     >
-                      <div className="flex flex-col gap-3">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-semibold text-brand-600 bg-brand-500/10 px-2 py-0.5 rounded-md">
-                            {selectedUsers.length} Selected
+                      <div className="min-w-0">
+                        <div
+                          className={[
+                            "text-xs text-foreground-muted",
+                            isRTL ? "text-right" : "text-left",
+                          ].join(" ")}
+                        >
+                          {isRTL ? "إرسال إلى" : "Sending to"}
+                        </div>
+                        <div
+                          className={[
+                            "text-sm font-semibold text-foreground-strong truncate",
+                            isRTL ? "text-right" : "text-left",
+                          ].join(" ")}
+                        >
+                          {selectedUser.name}{" "}
+                          <span className="text-foreground-muted font-medium">
+                            {selectedUser.handle}
                           </span>
-                          <button
-                            onClick={() => setSelectedUsers([])}
-                            className="text-fg-muted hover:text-fg-strong transition-colors"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                        <div className="flex items-end gap-2">
-                          <div className="flex-1 relative">
-                            <input
-                              type="text"
-                              placeholder="Add a message..."
-                              value={message}
-                              onChange={(e) => setMessage(e.target.value)}
-                              className="w-full bg-surface-soft h-12 pl-4 pr-4 rounded-full text-sm text-fg-strong focus:ring-2 focus:ring-brand-500/20 outline-none transition-all"
-                              autoFocus
-                            />
-                          </div>
-                          <button className="h-12 px-6 bg-brand-solid text-white rounded-full font-semibold shadow-glow-brand flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all">
-                            <span>Send</span>
-                            <IoPaperPlane />
-                          </button>
                         </div>
                       </div>
-                    </motion.div>
-                  ) : (
-                    /* MODE 2: SOCIAL ACTIONS (Default) */
-                    <motion.div
-                      key="social-mode"
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: 20, opacity: 0 }}
-                      className="w-full"
+
+                      <DeButton
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSelectedUserId(null)}
+                      >
+                        {isRTL ? "تغيير" : "Change"}
+                      </DeButton>
+                    </div>
+
+                    {/* Suggestions */}
+                    <div className="mb-2 flex gap-2 overflow-x-auto no-scrollbar py-1">
+                      {quickSuggestions.map((s) => (
+                        <DeChip
+                          key={s}
+                          onClick={() =>
+                            setMessage((prev) => (prev ? `${prev} ${s}` : s))
+                          }
+                        >
+                          {s}
+                        </DeChip>
+                      ))}
+                    </div>
+
+                    {/* Input + send */}
+                    <div
+                      className={[
+                        "flex items-end gap-2",
+                        isRTL ? "flex-row-reverse" : "flex-row",
+                      ].join(" ")}
                     >
-                      {/* Responsive Layout: 
-                         - Mobile: Flex Row + Horizontal Scroll (snap-x)
-                         - Desktop (sm+): Grid Layout (All visible)
-                     */}
-                      <div className="p-4">
-                        <div className="flex sm:grid sm:grid-cols-4 gap-3 overflow-x-auto sm:overflow-visible no-scrollbar snap-x">
-                          {/* Copy Link */}
-                          <SocialAction
-                            icon={IoCopyOutline}
-                            label="Copy Link"
-                            bg="bg-surface-muted"
-                            color="text-fg-strong"
-                            onClick={handleCopy}
-                          />
-
-                          {/* QR Code */}
-                          <SocialAction
-                            icon={IoQrCodeOutline}
-                            label="QR Card"
-                            bg="bg-neutral-charcoal"
-                            color="text-brand-aqua"
-                            onClick={() => setView("qr")}
-                          />
-
-                          {/* WhatsApp */}
-                          <SocialAction
-                            icon={IoLogoWhatsapp}
-                            label="WhatsApp"
-                            bg="bg-[#25D366]/10"
-                            color="text-[#25D366]"
-                            onClick={() =>
-                              window.open(
-                                `https://wa.me/?text=${shareUrl}`,
-                                "_blank",
-                              )
-                            }
-                          />
-
-                          {/* Twitter / X */}
-                          <SocialAction
-                            icon={IoLogoTwitter}
-                            label="Twitter"
-                            bg="bg-black/5 dark:bg-white/10"
-                            color="text-fg-strong"
-                            onClick={() =>
-                              window.open(
-                                `https://twitter.com/intent/tweet?url=${shareUrl}`,
-                                "_blank",
-                              )
-                            }
-                          />
-
-                          {/* Telegram */}
-                          <SocialAction
-                            icon={FaTelegramPlane}
-                            label="Telegram"
-                            bg="bg-[#0088cc]/10"
-                            color="text-[#0088cc]"
-                            onClick={() =>
-                              window.open(
-                                `https://t.me/share/url?url=${shareUrl}`,
-                                "_blank",
-                              )
-                            }
-                          />
-
-                          {/* Discord (Copy mainly) */}
-                          <SocialAction
-                            icon={FaDiscord}
-                            label="Discord"
-                            bg="bg-[#5865F2]/10"
-                            color="text-[#5865F2]"
-                            onClick={handleCopy}
-                          />
-
-                          {/* More Generic */}
-                          <div className="sm:hidden snap-start min-w-[72px] flex items-center justify-center">
-                            <button className="w-12 h-12 rounded-full border border-dashed border-fg-muted/40 flex items-center justify-center text-fg-muted">
-                              <IoShareSocial />
-                            </button>
-                          </div>
-                        </div>
+                      <div className="flex-1 min-w-0">
+                        <DeInput
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value)}
+                          placeholder={
+                            isRTL ? "اكتب رسالة قصيرة..." : "Write a note..."
+                          }
+                        />
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+
+                      <DeButton
+                        variant="solid"
+                        onClick={sendToUser}
+                        disabled={!message.trim()}
+                        startIcon={<IoPaperPlane className="size-4" />}
+                      >
+                        {isRTL ? "إرسال" : "Send"}
+                      </DeButton>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Footer: share targets (mobile swipe, desktop 2-row grid) */}
+              <div className="shrink-0 border-t border-border-subtle bg-background-elevated pb-[env(safe-area-inset-bottom)]">
+                <div className="px-3 py-3">
+                  <div
+                    className={[
+                      // mobile: swipe row
+                      "flex gap-2 overflow-x-auto no-scrollbar snap-x snap-mandatory",
+                      // desktop: 2-row grid
+                      "sm:grid sm:grid-cols-6 sm:gap-2 sm:overflow-visible sm:snap-none",
+                      "sm:[grid-auto-rows:minmax(0,1fr)]",
+                    ].join(" ")}
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    {shareTargets.map((a) => (
+                      <ShareAction
+                        key={a.key}
+                        icon={a.icon}
+                        label={a.label}
+                        onClick={a.onClick}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* =======================
-            VIEW: QR CODE (OVERLAY)
-           ======================= */}
+        {/* ---------------------------
+            VIEW: QR (simple)
+        ---------------------------- */}
         <AnimatePresence>
           {view === "qr" && (
             <motion.div
-              key="view-qr"
-              initial={{ x: "100%" }}
+              key="qr-view"
+              initial={{ x: isRTL ? "-100%" : "100%" }}
               animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute inset-0 z-50 bg-bg-elevated flex flex-col"
+              exit={{ x: isRTL ? "-100%" : "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 260 }}
+              className="absolute inset-0 z-50 flex h-full flex-col bg-background-elevated"
             >
-              {/* Nav */}
-              <div className="flex items-center justify-between px-4 py-4 bg-bg-elevated/80 backdrop-blur-md z-10">
-                <button
-                  onClick={() => setView("share")}
-                  className="w-10 h-10 rounded-full bg-surface-soft flex items-center justify-center hover:bg-surface-muted transition-colors"
+              {/* Small nav */}
+              <div className="shrink-0 border-b border-border-subtle bg-background-elevated px-3 pt-2 pb-2">
+                <div
+                  className={[
+                    "flex items-center gap-2",
+                    isRTL ? "flex-row-reverse" : "flex-row",
+                  ].join(" ")}
                 >
-                  <IoArrowBack className="text-xl" />
-                </button>
-                <span className="font-bold text-fg-strong">Identity Card</span>
-                <div className="w-10" />
+                  <DeIconButton
+                    ariaLabel="Back"
+                    onClick={() => setView("share")}
+                    icon={
+                      <IoArrowBack
+                        className={["size-5", isRTL ? "rotate-180" : ""].join(
+                          " ",
+                        )}
+                      />
+                    }
+                  />
+
+                  <div className="flex-1 min-w-0">
+                    <div
+                      className={[
+                        "text-sm font-semibold text-foreground-strong",
+                        isRTL ? "text-right" : "text-left",
+                      ].join(" ")}
+                    >
+                      {isRTL ? "QR" : "QR"}
+                    </div>
+                    <div
+                      className={[
+                        "text-[11px] text-foreground-muted truncate",
+                        isRTL ? "text-right" : "text-left",
+                      ].join(" ")}
+                    >
+                      {shareUrl}
+                    </div>
+                  </div>
+
+                  <DeIconButton
+                    ariaLabel="Close"
+                    onClick={close}
+                    icon={<IoClose className="size-5" />}
+                  />
+                </div>
               </div>
 
-              {/* Anime Card Content */}
-              <div className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-                {/* Cyber Background Elements */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(3,190,200,0.08),transparent_70%)]" />
-                <div className="absolute top-10 right-[-20px] w-32 h-32 border border-brand-500/20 rounded-full opacity-50" />
-                <div className="absolute bottom-20 left-[-20px] w-48 h-48 border border-dashed border-accent-amber/20 rounded-full opacity-50" />
-
-                {/* The Card */}
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0, rotateX: 10 }}
-                  animate={{ scale: 1, opacity: 1, rotateX: 0 }}
-                  transition={{ delay: 0.1, type: "spring" }}
-                  className="relative w-full max-w-[320px] bg-gradient-to-b from-surface-soft to-bg-elevated border border-white/10 rounded-[24px] shadow-2xl p-6 overflow-hidden backdrop-blur-3xl"
-                >
-                  {/* Holographic Top Border */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-80" />
-
-                  {/* Profile Header */}
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="relative">
-                      <img
-                        src={MOCK_USERS[0].avatar}
-                        className="w-14 h-14 rounded-full border-2 border-bg-elevated bg-surface-muted"
-                      />
-                      <div className="absolute -bottom-1 -right-1 bg-brand-500 text-[9px] font-bold text-white px-1.5 py-0.5 rounded-md">
-                        LVL.99
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-fg-strong">
-                        {MOCK_USERS[0].name}
-                      </h3>
-                      <p className="text-xs text-brand-400 font-mono tracking-wider uppercase">
-                        Operative ID: 8X-22
-                      </p>
-                    </div>
+              {/* QR content */}
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <div className="mx-auto w-full max-w-[420px] px-4 py-6">
+                  <div className="rounded-2xl border border-border-subtle bg-surface-soft p-4">
+                    <AnimeQR value={shareUrl} logoSrc={qrLogoSrc} />
                   </div>
 
-                  {/* Real QR Code Area */}
-                  <div className="relative bg-white p-4 rounded-xl shadow-inner mb-6 mx-auto w-full aspect-square flex items-center justify-center group overflow-hidden">
-                    {/* Corner Brackets */}
-                    <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-neutral-900 rounded-tl-sm" />
-                    <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-neutral-900 rounded-tr-sm" />
-                    <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-neutral-900 rounded-bl-sm" />
-                    <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-neutral-900 rounded-br-sm" />
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <DeButton
+                      variant="soft"
+                      onClick={copyLink}
+                      startIcon={<IoCopyOutline className="size-4" />}
+                    >
+                      {copied
+                        ? isRTL
+                          ? "تم النسخ"
+                          : "Copied"
+                        : isRTL
+                          ? "نسخ"
+                          : "Copy"}
+                    </DeButton>
 
-                    {/* The QR Image (Live Generation) */}
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(shareUrl)}&bgcolor=ffffff`}
-                      alt="QR Code"
-                      className="w-full h-full object-contain mix-blend-multiply opacity-90"
-                    />
-
-                    {/* Scanning Laser Effect */}
-                    <motion.div
-                      animate={{ top: ["0%", "100%", "0%"] }}
-                      transition={{
-                        duration: 4,
-                        ease: "linear",
-                        repeat: Infinity,
+                    <DeButton
+                      variant="solid"
+                      onClick={() => {
+                        // triggers AnimeQR download via event
+                        window.dispatchEvent(
+                          new CustomEvent("fanaara:qr:download"),
+                        );
                       }}
-                      className="absolute left-0 right-0 h-1.5 bg-brand-500/60 shadow-[0_0_15px_rgba(3,190,200,0.8)] z-10"
-                    />
+                      startIcon={<IoDownloadOutline className="size-4" />}
+                    >
+                      {isRTL ? "تحميل" : "Download"}
+                    </DeButton>
                   </div>
-
-                  <div className="text-center">
-                    <p className="text-[10px] text-fg-muted uppercase tracking-[0.2em] mb-1">
-                      Scan to Sync
-                    </p>
-                    <p className="text-xs text-fg-strong font-medium">
-                      Connect via AnimeVerse Net
-                    </p>
-                  </div>
-                </motion.div>
-
-                {/* Action Buttons */}
-                <div className="mt-8 grid grid-cols-2 gap-4 w-full max-w-[320px]">
-                  <button className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-surface-soft text-fg-strong font-semibold hover:bg-surface-muted transition-colors active:scale-95">
-                    <IoCopyOutline /> Copy
-                  </button>
-                  <button className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-brand-solid text-white font-semibold shadow-glow-brand hover:brightness-110 transition-all active:scale-95">
-                    <IoDownloadOutline /> Save
-                  </button>
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-    </Modal>
+    </DeModal>
   );
 }
+
+// ---------------------------------------------
+// Sub Components
+// ---------------------------------------------
+function UserTile({
+  user,
+  active,
+  onClick,
+}: {
+  user: { id: string; name: string; handle: string; avatar: string };
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      variants={{
+        hidden: { opacity: 0, y: 8 },
+        visible: { opacity: 1, y: 0 },
+      }}
+      className="group flex flex-col items-center gap-2 rounded-xl p-2 transition-all active:scale-[0.99]"
+    >
+      <div className="relative">
+        {/* ring */}
+        <div
+          className={[
+            "absolute inset-[-3px] rounded-full border-2 transition-all",
+            active
+              ? "border-brand-500"
+              : "border-transparent group-hover:border-border-subtle",
+          ].join(" ")}
+        />
+        <img
+          src={user.avatar}
+          alt={user.name}
+          className="relative size-14 rounded-full border border-border-subtle bg-surface-muted object-cover"
+          loading="lazy"
+        />
+
+        {/* selected check */}
+        <AnimatePresence>
+          {active && (
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.6, opacity: 0 }}
+              className="absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full bg-brand-500 text-white shadow-sm"
+            >
+              <IoCheckmark className="size-4" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Username then name */}
+      <div className="w-full text-center leading-tight">
+        <div className="truncate text-xs font-semibold text-foreground-strong">
+          {user.handle}
+        </div>
+        <div className="truncate text-[10px] text-foreground-muted">
+          {user.name}
+        </div>
+      </div>
+    </motion.button>
+  );
+}
+
+function ShareAction({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: any;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "snap-start",
+        "min-w-[74px] sm:min-w-0",
+        "rounded-xl border border-border-subtle bg-background-elevated",
+        "px-2 py-2",
+        "hover:bg-surface-soft active:scale-[0.98] transition-all",
+      ].join(" ")}
+    >
+      <div className="grid place-items-center">
+        <div className="grid size-10 place-items-center rounded-2xl bg-surface-soft text-foreground-strong">
+          <Icon className="size-5" />
+        </div>
+        <div className="mt-1 text-[10px] font-medium text-foreground-muted">
+          {label}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/**
+ * Anime-styled QR (qr-code-styling)
+ * - Renders a canvas inside
+ * - Supports download via window event: "fanaara:qr:download"
+ */
+function AnimeQR({ value, logoSrc }: { value: string; logoSrc?: string }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const qrInstanceRef = useRef<any>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const DEFAULT_ANIME_FACE_LOGO = (() => {
+      // Simple chibi/anime face SVG (safe for CORS + works in canvas download)
+      const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#7C3AED"/>
+        <stop offset="1" stop-color="#06B6D4"/>
+      </linearGradient>
+    </defs>
+
+    <circle cx="128" cy="128" r="118" fill="#FFFFFF"/>
+    <circle cx="128" cy="128" r="110" fill="url(#g)" opacity="0.18"/>
+
+    <!-- hair -->
+    <path d="M52 120c10-52 52-78 76-78s66 26 76 78c-10-18-32-34-76-34s-66 16-76 34Z"
+      fill="#0B1220" opacity="0.92"/>
+
+    <!-- face -->
+    <circle cx="128" cy="142" r="70" fill="#FFFFFF" opacity="0.96"/>
+    <circle cx="104" cy="142" r="18" fill="#0B1220"/>
+    <circle cx="152" cy="142" r="18" fill="#0B1220"/>
+    <circle cx="110" cy="136" r="6" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="158" cy="136" r="6" fill="#FFFFFF" opacity="0.9"/>
+
+    <!-- blush -->
+    <circle cx="78" cy="162" r="10" fill="#FB7185" opacity="0.45"/>
+    <circle cx="178" cy="162" r="10" fill="#FB7185" opacity="0.45"/>
+
+    <!-- mouth -->
+    <path d="M118 170c6 8 14 8 20 0" stroke="#0B1220" stroke-width="6" stroke-linecap="round" fill="none"/>
+  </svg>`;
+      return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    })();
+
+    const init = async () => {
+      if (!ref.current) return;
+
+      // dynamic import (prevents SSR issues)
+      const mod = await import("qr-code-styling");
+      const QRCodeStyling = mod.default;
+
+      if (!mounted) return;
+
+      // Clear container
+      ref.current.innerHTML = "";
+      const finalLogo = logoSrc || DEFAULT_ANIME_FACE_LOGO;
+
+      const qr = new QRCodeStyling({
+        width: 320,
+        height: 320,
+        type: "canvas",
+        data: value,
+        margin: 10,
+        image: finalLogo,
+        qrOptions: {
+          errorCorrectionLevel: "H",
+        },
+        dotsOptions: {
+          type: "classy-rounded",
+          color: "#0B1220", // keep high contrast (important)
+        },
+        cornersSquareOptions: {
+          type: "extra-rounded",
+          color: "#0B1220",
+        },
+        cornersDotOptions: {
+          type: "dot",
+          color: "#0B1220",
+        },
+        backgroundOptions: {
+          color: "#ffffff",
+        },
+        imageOptions: {
+          crossOrigin: "anonymous",
+          margin: 8,
+          imageSize: 0.26, // anime face visible
+          hideBackgroundDots: true, // crucial for scan reliability
+        },
+      });
+
+      qr.append(ref.current);
+      qrInstanceRef.current = qr;
+    };
+
+    init();
+
+    const onDownload = () => {
+      try {
+        qrInstanceRef.current?.download?.({
+          name: "fanaara-qr",
+          extension: "png",
+        });
+      } catch {
+        // ignore
+      }
+    };
+
+    window.addEventListener("fanaara:qr:download", onDownload);
+    return () => {
+      mounted = false;
+      window.removeEventListener("fanaara:qr:download", onDownload);
+    };
+  }, [value, logoSrc]);
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="rounded-2xl bg-white p-3 shadow-sm border border-black/5">
+        <div ref={ref} />
+      </div>
+      <div className="mt-2 text-[11px] text-foreground-muted">Scan to open</div>
+    </div>
+  );
+}
+
+// ---------------------------------------------
+// “New buttons & inputs” (local design wrappers)
+// Replace these with your actual design system components if you have them.
+// ---------------------------------------------
+const DeIconButton = ({
+  icon,
+  onClick,
+  ariaLabel,
+}: {
+  icon: React.ReactNode;
+  onClick: () => void;
+  ariaLabel: string;
+}) => {
+  return (
+    <button
+      type="button"
+      aria-label={ariaLabel}
+      onClick={onClick}
+      className={[
+        "grid size-9 place-items-center rounded-full",
+        "border border-border-subtle bg-surface-soft/70",
+        "text-foreground-strong hover:bg-surface-muted active:scale-[0.98] transition-all",
+      ].join(" ")}
+    >
+      {icon}
+    </button>
+  );
+};
+
+const DeButton = ({
+  children,
+  onClick,
+  disabled,
+  variant = "soft",
+  size = "md",
+  startIcon,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  variant?: "solid" | "soft" | "ghost";
+  size?: "sm" | "md";
+  startIcon?: React.ReactNode;
+}) => {
+  const base =
+    "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none";
+  const sizes = size === "sm" ? "h-9 px-3 text-xs" : "h-11 px-4 text-sm";
+  const styles =
+    variant === "solid"
+      ? "bg-brand-500 text-white shadow-[0_10px_30px_rgba(124,58,237,0.25)] hover:brightness-110"
+      : variant === "ghost"
+        ? "bg-transparent text-foreground-strong hover:bg-surface-soft"
+        : "bg-surface-soft text-foreground-strong border border-border-subtle hover:bg-surface-muted";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={[base, sizes, styles].join(" ")}
+    >
+      {startIcon}
+      <span className="truncate">{children}</span>
+    </button>
+  );
+};
+
+const DeChip = ({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={[
+      "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium",
+      "border border-border-subtle bg-surface-soft text-foreground-strong",
+      "hover:bg-surface-muted active:scale-[0.98] transition-all",
+    ].join(" ")}
+  >
+    {children}
+  </button>
+);
+
+const DeInput = React.forwardRef<
+  HTMLInputElement,
+  {
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    placeholder?: string;
+    startIcon?: React.ReactNode;
+    endIcon?: React.ReactNode;
+  }
+>(function DeInput({ value, onChange, placeholder, startIcon, endIcon }, ref) {
+  return (
+    <div
+      className={[
+        "h-11 w-full rounded-xl border border-border-subtle bg-surface-soft",
+        "px-3 flex items-center gap-2",
+        "focus-within:ring-2 focus-within:ring-brand-500/20 transition-all",
+      ].join(" ")}
+    >
+      {startIcon && <div className="text-foreground-muted">{startIcon}</div>}
+      <input
+        ref={ref}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="h-full w-full bg-transparent outline-none text-sm text-foreground-strong placeholder:text-foreground-muted"
+      />
+      {endIcon && <div className="text-foreground-muted">{endIcon}</div>}
+    </div>
+  );
+});

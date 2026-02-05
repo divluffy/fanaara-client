@@ -1,24 +1,28 @@
-// layout\components\LoggedShell\DesktopLayout.tsx
+// layout/components/LoggedShell/DesktopLayout.tsx
 import type { ReactNode } from "react";
-
 import LoggedAside from "./LoggedAside";
-import AddPost from "./AddPost";
+import AddPost from "@/components/AddPost";
+import AddPostGate from "./AddPostGate";
 
 type Props = { children: ReactNode };
 
 export function DesktopLayout({ children }: Props) {
   return (
-    <div className="min-h-screen w-full bg-background-elevated">
+    <div className="min-h-dvh w-full bg-background-elevated">
       <div className="flex w-full">
-        <aside className="shrink-0 md:sticky md:top-0 md:h-[100dvh]">
+        {/* ✅ Aside ثابت طول الصفحة */}
+        <div className="shrink-0 sticky top-0 h-dvh">
           <LoggedAside />
-        </aside>
+        </div>
 
+        {/* ✅ الصفحة هي اللي تسكرول */}
         <main className="min-w-0 flex-1">{children}</main>
 
-        <div className="shrink-0 md:sticky md:top-0 md:h-[100dvh]">
-          <AddPost />
+        <div className="shrink-0 sticky top-0 h-dvh">
+          <AddPostGate />
         </div>
+
+
       </div>
     </div>
   );

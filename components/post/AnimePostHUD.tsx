@@ -525,7 +525,7 @@ export default function AnimePostCardV3() {
         <section className="px-4 pb-4">
           <div
             className={cn(
-              "flex gap-2 overflow-x-auto pb-1 app-scroll",
+              "flex gap-2 overflow-x-auto pb-1",
               "snap-x snap-mandatory",
               "sm:grid sm:grid-cols-4 sm:gap-2 sm:overflow-visible sm:pb-0",
             )}

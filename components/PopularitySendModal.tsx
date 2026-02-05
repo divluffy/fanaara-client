@@ -1,499 +1,840 @@
+// components\PopularitySendModal.tsx
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import DeModal, { DeModalProps } from "@/design/DeModal";
 import {
-  IoClose,
-  IoTimeOutline,
-  IoFlash,
-  IoWalletOutline,
-  IoChevronForward,
   IoAdd,
-  IoRemove,
   IoCartOutline,
+  IoChevronForward,
+  IoFlash,
+  IoTimeOutline,
 } from "react-icons/io5";
-import { FaCrown, FaHistory } from "react-icons/fa";
-import Modal, { ModalProps } from "./Modal"; // تأكد من مسار الاستيراد
 
-// --- Types & Configuration ---
+type PopularityTargetType = "user" | "work" | "live" | "other";
 
-interface GiftPack {
+type PopularityTarget = {
   id: string;
   name: string;
-  cost: number;
-  icon: string;
-  rarity: "common" | "rare" | "epic" | "legendary";
-}
-
-interface User {
-  id: string;
-  name: string;
-  avatar: string;
-  title: string;
-}
-
-interface HistoryEntry {
-  id: number;
-  giftName: string;
-  giftIcon: string;
-  cost: number;
-  timestamp: string;
-  isCombo?: boolean;
-}
-
-interface PopularityModalProps extends Omit<ModalProps, "children"> {
-  targetUser?: User;
-  initialBalance?: number;
-}
-
-// --- Mock Data ---
-
-const MOCK_TARGET_USER: User = {
-  id: "u-99",
-  name: "Kira Senpai",
-  avatar:
-    "https://api.dicebear.com/9.x/avataaars/svg?seed=Felix&backgroundColor=ffdfbf",
-  title: "صائد الشياطين ⚔️",
+  avatarUrl?: string;
+  subtitle?: string; // small info under name
 };
 
-const GIFT_PACKS: GiftPack[] = [
-  { id: "1", name: "كرة أرز", cost: 5, icon: "🍙", rarity: "common" },
-  { id: "2", name: "شاي أخضر", cost: 10, icon: "🍵", rarity: "common" },
-  { id: "3", name: "رامين", cost: 25, icon: "🍜", rarity: "common" },
-  { id: "4", name: "كوناي", cost: 50, icon: "🗡️", rarity: "common" },
-  { id: "6", name: "بطاقة طاقة", cost: 150, icon: "⚡", rarity: "rare" },
-  { id: "8", name: "سيف كاتانا", cost: 300, icon: "⚔️", rarity: "rare" },
-  { id: "10", name: "جوهرة الروح", cost: 800, icon: "💎", rarity: "epic" },
-  { id: "12", name: "تنين", cost: 1500, icon: "🐉", rarity: "epic" },
-  { id: "15", name: "تاج الملك", cost: 5000, icon: "👑", rarity: "legendary" },
-  { id: "16", name: "نيزك", cost: 7000, icon: "☄️", rarity: "legendary" },
-  { id: "19", name: "مجرة", cost: 50000, icon: "🌌", rarity: "legendary" },
+type PopularityPack = {
+  id: string;
+  amount: number; // popularity amount to send
+  name: string;
+  emoji: string; // ✅ emoji per pack
+};
+
+type HistoryEntry = {
+  id: string;
+  packId: string;
+  packName: string;
+  packEmoji: string;
+  amount: number;
+  quantity: number;
+  total: number;
+  timestampISO: string;
+};
+
+export type PopularitySendModalProps = Omit<
+  DeModalProps,
+  "children" | "title" | "subtitle" | "footer"
+> & {
+  target: PopularityTarget;
+  targetType?: PopularityTargetType;
+
+  initialBalance?: number;
+  purchaseHref?: string;
+
+  onSend?: (payload: {
+    targetId: string;
+    targetType: PopularityTargetType;
+    packId: string;
+    amount: number;
+    quantity: number;
+    total: number;
+  }) => Promise<void> | void;
+};
+
+function cn(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
+
+function clampInt(v: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, v));
+}
+
+function tierKey(amount: number) {
+  if (amount < 10) return "t1"; // 1-9
+  if (amount < 100) return "t2"; // 10-99
+  if (amount < 1000) return "t3"; // 100-999
+  if (amount < 10_000) return "t4"; // 1K-9K
+  if (amount < 100_000) return "t5"; // 10K-99K
+  return "t6"; // 100K+
+}
+
+const TIER_STYLES: Record<
+  ReturnType<typeof tierKey>,
   {
-    id: "20",
-    name: "القوة المطلقة",
-    cost: 99999,
-    icon: "♾️",
-    rarity: "legendary",
+    chip: string;
+    ring: string;
+    glow: string;
+    aura: string;
+  }
+> = {
+  t1: {
+    chip: "bg-extra-pink-soft text-extra-pink border-extra-pink-border",
+    ring: "ring-extra-pink-ring",
+    glow: "shadow-[var(--shadow-glow-pink)]",
+    aura: "bg-extra-pink-soft",
   },
+  t2: {
+    chip: "bg-extra-cyan-soft text-extra-cyan border-extra-cyan-border",
+    ring: "ring-extra-cyan-ring",
+    glow: "shadow-[var(--shadow-glow-cyan)]",
+    aura: "bg-extra-cyan-soft",
+  },
+  t3: {
+    chip: "bg-extra-purple-soft text-extra-purple border-extra-purple-border",
+    ring: "ring-extra-purple-ring",
+    glow: "shadow-[var(--shadow-glow-purple)]",
+    aura: "bg-extra-purple-soft",
+  },
+  t4: {
+    chip: "bg-accent-soft text-accent border-accent-border",
+    ring: "ring-accent-ring",
+    glow: "shadow-[var(--shadow-glow-brand)]",
+    aura: "bg-accent-soft",
+  },
+  t5: {
+    chip: "bg-warning-soft text-warning-700 border-warning-soft-border",
+    ring: "ring-warning-500/50",
+    glow: "shadow-[var(--shadow-glow-warning)]",
+    aura: "bg-warning-soft",
+  },
+  t6: {
+    chip: "bg-warning-soft text-warning-700 border-warning-soft-border",
+    ring: "ring-warning-500/70",
+    glow: "shadow-[var(--shadow-glow-warning)]",
+    aura: "bg-warning-soft",
+  },
+};
+
+function formatCompact(n: number, locale: string) {
+  try {
+    return new Intl.NumberFormat(locale, {
+      notation: "compact",
+      compactDisplay: "short",
+      maximumFractionDigits: 1,
+    }).format(n);
+  } catch {
+    return n.toLocaleString();
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ✅ 30 packs (1 → 1,000,000) — emoji icons
+   ───────────────────────────────────────────────────────────── */
+
+const POPULARITY_PACKS: PopularityPack[] = [
+  // 1–9
+  { id: "p1", amount: 1, name: "بتلة ساكورا", emoji: "🌸" },
+  { id: "p3", amount: 3, name: "وميض تشيبي", emoji: "✨" },
+  { id: "p5", amount: 5, name: "كوناي نينجا", emoji: "🗡️" },
+  { id: "p8", amount: 8, name: "نجمة سريعة", emoji: "⭐" },
+
+  // 10–99
+  { id: "p10", amount: 10, name: "لفافة تدريب", emoji: "📜" },
+  { id: "p15", amount: 15, name: "قناع أنمي", emoji: "🎭" },
+  { id: "p20", amount: 20, name: "طاقة برق", emoji: "⚡" },
+  { id: "p25", amount: 25, name: "رامن", emoji: "🍜" },
+  { id: "p50", amount: 50, name: "كاتانا", emoji: "⚔️" },
+  { id: "p75", amount: 75, name: "تعويذة", emoji: "🔮" },
+
+  // 100–999
+  { id: "p100", amount: 100, name: "شعار البطولة", emoji: "🏷️" },
+  { id: "p150", amount: 150, name: "شظية طاقة", emoji: "💠" },
+  { id: "p200", amount: 200, name: "درع", emoji: "🛡️" },
+  { id: "p300", amount: 300, name: "سيف أسطوري", emoji: "🗡️" },
+  { id: "p500", amount: 500, name: "تاج", emoji: "👑" },
+  { id: "p800", amount: 800, name: "جوهرة", emoji: "💎" },
+
+  // 1K–9K
+  { id: "p1000", amount: 1_000, name: "هالة", emoji: "🌀" },
+  { id: "p1500", amount: 1_500, name: "شهاب", emoji: "🌠" },
+  { id: "p2000", amount: 2_000, name: "بوابة", emoji: "🌀" },
+  { id: "p3000", amount: 3_000, name: "تنين حارس", emoji: "🐉" },
+  { id: "p5000", amount: 5_000, name: "كأس المجد", emoji: "🏆" },
+
+  // 10K–99K
+  { id: "p10000", amount: 10_000, name: "مجرة", emoji: "🌌" },
+  { id: "p15000", amount: 15_000, name: "جناح نور", emoji: "🪽" },
+  { id: "p25000", amount: 25_000, name: "تاج الإمارة", emoji: "👑" },
+  { id: "p50000", amount: 50_000, name: "نيزك", emoji: "☄️" },
+  { id: "p75000", amount: 75_000, name: "شعلة الهيبة", emoji: "🔥" },
+
+  // 100K–1M
+  { id: "p100000", amount: 100_000, name: "ملحمة", emoji: "🎇" },
+  { id: "p250000", amount: 250_000, name: "أسطورة", emoji: "🏆" },
+  { id: "p500000", amount: 500_000, name: "إمبراطور", emoji: "🐲" },
+  { id: "p1000000", amount: 1_000_000, name: "القوة المطلقة", emoji: "♾️" },
 ];
 
-// --- Helper Functions ---
+const PACK_BY_ID = new Map<string, PopularityPack>(
+  POPULARITY_PACKS.map((p) => [p.id, p]),
+);
 
-const getRarityColor = (rarity: string) => {
-  switch (rarity) {
-    case "legendary":
-      return "border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.4)] bg-gradient-to-b from-[#2a2d36] to-[#3a2a0d]";
-    case "epic":
-      return "border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)] bg-gradient-to-b from-[#2a2d36] to-[#240a3a]";
-    case "rare":
-      return "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]";
-    default:
-      return "border-transparent hover:border-white/20";
-  }
+const TARGET_META: Record<
+  PopularityTargetType,
+  { label: string; badge?: string }
+> = {
+  user: { label: "دعم مستخدم" },
+  work: { label: "دعم عمل" },
+  live: { label: "دعم بث مباشر", badge: "LIVE" },
+  other: { label: "دعم" },
 };
 
-// --- Main Component ---
+const DEFAULT_TARGET: PopularityTarget = {
+  id: "t-1",
+  name: "Kira Senpai",
+  subtitle: "صائد الشياطين ⚔️",
+  avatarUrl:
+    "https://api.dicebear.com/9.x/avataaars/svg?seed=Felix&backgroundColor=ffdfbf",
+};
 
-export default function PopularityModal({
+export default function PopularitySendModal({
   open,
   onOpenChange,
-  targetUser = MOCK_TARGET_USER,
-  initialBalance = 1540,
-  ...props
-}: PopularityModalProps) {
-  // State
-  const [balance, setBalance] = useState(initialBalance);
-  const [selectedGiftId, setSelectedGiftId] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1); // Multiplier state
-  const [showHistory, setShowHistory] = useState(false);
-  const [history, setHistory] = useState<HistoryEntry[]>([]); // Start empty to show empty state
-  const [isAnimating, setIsAnimating] = useState(false);
 
-  // Sound/Haptic feedback simulation refs could go here
+  target = DEFAULT_TARGET,
+  targetType = "user",
 
-  // Derived State
-  const selectedGift = useMemo(
-    () => GIFT_PACKS.find((g) => g.id === selectedGiftId),
-    [selectedGiftId],
+  initialBalance = 0,
+  purchaseHref = "/shop",
+
+  onSend,
+
+  dir = "auto",
+  ...modalProps
+}: PopularitySendModalProps) {
+  const router = useRouter();
+
+  const [resolvedDir, setResolvedDir] = useState<"rtl" | "ltr">(
+    dir === "rtl" ? "rtl" : dir === "ltr" ? "ltr" : "rtl",
   );
-  const totalCost = selectedGift ? selectedGift.cost * quantity : 0;
-  const canAfford = balance >= totalCost;
 
-  // Handlers
-
-  const handleNavigateToShop = () => {
-    // Logic to navigate to shop page
-    console.log("Navigating to shop...");
-    // window.location.href = "/shop";
-    // Or close modal and open shop modal
-  };
-
-  const handleGiftClick = (giftId: string) => {
-    if (selectedGiftId === giftId) {
-      // Logic 3: Clicking same package increases multiplier
-      setQuantity((prev) => Math.min(prev + 1, 99));
-    } else {
-      setSelectedGiftId(giftId);
-      setQuantity(1);
-    }
-  };
-
-  const handleSend = () => {
-    if (!selectedGift) return;
-
-    if (!canAfford) {
-      handleNavigateToShop();
+  useEffect(() => {
+    if (dir === "rtl" || dir === "ltr") {
+      setResolvedDir(dir);
       return;
     }
+    const d = document?.documentElement?.dir;
+    setResolvedDir(d === "rtl" ? "rtl" : "ltr");
+  }, [dir]);
 
-    // Process Transaction
-    setIsAnimating(true);
-    setBalance((prev) => prev - totalCost);
+  const isRTL = resolvedDir === "rtl";
+  const locale = isRTL ? "ar" : "en";
 
-    // Add to History
-    const newEntry: HistoryEntry = {
-      id: Date.now(),
-      giftName: selectedGift.name,
-      giftIcon: selectedGift.icon,
-      cost: totalCost,
-      timestamp: "الآن",
-      isCombo: quantity > 1,
-    };
-    setHistory((prev) => [newEntry, ...prev]);
+  const [balance, setBalance] = useState<number>(initialBalance);
+  const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState<number>(1);
 
-    // Reset Animation
-    setTimeout(() => {
-      setIsAnimating(false);
-      // Optional: Reset quantity or keep it for spamming? Usually keep it.
-    }, 800);
-  };
+  const [view, setView] = useState<"packs" | "history">("packs");
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [isSending, setIsSending] = useState(false);
 
-  const adjustQuantity = (delta: number) => {
-    setQuantity((prev) => Math.max(1, Math.min(prev + delta, 999)));
-  };
+  const [pulse, setPulse] = useState<{
+    emoji: string;
+    quantity: number;
+    total: number;
+  } | null>(null);
 
-  // Reset on close
+  const selectedPack = useMemo(
+    () => (selectedPackId ? (PACK_BY_ID.get(selectedPackId) ?? null) : null),
+    [selectedPackId],
+  );
+
+  const total = selectedPack ? selectedPack.amount * quantity : 0;
+  const canAfford = selectedPack ? balance >= total : true;
+
   useEffect(() => {
     if (!open) {
-      setTimeout(() => {
-        setSelectedGiftId(null);
+      const t = setTimeout(() => {
+        setSelectedPackId(null);
         setQuantity(1);
-        setShowHistory(false);
-      }, 300);
+        setView("packs");
+        setIsSending(false);
+        setPulse(null);
+      }, 200);
+      return () => clearTimeout(t);
     }
   }, [open]);
 
+  useEffect(() => {
+    setBalance(initialBalance);
+  }, [initialBalance]);
+
+  const goToPurchase = () => {
+    onOpenChange(false);
+    router.push(purchaseHref);
+  };
+
+  const handlePackPress = (packId: string) => {
+    setSelectedPackId((prev) => {
+      if (prev === packId) {
+        setQuantity((q) => clampInt(q + 1, 1, 99)); // ✅ click same pack increments
+        return prev;
+      }
+      setQuantity(1);
+      return packId;
+    });
+  };
+
+  const bumpQuantity = (delta: number) =>
+    setQuantity((q) => clampInt(q + delta, 1, 99));
+  const setMaxQuantity = () => setQuantity(99);
+
+  const handleSend = async () => {
+    if (!selectedPack) return;
+
+    if (!canAfford) {
+      goToPurchase();
+      return;
+    }
+
+    const payload = {
+      targetId: target.id,
+      targetType,
+      packId: selectedPack.id,
+      amount: selectedPack.amount,
+      quantity,
+      total,
+    };
+
+    setIsSending(true);
+    try {
+      await onSend?.(payload);
+
+      setBalance((b) => b - total);
+
+      setHistory((h) => [
+        {
+          id: `${Date.now()}`,
+          packId: selectedPack.id,
+          packName: selectedPack.name,
+          packEmoji: selectedPack.emoji,
+          amount: selectedPack.amount,
+          quantity,
+          total,
+          timestampISO: new Date().toISOString(),
+        },
+        ...h,
+      ]);
+
+      setPulse({ emoji: selectedPack.emoji, quantity, total });
+      setTimeout(() => setPulse(null), 650);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const headerRowDir = isRTL
+    ? "flex-row-reverse text-right"
+    : "flex-row text-left";
+  const slideFrom = isRTL ? "100%" : "-100%";
+
+  // ✅ Footer: show only when a pack is selected, and only in packs view
+  const footer =
+    selectedPack && view === "packs" ? (
+      <motion.div
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 420, damping: 30 }}
+        className={cn(
+          "flex items-center gap-2",
+          isRTL ? "flex-row-reverse" : "flex-row",
+        )}
+      >
+        {/* 3 quick options only */}
+        <div
+          className={cn(
+            "flex items-center gap-2",
+            isRTL ? "flex-row-reverse" : "flex-row",
+          )}
+        >
+          <button
+            type="button"
+            onClick={() => bumpQuantity(10)}
+            className={cn(
+              "h-11 w-14 rounded-xl border text-sm font-extrabold",
+              "bg-surface-soft border-border-subtle text-foreground-strong",
+              "hover:bg-surface active:scale-95 transition",
+            )}
+          >
+            +10
+          </button>
+
+          <button
+            type="button"
+            onClick={() => bumpQuantity(25)}
+            className={cn(
+              "h-11 w-14 rounded-xl border text-sm font-extrabold",
+              "bg-surface-soft border-border-subtle text-foreground-strong",
+              "hover:bg-surface active:scale-95 transition",
+            )}
+          >
+            +25
+          </button>
+
+          <button
+            type="button"
+            onClick={setMaxQuantity}
+            className={cn(
+              "h-11 w-14 rounded-xl border text-sm font-extrabold",
+              "bg-warning-soft border-warning-soft-border text-warning-700",
+              "hover:brightness-105 active:scale-95 transition",
+            )}
+          >
+            MAX
+          </button>
+        </div>
+
+        {/* Send/Purchase button */}
+        <button
+          type="button"
+          onClick={handleSend}
+          disabled={isSending}
+          className={cn(
+            "relative flex-1 h-11 rounded-xl border px-3 overflow-hidden",
+            "transition active:scale-[0.985] disabled:opacity-70 disabled:cursor-not-allowed",
+            canAfford
+              ? "bg-gradient-to-r from-accent to-extra-purple-solid text-accent-foreground border-accent-border shadow-[var(--shadow-glow-brand)]"
+              : "bg-gradient-to-r from-danger-600 to-danger-500 text-danger-foreground border-danger-soft-border shadow-[var(--shadow-glow-danger)]",
+          )}
+        >
+          <div className="flex h-full items-center justify-between gap-3">
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-black leading-none truncate">
+                {isSending
+                  ? "جارٍ الإرسال..."
+                  : canAfford
+                    ? "إرسال الشعبية"
+                    : "شراء الشعبية"}
+              </span>
+
+              <span className="text-[11px] opacity-90 leading-none truncate">
+                <span className="me-1">{selectedPack.emoji}</span>
+                <span className="font-bold">{selectedPack.name}</span>
+                <span className="opacity-70"> • </span>
+                <span dir="ltr" className="font-mono tabular-nums">
+                  x{quantity}
+                </span>
+                <span className="opacity-70"> • </span>
+                <span dir="ltr" className="font-mono tabular-nums">
+                  {total.toLocaleString(locale)}
+                </span>{" "}
+                <span className="opacity-90">شعبية</span>
+                {!canAfford && (
+                  <>
+                    <span className="opacity-70"> — </span>
+                    <span className="opacity-90">
+                      تنقصك{" "}
+                      <span dir="ltr" className="font-mono tabular-nums">
+                        {(total - balance).toLocaleString(locale)}
+                      </span>
+                    </span>
+                  </>
+                )}
+              </span>
+            </div>
+
+            <div className="shrink-0 flex items-center gap-2">
+              {canAfford ? (
+                <IoFlash className="size-5 opacity-90" />
+              ) : (
+                <IoCartOutline className="size-5 opacity-90" />
+              )}
+            </div>
+          </div>
+        </button>
+      </motion.div>
+    ) : null;
+
   return (
-    <Modal
+    <DeModal
+      {...modalProps}
       open={open}
       onOpenChange={onOpenChange}
-      title={null}
+      dir={dir}
+      preset="comments"
       contentPadding="none"
-      sheetDragMode="binary"
-      // استخدام ألوان داكنة "Anime Theme" مع دعم التغيير
-      panelClassName="bg-[#0f1115] text-white h-[90vh] sm:h-[800px] w-full max-w-lg flex flex-col shadow-2xl overflow-hidden border border-white/5 rounded-t-3xl sm:rounded-3xl font-sans"
-      {...props}
+      panelClassName={cn(
+        "relative overflow-hidden",
+        "rounded-t-3xl sm:rounded-3xl",
+      )}
+      footer={footer}
     >
-      <div className="flex flex-col h-full relative" dir="rtl">
-        {/* =======================
-            HEADER
-           ======================= */}
-        <div className="shrink-0 p-5 bg-[#16181d] border-b border-white/5 relative z-20 shadow-md">
-          <div className="flex items-center justify-between">
-            {/* Target User Info */}
-            <div className="flex items-center gap-4">
-              <div className="relative group cursor-pointer">
-                <div className="absolute inset-0 bg-purple-600 rounded-full blur opacity-40 group-hover:opacity-60 transition-opacity"></div>
-                <img
-                  src={targetUser.avatar}
-                  className="w-14 h-14 rounded-full border-2 border-purple-500 relative z-10 bg-[#0f1115]"
-                  alt={targetUser.name}
-                />
-                <div className="absolute -bottom-1 -right-1 z-20 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg">
-                  LV.99
-                </div>
+      <div className="relative">
+        {/* Next-gen background (clean + anime vibe, theme-friendly) */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+        >
+          <div className="absolute -top-24 -right-24 size-72 rounded-full bg-extra-cyan-soft blur-3xl opacity-65" />
+          <div className="absolute -bottom-24 -left-24 size-72 rounded-full bg-extra-purple-soft blur-3xl opacity-65" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background-elevated/35" />
+        </div>
+
+        {/* Header: target info + (history + balance) only */}
+        <div
+          className={cn(
+            "sticky top-0 z-20",
+            "bg-background-elevated/88 backdrop-blur-md",
+            "border-b border-border-subtle",
+          )}
+        >
+          <div
+            className={cn(
+              "flex items-center justify-between gap-3 p-4",
+              headerRowDir,
+            )}
+          >
+            {/* Target */}
+            <div
+              className={cn(
+                "flex items-center gap-3 min-w-0",
+                isRTL ? "flex-row-reverse" : "flex-row",
+              )}
+            >
+              <div className="relative shrink-0">
+                <div className="absolute -inset-1 rounded-full bg-accent-soft blur-md opacity-70" />
+                {target.avatarUrl ? (
+                  <img
+                    src={target.avatarUrl}
+                    alt={target.name}
+                    className="relative size-11 rounded-full border border-border-strong bg-surface object-cover"
+                  />
+                ) : (
+                  <div className="relative size-11 rounded-full border border-border-strong bg-surface-soft" />
+                )}
+
+                {TARGET_META[targetType].badge && (
+                  <span
+                    className={cn(
+                      "absolute -bottom-1",
+                      isRTL ? "-left-1" : "-right-1",
+                      "rounded-full px-2 py-0.5 text-[10px] font-black",
+                      "bg-danger-solid text-danger-foreground border border-danger-soft-border",
+                      "shadow-[var(--shadow-glow-danger)]",
+                    )}
+                  >
+                    {TARGET_META[targetType].badge}
+                  </span>
+                )}
               </div>
-              <div className="flex flex-col">
-                <span className="text-xs text-gray-400 mb-0.5">
-                  دعم الستريمر
+
+              <div className="min-w-0">
+                <span className="truncate text-sm font-black text-foreground-strong">
+                  {target.name}
                 </span>
-                <span className="font-bold text-lg leading-none tracking-wide text-white">
-                  {targetUser.name}
-                </span>
-                <span className="text-[11px] text-purple-400 mt-1 flex items-center gap-1">
-                  <FaCrown className="text-[10px]" /> {targetUser.title}
-                </span>
+
+                <div className="mt-1 text-[11px] text-foreground-muted truncate">
+                  {TARGET_META[targetType].label}
+                  {target.subtitle ? ` • ${target.subtitle}` : ""}
+                </div>
               </div>
             </div>
 
-            {/* Actions: History & Balance */}
-            <div className="flex flex-col items-end gap-2">
-              {/* Logic 8: Moved History Button to a logical place (Top Left/Right based on Dir) */}
+            {/* Actions: History + Balance */}
+            <div
+              className={cn(
+                "flex items-center gap-2 shrink-0",
+                isRTL ? "flex-row-reverse" : "flex-row",
+              )}
+            >
               <button
-                onClick={() => setShowHistory(true)}
-                className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-                title="سجل الدعم"
+                type="button"
+                onClick={() => setView("history")}
+                className={cn(
+                  "h-10 rounded-full px-3 border",
+                  "bg-surface-soft border-border-subtle",
+                  "hover:bg-surface active:scale-95 transition",
+                  "flex items-center gap-2",
+                )}
+                aria-label="History"
               >
-                <FaHistory />
+                <IoTimeOutline className="size-4 text-foreground-muted" />
+                <span className="text-xs font-extrabold text-foreground-strong">
+                  السجل
+                </span>
               </button>
 
-              <div className="flex items-center gap-2 bg-[#0a0b0e] pl-1 pr-3 py-1 rounded-full border border-white/10">
-                <IoFlash className="text-yellow-400 text-base" />
-                <span className="font-mono font-bold text-yellow-400 text-sm tracking-wider">
-                  {balance.toLocaleString()}
-                </span>
-
-                {/* Logic 4: Plus Icon redirects to purchase */}
-                <button
-                  onClick={handleNavigateToShop}
-                  className="w-6 h-6 bg-yellow-500 hover:bg-yellow-400 text-black rounded-full flex items-center justify-center transition-colors ml-1"
+              <button
+                type="button"
+                onClick={goToPurchase}
+                className={cn(
+                  "h-10 rounded-full px-3 border",
+                  "bg-surface-soft border-border-subtle",
+                  "hover:bg-surface active:scale-95 transition",
+                  "flex items-center gap-2",
+                )}
+                aria-label="Popularity balance"
+              >
+                <IoFlash className="size-4 text-warning-500" />
+                <span
+                  dir="ltr"
+                  className="text-xs font-black font-mono tabular-nums text-foreground-strong"
                 >
-                  <IoAdd className="text-sm font-bold" />
-                </button>
-              </div>
+                  {balance.toLocaleString(locale)}
+                </span>
+                <span className="grid size-6 place-items-center rounded-full bg-warning-soft border border-warning-soft-border text-warning-700">
+                  <IoAdd className="size-4" />
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Tiny note */}
+          <div className="px-4 pb-3">
+            <div className="text-[11px] text-foreground-muted">
+              الشعبية ترفع التفاعل، تدعم العمل/الشخص، وتساعد على تصدّر الرتب
+              وتقوية الحساب.
             </div>
           </div>
         </div>
 
-        {/* =======================
-            BODY: GRID
-           ======================= */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 bg-[#0f1115] relative">
-          {/* Combo/Send Animation Overlay */}
-          <AnimatePresence>
-            {isAnimating && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 1.2, filter: "blur(10px)" }}
-                className="absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-none bg-black/60 backdrop-blur-sm"
-              >
-                <div className="relative">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="absolute inset-0 -m-10 border-2 border-dashed border-purple-500/30 rounded-full"
-                  />
-                  <div className="text-9xl mb-4 drop-shadow-[0_0_30px_rgba(168,85,247,0.6)]">
-                    {selectedGift?.icon}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <h2 className="text-4xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 drop-shadow-lg">
-                    SEND x{quantity}
-                  </h2>
-                  <p className="text-white/80 font-medium mt-2">
-                    تم الإرسال إلى {targetUser.name}
-                  </p>
-                </div>
-              </motion.div>
+        {/* Packs: ✅ single grid (no sections) */}
+        <div className="p-4 pb-24">
+          <div
+            className={cn(
+              "mb-4 text-[11px] text-foreground-soft",
+              isRTL ? "text-right" : "text-left",
             )}
-          </AnimatePresence>
+          >
+            تلميح: اضغط نفس الحزمة أكثر من مرة لزيادة التضاعف تلقائيًا (حتى{" "}
+            <span dir="ltr" className="font-mono tabular-nums">
+              99
+            </span>
+            ).
+          </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pb-24">
-            {GIFT_PACKS.map((gift) => {
-              const isActive = selectedGiftId === gift.id;
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+            {POPULARITY_PACKS.map((pack) => {
+              const active = selectedPackId === pack.id;
+              const tier = tierKey(pack.amount);
+              const s = TIER_STYLES[tier];
 
               return (
                 <button
-                  key={gift.id}
-                  onClick={() => handleGiftClick(gift.id)}
-                  className={`
-                    relative group flex flex-col items-center p-3 rounded-2xl border-2 transition-all duration-200
-                    ${
-                      isActive
-                        ? `${getRarityColor(gift.rarity)} -translate-y-1 bg-[#23262f]`
-                        : "bg-[#181a20] border-transparent hover:bg-[#23262f] hover:border-white/5"
-                    }
-                  `}
-                >
-                  {/* Icon */}
-                  <div
-                    className={`text-4xl mb-3 transition-transform duration-300 ${isActive ? "scale-110 drop-shadow-lg" : "grayscale-[0.3] group-hover:grayscale-0"}`}
-                  >
-                    {gift.icon}
-                  </div>
-
-                  {/* Info */}
-                  <span
-                    className={`text-[11px] font-bold text-center w-full truncate mb-1 ${isActive ? "text-white" : "text-gray-400"}`}
-                  >
-                    {gift.name}
-                  </span>
-
-                  <div
-                    className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${isActive ? "bg-yellow-500/20 text-yellow-400" : "text-gray-500"}`}
-                  >
-                    <IoFlash />
-                    {gift.cost}
-                  </div>
-
-                  {/* Quantity Indicator on Grid Item (Logic 3 visual feedback) */}
-                  {isActive && quantity > 1 && (
-                    <div className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 rounded-md shadow-sm border border-red-400">
-                      x{quantity}
-                    </div>
+                  key={pack.id}
+                  type="button"
+                  onClick={() => handlePackPress(pack.id)}
+                  className={cn(
+                    "group relative rounded-2xl border p-3 text-start overflow-hidden",
+                    "transition active:scale-[0.985]",
+                    "bg-surface-soft border-border-subtle hover:bg-surface hover:border-border-strong",
+                    active &&
+                      cn(
+                        "bg-surface border-accent-border ring-2",
+                        s.ring,
+                        s.glow,
+                      ),
                   )}
+                  aria-pressed={active}
+                >
+                  {/* Soft aura */}
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute -top-10 -right-10 size-28 rounded-full blur-2xl opacity-0 transition-opacity",
+                      s.aura,
+                      active ? "opacity-70" : "group-hover:opacity-45",
+                    )}
+                  />
+
+                  {/* Quantity badge */}
+                  {active && quantity > 1 && (
+                    <span
+                      className={cn(
+                        "absolute top-2",
+                        isRTL ? "left-2" : "right-2",
+                        "rounded-md px-1.5 py-0.5 text-[10px] font-black",
+                        "bg-danger-solid text-danger-foreground border border-danger-soft-border",
+                      )}
+                      dir="ltr"
+                    >
+                      x{quantity}
+                    </span>
+                  )}
+
+                  {/* Emoji icon */}
+                  <div
+                    className={cn(
+                      "mb-3 grid size-12 place-items-center rounded-xl border",
+                      s.chip,
+                      "shadow-sm",
+                      active && s.glow,
+                    )}
+                  >
+                    <span className="text-[26px] leading-none">
+                      {pack.emoji}
+                    </span>
+                  </div>
+
+                  {/* Name */}
+                  <div className="text-[11px] font-extrabold text-foreground-strong truncate">
+                    {pack.name}
+                  </div>
+
+                  {/* Amount pill */}
+                  <div
+                    className={cn(
+                      "mt-2 inline-flex items-center gap-1 rounded-lg border px-2 py-1",
+                      "bg-background-elevated border-border-subtle",
+                    )}
+                  >
+                    <IoFlash className="size-3 text-warning-500" />
+                    <span
+                      dir="ltr"
+                      className="text-[11px] font-black font-mono tabular-nums text-foreground-strong"
+                    >
+                      {formatCompact(pack.amount, locale)}
+                    </span>
+                    <span className="text-[10px] text-foreground-muted">
+                      شعبية
+                    </span>
+                  </div>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* =======================
-            FOOTER: CONTROLS
-           ======================= */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-[#16181d] border-t border-white/5 z-30">
-          <div className="flex items-stretch gap-3">
-            {/* Logic 3: Quantity Control (Combo Logic) */}
-            <div className="flex items-center bg-[#0a0b0e] rounded-xl border border-white/10 px-1">
-              <button
-                onClick={() => adjustQuantity(-1)}
-                className="w-10 h-full flex items-center justify-center text-gray-400 hover:text-white active:scale-90 transition-transform"
-              >
-                <IoRemove />
-              </button>
-              <div className="w-10 text-center font-bold text-lg text-white font-mono">
-                {quantity}
-              </div>
-              <button
-                onClick={() => adjustQuantity(1)}
-                className="w-10 h-full flex items-center justify-center text-gray-400 hover:text-white active:scale-90 transition-transform"
-              >
-                <IoAdd />
-              </button>
-            </div>
-
-            {/* Logic 2: Dynamic Send Button */}
-            <button
-              disabled={!selectedGift}
-              onClick={handleSend}
-              className={`flex-1 h-14 rounded-xl font-bold text-base flex flex-col items-center justify-center gap-0.5 shadow-lg transition-all active:scale-95 overflow-hidden relative
-                ${
-                  !selectedGift
-                    ? "bg-[#23262f] text-gray-600 cursor-not-allowed border border-white/5"
-                    : !canAfford
-                      ? "bg-gradient-to-r from-red-900 to-red-700 text-red-100 border border-red-500/30 hover:brightness-110"
-                      : "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-purple-500/25 hover:shadow-purple-500/40 border border-purple-400/20"
-                }
-              `}
-            >
-              {!selectedGift ? (
-                <span className="flex items-center gap-2 text-sm">
-                  اختر هدية للبدء
-                </span>
-              ) : !canAfford ? (
-                // Logic 2: Insufficient funds state
-                <>
-                  <span className="flex items-center gap-2">
-                    شحن الرصيد الآن <IoCartOutline className="text-lg" />
-                  </span>
-                  <span className="text-[10px] opacity-80 font-normal">
-                    تحتاج {totalCost - balance}{" "}
-                    <IoFlash className="inline text-[9px]" /> إضافية
-                  </span>
-                </>
-              ) : (
-                // Normal Send State
-                <>
-                  <span className="flex items-center gap-2 text-lg">
-                    إرسال
-                    {quantity > 1 && (
-                      <span className="text-yellow-300 italic">
-                        x{quantity}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-[10px] bg-black/20 px-2 rounded-full text-white/90">
-                    المجموع: {totalCost.toLocaleString()}{" "}
-                    <IoFlash className="inline text-[9px] text-yellow-400" />
-                  </span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* =======================
-            HISTORY OVERLAY
-           ======================= */}
+        {/* History overlay */}
         <AnimatePresence>
-          {showHistory && (
+          {view === "history" && (
             <motion.div
-              initial={{ x: "100%" }}
+              className="absolute inset-0 z-30 bg-background-elevated"
+              initial={{ x: slideFrom }}
               animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="absolute inset-0 z-50 bg-[#0f1115] flex flex-col"
+              exit={{ x: slideFrom }}
+              transition={{ type: "spring", stiffness: 320, damping: 32 }}
             >
-              {/* Header */}
-              <div className="shrink-0 flex items-center gap-3 p-4 border-b border-white/5 bg-[#16181d]">
-                <button
-                  onClick={() => setShowHistory(false)}
-                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+              <div className="sticky top-0 z-20 border-b border-border-subtle bg-background-elevated/92 backdrop-blur-md">
+                <div
+                  className={cn(
+                    "flex items-center justify-between gap-3 p-4",
+                    headerRowDir,
+                  )}
                 >
-                  <IoChevronForward className="text-xl rotate-180 text-white" />
-                </button>
-                <h3 className="font-bold text-lg text-white">
-                  سجل الدعم والأنشطة
-                </h3>
+                  <button
+                    type="button"
+                    onClick={() => setView("packs")}
+                    className={cn(
+                      "h-10 w-10 rounded-full border grid place-items-center",
+                      "bg-surface-soft border-border-subtle hover:bg-surface active:scale-95 transition",
+                    )}
+                    aria-label="Back"
+                  >
+                    <IoChevronForward
+                      className={cn("size-5", isRTL ? "" : "rotate-180")}
+                    />
+                  </button>
+
+                  <div className="min-w-0">
+                    <div className="text-sm font-black text-foreground-strong">
+                      السجل
+                    </div>
+                    <div className="text-[11px] text-foreground-muted">
+                      آخر عمليات إرسال الشعبية
+                    </div>
+                  </div>
+
+                  <div className="shrink-0">
+                    <div
+                      className={cn(
+                        "h-10 rounded-full px-3 border",
+                        "bg-surface-soft border-border-subtle",
+                        "flex items-center gap-2",
+                      )}
+                    >
+                      <IoFlash className="size-4 text-warning-500" />
+                      <span
+                        dir="ltr"
+                        className="text-xs font-black font-mono tabular-nums text-foreground-strong"
+                      >
+                        {balance.toLocaleString(locale)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Logic 1: Content & Empty State */}
-              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+              <div className="p-4">
                 {history.length === 0 ? (
-                  // Empty State - Anime Style
-                  <div
-                    className="flex flex-col items-center justify-center h-[70%] text-center opacity-0 animate-fade-in"
-                    style={{ animationFillMode: "forwards" }}
-                  >
-                    <div className="w-24 h-24 mb-6 bg-[#181a20] rounded-full flex items-center justify-center border-2 border-dashed border-gray-700">
-                      <IoTimeOutline className="text-5xl text-gray-600" />
+                  <div className="py-14 text-center">
+                    <div className="mx-auto mb-4 grid size-16 place-items-center rounded-2xl border border-border-subtle bg-surface-soft">
+                      <IoTimeOutline className="size-8 text-foreground-soft" />
                     </div>
-                    <h4 className="text-xl font-bold text-white mb-2">
-                      السجل فارغ تماماً!
-                    </h4>
-                    <p className="text-gray-400 text-sm max-w-[250px] leading-relaxed">
-                      لم يقم أحد بكتابة التاريخ بعد..
-                      <br />
-                      <span className="text-purple-400">
-                        كن أنت الأسطورة الأولى وابدأ بالإرسال.
-                      </span>
-                    </p>
+                    <div className="text-sm font-black text-foreground-strong">
+                      السجل فارغ
+                    </div>
+                    <div className="mt-1 text-[11px] text-foreground-muted">
+                      أول إرسال لك سيظهر هنا ✨
+                    </div>
                   </div>
                 ) : (
-                  // List
                   <div className="flex flex-col gap-3">
-                    {history.map((item) => (
+                    {history.map((h) => (
                       <div
-                        key={item.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-[#181a20] border border-white/5 hover:border-white/10 transition-colors"
+                        key={h.id}
+                        className="flex items-center justify-between gap-3 rounded-2xl border border-border-subtle bg-card px-3 py-3"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-lg bg-[#23262f] flex items-center justify-center text-2xl shadow-inner">
-                            {item.giftIcon}
+                        <div
+                          className={cn(
+                            "flex items-center gap-3 min-w-0",
+                            isRTL ? "flex-row-reverse" : "flex-row",
+                          )}
+                        >
+                          <div className="grid size-12 place-items-center rounded-xl border border-border-subtle bg-surface-soft">
+                            <span className="text-[24px] leading-none">
+                              {h.packEmoji}
+                            </span>
                           </div>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-bold text-white flex items-center gap-2">
-                              أرسلت {item.giftName}
-                              {item.isCombo && (
-                                <span className="text-[9px] bg-red-500/20 text-red-400 border border-red-500/30 px-1 rounded">
-                                  COMBO
-                                </span>
-                              )}
-                            </span>
-                            <span className="text-[10px] text-gray-500">
-                              {item.timestamp}
-                            </span>
+
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-extrabold text-foreground-strong">
+                              {h.packName}
+                            </div>
+                            <div className="mt-1 text-[11px] text-foreground-muted">
+                              <span
+                                dir="ltr"
+                                className="font-mono tabular-nums"
+                              >
+                                x{h.quantity}
+                              </span>{" "}
+                              •{" "}
+                              <span
+                                dir="ltr"
+                                className="font-mono tabular-nums"
+                              >
+                                {h.total.toLocaleString(locale)}
+                              </span>{" "}
+                              شعبية
+                            </div>
                           </div>
                         </div>
-                        <span className="font-mono font-bold text-red-400 text-sm">
-                          -{item.cost.toLocaleString()}
-                        </span>
+
+                        <div
+                          dir="ltr"
+                          className="shrink-0 text-xs font-black font-mono tabular-nums text-danger-500"
+                        >
+                          -{h.total.toLocaleString(locale)}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -502,7 +843,45 @@ export default function PopularityModal({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Send pulse */}
+        <AnimatePresence>
+          {pulse && (
+            <motion.div
+              className="pointer-events-none absolute inset-0 z-40 grid place-items-center bg-black/35 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
+            >
+              <motion.div
+                initial={{ scale: 0.92, y: 10, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 1.06, y: -6, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 420, damping: 28 }}
+                className={cn(
+                  "w-[88%] max-w-sm rounded-3xl border border-border-subtle bg-background-elevated p-5 text-center",
+                  "shadow-[var(--shadow-elevated)]",
+                )}
+              >
+                <div className="text-base font-black text-foreground-strong">
+                  تم الإرسال {pulse.emoji}
+                </div>
+                <div className="mt-1 text-[11px] text-foreground-muted">
+                  <span dir="ltr" className="font-mono tabular-nums">
+                    x{pulse.quantity}
+                  </span>{" "}
+                  •{" "}
+                  <span dir="ltr" className="font-mono tabular-nums">
+                    {pulse.total.toLocaleString(locale)}
+                  </span>{" "}
+                  شعبية إلى {target.name}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </Modal>
+    </DeModal>
   );
 }

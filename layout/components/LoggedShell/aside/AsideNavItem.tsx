@@ -1,4 +1,3 @@
-// layout/components/aside/AsideNavItem.tsx
 "use client";
 
 import * as React from "react";
@@ -13,29 +12,29 @@ const styles = {
     "text-sm font-semibold transition duration-200 ease-out",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring",
     "focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-    "cursor-pointer select-none"
+    "cursor-pointer select-none",
   ),
   rowInactive: cn(
     "text-foreground-muted",
     "hover:text-foreground-strong hover:bg-background/50",
-    "active:bg-background/60"
+    "active:bg-background/60",
   ),
   rowActive: cn(
     "bg-accent-soft/90 text-foreground-strong",
     "border border-accent-border/55 shadow-[var(--shadow-sm)]",
-    "hover:bg-accent-soft hover:border-accent-border/70"
+    "hover:bg-accent-soft hover:border-accent-border/70",
   ),
   iconWrapBase: cn(
     "grid size-9 shrink-0 place-items-center rounded-xl",
-    "transition duration-200"
+    "transition duration-200",
   ),
   iconWrapInactive: cn(
     "bg-background/35 text-foreground-muted",
-    "group-hover:bg-accent/14 group-hover:text-foreground-strong"
+    "group-hover:bg-accent/14 group-hover:text-foreground-strong",
   ),
   iconWrapActive: cn(
     "bg-accent text-accent-foreground",
-    "shadow-[var(--shadow-sm)] ring-1 ring-accent-ring/35"
+    "shadow-[var(--shadow-sm)] ring-1 ring-accent-ring/35",
   ),
 };
 
@@ -44,31 +43,32 @@ type CommonProps = {
   Icon: IconType;
   active?: boolean;
   badge?: number;
+  ariaLabel?: string;
 };
 
 type LinkProps = CommonProps & {
   href: string;
   onClick?: never;
-  ariaLabel?: string;
 };
 
 type ActionProps = CommonProps & {
   onClick: () => void;
   href?: never;
-  ariaLabel: string; // إلزامي للأزرار
+  ariaLabel: string; // required for buttons
 };
 
 export const AsideNavItem = React.memo(function AsideNavItem(
-  props: LinkProps | ActionProps
+  props: LinkProps | ActionProps,
 ) {
   const active = Boolean(props.active);
   const rowClass = cn(
     styles.rowBase,
-    active ? styles.rowActive : styles.rowInactive
+    active ? styles.rowActive : styles.rowInactive,
   );
+
   const iconClass = cn(
     styles.iconWrapBase,
-    active ? styles.iconWrapActive : styles.iconWrapInactive
+    active ? styles.iconWrapActive : styles.iconWrapInactive,
   );
 
   const content = (
@@ -83,7 +83,6 @@ export const AsideNavItem = React.memo(function AsideNavItem(
     </>
   );
 
-  // Action item (مثل notifications)
   if ("onClick" in props) {
     return (
       <button
@@ -97,13 +96,12 @@ export const AsideNavItem = React.memo(function AsideNavItem(
     );
   }
 
-  // Link item
   return (
     <Link
       href={props.href}
       className={rowClass}
       aria-current={active ? "page" : undefined}
-      aria-label={props.ariaLabel}
+      aria-label={props.ariaLabel ?? props.label}
     >
       {content}
     </Link>

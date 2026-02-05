@@ -206,6 +206,106 @@
       }
     }
   },
+
+  "optionsSheet": {
+    "actions": {
+      "share": "مشاركة",
+      "copyLink": "نسخ الرابط",
+      "copyId": "نسخ المعرّف",
+      "copyText": "نسخ النص",
+
+      "save": "حفظ",
+      "unsave": "إزالة من المحفوظات",
+
+      "watchLater": "مشاهدة لاحقًا",
+      "removeFromWatchLater": "إزالة من المشاهدة لاحقًا",
+
+      "enableNotifications": "تفعيل الإشعارات",
+      "disableNotifications": "إيقاف الإشعارات",
+
+      "follow": "متابعة",
+      "unfollow": "إلغاء المتابعة",
+
+      "mute": "كتم",
+      "unmute": "إلغاء الكتم",
+
+      "block": "حظر",
+      "unblock": "إلغاء الحظر",
+
+      "pin": "تثبيت",
+      "unpin": "إلغاء التثبيت",
+
+      "archive": "أرشفة",
+      "unarchive": "إلغاء الأرشفة",
+
+      "markAsRead": "وضع كمقروء",
+      "markAsUnread": "وضع كغير مقروء",
+
+      "joinCommunity": "انضمام للمجتمع",
+      "leaveCommunity": "مغادرة المجتمع",
+
+      "addToFavorites": "إضافة للمفضلة",
+      "removeFromFavorites": "إزالة من المفضلة",
+
+      "message": "مراسلة",
+      "hide": "إخفاء",
+      "report": "إبلاغ…",
+      "edit": "تعديل",
+      "delete": "حذف",
+
+      "notInterested": "غير مهتم",
+      "showLessLikeThis": "عرض أقل مثل هذا",
+      "showMoreLikeThis": "عرض المزيد مثل هذا",
+
+      "addToList": "إضافة لقائمة",
+      "removeFromList": "إزالة من قائمة",
+
+      "markSpoiler": "إضافة علامة حرق",
+      "unmarkSpoiler": "إزالة علامة الحرق",
+
+      "markMature": "وضع علامة محتوى للبالغين",
+      "unmarkMature": "إزالة علامة محتوى للبالغين",
+
+      "makePrivate": "جعلها خاصة",
+      "makePublic": "جعلها عامة",
+
+      "rate": "تقييم",
+      "review": "كتابة مراجعة",
+      "download": "تنزيل"
+    },
+
+    "libraryStatus": {
+      "generic": "تحديث الحالة",
+      "anime": {
+        "planned": "أنوي المشاهدة",
+        "inProgress": "أشاهد الآن",
+        "completed": "مكتمل",
+        "onHold": "مؤجل",
+        "dropped": "متروك"
+      },
+      "manga": {
+        "planned": "أنوي القراءة",
+        "inProgress": "أقرأ الآن",
+        "completed": "مكتمل",
+        "onHold": "مؤجل",
+        "dropped": "متروك"
+      },
+      "comic": {
+        "planned": "أنوي القراءة",
+        "inProgress": "أقرأ الآن",
+        "completed": "مكتمل",
+        "onHold": "مؤجل",
+        "dropped": "متروك"
+      }
+    },
+
+    "toast": {
+      "copied": "تم النسخ",
+      "copyFailed": "تعذّر النسخ",
+      "error": "حدث خطأ"
+    }
+  },
+
   "countries": {
     "PS": "فلسطين",
     "AD": "أندورا",

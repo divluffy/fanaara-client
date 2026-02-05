@@ -324,6 +324,105 @@
     }
   },
 
+  "optionsSheet": {
+    "actions": {
+      "share": "Share",
+      "copyLink": "Copy link",
+      "copyId": "Copy ID",
+      "copyText": "Copy text",
+
+      "save": "Save",
+      "unsave": "Remove from saved",
+
+      "watchLater": "Watch later",
+      "removeFromWatchLater": "Remove from Watch Later",
+
+      "enableNotifications": "Enable notifications",
+      "disableNotifications": "Disable notifications",
+
+      "follow": "Follow",
+      "unfollow": "Unfollow",
+
+      "mute": "Mute",
+      "unmute": "Unmute",
+
+      "block": "Block",
+      "unblock": "Unblock",
+
+      "pin": "Pin",
+      "unpin": "Unpin",
+
+      "archive": "Archive",
+      "unarchive": "Unarchive",
+
+      "markAsRead": "Mark as read",
+      "markAsUnread": "Mark as unread",
+
+      "joinCommunity": "Join community",
+      "leaveCommunity": "Leave community",
+
+      "addToFavorites": "Add to favorites",
+      "removeFromFavorites": "Remove from favorites",
+
+      "message": "Message",
+      "hide": "Hide",
+      "report": "Report…",
+      "edit": "Edit",
+      "delete": "Delete",
+
+      "notInterested": "Not interested",
+      "showLessLikeThis": "Show less like this",
+      "showMoreLikeThis": "Show more like this",
+
+      "addToList": "Add to list",
+      "removeFromList": "Remove from list",
+
+      "markSpoiler": "Mark as spoiler",
+      "unmarkSpoiler": "Remove spoiler tag",
+
+      "markMature": "Mark as mature",
+      "unmarkMature": "Remove mature tag",
+
+      "makePrivate": "Make private",
+      "makePublic": "Make public",
+
+      "rate": "Rate",
+      "review": "Write a review",
+      "download": "Download"
+    },
+
+    "libraryStatus": {
+      "generic": "Update status",
+      "anime": {
+        "planned": "Plan to watch",
+        "inProgress": "Watching",
+        "completed": "Completed",
+        "onHold": "On hold",
+        "dropped": "Dropped"
+      },
+      "manga": {
+        "planned": "Plan to read",
+        "inProgress": "Reading",
+        "completed": "Completed",
+        "onHold": "On hold",
+        "dropped": "Dropped"
+      },
+      "comic": {
+        "planned": "Plan to read",
+        "inProgress": "Reading",
+        "completed": "Completed",
+        "onHold": "On hold",
+        "dropped": "Dropped"
+      }
+    },
+
+    "toast": {
+      "copied": "Copied",
+      "copyFailed": "Couldn't copy",
+      "error": "Something went wrong"
+    }
+  },
+
   "countries": {
     "PS": "Palestine",
     "AD": "Andorra",

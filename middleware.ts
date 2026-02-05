@@ -13,7 +13,10 @@ const PUBLIC_PREFIXES = [
   "/playground",
   "/landing",
   "/policy-terms-center",
+  "/creator",
 ];
+
+const testingPages = ["/creator"];
 
 function isPublicFile(pathname: string) {
   return /\.[a-zA-Z0-9]+$/.test(pathname);
@@ -21,12 +24,22 @@ function isPublicFile(pathname: string) {
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PREFIXES.some(
-    (p) => pathname === p || pathname.startsWith(p + "/")
+    (p) => pathname === p || pathname.startsWith(p + "/"),
   );
 }
-
+function isTestingPages(pathname: string) {
+  return testingPages.some(
+    (p) => pathname === p || pathname.startsWith(p + "/"),
+  );
+}
 export function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
+  console.log("pathname: ", pathname);
+
+  if (isTestingPages(pathname)) {
+    console.log("testingggggggg");
+    return NextResponse.next();
+  }
 
   // ✅ السماح للملفات الثابتة
   if (isPublicFile(pathname)) return NextResponse.next();

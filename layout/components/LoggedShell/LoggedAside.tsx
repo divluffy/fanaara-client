@@ -1,24 +1,25 @@
-// layout\components\LoggedShell\LoggedAside.tsx
 "use client";
 
 import * as React from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAppSelector } from "@/store/hooks";
-import { cn } from "@/utils";
+import { cn } from "@/utils/cn";
+import { MockUser } from "@/constants";
+import { useAttachedPanel } from "@/hooks/useAttachedPanel";
 import {
   AsideNavItem,
   ProfileCard,
   ASIDE_ITEMS,
-  AsideItemConfig,
+  type AsideItemConfig,
 } from "./aside";
-import { MockUser } from "@/constants";
-import { useAttachedPanel } from "@/hooks/useAttachedPanel";
-import {
-  LanguageMenuToggle,
-  NotificationsPanel,
-  ThemeToggle,
-} from "@/components";
+import { UserMenuModal } from "./UserMenuModal";
+
+const NotificationsPanel = dynamic(
+  () => import("@/components/NotificationsPanel"),
+  { ssr: false },
+);
 
 function isActive(pathname: string, href: string, exact?: boolean) {
   if (exact) return pathname === href;
@@ -33,30 +34,51 @@ function resolveDir(
   return isRTL ? "rtl" : "ltr";
 }
 
+type ActionKey = Extract<AsideItemConfig, { type: "action" }>["actionKey"];
+
 export default function LoggedAside() {
   const t = useTranslations("aside");
   const pathname = usePathname();
 
   const { isRTL, direction } = useAppSelector((s) => s.state);
   const dir = resolveDir(direction, isRTL);
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
-  // placeholders (بدّلها لاحقًا)
+  // TODO: replace with real counts from store/api
   const notificationsCount = 3;
   const chatUnreadCount = 7;
 
-  // ✅ Panel ملتصق بالـ aside
-  const noti = useAttachedPanel({
+  const {
+    open: notiOpen,
+    toggle: toggleNoti,
+    close: closeNoti,
+    setAnchorRef,
+    setTriggerRef,
+    panelRef,
+    panelStyle,
+  } = useAttachedPanel({
     dir,
-    panelWidth: 350,
+    panelWidth: 360,
     overlapPx: 1,
     closeOnEscape: true,
   });
 
-  // إغلاق عند تغيير المسار (لضمان عدم بقاء panel مفتوح بعد التنقل)
+  // Close notifications when route changes
+  const notiOpenRef = React.useRef(notiOpen);
+
   React.useEffect(() => {
-    if (noti.open) noti.close();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+    notiOpenRef.current = notiOpen;
+  }, [notiOpen]);
+
+  React.useEffect(() => {
+    if (notiOpenRef.current) closeNoti();
+  }, [pathname, closeNoti]);
+
+  // Lazy-mount panel only after first intent (hover/open)
+  const [notiMounted, setNotiMounted] = React.useState(false);
+  React.useEffect(() => {
+    if (notiOpen) setNotiMounted(true);
+  }, [notiOpen]);
 
   const badgeCountByKey = React.useMemo(
     () => ({
@@ -66,26 +88,25 @@ export default function LoggedAside() {
     [chatUnreadCount, notificationsCount],
   );
 
-  const onAction = React.useCallback(
-    (
-      actionKey: AsideItemConfig extends infer T
-        ? T extends { actionKey: infer K }
-          ? K
-          : never
-        : never,
-    ) => {
-      if (actionKey === "openNotifications") noti.toggle();
-    },
-    [noti],
+  const openNotifications = React.useCallback(() => {
+    setNotiMounted(true);
+    toggleNoti();
+  }, [toggleNoti]);
+
+  const actionHandlers = React.useMemo<Record<ActionKey, () => void>>(
+    () => ({
+      openNotifications,
+    }),
+    [openNotifications],
   );
 
   return (
     <>
       <aside
-        ref={noti.asideRef as unknown as React.RefObject<HTMLElement>}
+        ref={setAnchorRef}
         dir={dir}
         className={cn(
-          "bg-background-elevated w-64 p-4 h-dvh sticky top-0",
+          "bg-background-elevated w-64 p-4 h-full",
           "flex flex-col gap-3",
           "border-e border-accent-border/80",
         )}
@@ -97,45 +118,30 @@ export default function LoggedAside() {
                 ? badgeCountByKey[it.badgeKey]
                 : undefined;
 
-              // Notifications action (trigger)
-              if (
-                it.type === "action" &&
-                it.actionKey === "openNotifications"
-              ) {
+              if (it.type === "action") {
+                const isNotifications = it.actionKey === "openNotifications";
+
                 return (
                   <li
                     key={it.id}
-                    ref={
-                      noti.triggerRef as unknown as React.RefObject<HTMLLIElement>
+                    ref={isNotifications ? setTriggerRef : undefined}
+                    onPointerEnter={
+                      isNotifications ? () => setNotiMounted(true) : undefined
                     }
                   >
                     <AsideNavItem
                       label={t(it.id)}
                       Icon={it.Icon}
                       badge={badge}
-                      onClick={() => onAction(it.actionKey)}
-                      ariaLabel={t("openNotifications")}
+                      onClick={actionHandlers[it.actionKey]}
+                      ariaLabel={
+                        isNotifications ? t("openNotifications") : t(it.id)
+                      }
                     />
                   </li>
                 );
               }
 
-              // any other action (future)
-              if (it.type === "action") {
-                return (
-                  <li key={it.id}>
-                    <AsideNavItem
-                      label={t(it.id)}
-                      Icon={it.Icon}
-                      badge={badge}
-                      onClick={() => onAction(it.actionKey)}
-                      ariaLabel={t(it.id)}
-                    />
-                  </li>
-                );
-              }
-
-              // link
               const active = isActive(pathname, it.href, it.exact);
 
               return (
@@ -146,33 +152,43 @@ export default function LoggedAside() {
                     active={active}
                     href={it.href}
                     badge={badge}
+                    ariaLabel={t(it.id)}
                   />
                 </li>
               );
             })}
           </ul>
         </nav>
-        <div className="flex">
-          <ThemeToggle />
-          <LanguageMenuToggle />
-        </div>
+
         <ProfileCard
           user={MockUser}
           profileHref="/profile"
           profileAriaLabel={t("link")}
           openMenuAriaLabel={t("openProfileMenu")}
-          onOpenMenu={() => {
-            // لاحقًا: نفس المنطق لبروفايل menu
+          onOpenMenu={() => setMenuOpen(true)}
+        />
+
+        <UserMenuModal
+          open={menuOpen}
+          onOpenChange={setMenuOpen}
+          user={MockUser}
+          profileHref="/me"
+          onLogout={() => {
+            // TODO: call your auth signout
+            // e.g. await signOut()
           }}
         />
       </aside>
 
-      <NotificationsPanel
-        open={noti.open}
-        dir={dir}
-        panelRef={noti.panelRef}
-        style={noti.panelStyle}
-      />
+      {notiMounted && (
+        <NotificationsPanel
+          open={notiOpen}
+          dir={dir}
+          panelRef={panelRef as React.RefObject<HTMLDivElement>}
+          style={panelStyle}
+          onClose={closeNoti}
+        />
+      )}
     </>
   );
 }

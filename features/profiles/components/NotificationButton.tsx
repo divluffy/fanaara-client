@@ -1,401 +1,342 @@
 "use client";
 
-import * as React from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { FiBell, FiBellOff } from "react-icons/fi";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  MdNotifications,
+  MdNotificationsActive,
+  MdNotificationsOff,
+  MdClose,
+} from "react-icons/md";
+
 import { cn } from "@/utils";
-import { IconButton } from "@/design";
+import { Button } from "@/design/DeButton";
 
-type NotificationMode = "off" | "default" | "all";
-
-// ترتيب التبديل بالضغط المتكرر
-const CYCLE_ORDER: NotificationMode[] = ["default", "all", "off"];
-// ترتيب العرض في الخيارات
-const MENU_ORDER: NotificationMode[] = ["off", "default", "all"];
-
-const MODE_LABEL: Record<NotificationMode, string> = {
-  off: "إيقاف",
-  default: "افتراضي",
-  all: "الكل",
-};
-
-const MODE_DESC: Record<NotificationMode, string> = {
-  off: "لن تصلك أي إشعارات.",
-  default: "إشعارات مهمة/مقترحة حسب الإعدادات.",
-  all: "كل الإشعارات بدون فلترة.",
-};
-
-function nextMode(current: NotificationMode): NotificationMode {
-  const idx = CYCLE_ORDER.indexOf(current);
-  return CYCLE_ORDER[(idx + 1) % CYCLE_ORDER.length];
-}
-
-function useDocumentDir(explicit?: "rtl" | "ltr") {
-  const [dir, setDir] = React.useState<"rtl" | "ltr">(explicit ?? "ltr");
-
-  React.useEffect(() => {
-    if (explicit) {
-      setDir(explicit);
-      return;
-    }
-    if (typeof document === "undefined") return;
-
-    const read = () =>
-      document.documentElement.getAttribute("dir") === "rtl" ? "rtl" : "ltr";
-
-    setDir(read());
-
-    const obs = new MutationObserver(() => setDir(read()));
-    obs.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["dir"],
-    });
-
-    return () => obs.disconnect();
-  }, [explicit]);
-
-  return dir;
-}
-
-function BellAllIcon({ small }: { small?: boolean }) {
-  const reduce = useReducedMotion();
-
-  const iconSize = small ? "h-4 w-4" : "h-5 w-5";
-  const waveSize = small ? "h-2 w-2" : "h-2.5 w-2.5";
-  const left = small ? "-left-1.5" : "-left-2";
-  const right = small ? "-right-1.5" : "-right-2";
-
-  return (
-    <div className="relative">
-      <motion.div
-        animate={reduce ? undefined : { rotate: [0, -12, 12, -12, 0] }}
-        transition={
-          reduce
-            ? { duration: 0 }
-            : {
-                duration: 0.55,
-                repeat: Infinity,
-                repeatDelay: 2.2,
-                ease: "easeInOut",
-              }
-        }
-        className="relative z-10"
-      >
-        <FiBell className={iconSize} />
-      </motion.div>
-
-      {!reduce && (
-        <>
-          <motion.span
-            aria-hidden
-            className={cn(
-              "absolute top-1/2 -translate-y-1/2 rounded-full border border-current opacity-40",
-              waveSize,
-              left,
-            )}
-            animate={{ scale: [0.7, 1.3, 0.7], opacity: [0, 0.45, 0] }}
-            transition={{ duration: 1.15, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.span
-            aria-hidden
-            className={cn(
-              "absolute top-1/2 -translate-y-1/2 rounded-full border border-current opacity-40",
-              waveSize,
-              right,
-            )}
-            animate={{ scale: [0.7, 1.3, 0.7], opacity: [0, 0.45, 0] }}
-            transition={{
-              duration: 1.15,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 0.15,
-            }}
-          />
-        </>
-      )}
-    </div>
-  );
-}
+type NotificationMode = "mute" | "default" | "all";
 
 type NotificationButtonProps = {
   value?: NotificationMode;
   defaultValue?: NotificationMode;
   onChange?: (mode: NotificationMode) => void;
-  dir?: "rtl" | "ltr";
+  disabled?: boolean;
   className?: string;
 };
 
-export function NotificationButton({
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia(query);
+    const update = () => setMatches(mql.matches);
+    update();
+    mql.addEventListener?.("change", update);
+    return () => mql.removeEventListener?.("change", update);
+  }, [query]);
+
+  return matches;
+}
+
+function useOnClickOutside(
+  refs: React.RefObject<HTMLElement>[],
+  handler: () => void,
+  enabled: boolean,
+) {
+  useEffect(() => {
+    if (!enabled) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      const t = e.target as Node;
+      const inside = refs.some((r) => r.current?.contains(t));
+      if (!inside) handler();
+    };
+
+    window.addEventListener("pointerdown", onPointerDown, { capture: true });
+    return () =>
+      window.removeEventListener("pointerdown", onPointerDown, {
+        capture: true,
+      } as any);
+  }, [refs, handler, enabled]);
+}
+
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
+}
+
+export const NotificationButton = ({
   value,
   defaultValue = "default",
   onChange,
-  dir: dirProp,
+  disabled,
   className,
-}: NotificationButtonProps) {
-  const reduceMotion = useReducedMotion();
-  const dir = useDocumentDir(dirProp);
-  const layoutId = React.useId();
+}: NotificationButtonProps) => {
+  const isMobile = useMediaQuery("(max-width: 639px)");
+  const [open, setOpen] = useState(false);
+  const [internal, setInternal] = useState<NotificationMode>(defaultValue);
+  const [mounted, setMounted] = useState(false);
 
-  const isControlled = value !== undefined;
-  const [internalMode, setInternalMode] =
-    React.useState<NotificationMode>(defaultValue);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  const mode = isControlled ? (value as NotificationMode) : internalMode;
+  const mode = value ?? internal;
 
-  const [open, setOpen] = React.useState(false);
-  const rootRef = React.useRef<HTMLDivElement | null>(null);
-
-  const closeTimer = React.useRef<number | null>(null);
-
-  const spring = React.useMemo(
-    () =>
-      reduceMotion
-        ? { duration: 0 }
-        : { type: "spring", stiffness: 520, damping: 28, mass: 0.9 },
-    [reduceMotion],
-  );
-
-  const scheduleAutoClose = React.useCallback(() => {
-    if (closeTimer.current) window.clearTimeout(closeTimer.current);
-    closeTimer.current = window.setTimeout(() => setOpen(false), 2200);
-  }, []);
-
-  React.useEffect(() => {
-    return () => {
-      if (closeTimer.current) window.clearTimeout(closeTimer.current);
-    };
-  }, []);
-
-  React.useEffect(() => {
-    if (!open) return;
-
-    const onPointerDown = (e: PointerEvent) => {
-      const el = rootRef.current;
-      if (!el) return;
-      if (e.target instanceof Node && !el.contains(e.target)) setOpen(false);
-    };
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-
-    window.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      window.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
-
-  const commitMode = React.useCallback(
-    (
-      next: NotificationMode,
-      opts?: { close?: boolean; openHint?: boolean },
-    ) => {
-      if (!isControlled) setInternalMode(next);
+  const close = useCallback(() => setOpen(false), []);
+  const setMode = useCallback(
+    (next: NotificationMode) => {
+      if (!value) setInternal(next);
       onChange?.(next);
-
-      const shouldOpen = opts?.openHint ?? true;
-      if (shouldOpen) {
-        setOpen(true);
-        scheduleAutoClose();
-      } else {
-        setOpen(false);
-      }
-
-      if (opts?.close) setOpen(false);
+      close();
     },
-    [isControlled, onChange, scheduleAutoClose],
+    [value, onChange, close],
   );
 
-  // ✅ الضغط: يبدّل للحالة التالية + يظهر الخيارات الثلاثة
-  const handleMainClick = () => {
-    commitMode(nextMode(mode), { openHint: true });
-  };
+  useEffect(() => setMounted(true), []);
 
-  const buttonTone = cn(
-    "relative h-10 w-10 overflow-hidden border backdrop-blur transition-all duration-300 ease-out",
-    "active:scale-95",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
-    mode === "off" &&
-      "bg-zinc-950/35 border-zinc-700/50 text-zinc-400 hover:bg-zinc-900/60 hover:border-zinc-600/60 hover:text-zinc-200",
-    mode === "default" &&
-      "bg-white/5 border-white/10 text-zinc-200 hover:bg-white/10 hover:border-white/20",
-    mode === "all" &&
-      "bg-indigo-500/15 border-indigo-500/30 text-indigo-200 hover:bg-indigo-500/25 hover:border-indigo-400/50 shadow-[0_0_18px_-6px_rgba(99,102,241,0.45)]",
-    open && "ring-1 ring-white/15",
-  );
+  // ESC
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => e.key === "Escape" && close();
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, close]);
 
-  const shineDirection =
-    dir === "rtl" ? "before:bg-gradient-to-l" : "before:bg-gradient-to-r";
+  // Lock scroll on mobile modal
+  useEffect(() => {
+    if (!open || !isMobile) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open, isMobile]);
 
-  const iconVariants = {
-    initial: { scale: 0.6, opacity: 0, rotate: -18 },
-    animate: { scale: 1, opacity: 1, rotate: 0 },
-    exit: {
-      scale: 0.6,
-      opacity: 0,
-      rotate: 18,
-      transition: { duration: 0.12 },
+  useOnClickOutside([anchorRef, panelRef], close, open);
+
+  // Desktop positioning (Portal + fixed)
+  const [pos, setPos] = useState<{
+    top: number;
+    left: number;
+    origin: string;
+  } | null>(null);
+
+  const updatePos = useCallback(() => {
+    const anchor = anchorRef.current;
+    const panel = panelRef.current;
+    if (!anchor || !panel) return;
+
+    const r = anchor.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const panelW = panel.offsetWidth;
+    const panelH = panel.offsetHeight;
+
+    const margin = 12;
+    const gap = 10;
+
+    const dir =
+      (document.documentElement.getAttribute("dir") || "").toLowerCase() ===
+      "rtl"
+        ? "rtl"
+        : "ltr";
+
+    // Horizontal: align to trigger start (LTR) / end (RTL)
+    let left = dir === "rtl" ? r.right - panelW : r.left;
+    left = clamp(left, margin, vw - panelW - margin);
+
+    // Vertical: prefer above; fallback below
+    const topAbove = r.top - gap - panelH;
+    const topBelow = r.bottom + gap;
+
+    let top = topAbove;
+    let origin = "bottom";
+
+    if (topAbove < margin && topBelow + panelH <= vh - margin) {
+      top = topBelow;
+      origin = "top";
+    } else {
+      top = clamp(top, margin, vh - panelH - margin);
+    }
+
+    setPos({ top, left, origin });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open || isMobile) return;
+    updatePos();
+  }, [open, isMobile, updatePos]);
+
+  useEffect(() => {
+    if (!open || isMobile) return;
+    const onAny = () => updatePos();
+    window.addEventListener("resize", onAny);
+    window.addEventListener("scroll", onAny, true);
+    return () => {
+      window.removeEventListener("resize", onAny);
+      window.removeEventListener("scroll", onAny, true);
+    };
+  }, [open, isMobile, updatePos]);
+
+  const triggerIcon =
+    mode === "mute" ? (
+      <MdNotificationsOff className="h-5 w-5" />
+    ) : mode === "all" ? (
+      <MdNotificationsActive className="h-5 w-5" />
+    ) : (
+      <MdNotifications className="h-5 w-5" />
+    );
+
+  const triggerTone =
+    mode === "mute"
+      ? "text-rose-300"
+      : mode === "all"
+        ? "text-emerald-300"
+        : "text-zinc-100";
+
+  const options: Array<{
+    key: NotificationMode;
+    title: string;
+    icon: React.ReactNode;
+    activeCls: string;
+  }> = [
+    {
+      key: "mute",
+      title: "كتم",
+      icon: <MdNotificationsOff className="h-5 w-5" />,
+      activeCls: "border-rose-500/35 bg-rose-500/10 text-rose-200",
     },
-  } as const;
+    {
+      key: "default",
+      title: "افتراضي",
+      icon: <MdNotifications className="h-5 w-5" />,
+      activeCls: "border-white/20 bg-white/5 text-zinc-50",
+    },
+    {
+      key: "all",
+      title: "الكل",
+      icon: <MdNotificationsActive className="h-5 w-5" />,
+      activeCls: "border-emerald-500/35 bg-emerald-500/10 text-emerald-200",
+    },
+  ];
 
-  const cornerDotPos = dir === "rtl" ? "left-0 -ml-1" : "right-0 -mr-1";
+  const panel = (
+    <AnimatePresence>
+      {open && !disabled && (
+        <>
+          {/* Mobile overlay */}
+          {isMobile && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9998] bg-black/60"
+              onClick={close}
+              aria-hidden
+            />
+          )}
 
-  return (
-    <div ref={rootRef} className={cn("relative inline-flex", className)}>
-      <IconButton
-        onClick={handleMainClick}
-        aria-label={`Notifications: ${MODE_LABEL[mode]}`}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        size="md"
-        shape="square"
-        variant="ghost"
-        className={cn(
-          buttonTone,
-          "group",
-          "before:absolute before:inset-0 before:opacity-0 before:transition-opacity before:duration-300",
-          "before:from-white/10 before:to-transparent",
-          shineDirection,
-          "group-hover:before:opacity-100",
-        )}
-      >
-        <AnimatePresence mode="wait" initial={false}>
           <motion.div
-            key={mode}
-            variants={iconVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={spring}
-            className="relative flex items-center justify-center"
-          >
-            {mode === "off" && <FiBellOff className="h-5 w-5" />}
-
-            {mode === "default" && (
-              <div className="relative">
-                <FiBell className="h-5 w-5" />
-                {/* نقطة تنبيه صغيرة حسب اتجاه الصفحة */}
-                <span
-                  className={cn(
-                    "absolute top-0 -mt-1 flex h-2.5 w-2.5",
-                    cornerDotPos,
-                  )}
-                >
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-zinc-200/40" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-zinc-200/70 ring-2 ring-zinc-950/70" />
-                </span>
-              </div>
-            )}
-
-            {mode === "all" && <BellAllIcon />}
-
-            {/* Glow للحالة all */}
-            {mode === "all" && !reduceMotion && (
-              <motion.div
-                aria-hidden
-                className="absolute inset-0 rounded-full bg-indigo-400/20 blur-md"
-                animate={{ scale: [1, 1.25, 1], opacity: [0.35, 0.05, 0.35] }}
-                transition={{
-                  duration: 2.6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </IconButton>
-
-      {/* خيارات 3 حالات + وصف بسيط */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.98 }}
-            animate={{ opacity: 1, y: -50, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            transition={spring}
-            className={cn(
-              "absolute z-50 mt-2",
-              dir === "rtl"
-                ? "right-0 origin-top-right"
-                : "left-0 origin-top-left",
-            )}
+            ref={panelRef}
             role="menu"
+            dir="rtl"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.12 }}
+            className={cn(
+              "z-[9999] w-[min(18rem,calc(100vw-2rem))]",
+              "rounded-2xl border border-zinc-800 bg-zinc-950/95 text-zinc-50 shadow-xl",
+              isMobile
+                ? "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                : "fixed",
+            )}
+            style={
+              !isMobile && pos
+                ? {
+                    top: pos.top,
+                    left: pos.left,
+                    transformOrigin: pos.origin,
+                  }
+                : undefined
+            }
           >
-            <div className="w-[240px] rounded-2xl border border-white/10 bg-zinc-950/70 p-1 backdrop-blur-xl shadow-[0_18px_60px_-20px_rgba(0,0,0,0.85)]">
-              <div className="grid grid-cols-3 gap-1">
-                {MENU_ORDER.map((m) => {
-                  const selected = m === mode;
+            {/* Mobile X */}
+            {isMobile && (
+              <button
+                type="button"
+                onClick={close}
+                className="absolute end-3 top-3 rounded-md p-1 text-zinc-400 hover:text-zinc-200"
+                aria-label="Close"
+              >
+                <MdClose className="h-6 w-6" />
+              </button>
+            )}
 
-                  const optionTone = cn(
-                    "relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2",
-                    "text-[11px] font-medium transition-colors",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/40",
-                    !selected && "text-zinc-300 hover:bg-white/5",
-                    selected && "text-white",
-                  );
-
-                  const selectedBg = cn(
-                    "absolute inset-0 rounded-xl ring-1 ring-white/10",
-                    m === "off" && "bg-zinc-800/50",
-                    m === "default" && "bg-white/10",
-                    m === "all" && "bg-indigo-500/25",
-                  );
-
+            <div className={cn("p-3", isMobile && "pt-12")}>
+              <div
+                className={cn("flex gap-2", isMobile ? "flex-col" : "flex-row")}
+              >
+                {options.map((opt) => {
+                  const active = mode === opt.key;
                   return (
                     <button
-                      key={m}
+                      key={opt.key}
                       type="button"
-                      role="menuitem"
-                      className={optionTone}
-                      onClick={() =>
-                        commitMode(m, { close: true, openHint: false })
-                      }
-                    >
-                      {selected && (
-                        <motion.div
-                          layoutId={`notif-pill-${layoutId}`}
-                          className={selectedBg}
-                        />
+                      role="menuitemradio"
+                      aria-checked={active}
+                      onClick={() => setMode(opt.key)}
+                      className={cn(
+                        "flex flex-1 items-center justify-center gap-2",
+                        "rounded-xl border px-3 py-2 text-sm font-semibold",
+                        "transition hover:bg-white/5 active:scale-[0.99]",
+                        "outline-none focus-visible:ring-2 focus-visible:ring-white/15",
+                        active
+                          ? opt.activeCls
+                          : "border-white/10 bg-transparent text-zinc-100",
                       )}
-
-                      <span className="relative z-10">
-                        {m === "off" && <FiBellOff className="h-4 w-4" />}
-                        {m === "default" && <FiBell className="h-4 w-4" />}
-                        {m === "all" && <BellAllIcon small />}
-                      </span>
-
-                      <span className="relative z-10 leading-none">
-                        {MODE_LABEL[m]}
-                      </span>
+                    >
+                      {opt.icon}
+                      <bdi className="leading-none">{opt.title}</bdi>
                     </button>
                   );
                 })}
               </div>
-
-              <div className="px-3 pb-2 pt-2">
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.p
-                    key={mode}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 4 }}
-                    transition={
-                      reduceMotion ? { duration: 0 } : { duration: 0.16 }
-                    }
-                    className="text-[11px] leading-relaxed text-zinc-400"
-                  >
-                    {MODE_DESC[mode]}
-                  </motion.p>
-                </AnimatePresence>
-              </div>
             </div>
           </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+
+  return (
+    <div ref={anchorRef} className={cn("relative inline-flex", className)}>
+      <Button
+        iconOnly
+        aria-label="Notifications"
+        disabled={disabled}
+        variant="soft"
+        tone="neutral"
+        shape="rounded"
+        className={cn(
+          "border border-zinc-800 bg-zinc-950/70 backdrop-blur",
+          "hover:bg-zinc-950/85",
+          open && "ring-2 ring-white/15",
+          triggerTone,
         )}
-      </AnimatePresence>
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        {triggerIcon}
+      </Button>
+
+      {mounted ? createPortal(panel, document.body) : null}
     </div>
   );
-}
+};

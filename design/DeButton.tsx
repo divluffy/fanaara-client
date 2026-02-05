@@ -1,4 +1,4 @@
-// design/Button.tsx
+// design\DeButton.tsx
 "use client";
 
 import {
@@ -312,9 +312,8 @@ function variantClasses(variant: UIButtonVariant, tone: ButtonTone) {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(props, ref) {
-    const iconOnly = props.iconOnly === true;
-
     const {
+      iconOnly: iconOnlyProp,
       variant: variantProp,
       tone: toneProp,
       size = "md",
@@ -355,6 +354,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       title: nativeTitle,
       ...rest
     } = props;
+
+    const iconOnly = iconOnlyProp === true;
 
     const variant = (variantProp ??
       (iconOnly ? "soft" : "solid")) as UIButtonVariant;

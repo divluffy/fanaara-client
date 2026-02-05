@@ -1,9 +1,8 @@
-import React from 'react'
+import AnimeMainPage from "@/features/anime/AnimeMainPage";
+import React from "react";
 
 const AnimePage = () => {
-  return (
-    <div>AnimePage</div>
-  )
-}
+  return <AnimeMainPage />;
+};
 
-export default AnimePage
+export default AnimePage;

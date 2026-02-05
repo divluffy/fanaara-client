@@ -1,0 +1,2037 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fanaara — الصفحة الرئيسية للأنميات</title>
+
+  <!-- Fonts (real) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Swiper (real) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+
+  <style>
+    :root{
+      --bg0:#070811;
+      --bg1:#0b0c18;
+      --panel:#0f1224;
+      --panel2:#0d1020;
+      --stroke:rgba(255,255,255,.08);
+      --stroke2:rgba(255,255,255,.12);
+      --text:#F4F5FF;
+      --muted:#A7AAC3;
+      --muted2:#C8CAE0;
+      --acc:#7C5CFF;
+      --acc2:#2DD4BF;
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+
+      --r-xl:26px;
+      --r-lg:20px;
+      --r-md:16px;
+      --r-sm:12px;
+
+      --shadow: 0 24px 70px rgba(0,0,0,.45);
+      --shadow2: 0 14px 40px rgba(0,0,0,.35);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:"Cairo","Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 85% 10%, rgba(124,92,255,.22), transparent 60%),
+        radial-gradient(900px 500px at 10% 0%, rgba(45,212,191,.16), transparent 60%),
+        radial-gradient(900px 500px at 55% 100%, rgba(239,68,68,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 45%, #070814 100%);
+      overflow-x:hidden;
+    }
+
+    a{color:inherit; text-decoration:none}
+    button{font-family:inherit}
+    ::selection{background: rgba(124,92,255,.35)}
+
+    /* Layout container */
+    .container{
+      width:min(1200px, 100%);
+      margin-inline:auto;
+      padding-inline: clamp(12px, 2.6vw, 20px);
+    }
+
+    /* Topbar */
+    .topbar{
+      position:sticky; top:0; z-index:50;
+      background: rgba(7,8,17,.72);
+      backdrop-filter: blur(14px);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .topbar-inner{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+      padding-block: 12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; min-width: 140px;
+    }
+    .logo{
+      width:38px; height:38px; border-radius: 14px;
+      background:
+        radial-gradient(18px 18px at 30% 30%, rgba(255,255,255,.25), transparent 60%),
+        linear-gradient(135deg, rgba(124,92,255,.95), rgba(45,212,191,.85));
+      box-shadow: 0 18px 50px rgba(124,92,255,.22);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo:after{
+      content:"";
+      position:absolute; inset:-20%;
+      background: linear-gradient(115deg, transparent, rgba(255,255,255,.18), transparent);
+      transform: translateX(-30%);
+      animation: shine 6s linear infinite;
+    }
+    @keyframes shine{
+      0%{transform: translateX(-45%) rotate(10deg)}
+      100%{transform: translateX(55%) rotate(10deg)}
+    }
+    .brand-title{
+      display:flex; flex-direction:column; line-height:1.05;
+    }
+    .brand-title b{font-size: 14px; letter-spacing:.2px}
+    .brand-title span{font-size: 12px; color: var(--muted)}
+
+    .search{
+      flex: 1;
+      display:flex; align-items:center;
+      gap:10px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      padding: 10px 12px;
+      max-width: 640px;
+      box-shadow: 0 12px 36px rgba(0,0,0,.18);
+    }
+    .search svg{opacity:.9}
+    .search input{
+      width:100%;
+      border:0; outline:0;
+      background:transparent;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .search input::placeholder{color: rgba(167,170,195,.85)}
+
+    .top-actions{
+      display:flex; align-items:center; gap:10px;
+      min-width: 160px;
+      justify-content:flex-end;
+    }
+
+    .btn{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      display:inline-flex; align-items:center; gap:8px;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+    }
+    .btn:hover{transform: translateY(-1px); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.14)}
+    .btn:active{transform: translateY(0)}
+    .btn.primary{
+      border-color: rgba(124,92,255,.55);
+      background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(45,212,191,.75));
+      box-shadow: 0 14px 45px rgba(124,92,255,.20);
+    }
+    .btn.ghost{
+      background: transparent;
+      border-color: rgba(255,255,255,.10);
+    }
+    .btn.icon{
+      width:42px; height:42px;
+      justify-content:center;
+      padding:0;
+    }
+    .btn.small{padding: 8px 10px; font-size:12px}
+    .btn.danger{
+      border-color: rgba(239,68,68,.35);
+      background: rgba(239,68,68,.10);
+    }
+
+    /* Hero section */
+    .hero-wrap{
+      padding-block: 16px 18px;
+    }
+
+    .hero{
+      position:relative;
+      height: 70vh;              /* <= requirement */
+      max-height: 760px;
+      min-height: 520px;
+    }
+
+    .hero-frame{
+      height:100%;
+      border-radius: var(--r-xl);
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+      box-shadow: var(--shadow);
+      position:relative;
+    }
+
+    .hero-swiper{height:100%}
+    .hero-slide{
+      height:100%;
+      position:relative;
+      background-size: cover;
+      background-position: center;
+    }
+    .hero-slide::before{
+      content:"";
+      position:absolute; inset:0;
+      /* corner-to-corner soft dark overlay + readable base gradient */
+      background:
+        radial-gradient(900px 520px at 15% 25%, rgba(0,0,0,.35), rgba(0,0,0,.82)),
+        linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.78) 70%, rgba(0,0,0,.92));
+      pointer-events:none;
+    }
+    .hero-slide::after{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(450px 380px at 85% 12%, rgba(124,92,255,.18), transparent 60%),
+        radial-gradient(460px 380px at 12% 70%, rgba(45,212,191,.12), transparent 60%);
+      pointer-events:none;
+      mix-blend-mode: screen;
+      opacity:.9;
+    }
+
+    .hero-content{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:flex-end;
+      padding: 18px;
+      /* keep space for fixed thumbs on mobile */
+      padding-bottom: 110px;
+      z-index: 2;
+    }
+
+    .hero-panel{
+      width: min(660px, 100%);
+      border-radius: var(--r-xl);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(10,12,24,.55);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow2);
+      padding: 16px;
+      animation: popIn .55s ease both;
+    }
+    @keyframes popIn{
+      from{transform: translateY(10px); opacity:0}
+      to{transform: translateY(0); opacity:1}
+    }
+
+    .hero-top-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--muted2);
+    }
+    .badge strong{color: var(--text)}
+    .badge .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: linear-gradient(135deg, var(--acc), var(--acc2));
+      box-shadow: 0 0 0 3px rgba(124,92,255,.18);
+    }
+
+    .added-card{
+      display:flex; align-items:center; gap:10px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      border-radius: var(--r-lg);
+      padding: 8px 10px;
+      max-width: 320px;
+    }
+    .added-avatars{
+      display:flex; align-items:center;
+    }
+    .added-avatars img{
+      width:26px; height:26px; border-radius:999px;
+      border:2px solid rgba(10,12,24,.7);
+      margin-inline-start: -10px;
+      box-shadow: 0 10px 22px rgba(0,0,0,.25);
+    }
+    .added-avatars img:first-child{margin-inline-start:0}
+    .added-meta{
+      display:flex; flex-direction:column; line-height:1.1
+    }
+    .added-meta b{font-size: 12px}
+    .added-meta span{font-size: 11px; color: var(--muted)}
+
+    .hero-title{
+      font-size: clamp(20px, 3.2vw, 34px);
+      margin: 0 0 8px 0;
+      line-height:1.15;
+      letter-spacing:.2px;
+    }
+
+    .hero-genres{
+      display:flex; flex-wrap:wrap; gap:8px;
+      margin-bottom: 10px;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--muted2);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .chip.good{
+      border-color: rgba(34,197,94,.28);
+      background: rgba(34,197,94,.10);
+      color: rgba(190,255,210,.95);
+    }
+    .chip.warn{
+      border-color: rgba(245,158,11,.28);
+      background: rgba(245,158,11,.10);
+      color: rgba(255,232,190,.95);
+    }
+    .chip.bad{
+      border-color: rgba(239,68,68,.28);
+      background: rgba(239,68,68,.10);
+      color: rgba(255,210,210,.95);
+    }
+
+    .hero-meta-line{
+      display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+      color: rgba(200,202,224,.92);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .meta-dot{
+      width:4px; height:4px; border-radius:999px;
+      background: rgba(255,255,255,.30);
+      display:inline-block;
+    }
+    .rating{
+      display:inline-flex; align-items:center; gap:7px;
+      color: var(--text);
+      font-weight:700;
+    }
+    .rating small{
+      font-weight:600;
+      color: rgba(200,202,224,.90);
+    }
+    .rating svg{filter: drop-shadow(0 6px 18px rgba(0,0,0,.35))}
+
+    .hero-synopsis{
+      margin: 0 0 12px 0;
+      color: rgba(226,228,245,.92);
+      font-size: 13.5px;
+      line-height: 1.55;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;       /* <= requirement */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .info-pills{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom: 12px;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color: rgba(240,241,255,.92);
+      font-size: 12px;
+      user-select:none;
+    }
+    .pill svg{opacity:.95}
+
+    .hero-bottom{
+      display:flex; align-items:flex-end; justify-content:space-between;
+      gap:12px;
+      margin-top: 6px;
+    }
+    .cta-row{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    }
+
+    .friends-row{
+      display:flex; align-items:center; gap:10px;
+      color: rgba(210,212,235,.92);
+      font-size: 12px;
+      opacity:.95;
+    }
+    .friends-avatars{
+      display:flex; align-items:center;
+    }
+    .friends-avatars img{
+      width:28px; height:28px; border-radius:999px;
+      border:2px solid rgba(10,12,24,.75);
+      margin-inline-start: -10px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.28);
+    }
+    .friends-avatars img:first-child{margin-inline-start:0}
+
+    /* Hero nav */
+    .hero-nav{
+      position:absolute;
+      top: 14px;
+      inset-inline-end: 14px;
+      z-index: 5;
+      display:flex; gap:8px;
+    }
+    .navbtn{
+      width:40px; height:40px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.25);
+      backdrop-filter: blur(10px);
+      display:grid; place-items:center;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+    .navbtn:hover{transform: translateY(-1px); background: rgba(0,0,0,.32); border-color: rgba(255,255,255,.22)}
+    .navbtn:active{transform: translateY(0)}
+    .navbtn svg{opacity:.95}
+
+    .hero-pagination{
+      position:absolute;
+      inset-inline-start: 16px !important;
+      bottom: 16px !important;
+      z-index: 6;
+      width:auto !important;
+    }
+    .hero-pagination .swiper-pagination-bullet{
+      width:10px; height:10px;
+      background: rgba(255,255,255,.30);
+      opacity:1;
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .hero-pagination .swiper-pagination-bullet-active{
+      background: linear-gradient(135deg, var(--acc), var(--acc2));
+      box-shadow: 0 0 0 4px rgba(124,92,255,.15);
+    }
+
+    /* Fixed mini thumbs (only md + phone) */
+    .hero-thumbs-area{
+      position:absolute;
+      left: 0; right: 0;
+      bottom: 14px;
+      z-index: 7;
+      padding-inline: 14px;
+      pointer-events:none; /* allow swipe on main; enable within thumbs only */
+    }
+    .thumbs-frame{
+      pointer-events:auto;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(10,12,24,.45);
+      backdrop-filter: blur(14px);
+      padding: 10px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.34);
+    }
+
+    .thumbs-swiper .swiper-slide{
+      width: 160px;
+      opacity: .65;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .thumbs-swiper .swiper-slide-thumb-active{
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+    .thumb{
+      display:flex; align-items:center; gap:10px;
+      padding: 8px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      overflow:hidden;
+      min-height: 62px;
+    }
+    .thumb img{
+      width:44px; height:44px; border-radius: 12px;
+      object-fit:cover;
+      box-shadow: 0 10px 25px rgba(0,0,0,.35);
+      flex:0 0 auto;
+    }
+    .thumb b{
+      font-size: 12px;
+      display:-webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow:hidden;
+      line-height:1.25;
+    }
+    .thumb small{
+      display:block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    /* Tabs Section */
+    .tabs-wrap{
+      padding-block: 8px 16px;
+    }
+    .tabs-panel{
+      border-radius: var(--r-xl);
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+      box-shadow: 0 18px 60px rgba(0,0,0,.25);
+      overflow:hidden;
+    }
+    .tabs-head{
+      padding: 14px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .tabs-head h2{
+      margin:0;
+      font-size: 15px;
+      letter-spacing:.2px;
+    }
+    .tabs-head p{
+      margin: 2px 0 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .tabs{
+      display:flex;
+      gap:10px;
+      padding: 12px 14px 14px 14px;
+      overflow:auto;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{
+      flex: 0 0 auto;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      color: rgba(240,241,255,.92);
+      padding: 10px 12px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-size: 13px;
+      display:inline-flex; align-items:center; gap:8px;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .tab:hover{transform: translateY(-1px); background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.14)}
+    .tab.active{
+      background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(45,212,191,.70));
+      border-color: rgba(124,92,255,.55);
+      box-shadow: 0 16px 45px rgba(124,92,255,.18);
+    }
+
+    /* Content area */
+    .content-wrap{
+      padding-block: 10px 44px;
+    }
+
+    .section-block{
+      margin-top: 14px;
+      border-radius: var(--r-xl);
+      border: 1px solid rgba(255,255,255,.08);
+      background:
+        radial-gradient(700px 320px at 12% 0%, rgba(124,92,255,.12), transparent 60%),
+        radial-gradient(600px 320px at 88% 10%, rgba(45,212,191,.10), transparent 60%),
+        rgba(255,255,255,.03);
+      box-shadow: 0 18px 65px rgba(0,0,0,.22);
+      overflow:hidden;
+    }
+
+    .carousel-head{
+      padding: 14px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .carousel-meta{
+      display:flex; align-items:center; gap:12px;
+      min-width: 0;
+    }
+    .carousel-meta h3{
+      margin:0;
+      font-size: 15px;
+      letter-spacing:.2px;
+      white-space:nowrap;
+    }
+    .carousel-meta p{
+      margin:0;
+      color: var(--muted);
+      font-size: 12px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      max-width: 52ch;
+    }
+    .carousel-meta .meta-text{
+      display:flex; flex-direction:column; gap:2px;
+      min-width: 0;
+    }
+    .viewmore{
+      margin-inline-start: 8px;
+      color: rgba(240,241,255,.92);
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      display:inline-flex; align-items:center; gap:8px;
+      cursor:pointer;
+      white-space:nowrap;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+    .viewmore:hover{transform: translateY(-1px); background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.16)}
+
+    .carousel-controls{
+      display:flex; align-items:center; gap:8px; flex:0 0 auto;
+    }
+    .iconbtn{
+      width:40px; height:40px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      display:grid; place-items:center;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+    .iconbtn:hover{transform: translateY(-1px); background: rgba(0,0,0,.24); border-color: rgba(255,255,255,.18)}
+    .iconbtn:active{transform: translateY(0)}
+
+    /* Direction-aware header layout (requirement RTL/LTR) */
+    :root[dir="rtl"] .carousel-head{flex-direction: row-reverse;}
+    :root[dir="ltr"] .carousel-head{flex-direction: row;}
+
+    :root[dir="rtl"] .tabs-head{flex-direction: row-reverse;}
+    :root[dir="ltr"] .tabs-head{flex-direction: row;}
+
+    :root[dir="rtl"] .topbar-inner{flex-direction: row-reverse;}
+    :root[dir="ltr"] .topbar-inner{flex-direction: row;}
+
+    .carousel-body{
+      padding: 12px 12px 16px 12px;
+    }
+
+    .carousel-swiper .swiper-slide{
+      height:auto;
+    }
+
+    /* Anime Card (simple + productive) */
+    .anime-card{
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(10,12,24,.50);
+      overflow:hidden;
+      box-shadow: 0 14px 35px rgba(0,0,0,.22);
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+      height: 100%;
+    }
+    .anime-card:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.16);
+      background: rgba(10,12,24,.58);
+    }
+    .poster{
+      position:relative;
+      aspect-ratio: 3 / 4;
+      overflow:hidden;
+    }
+    .poster img{
+      width:100%; height:100%;
+      object-fit:cover;
+      transform: scale(1.02);
+      transition: transform .25s ease;
+      display:block;
+    }
+    .anime-card:hover .poster img{transform: scale(1.06)}
+    .poster:after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.72));
+      pointer-events:none;
+    }
+    .card-body{
+      padding: 10px 10px 12px 10px;
+    }
+    .title-row{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+      margin-bottom: 8px;
+    }
+    .title-row h4{
+      margin:0;
+      font-size: 13px;
+      line-height:1.25;
+      display:-webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      min-height: 34px;
+    }
+    .mini-add{
+      flex:0 0 auto;
+      width:34px; height:34px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      display:grid; place-items:center;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+    .mini-add:hover{transform: translateY(-1px); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.18)}
+    .mini-add.added{
+      background: rgba(34,197,94,.12);
+      border-color: rgba(34,197,94,.35);
+    }
+
+    .card-meta{
+      color: var(--muted);
+      font-size: 12px;
+      display:flex; flex-wrap:wrap; gap:8px;
+      margin-bottom: 10px;
+    }
+    .stat-row{
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .statbtn{
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 7px 9px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.16);
+      font-size: 12px;
+      color: rgba(240,241,255,.92);
+      user-select:none;
+    }
+    .statbtn svg{opacity:.95}
+
+    /* Schedule */
+    .schedule-wrap{
+      padding: 14px;
+    }
+    .schedule-grid{
+      display:grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .day-card{
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(10,12,24,.45);
+      overflow:hidden;
+      min-height: 220px;
+    }
+    .day-head{
+      padding: 10px 10px 8px 10px;
+      display:flex; align-items:center; justify-content:space-between;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .day-head b{font-size: 12px}
+    .day-head span{font-size: 11px; color: var(--muted)}
+    .day-list{
+      padding: 10px;
+      display:flex; flex-direction:column; gap:8px;
+      max-height: 320px;
+      overflow:auto;
+      scrollbar-width: thin;
+    }
+    .day-item{
+      display:flex; gap:10px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+      border-radius: 14px;
+      padding: 8px;
+    }
+    .day-item img{
+      width:40px; height:52px;
+      border-radius: 12px;
+      object-fit:cover;
+      box-shadow: 0 12px 24px rgba(0,0,0,.25);
+      flex:0 0 auto;
+    }
+    .day-item b{
+      font-size: 12px;
+      line-height:1.25;
+      display:-webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow:hidden;
+      margin: 0;
+    }
+    .day-item small{
+      display:block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    /* Skeleton shimmer */
+    .skeleton{
+      position:relative;
+      overflow:hidden;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.06);
+    }
+    .skeleton:after{
+      content:"";
+      position:absolute; inset:-40%;
+      background: linear-gradient(115deg, transparent, rgba(255,255,255,.12), transparent);
+      transform: translateX(-60%);
+      animation: shimmer 1.35s linear infinite;
+    }
+    @keyframes shimmer{
+      0%{transform: translateX(-60%)}
+      100%{transform: translateX(60%)}
+    }
+
+    /* Toast */
+    .toast{
+      position: fixed;
+      bottom: 18px;
+      inset-inline-start: 18px;
+      z-index: 999;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(10,12,24,.78);
+      backdrop-filter: blur(14px);
+      padding: 10px 12px;
+      color: rgba(240,241,255,.95);
+      display:flex; align-items:center; gap:10px;
+      box-shadow: 0 18px 55px rgba(0,0,0,.35);
+      transform: translateY(12px);
+      opacity:0;
+      pointer-events:none;
+      transition: transform .22s ease, opacity .22s ease;
+      max-width: min(520px, calc(100vw - 36px));
+    }
+    .toast.show{transform: translateY(0); opacity:1}
+    .toast b{font-size: 12px}
+    .toast span{font-size: 12px; color: var(--muted)}
+    .toast .ticon{
+      width:30px; height:30px; border-radius: 999px;
+      display:grid; place-items:center;
+      background: rgba(34,197,94,.12);
+      border:1px solid rgba(34,197,94,.28);
+      flex:0 0 auto;
+    }
+
+    /* Responsive */
+    @media (min-width: 992px){
+      .hero-content{padding-bottom: 18px;} /* thumbs hidden on large => no need extra bottom space */
+      .hero-thumbs-area{display:none;}     /* <= requirement: mini slider only on md+phone */
+    }
+
+    @media (max-width: 992px){
+      .search{display:none}
+      .top-actions{min-width:auto}
+      .hero{min-height: 520px;}
+      .hero-panel{padding: 14px}
+      .carousel-meta p{display:none}
+      .schedule-grid{grid-template-columns: repeat(2, minmax(0, 1fr));}
+    }
+
+    @media (max-width: 520px){
+      .hero{min-height: 540px;}
+      .hero-content{padding: 14px; padding-bottom: 118px;}
+      .hero-panel{border-radius: 20px}
+      .hero-top-row{flex-direction:column; align-items:stretch}
+      .added-card{max-width: unset; width:100%}
+      .friends-row{flex-wrap:wrap}
+      .thumbs-swiper .swiper-slide{width: 150px;}
+      .tabs-head{align-items:flex-start}
+      .tabs-head p{display:none}
+      .schedule-grid{grid-template-columns: 1fr;}
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .logo:after{animation:none}
+      .hero-panel{animation:none}
+      .skeleton:after{animation:none}
+      .btn,.tab,.anime-card,.navbtn,.iconbtn,.viewmore{transition:none}
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div class="brand-title">
+            <b>Fanaara</b>
+            <span>Anime Hub • Discover • Watch • Track</span>
+          </div>
+        </div>
+
+        <div class="search" role="search">
+          <!-- search icon -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M10.5 18.5a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" stroke="rgba(244,245,255,.9)" stroke-width="2"/>
+            <path d="M16.7 16.7 21 21" stroke="rgba(244,245,255,.9)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input id="searchInput" placeholder="ابحث عن أنمي، مانغا، مراجعة، أو صانع محتوى..." />
+        </div>
+
+        <div class="top-actions">
+          <button id="dirToggle" class="btn icon" title="تبديل RTL/LTR" aria-label="Toggle direction">
+            <!-- dir icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M7 7h10M7 12h14M7 17h10" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round"/>
+              <path d="M4 7h0M4 12h0M4 17h0" stroke="rgba(45,212,191,.9)" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="btn ghost">
+            <!-- bell -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7Z" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            الإشعارات
+          </button>
+          <button class="btn primary">
+            <!-- user -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M20 21a8 8 0 0 0-16 0" stroke="rgba(10,12,24,.9)" stroke-width="2" stroke-linecap="round"/>
+              <path d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Z" stroke="rgba(10,12,24,.9)" stroke-width="2"/>
+            </svg>
+            حسابي
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero-wrap">
+      <div class="container">
+        <div class="hero">
+          <div class="hero-frame">
+
+            <div class="hero-nav">
+              <button class="navbtn hero-prev" aria-label="Previous featured anime">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M15 6 9 12l6 6" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <button class="navbtn hero-next" aria-label="Next featured anime">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="m9 6 6 6-6 6" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="swiper hero-swiper" id="heroMain">
+              <div class="swiper-wrapper" id="heroSlides">
+                <!-- skeleton slide (will be replaced by real data from internet) -->
+                <div class="swiper-slide hero-slide" style="background-image: linear-gradient(135deg, rgba(124,92,255,.35), rgba(45,212,191,.18));">
+                  <div class="hero-content">
+                    <div class="hero-panel skeleton" style="height: 250px; width:min(660px,100%); border-radius: 26px;"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="swiper-pagination hero-pagination"></div>
+            </div>
+
+            <!-- FIXED mini-slider (thumbs) on md/phone (requirement #24: stays fixed while slides move behind it) -->
+            <div class="hero-thumbs-area">
+              <div class="thumbs-frame">
+                <div class="swiper thumbs-swiper" id="heroThumbs">
+                  <div class="swiper-wrapper" id="heroThumbSlides">
+                    <div class="swiper-slide">
+                      <div class="thumb skeleton" style="height:62px;"></div>
+                    </div>
+                    <div class="swiper-slide">
+                      <div class="thumb skeleton" style="height:62px;"></div>
+                    </div>
+                    <div class="swiper-slide">
+                      <div class="thumb skeleton" style="height:62px;"></div>
+                    </div>
+                    <div class="swiper-slide">
+                      <div class="thumb skeleton" style="height:62px;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div><!--/hero-frame-->
+        </div><!--/hero-->
+      </div>
+    </section>
+
+    <!-- TABS -->
+    <section class="tabs-wrap">
+      <div class="container">
+        <div class="tabs-panel">
+          <div class="tabs-head">
+            <div>
+              <h2>اكتشف المحتوى</h2>
+              <p>اختر تبويبًا ليتم تحديث القوائم في الأسفل تلقائيًا (كاروسيل/جدول).</p>
+            </div>
+            <button class="btn small ghost" id="refreshTab">
+              <!-- refresh -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M21 12a9 9 0 0 1-15.3 6.4" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round"/>
+                <path d="M3 12a9 9 0 0 1 15.3-6.4" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round"/>
+                <path d="M21 3v6h-6" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3 21v-6h6" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              تحديث
+            </button>
+          </div>
+
+          <!-- requirement #21 tabs order -->
+          <div class="tabs" id="tabs">
+            <button class="tab active" data-tab="latest">
+              <!-- spark -->
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 2l1.8 6.3L20 10l-6.2 1.7L12 18l-1.8-6.3L4 10l6.2-1.7L12 2Z" stroke="rgba(10,12,24,.9)" stroke-width="2" stroke-linejoin="round"/>
+              </svg>
+              آخر المضاف
+            </button>
+            <button class="tab" data-tab="categories">
+              <!-- grid -->
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linejoin="round"/>
+              </svg>
+              التصنيفات
+            </button>
+            <button class="tab" data-tab="seasonal">
+              <!-- leaf -->
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M20 4s-8 0-12 4-4 12-4 12 8 0 12-4 4-12 4-12Z" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M14 10c-3 1-5 3-6 6" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              أنميات الموسم
+            </button>
+            <button class="tab" data-tab="schedule">
+              <!-- calendar -->
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M7 2v3M17 2v3" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round"/>
+                <path d="M3 8h18" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round"/>
+                <path d="M5 5h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linejoin="round"/>
+              </svg>
+              جدول العرض
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB CONTENT -->
+    <section class="content-wrap">
+      <div class="container">
+        <div id="tabContent">
+          <!-- dynamic -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <div class="ticon" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="m20 6-11 11-5-5" stroke="rgba(190,255,210,.95)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div>
+      <b id="toastTitle">تمت الإضافة</b>
+      <span id="toastMsg">تم حفظ العمل في قائمتك بسرعة.</span>
+    </div>
+  </div>
+
+  <!-- Swiper -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+  <script>
+    /***********************
+     * Real data source (internet):
+     * Jikan v4 API (MyAnimeList unofficial public API)
+     * https://api.jikan.moe/v4
+     ***********************/
+    const API_BASE = "https://api.jikan.moe/v4";
+
+    // 7 featured anime (real MAL IDs) — requirement #3
+    const HERO_FEATURED = [
+      { id: 52991, seasonNo: 1 }, // Sousou no Frieren
+      { id: 16498, seasonNo: 1 }, // Shingeki no Kyojin
+      { id: 40748, seasonNo: 1 }, // Jujutsu Kaisen
+      { id: 21,    seasonNo: 1 }, // One Piece
+      { id: 38000, seasonNo: 1 }, // Kimetsu no Yaiba
+      { id: 31240, seasonNo: 1 }, // Re:Zero
+      { id: 39535, seasonNo: 1 }, // Mushoku Tensei
+    ];
+
+    const seasonAr = { winter:"شتاء", spring:"ربيع", summer:"صيف", fall:"خريف" };
+    const weekdayAr = {
+      monday: "الإثنين",
+      tuesday: "الثلاثاء",
+      wednesday: "الأربعاء",
+      thursday: "الخميس",
+      friday: "الجمعة",
+      saturday: "السبت",
+      sunday: "الأحد",
+      other: "غير محدد"
+    };
+
+    const friendNames = ["سارة","أحمد","ليان","نور","كريم","هبة","ياسر","ريم","مروان","رنا","سيف","مها"];
+
+    // Use real avatar service (internet)
+    const avatarUrl = (seed) => `https://i.pravatar.cc/64?img=${(seed % 70) + 1}`;
+
+    const state = {
+      dir: document.documentElement.getAttribute("dir") || "rtl",
+      heroMain: null,
+      heroThumbs: null,
+      carousels: [],
+      tab: "latest",
+      cache: new Map(),
+      tabCache: new Map(), // per-tab datasets
+      addedSet: new Set()
+    };
+
+    /* --------------------------
+       Icons (inline SVG strings)
+    --------------------------- */
+    const icons = {
+      star: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m12 2 2.8 6.7 7.2.6-5.5 4.7 1.7 7-6.2-3.8L5.8 21l1.7-7L2 9.3l7.2-.6L12 2Z"
+            fill="rgba(245,158,11,.95)" stroke="rgba(0,0,0,.15)" stroke-width="1"/>
+        </svg>`,
+      play: `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9 18V6l12 6-12 6Z" fill="rgba(10,12,24,.92)"/>
+        </svg>`,
+      plus: `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" stroke="rgba(244,245,255,.95)" stroke-width="2" stroke-linecap="round"/>
+        </svg>`,
+      check: `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m20 6-11 11-5-5" stroke="rgba(190,255,210,.95)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`,
+      eye: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="rgba(244,245,255,.92)" stroke-width="2"/>
+        </svg>`,
+      heart: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 21s-7-4.4-9.4-8.6C.9 9.4 2.3 6.5 5.2 5.5c1.9-.6 4 .2 5.3 1.7 1.3-1.5 3.4-2.3 5.3-1.7 2.9 1 4.3 3.9 2.6 6.9C19 16.6 12 21 12 21Z"
+            fill="rgba(239,68,68,.35)" stroke="rgba(239,68,68,.75)" stroke-width="1.2" stroke-linejoin="round"/>
+        </svg>`,
+      fire: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 22c4.4 0 8-3.6 8-8 0-5-4-7-4-12 0 0-2 2-2 5-2-1-3-4-3-4-1 5-7 6-7 11 0 4.4 3.6 8 8 8Z"
+            fill="rgba(245,158,11,.28)" stroke="rgba(245,158,11,.75)" stroke-width="1.2" stroke-linejoin="round"/>
+        </svg>`,
+      hash: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M10 3 8 21M16 3l-2 18M4 8h18M3 16h18" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round"/>
+        </svg>`,
+      shield: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2 20 6v6c0 5-3.4 9.4-8 10-4.6-.6-8-5-8-10V6l8-4Z" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linejoin="round"/>
+          <path d="m9 12 2 2 4-4" stroke="rgba(34,197,94,.95)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`
+    };
+
+    /* --------------------------
+       Utilities
+    --------------------------- */
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    function formatNumber(n){
+      if(n === null || n === undefined) return "—";
+      const locale = document.documentElement.getAttribute("lang") || "ar";
+      try{
+        return new Intl.NumberFormat(locale, { notation: "compact", maximumFractionDigits: 1 }).format(n);
+      }catch{
+        return String(n);
+      }
+    }
+
+    function normalizeRating(rating){
+      if(!rating) return "—";
+      // Examples: "PG-13 - Teens 13 or older", "R - 17+ (violence & profanity)", "R+ - Mild Nudity", "G - All Ages"
+      if(rating.includes("Rx")) return "Rx";
+      if(rating.includes("R+")) return "R+";
+      if(rating.includes("17+")) return "+17";
+      if(rating.includes("PG-13")) return "PG-13";
+      if(rating.startsWith("PG")) return "PG";
+      if(rating.startsWith("G")) return "G";
+      return rating.split(" ")[0];
+    }
+
+    function seasonLabel(season, year){
+      if(!season && !year) return "—";
+      const s = season ? (seasonAr[String(season).toLowerCase()] || season) : "";
+      const y = year ? year : "";
+      return [s, y].filter(Boolean).join(" ");
+    }
+
+    function pickFriends(seed){
+      const count = 4;
+      const start = seed % friendNames.length;
+      const names = [];
+      const avatars = [];
+      for(let i=0;i<count;i++){
+        const idx = (start + i*3) % friendNames.length;
+        names.push(friendNames[idx]);
+        avatars.push(avatarUrl(seed + i*7 + 3));
+      }
+      return { names, avatars };
+    }
+
+    function getWarnings(anime){
+      // requirement #16: show warnings in a simple way even if none
+      const warnings = [];
+      const rating = (anime.rating || "").toLowerCase();
+      const genres = (anime.genres || []).map(g => (g.name||"").toLowerCase());
+      const themes = (anime.themes || []).map(t => (t.name||"").toLowerCase());
+
+      // Heuristics (simple + useful):
+      if(genres.includes("horror") || themes.includes("gore")) warnings.push({ type:"bad", label:"دموية" });
+      if(genres.includes("horror") || genres.includes("thriller") || themes.includes("psychological")) warnings.push({ type:"warn", label:"توتر" });
+      if(genres.includes("action") || themes.includes("military")) warnings.push({ type:"warn", label:"عنف" });
+      if(rating.includes("r+") || rating.includes("rx")) warnings.push({ type:"bad", label:"محتوى جنسي" });
+      if(rating.includes("17+")) warnings.push({ type:"warn", label:"+17" });
+
+      if(warnings.length === 0){
+        warnings.push({ type:"good", label:"آمن للمشاهدة" });
+      }
+      // Deduplicate labels
+      const uniq = [];
+      const seen = new Set();
+      for(const w of warnings){
+        if(seen.has(w.label)) continue;
+        seen.add(w.label);
+        uniq.push(w);
+      }
+      return uniq.slice(0, 3);
+    }
+
+    async function fetchJson(url, retries = 2){
+      if(state.cache.has(url)) return state.cache.get(url);
+
+      let lastErr = null;
+      for(let attempt=0; attempt<=retries; attempt++){
+        try{
+          const res = await fetch(url, { headers: { "Accept":"application/json" } });
+          if(res.status === 429){
+            // rate-limited: backoff
+            await sleep(600 * (attempt + 1));
+            continue;
+          }
+          if(!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          state.cache.set(url, data);
+          return data;
+        }catch(err){
+          lastErr = err;
+          await sleep(250 * (attempt + 1));
+        }
+      }
+      throw lastErr;
+    }
+
+    async function jikan(path, params = {}){
+      const url = new URL(API_BASE + path);
+      Object.entries(params).forEach(([k,v]) => {
+        if(v !== undefined && v !== null && v !== "") url.searchParams.set(k, v);
+      });
+      return fetchJson(url.toString());
+    }
+
+    function showToast(title, msg){
+      const toast = document.getElementById("toast");
+      document.getElementById("toastTitle").textContent = title;
+      document.getElementById("toastMsg").textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    /* --------------------------
+       HERO rendering
+    --------------------------- */
+    function heroSlideHTML(anime, index){
+      const img = anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url || "";
+      const title = anime.title || "—";
+      const genres = (anime.genres || []).slice(0, 4).map(g => g.name);
+      const score = anime.score ?? "—";
+      const scoredBy = anime.scored_by ?? null;
+      const meta = [
+        seasonLabel(anime.season, anime.year),
+        anime.type || "—",
+        anime.episodes ? `${anime.episodes} حلقة` : "—",
+        normalizeRating(anime.rating),
+        (HERO_FEATURED.find(x => x.id === anime.mal_id)?.seasonNo) ? `الموسم ${HERO_FEATURED.find(x => x.id === anime.mal_id).seasonNo}` : null
+      ].filter(Boolean);
+
+      const synopsis = (anime.synopsis || "لا يوجد وصف متاح حالياً.").replace(/\[Written by.*?\]/gi,"").trim();
+
+      const studios = (anime.studios || []).map(s => s.name).slice(0,1);
+      const members = anime.members ?? null;
+      const favorites = anime.favorites ?? null;
+      const rank = anime.rank ?? null;
+      const popularity = anime.popularity ?? null;
+
+      // Watch now: if streaming list exists use it; else "Read more" to MAL
+      const streaming = (anime.streaming || []).filter(s => s.url);
+      const watchUrl = streaming[0]?.url || null;
+      const readUrl = anime.url || "#";
+
+      const warnings = getWarnings(anime);
+      const friends = pickFriends(anime.mal_id + index*13);
+
+      const addedByName = friendNames[(anime.mal_id + 5) % friendNames.length];
+      const addedDate = new Date(Date.now() - (index+1)*86400000*2).toLocaleDateString("ar", { year:"numeric", month:"short", day:"numeric" });
+
+      const infoPills = [
+        studios[0] ? { icon: "shield", text: `إنتاج ${studios[0]}` } : null,
+        members ? { icon: "eye", text: `${formatNumber(members)} مشاهدة` } : null,
+        rank ? { icon: "hash", text: `ترتيب #${rank}` } : null,
+        favorites ? { icon: "heart", text: `${formatNumber(favorites)} إعجاب` } : null,
+        popularity ? { icon: "fire", text: `شعبية #${popularity}` } : null,
+      ].filter(Boolean).slice(0, 5);
+
+      return `
+        <div class="swiper-slide hero-slide" style="background-image:url('${img}')">
+          <div class="hero-content">
+            <div class="hero-panel" data-hero-id="${anime.mal_id}">
+              <div class="hero-top-row">
+                <div class="badge" title="عرض خاص">
+                  <span class="dot" aria-hidden="true"></span>
+                  <strong>عرض خاص</strong>
+                  <span style="opacity:.9">• ${anime.status ? anime.status.replace("Currently Airing","يعرض حالياً").replace("Finished Airing","مكتمل") : "مميز"}</span>
+                </div>
+
+                <!-- requirement #3: small distinctive card: added by + avatars + date -->
+                <div class="added-card" title="معلومة إضافة داخل المنصة">
+                  <div class="added-avatars" aria-hidden="true">
+                    <img src="${avatarUrl(anime.mal_id + 11)}" alt="">
+                    <img src="${avatarUrl(anime.mal_id + 19)}" alt="">
+                    <img src="${avatarUrl(anime.mal_id + 27)}" alt="">
+                  </div>
+                  <div class="added-meta">
+                    <b>تمت الإضافة بواسطة ${addedByName}</b>
+                    <span>${addedDate}</span>
+                  </div>
+                </div>
+              </div>
+
+              <h1 class="hero-title">${title}</h1>
+
+              <!-- Genres line (requirement #3) -->
+              <div class="hero-genres" aria-label="التصنيفات">
+                ${genres.map(g => `<span class="chip">${escapeHtml(g)}</span>`).join("")}
+              </div>
+
+              <!-- Rating + direct details line (requirement #3) -->
+              <div class="hero-meta-line" aria-label="تفاصيل سريعة">
+                <span class="rating" title="التقييم">
+                  ${icons.star}
+                  ${score}
+                  ${scoredBy ? `<small>(${formatNumber(scoredBy)} تقييم)</small>` : `<small>(بدون عدد)</small>`}
+                </span>
+                <span class="meta-dot" aria-hidden="true"></span>
+                ${meta.map((m,i) => `<span>${escapeHtml(m)}${i < meta.length-1 ? ` <span class="meta-dot" style="margin-inline:8px; opacity:.65"></span>` : ""}</span>`).join("")}
+              </div>
+
+              <p class="hero-synopsis">${escapeHtml(synopsis)}</p>
+
+              <!-- Info as "buttons-like" pills (requirement #3) -->
+              <div class="info-pills" aria-label="معلومات إضافية">
+                ${infoPills.map(p => `
+                  <span class="pill" title="${escapeHtml(p.text)}">
+                    ${icons[p.icon] || ""}
+                    ${escapeHtml(p.text)}
+                  </span>
+                `).join("")}
+              </div>
+
+              <!-- Warnings simple (requirement #16) -->
+              <div class="hero-genres" aria-label="تحذيرات المحتوى" style="margin-bottom: 12px;">
+                ${warnings.map(w => `<span class="chip ${w.type}">${escapeHtml(w.label)}</span>`).join("")}
+              </div>
+
+              <div class="hero-bottom">
+                <div class="cta-row">
+                  ${
+                    watchUrl
+                      ? `<a class="btn primary" href="${watchUrl}" target="_blank" rel="noopener">
+                          ${icons.play} شاهد الآن
+                         </a>`
+                      : `<a class="btn primary" href="${readUrl}" target="_blank" rel="noopener">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M4 19a2 2 0 0 0 2 2h12" stroke="rgba(10,12,24,.9)" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M16 2H6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z" stroke="rgba(10,12,24,.9)" stroke-width="2" stroke-linejoin="round"/>
+                          </svg>
+                          اقرأ المزيد
+                         </a>`
+                  }
+
+                  <!-- Quick add (requirement #3) -->
+                  <button class="btn ghost" data-add-hero="${anime.mal_id}" title="إضافة سريعة">
+                    ${icons.plus}
+                    إضافة سريعة
+                  </button>
+
+                  <a class="btn ghost" href="${readUrl}" target="_blank" rel="noopener" title="صفحة العمل (MAL)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M14 3h7v7" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M10 14 21 3" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M21 14v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    صفحة العمل
+                  </a>
+                </div>
+
+                <!-- Friends liked row (requirement #15) -->
+                <div class="friends-row" aria-label="أصدقاء أعجبهم العمل">
+                  <div class="friends-avatars" aria-hidden="true">
+                    ${friends.avatars.map((u) => `<img src="${u}" alt="">`).join("")}
+                  </div>
+                  <div>
+                    أعجب به <b>${escapeHtml(friends.names.slice(0,2).join("، "))}</b> و <b>${Math.max(1, (anime.mal_id % 6))}</b> من أصدقائك
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function heroThumbHTML(anime){
+      const img = anime.images?.jpg?.image_url || anime.images?.jpg?.small_image_url || "";
+      const title = anime.title || "—";
+      const meta = [anime.type || "—", anime.year || anime.aired?.prop?.from?.year || ""].filter(Boolean).join(" • ");
+      return `
+        <div class="swiper-slide">
+          <div class="thumb">
+            <img src="${img}" alt="${escapeHtml(title)}"/>
+            <div style="min-width:0;">
+              <b>${escapeHtml(title)}</b>
+              <small>${escapeHtml(meta || " ")} </small>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadHero(){
+      const slidesEl = document.getElementById("heroSlides");
+      const thumbsEl = document.getElementById("heroThumbSlides");
+
+      // fetch featured anime sequentially with small delays to avoid 429
+      const featured = [];
+      for(let i=0;i<HERO_FEATURED.length;i++){
+        const id = HERO_FEATURED[i].id;
+        try{
+          const full = await jikan(`/anime/${id}/full`);
+          featured.push(full.data);
+        }catch(err){
+          console.warn("Failed to load hero anime", id, err);
+        }
+        await sleep(260);
+      }
+
+      if(featured.length === 0){
+        slidesEl.innerHTML = `
+          <div class="swiper-slide hero-slide" style="background-image: linear-gradient(135deg, rgba(239,68,68,.22), rgba(124,92,255,.18));">
+            <div class="hero-content">
+              <div class="hero-panel">
+                <h1 class="hero-title">تعذر تحميل البيانات</h1>
+                <p class="hero-synopsis">
+                  لم نتمكن من جلب بيانات الأنميات من الإنترنت (Jikan API). تأكد من اتصال الشبكة ثم أعد فتح الصفحة.
+                </p>
+              </div>
+            </div>
+          </div>`;
+        return [];
+      }
+
+      slidesEl.innerHTML = featured.map((a,i) => heroSlideHTML(a,i)).join("");
+      thumbsEl.innerHTML = featured.map(a => heroThumbHTML(a)).join("");
+
+      // bind add buttons in hero
+      slidesEl.querySelectorAll("[data-add-hero]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-add-hero");
+          state.addedSet.add(String(id));
+          showToast("تمت الإضافة", "تم حفظ العمل في قائمتك بسرعة.");
+          btn.innerHTML = `${icons.check} تمت الإضافة`;
+          btn.classList.add("danger");
+          btn.style.borderColor = "rgba(34,197,94,.35)";
+          btn.style.background = "rgba(34,197,94,.10)";
+        });
+      });
+
+      return featured;
+    }
+
+    function initHeroSwipers(){
+      // destroy if exists
+      if(state.heroMain) try{ state.heroMain.destroy(true,true); }catch{}
+      if(state.heroThumbs) try{ state.heroThumbs.destroy(true,true); }catch{}
+
+      state.heroThumbs = new Swiper("#heroThumbs", {
+        slidesPerView: "auto",
+        spaceBetween: 10,
+        freeMode: true,
+        watchSlidesProgress: true,
+      });
+
+      state.heroMain = new Swiper("#heroMain", {
+        effect: "fade",
+        fadeEffect: { crossFade: true },
+        speed: 650,
+        autoplay: { delay: 5200, disableOnInteraction: false },
+        loop: true,
+        navigation: { nextEl: ".hero-next", prevEl: ".hero-prev" },
+        pagination: { el: ".hero-pagination", clickable: true },
+        thumbs: { swiper: state.heroThumbs },
+      });
+    }
+
+    /* --------------------------
+       Tabs + Content rendering
+    --------------------------- */
+    function setActiveTab(tab){
+      state.tab = tab;
+
+      document.querySelectorAll(".tab").forEach(t => {
+        t.classList.toggle("active", t.getAttribute("data-tab") === tab);
+      });
+
+      renderTab(tab);
+    }
+
+    function destroyCarousels(){
+      for(const sw of state.carousels){
+        try{ sw.destroy(true,true); }catch{}
+      }
+      state.carousels = [];
+    }
+
+    function renderSkeletonCarousels(count=1){
+      const host = document.getElementById("tabContent");
+      host.innerHTML = "";
+      for(let i=0;i<count;i++){
+        const block = document.createElement("div");
+        block.className = "section-block";
+        block.innerHTML = `
+          <div class="carousel-head">
+            <div class="carousel-meta">
+              <div class="meta-text">
+                <h3 class="skeleton" style="width: 160px; height: 16px; border-radius: 10px;"></h3>
+                <p class="skeleton" style="width: 320px; height: 12px; border-radius: 10px;"></p>
+              </div>
+              <span class="viewmore skeleton" style="width: 110px; height: 32px; border-radius: 999px;"></span>
+            </div>
+            <div class="carousel-controls">
+              <span class="iconbtn skeleton"></span>
+              <span class="iconbtn skeleton"></span>
+            </div>
+          </div>
+          <div class="carousel-body">
+            <div style="display:grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px;">
+              ${Array.from({length:10}).map(() => `
+                <div class="anime-card skeleton" style="height: 260px; border-radius: 18px;"></div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+        host.appendChild(block);
+      }
+    }
+
+    function escapeHtml(str){
+      if(str === null || str === undefined) return "";
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function animeCardHTML(anime){
+      const img = anime.images?.jpg?.image_url || anime.images?.jpg?.small_image_url || "";
+      const title = anime.title || "—";
+      const url = anime.url || "#";
+
+      const score = anime.score ?? "—";
+      const rank = anime.rank ?? "—";
+      const popularity = anime.popularity ?? "—";
+      const year = anime.year || anime.aired?.prop?.from?.year || "";
+      const type = anime.type || "";
+      const episodes = anime.episodes ? `${anime.episodes} حلقة` : "";
+
+      const meta = [year, type, episodes].filter(Boolean).join(" • ");
+
+      const id = anime.mal_id;
+      const isAdded = state.addedSet.has(String(id));
+
+      return `
+        <div class="anime-card" data-card-id="${id}">
+          <a class="poster" href="${url}" target="_blank" rel="noopener">
+            <img src="${img}" alt="${escapeHtml(title)}" loading="lazy"/>
+          </a>
+          <div class="card-body">
+            <div class="title-row">
+              <h4 title="${escapeHtml(title)}">${escapeHtml(title)}</h4>
+              <button class="mini-add ${isAdded ? "added" : ""}" data-add="${id}" title="إضافة سريعة">
+                ${isAdded ? icons.check : icons.plus}
+              </button>
+            </div>
+            <div class="card-meta">${escapeHtml(meta || " ")}</div>
+            <div class="stat-row" aria-label="إحصائيات">
+              <span class="statbtn" title="التقييم">${icons.star} ${score}</span>
+              <span class="statbtn" title="الترتيب">${icons.hash} #${rank}</span>
+              <span class="statbtn" title="الشعبية">${icons.fire} #${popularity}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCarouselBlock({ id, title, note, items, viewMoreLabel="رؤية المزيد" }){
+      const host = document.getElementById("tabContent");
+
+      const block = document.createElement("div");
+      block.className = "section-block";
+      block.innerHTML = `
+        <div class="carousel-head">
+          <div class="carousel-meta">
+            <div class="meta-text">
+              <h3>${escapeHtml(title)}</h3>
+              <p>${escapeHtml(note || "")}</p>
+            </div>
+            <a class="viewmore" href="#" onclick="return false;">
+              ${viewMoreLabel}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="m9 6 6 6-6 6" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
+          </div>
+
+          <!-- requirement #8: arrows side-by-side at top, other side title/note + view more -->
+          <div class="carousel-controls">
+            <button class="iconbtn prev" id="${id}-prev" aria-label="Previous">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M15 6 9 12l6 6" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="iconbtn next" id="${id}-next" aria-label="Next">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="m9 6 6 6-6 6" stroke="rgba(244,245,255,.92)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="carousel-body">
+          <div class="swiper carousel-swiper" id="${id}">
+            <div class="swiper-wrapper">
+              ${items.map(a => `<div class="swiper-slide">${animeCardHTML(a)}</div>`).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+
+      host.appendChild(block);
+
+      // init Swiper
+      const sw = new Swiper(`#${id}`, {
+        slidesPerView: 2.1,
+        spaceBetween: 10,
+        grabCursor: true,
+        navigation: { nextEl: `#${id}-next`, prevEl: `#${id}-prev` },
+        breakpoints: {
+          520: { slidesPerView: 2.6, spaceBetween: 12 },
+          768: { slidesPerView: 3.4, spaceBetween: 12 },
+          992: { slidesPerView: 4.6, spaceBetween: 12 },
+          1200:{ slidesPerView: 5.2, spaceBetween: 12 }
+        }
+      });
+
+      state.carousels.push(sw);
+    }
+
+    function bindCardAddButtons(){
+      document.querySelectorAll("[data-add]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const id = btn.getAttribute("data-add");
+          const card = btn.closest(".anime-card");
+          const title = card?.querySelector("h4")?.textContent?.trim() || "العمل";
+
+          const already = state.addedSet.has(String(id));
+          if(already){
+            state.addedSet.delete(String(id));
+            btn.classList.remove("added");
+            btn.innerHTML = icons.plus;
+            showToast("تمت الإزالة", `تمت إزالة "${title}" من قائمتك.`);
+            return;
+          }
+
+          state.addedSet.add(String(id));
+          btn.classList.add("added");
+          btn.innerHTML = icons.check;
+          showToast("تمت الإضافة", `تم حفظ "${title}" في قائمتك.`);
+        });
+      });
+    }
+
+    async function renderLatest(){
+      renderSkeletonCarousels(1);
+      destroyCarousels();
+
+      // cache
+      if(!state.tabCache.has("latest")){
+        const top = await jikan("/top/anime", { filter: "airing", limit: 16 });
+        state.tabCache.set("latest", { top: top.data || [] });
+      }
+      const data = state.tabCache.get("latest");
+
+      const host = document.getElementById("tabContent");
+      host.innerHTML = "";
+
+      renderCarouselBlock({
+        id: "sw-latest",
+        title: "آخر الأنميات المضافة",
+        note: "أحدث أعمال نشطة ومشهورة (بيانات حقيقية من الإنترنت).",
+        items: (data.top || []).slice(0, 16),
+        viewMoreLabel: "كل الإضافات"
+      });
+
+      bindCardAddButtons();
+    }
+
+    async function renderCategories(){
+      renderSkeletonCarousels(2);
+      destroyCarousels();
+
+      if(!state.tabCache.has("categories")){
+        // Action by genre ID = 1 (MAL)
+        // Isekai: use query to be safe + real
+        const [action, isekai] = await Promise.allSettled([
+          jikan("/anime", { genres: 1, order_by: "score", sort: "desc", limit: 16 }),
+          jikan("/anime", { q: "isekai", order_by: "score", sort: "desc", limit: 16 }),
+        ]);
+        state.tabCache.set("categories", {
+          action: action.status === "fulfilled" ? (action.value.data || []) : [],
+          isekai: isekai.status === "fulfilled" ? (isekai.value.data || []) : [],
+        });
+      }
+
+      const data = state.tabCache.get("categories");
+      const host = document.getElementById("tabContent");
+      host.innerHTML = "";
+
+      renderCarouselBlock({
+        id: "sw-action",
+        title: "أنميات أكشن",
+        note: "أفضل الأكشن حسب التقييم (حقيقية من Jikan/MAL).",
+        items: (data.action || []).slice(0, 16),
+        viewMoreLabel: "المزيد"
+      });
+
+      renderCarouselBlock({
+        id: "sw-isekai",
+        title: "أنميات إيسيكاي",
+        note: "ترشيحات إيسيكاي عالية التقييم بالبحث المباشر.",
+        items: (data.isekai || []).slice(0, 16),
+        viewMoreLabel: "المزيد"
+      });
+
+      bindCardAddButtons();
+    }
+
+    async function renderSeasonal(){
+      renderSkeletonCarousels(2);
+      destroyCarousels();
+
+      if(!state.tabCache.has("seasonal")){
+        const [now, upcoming] = await Promise.allSettled([
+          jikan("/seasons/now", { limit: 16 }),
+          jikan("/seasons/upcoming", { limit: 16 }),
+        ]);
+        state.tabCache.set("seasonal", {
+          now: now.status === "fulfilled" ? (now.value.data || []) : [],
+          upcoming: upcoming.status === "fulfilled" ? (upcoming.value.data || []) : [],
+        });
+      }
+      const data = state.tabCache.get("seasonal");
+      const host = document.getElementById("tabContent");
+      host.innerHTML = "";
+
+      renderCarouselBlock({
+        id: "sw-season-now",
+        title: "أنميات الموسم الحالي",
+        note: "الأعمال التي تُعرض الآن (موسم MAL الحالي).",
+        items: (data.now || []).slice(0, 16),
+        viewMoreLabel: "كل الموسم"
+      });
+
+      renderCarouselBlock({
+        id: "sw-season-up",
+        title: "قريباً",
+        note: "أعمال قادمة قريباً (Upcoming).",
+        items: (data.upcoming || []).slice(0, 16),
+        viewMoreLabel: "المزيد"
+      });
+
+      bindCardAddButtons();
+    }
+
+    function scheduleSkeleton(){
+      const host = document.getElementById("tabContent");
+      host.innerHTML = `
+        <div class="section-block">
+          <div class="carousel-head">
+            <div class="carousel-meta">
+              <div class="meta-text">
+                <h3>جدول العرض</h3>
+                <p>تجميع الأعمال حسب يوم البث (حقيقي من الإنترنت).</p>
+              </div>
+              <span class="viewmore" onclick="return false;">كل الجدول</span>
+            </div>
+            <div class="carousel-controls">
+              <span class="iconbtn skeleton"></span>
+              <span class="iconbtn skeleton"></span>
+            </div>
+          </div>
+          <div class="schedule-wrap">
+            <div class="schedule-grid">
+              ${Array.from({length:7}).map(() => `
+                <div class="day-card skeleton" style="min-height: 240px; border-radius: 18px;"></div>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function normalizeDay(day){
+      if(!day) return "other";
+      const d = String(day).toLowerCase();
+      // Jikan sometimes returns "Mondays", "Sundays", etc.
+      if(d.includes("monday")) return "monday";
+      if(d.includes("tuesday")) return "tuesday";
+      if(d.includes("wednesday")) return "wednesday";
+      if(d.includes("thursday")) return "thursday";
+      if(d.includes("friday")) return "friday";
+      if(d.includes("saturday")) return "saturday";
+      if(d.includes("sunday")) return "sunday";
+      return "other";
+    }
+
+    async function renderSchedule(){
+      scheduleSkeleton();
+      destroyCarousels();
+
+      if(!state.tabCache.has("schedule")){
+        // Fetch schedule once and group by broadcast.day
+        const res = await jikan("/schedules", { limit: 70 });
+        const list = res.data || [];
+        const grouped = {
+          monday: [], tuesday: [], wednesday: [], thursday: [], friday: [], saturday: [], sunday: [], other: []
+        };
+        for(const a of list){
+          const day = normalizeDay(a.broadcast?.day);
+          grouped[day].push(a);
+        }
+        // Keep top 6 per day for clean UI
+        Object.keys(grouped).forEach(k => grouped[k] = grouped[k].slice(0, 6));
+        state.tabCache.set("schedule", grouped);
+      }
+
+      const grouped = state.tabCache.get("schedule");
+      const host = document.getElementById("tabContent");
+
+      const order = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday","other"];
+
+      host.innerHTML = `
+        <div class="section-block">
+          <div class="carousel-head">
+            <div class="carousel-meta">
+              <div class="meta-text">
+                <h3>جدول العرض الأسبوعي</h3>
+                <p>متى تُعرض الحلقات الجديدة؟ تجميع تلقائي حسب يوم البث.</p>
+              </div>
+              <a class="viewmore" href="#" onclick="return false;">كل الجدول</a>
+            </div>
+            <div class="carousel-controls" style="opacity:.75">
+              <span class="chip good" title="مصدر البيانات">${icons.shield} مصدر: Jikan</span>
+            </div>
+          </div>
+
+          <div class="schedule-wrap">
+            <div class="schedule-grid">
+              ${order.map(dayKey => {
+                const items = grouped[dayKey] || [];
+                const dayName = weekdayAr[dayKey] || dayKey;
+                return `
+                  <div class="day-card">
+                    <div class="day-head">
+                      <b>${dayName}</b>
+                      <span>${items.length ? `${items.length} أعمال` : "لا بيانات"}</span>
+                    </div>
+                    <div class="day-list">
+                      ${
+                        items.length
+                          ? items.map(a => {
+                              const img = a.images?.jpg?.image_url || "";
+                              const title = a.title || "—";
+                              const time = a.broadcast?.time ? `${a.broadcast.time} (JST)` : "وقت غير محدد";
+                              const url = a.url || "#";
+                              return `
+                                <a class="day-item" href="${url}" target="_blank" rel="noopener">
+                                  <img src="${img}" alt="${escapeHtml(title)}" loading="lazy"/>
+                                  <div style="min-width:0;">
+                                    <b>${escapeHtml(title)}</b>
+                                    <small>${escapeHtml(time)}</small>
+                                  </div>
+                                </a>
+                              `;
+                            }).join("")
+                          : `<div class="chip" style="justify-content:center; padding:10px;">لا توجد أعمال في البيانات الحالية</div>`
+                      }
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function renderTab(tab){
+      try{
+        if(tab === "latest") return renderLatest();
+        if(tab === "categories") return renderCategories();
+        if(tab === "seasonal") return renderSeasonal();
+        if(tab === "schedule") return renderSchedule();
+      }catch(err){
+        console.error(err);
+        const host = document.getElementById("tabContent");
+        host.innerHTML = `
+          <div class="section-block">
+            <div class="carousel-head">
+              <div class="carousel-meta">
+                <div class="meta-text">
+                  <h3>حدث خطأ</h3>
+                  <p>تعذر جلب البيانات من الإنترنت. حاول تحديث الصفحة.</p>
+                </div>
+                <a class="viewmore" href="#" onclick="location.reload();return false;">تحديث الصفحة</a>
+              </div>
+              <div class="carousel-controls"></div>
+            </div>
+            <div class="carousel-body">
+              <div class="chip bad">ملاحظة: Jikan API قد يفرض Rate Limit (HTTP 429) أحيانًا.</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    /* --------------------------
+       RTL/LTR toggle (requirement #6)
+    --------------------------- */
+    function toggleDir(){
+      const next = state.dir === "rtl" ? "ltr" : "rtl";
+      state.dir = next;
+      document.documentElement.setAttribute("dir", next);
+
+      // Swiper supports direction change
+      try{ state.heroMain?.changeLanguageDirection(next); }catch{}
+      try{ state.heroThumbs?.changeLanguageDirection(next); }catch{}
+      for(const sw of state.carousels){
+        try{ sw.changeLanguageDirection(next); }catch{}
+      }
+
+      showToast("تم تبديل الاتجاه", next === "rtl" ? "RTL مفعل" : "LTR مفعل");
+    }
+
+    /* --------------------------
+       Init
+    --------------------------- */
+    function bindTabs(){
+      document.getElementById("tabs").addEventListener("click", (e) => {
+        const btn = e.target.closest(".tab");
+        if(!btn) return;
+        const tab = btn.getAttribute("data-tab");
+        setActiveTab(tab);
+      });
+
+      document.getElementById("dirToggle").addEventListener("click", toggleDir);
+
+      document.getElementById("refreshTab").addEventListener("click", () => {
+        // force refresh current tab
+        state.tabCache.delete(state.tab);
+        showToast("تحديث", "يتم الآن جلب بيانات جديدة من الإنترنت...");
+        renderTab(state.tab);
+      });
+    }
+
+    async function init(){
+      bindTabs();
+
+      // HERO
+      await loadHero();
+      initHeroSwipers();
+
+      // Default tab (requirement #5: default lists)
+      await renderTab(state.tab);
+    }
+
+    // Start
+    init();
+  </script>
+</body>
+</html>

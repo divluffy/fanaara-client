@@ -1,15 +1,14 @@
-// layout\components\LoggedShell\NavbarPhone.tsx
+// layout/components/LoggedShell/NavbarPhone.tsx
 "use client";
 
 import * as React from "react";
 import { usePathname } from "next/navigation";
-import { IoIosAdd } from "react-icons/io";
 import { LuBell, LuMessagesSquare, LuSearch } from "react-icons/lu";
 
 import { Avatar } from "@/design";
-import { cn } from "@/utils/cn";
 import { isActivePath } from "./isActivePath";
 import { MobileNavItem } from "./MobileIconItem";
+import AddPost from "@/components/AddPost";
 
 export const demoUser = {
   name: "Ibrahim Jomaa",
@@ -31,7 +30,6 @@ export default function NavbarPhone({
   user = demoUser,
   chatUnreadCount = 0,
   notificationsCount = 3,
-  onCreatePost,
   onOpenSearch,
 }: NavbarPhoneProps) {
   const pathname = usePathname();
@@ -40,27 +38,16 @@ export default function NavbarPhone({
   const chatActive = isActivePath(pathname, "/chat");
   const notifActive = isActivePath(pathname, "/notifications");
 
-  const handleCreate = React.useCallback(
-    () => onCreatePost?.(),
-    [onCreatePost]
-  );
   const handleSearch = React.useCallback(
     () => onOpenSearch?.(),
-    [onOpenSearch]
+    [onOpenSearch],
   );
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-40",
-        "bg-background-elevated/80 backdrop-blur-md supports-[backdrop-filter]:bg-background-elevated/60",
-        "border-b border-accent-border/70",
-        "pt-[env(safe-area-inset-top)]"
-      )}
-    >
+    <header className="h-full">
       <nav
         aria-label="Top actions"
-        className="h-14 px-3 flex items-center justify-between gap-3"
+        className="h-full px-3 flex items-center justify-between gap-3"
       >
         <div className="flex items-center gap-2">
           <Avatar
@@ -71,16 +58,10 @@ export default function NavbarPhone({
             blurHash={user.blurHash}
           />
 
-          <MobileNavItem
-            label="إضافة"
-            Icon={IoIosAdd}
-            onClick={handleCreate}
-            variant="primary"
-          />
+          <AddPost mode="phone" />
         </div>
 
         <div className="flex items-center gap-1">
-          {/* ✅ مثال DOT (نقطة) + في الزاوية وبزاوية تلقائيًا */}
           <MobileNavItem
             label="بحث"
             Icon={LuSearch}
@@ -89,7 +70,6 @@ export default function NavbarPhone({
             dot
           />
 
-          {/* ✅ مثال BADGE (رقم) */}
           <MobileNavItem
             label="الرسائل"
             Icon={LuMessagesSquare}

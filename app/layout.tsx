@@ -7,7 +7,7 @@ import { Providers } from "./providers";
 import StoreProvider from "./StoreProvider";
 import { AppLocale, getDirection } from "@/i18n/config";
 import "./globals.css";
-import "./class.css";
+
 // Google Fonts
 import { Inter, Nunito_Sans, Noto_Sans_Arabic } from "next/font/google";
 import { Viewport } from "next";

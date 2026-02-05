@@ -1,100 +1,49 @@
-أنت Senior TypeScript Engineer للـ Frontend (Next.js App Router).
-مطلوب: Refactor للكود الذي سأرسله ليصبح أبسط، أوضح، وأصح منطقيًا، مع Anime UI احترافي + Framer Motion.
+اسم المهمة: 
+أنت الآن تعمل كـ Lead UI/UX Designer (Figma-level) + Senior Frontend Engineer.
+نفّذ [المهمة] بتصميم حديث، بسيط لكن “مؤثر”، غير تقليدي، وبجودة منتج حقيقي (Production UI).
 
-مهم جدًا: المنصة متعددة اللغات (Arabic RTL / Turkish LTR / English LTR)، لذلك يجب أخذ اختلاف الاتجاهات (RTL/LTR) بعين الاعتبار في الـlayout، الـspacing، الأيقونات، والـanimations.
+التقنيات الإلزامية:
+- Next.js (App Router) + TypeScript (آخر إصدار)
+- TailwindCSS (آخر إصدار)
+- Framer Motion (Micro-interactions احترافية)
+- لا تستخدم مكتبات UI ثقيلة بدون داعٍ. الأفضل تصميم مكونات خفيفة بـ Tailwind.
 
-========================
-0) اشياء استخدمها في هذا المشروع
-========================
+قواعد:
+1) ممنوع “Generic UI”: لا Cards عادية مكررة، لا ألوان افتراضية، لا Layout فارغ.
+2) لازم تضيف 3 “Signature Touches” مناسبة للمهمة (بدون مبالغة)، مثل:
+   - Motif بصري ذكي (manga panels / halftone / sticker chips / edge glow / subtle noise)
+   - Hero moment واحد (قسم واحد يلفت الانتباه بذكاء)
+   - Interaction ذكي يخدم الهدف (مش مجرد scale بـ input range أو حركات عشوائية)
+3) الحركة لازم تكون Purposeful: spring, stagger, layout transitions, hover/focus polish
+   + احترام prefers-reduced-motion.
+4) اعمل حالات كاملة: loading / empty / error + states للـ hover/focus/pressed/disabled.
 
-1. i use next-intl for translations i have 3files for ar.json, tr.json and en.json 
-i use it like 
-const t = useTranslations("signup_steps_01");
-2. focus handle right or left direction using 
-const { isRTL, direction } = useAppSelector(({ state }) => state);
-rerturn true or false for "ltr" or "rtl"
-3. i use themes for light mode and dark mode
-4. i use tailwindcss v4 for design and style
-5. i use Redux Toolkit for api and state managment
+قواعد الأداء والهندسة:
+- Server Components افتراضيًا، و"use client" فقط للأجزاء التفاعلية.
+- تجنب re-renders الثقيلة: memo/useMemo/useCallback عند الحاجة فقط.
+- لو في Lists كبيرة: استخدم virtualization أو progressive rendering.
+- استخدم next/image عند الصور، واعتنِ بالـ layout stability (no CLS).
+- اجعل الكود قابل للنسخ مباشرة: ملف + مسار الملف + exports واضحة.
 
+صيغة الإخراج (لا تسألني أسئلة — افترض أفضل افتراضات واذكرها بسرعة):
+A) Design Spec مختصر جدًا:
+   - الهدف الأساسي + المستخدم المستهدف
+   - Layout sections (مرتبة)
+   - Design tokens (neutrals + 2 accents) + typography scale + spacing rhythm
+   - Signature Touches الثلاثة (اذكرها بوضوح)
+   - Motion rules (متى وكيف)
+B) Implementation:
+   - اكتب الكود كامل في ملف واحد (Next.js page/component) باستخدام Tailwind + Framer Motion
+   - بيانات Mock ذكية بدل fetch إن لم أقدّم API
+   - دعم RTL/LTR + Dark/Light 
 
-========================
-1) البيئة (ثابتة)
-========================
-- Next.js 16.0.6 (App Router)
-- React 19.2.0
-- TailwindCSS 4.x
-- Redux Toolkit 
-
-========================
-2) قواعد صارمة (لا تتجاوزها)
-========================
-1) لا تغيّر السلوك الخارجي أو الـAPI (props/exports/routes/server actions/contracts) إلا لو وجدت Bug حقيقي.
-   - إذا غيّرت سلوكًا بسبب Bug: اشرح السبب بدقة + مثال قبل/بعد.
-2) اجعل الكود واضحًا أكثر من كونه “ذكيًا”.
-   - ممنوع any.
-   - استخدم typing قوي.
-   - استخدم unknown مع narrowing عند الحاجة.
-3) احذف: التكرار، الشروط الزائدة، الأكواد غير المستخدمة، التعقيد غير الضروري.
-4) عالج الحالات بوضوح: loading / empty / error.
-   - لا تبتلع الأخطاء.
-   - لا تُخفِ أخطاء الشبكة/الفورم.
-5) أداء منطقي بدون مبالغة:
-   - تجنب re-renders غير الضرورية.
-   - لا queries مكررة.
-   - memo/useMemo/useCallback فقط عند وجود سبب واضح.
-
-========================
-3) Multilingual + Direction (RTL/LTR) — إلزامي
-========================
-- لا تستخدم left/right في التفكير. استخدم مفهوم start/end.
-- تجنب hard-coded classes مثل ml-*, mr-*, left-* إذا كانت ستكسر RTL.
-- حيث يلزم:
-  - استخدم CSS logical properties (padding-inline-start/end, inset-inline-start/end)
-  - أو Tailwind classes بطريقة لا تكسر الاتجاه (بقدر ما يسمح مشروعنا)
-  - أو conditionals واضحة مثل:
-    - const isRtl = dir === 'rtl'
-    - className = isRtl ? '...' : '...'
-- الأيقونات التي لها اتجاه (chevron/arrow) يجب أن تنعكس في RTL.
-- الـAnimations التي تتحرك أفقيًا يجب أن تحترم الاتجاه:
-  - slide-in من “start” وليس “left”
-  - مثال: enterX = isRtl ? +24 : -24 (أو العكس حسب التصميم) لكن تكون ثابتة ومعقولة.
-- احترم Server/Client boundaries:
-  - لا تستخدم window/document في Server Components.
-  - إذا احتجت dir في Client: اقرأه من props أو من documentElement.dir داخل useEffect مع fallback.
-
-========================
-4) Anime UI + Motion (إذا كان هناك UI)
-========================
-- تصميم بسيط ومقروء بطابع أنمي:
-  - neon accents خفيفة
-  - gradients بسيطة
-  - borders واضحة + glow خفيف
-  - بدون زحمة أو تشويش
-- أضف Framer Motion لـ:
-  1) دخول/خروج sections أو page blocks (AnimatePresence إن كان مناسبًا)
-  2) hover/tap micro-interactions للأزرار/الكروت
-  3) stagger للقوائم
-- راعِ Reduced Motion:
-  - استخدم useReducedMotion()
-  - عند تفعيله: قلّل الحركة أو ألغِ التحريك الأفقي/الاهتزاز
-
-========================
-5) المخرجات (التزم بها حرفيًا)
-========================
-A) الكود بعد refactor كامل وقابل للتشغيل (غير جزئي).
-B) تغييراتك ولماذا (منطق/تبسيط/تنظيف/Types/أداء/UI+Animation/RTL-LTR).
-C) ما الذي حذفته ولماذا.
-D) مخاطر/افتراضات.
-E) Tests إن أمكن، أو Test Plan بحالات محددة (خصوصًا RTL/LTR + i18n).
-
-========================
-6) global things
-========================
-1. make sure u hadle all text and contet is perfect with direction like if it rtl or ltr
-2. make sure make it simple and easy as u can for short code but give same time the purpose and goals
-========================
-7) الكود
-========================
+* ملاحظات:
+- الكود هذا سيتم ارفاقه داخل مشروع فالبيئة جاهزة للتبدل بين اتجاه الصفحة حسب اللغة او الثيم الحالي
+- دائما يكون اول ملف هو الملف المطلوب اي ملف اخر يكون اما تابع له او component يتم استخدامه في الملفت الرئيسية اضيفه فقط في حالة مطلوب منه معرفته لتانسب استخدامه بشكل صحيح
+- ركز جيدا في تنفيذ المطلوب بشكل صارم وابداعي
+- تاكد دائما من مراجعة افضل ux للمستخدم واتباعه مع الحفاظ على الافكار نفسها قدر الامكان ولكن الفلو الافضل
+- التزم دائما بالمعطيات قدر الامكان بشكل صارم كونها المكونات المرتبطة بهذا المطلوب
+- انت تبدع وتنفذ الافكار الافضل لضمان افضل اداء في السيرفر وسرعة العرض 
+- تمكين animations مرن وسلسل مع framer motion للعناصر المناسبة لاضفاء طابع مريح للمستخدمين والعين
 
 
