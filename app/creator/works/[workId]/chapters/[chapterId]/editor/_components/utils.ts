@@ -22,15 +22,10 @@ export function bboxCenter(b: NormalizedBBox): NormalizedPoint {
 export function detectLang(text: string): TextLang {
   if (!text) return "unknown";
 
-  // Arabic
   if (/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(text)) return "ar";
-  // Japanese (hiragana/katakana)
   if (/[\u3040-\u30FF]/.test(text)) return "ja";
-  // Korean
   if (/[\uAC00-\uD7AF]/.test(text)) return "ko";
-  // Chinese (CJK unified ideographs)
   if (/[\u4E00-\u9FFF]/.test(text)) return "zh";
-  // English / Latin
   if (/[A-Za-z]/.test(text)) return "en";
 
   return "unknown";
@@ -47,7 +42,6 @@ export function ensureAnnotations(
 ): PageAnnotationsDoc {
   const now = new Date().toISOString();
   if (maybe?.version === 1) {
-    // Ensure meta exists (backward safety)
     return {
       ...maybe,
       meta: {
@@ -98,8 +92,6 @@ export function pxToNormBBox(
 }
 
 export function toTtbText(text: string) {
-  // Very simple vertical layout: one char per line.
-  // (Good enough for SFX or short JP text; long paragraphs need advanced shaping)
   return (text ?? "").split("").join("\n");
 }
 
@@ -113,7 +105,9 @@ export function isTextInputTarget(target: EventTarget | null) {
 }
 
 export function normalizeReadingOrder(elements: PageElement[]) {
-  const alive = elements.slice().sort((a, b) => a.readingOrder - b.readingOrder);
+  const alive = elements
+    .slice()
+    .sort((a, b) => a.readingOrder - b.readingOrder);
   return alive.map((e, idx) => ({ ...e, readingOrder: idx + 1 }));
 }
 
@@ -123,18 +117,15 @@ export function autoReadingOrder(params: {
 }) {
   const { elements, direction } = params;
 
-  // Use bbox center instead of stored anchor (anchor might be used for tailTip later)
   const sorted = elements
     .slice()
     .sort((a, b) => {
       const ac = bboxCenter(a.geometry.container_bbox);
       const bc = bboxCenter(b.geometry.container_bbox);
 
-      // primary by y
       const dy = ac.y - bc.y;
       if (Math.abs(dy) > 0.02) return dy;
 
-      // secondary by x depending on direction
       if (direction === "RTL") return bc.x - ac.x;
       return ac.x - bc.x;
     })
@@ -143,10 +134,6 @@ export function autoReadingOrder(params: {
   return sorted;
 }
 
-/**
- * Auto-fit font size into a pixel box (width/height in px).
- * Returns recommended fontSize (integer).
- */
 let _measureCanvas: HTMLCanvasElement | null = null;
 export function autoFitFontSize(params: {
   text: string;
@@ -172,9 +159,9 @@ export function autoFitFontSize(params: {
   } = params;
 
   const safeText = (text ?? "").trim();
-  if (!safeText) return clamp(Math.round(maxFontSize), minFontSize, maxFontSize);
+  if (!safeText)
+    return clamp(Math.round(maxFontSize), minFontSize, maxFontSize);
 
-  // Skip for TTB (naive vertical layout)
   if (writingDirection === "TTB") {
     return clamp(Math.round(maxFontSize), minFontSize, maxFontSize);
   }
@@ -208,7 +195,6 @@ export function autoFitFontSize(params: {
 
       if (current) pushLine(current);
 
-      // if single word too long, break by chars
       if (ctx.measureText(word).width > w) {
         let chunk = "";
         for (const ch of word) {
@@ -231,7 +217,6 @@ export function autoFitFontSize(params: {
     return totalHeight <= h;
   }
 
-  // Binary search
   let lo = Math.round(minFontSize);
   let hi = Math.round(maxFontSize);
   let best = lo;

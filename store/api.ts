@@ -78,13 +78,15 @@ export const api = createApi({
     "Applications",
 
     // ✅ Creator Comics
-  "CreatorWorks",
-  "CreatorWork",
-  "CreatorChapter",
-  "CreatorDraft",
-  "CreatorPages",
-  "CreatorAnalysisJob",
-  "CreatorAnnotations",
+    "CreatorWorks",
+    "CreatorWork",
+    "CreatorChapter",
+    "CreatorDraft",
+    "CreatorPages",
+    "CreatorAnalysisJob",
+    "CreatorAnnotations",
+    "LIST",
+    "Page",
   ],
   endpoints: (builder) => ({
     // --- Auth ---

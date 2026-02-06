@@ -57,20 +57,11 @@ export interface ElementGeometry {
   container_bbox: NormalizedBBox;
   text_bbox?: NormalizedBBox;
 
-  /**
-   * Used for reading-order / general anchor (defaults bbox center)
-   */
   anchor: NormalizedPoint;
 
-  /**
-   * Optional tail tip (for speech bubble tail or speaker point)
-   */
   tailTip?: NormalizedPoint;
 
-  /**
-   * Optional rotation (future use)
-   */
-  rotation?: number;
+  rotation?: number; // degrees
 }
 
 export interface ContainerInfo {
@@ -117,13 +108,16 @@ export interface ElementStyle {
   align: "left" | "center" | "right";
   fontFamily?: string;
   fontStyle?: "normal" | "bold" | "italic" | "bold italic";
-  lineHeight?: number; // default 1.2
-  letterSpacing?: number; // px
-  textFill?: string; // default "#111111"
+  lineHeight?: number;
+  letterSpacing?: number;
+  textFill?: string;
   textStroke?: string;
   textStrokeWidth?: number;
   textShadow?: TextShadowStyle;
-  textRotation?: number; // degrees, useful for SFX
+  textRotation?: number;
+
+  // ✅ NEW
+  fontSizeMode?: "auto" | "manual";
 }
 
 export interface PageElement {
@@ -139,7 +133,6 @@ export interface PageElement {
   text: TextInfo;
   style: ElementStyle;
 
-  // editor QoL
   locked?: boolean;
   hidden?: boolean;
   notes?: string;
@@ -156,7 +149,7 @@ export interface PageAnnotationsDoc {
   pageId: string;
   meta: PageMeta;
   elements: PageElement[];
-  updatedAt: string; // ISO
+  updatedAt: string;
 }
 
 export interface EditorPageItem {

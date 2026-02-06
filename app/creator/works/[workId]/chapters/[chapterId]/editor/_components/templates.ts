@@ -11,6 +11,7 @@ const BASE_TEXT = {
   textStrokeWidth: 0,
   textShadow: undefined as any,
   textRotation: 0,
+  fontSizeMode: "auto" as const,
 };
 
 export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
@@ -112,8 +113,15 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     textFill: "#111111",
     textStroke: "#ffffff",
     textStrokeWidth: 2,
-    textShadow: { color: "#000000", blur: 6, offsetX: 2, offsetY: 2, opacity: 0.4 },
+    textShadow: {
+      color: "#000000",
+      blur: 6,
+      offsetX: 2,
+      offsetY: 2,
+      opacity: 0.4,
+    },
     textRotation: 0,
+    fontSizeMode: "auto",
   },
   sfx_outline: {
     fill: "#00000000",
@@ -129,8 +137,15 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     textFill: "#111111",
     textStroke: "#ffffff",
     textStrokeWidth: 2,
-    textShadow: { color: "#000000", blur: 6, offsetX: 2, offsetY: 2, opacity: 0.4 },
+    textShadow: {
+      color: "#000000",
+      blur: 6,
+      offsetX: 2,
+      offsetY: 2,
+      opacity: 0.4,
+    },
     textRotation: 0,
+    fontSizeMode: "auto",
   },
 
   plain_text: {
@@ -145,16 +160,16 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
 };
 
 export const TEMPLATE_LABELS: Record<TemplateId, string> = {
-  bubble_ellipse: "Speech • Ellipse",
-  bubble_roundrect: "Speech • RoundRect",
-  bubble_cloud: "Thought • Cloud",
-  bubble_burst: "Speech • Burst",
-  narration_rect: "Narration • Rect",
-  narration_roundrect: "Narration • RoundRect",
-  caption_box: "Caption • Box",
-  scene_label: "Scene Text • Label",
-  signage_label: "Signage • Label",
-  sfx_burst: "SFX • Burst",
-  sfx_outline: "SFX • Outline",
-  plain_text: "Plain Text",
+  bubble_ellipse: "حوار • بيضاوي",
+  bubble_roundrect: "حوار • مستطيل دائري",
+  bubble_cloud: "تفكير • سحابة",
+  bubble_burst: "حوار • انفجار",
+  narration_rect: "سرد • مستطيل",
+  narration_roundrect: "سرد • مستطيل دائري",
+  caption_box: "توضيح • صندوق",
+  scene_label: "نص المشهد • بطاقة",
+  signage_label: "لافتة • بطاقة",
+  sfx_burst: "مؤثر • انفجار",
+  sfx_outline: "مؤثر • حدود",
+  plain_text: "نص حر",
 };

@@ -44,13 +44,19 @@ export default function PreviewModal({
   const page = pages[idx];
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4"
+      dir="rtl"
+      lang="ar"
+    >
       <div className="bg-white w-full max-w-7xl h-[92vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col border">
         <div className="border-b px-4 py-3 flex items-center gap-3">
-          <div className="font-semibold">Preview</div>
-          <Badge variant="info">{langMode}</Badge>
+          <div className="font-semibold">المعاينة</div>
+          <Badge variant="info">
+            {langMode === "translated" ? "الترجمة" : "الأصل"}
+          </Badge>
           <Badge variant="neutral">
-            Page {idx + 1}/{pages.length}
+            صفحة {idx + 1}/{pages.length}
           </Badge>
 
           <div className="ml-auto flex items-center gap-2">
@@ -60,7 +66,7 @@ export default function PreviewModal({
               onClick={() => setIdx((v) => Math.max(0, v - 1))}
               disabled={idx <= 0}
             >
-              Prev
+              السابق
             </Button>
             <Button
               size="sm"
@@ -68,10 +74,10 @@ export default function PreviewModal({
               onClick={() => setIdx((v) => Math.min(pages.length - 1, v + 1))}
               disabled={idx >= pages.length - 1}
             >
-              Next
+              التالي
             </Button>
             <Button size="sm" variant="secondary" onClick={onClose}>
-              Close
+              إغلاق
             </Button>
           </div>
         </div>
@@ -90,33 +96,33 @@ export default function PreviewModal({
           </div>
 
           <aside className="w-[420px] border-l p-4 overflow-auto space-y-3 bg-zinc-50">
-            <div className="text-sm font-semibold">Page info</div>
+            <div className="text-sm font-semibold">معلومات الصفحة</div>
 
             <div className="rounded-xl border bg-white p-3">
-              <div className="text-xs text-zinc-500 mb-1">Filename</div>
+              <div className="text-xs text-zinc-500 mb-1">اسم الملف</div>
               <div className="text-sm text-zinc-800">
                 {page.image.originalFilename}
               </div>
             </div>
 
             <div className="rounded-xl border bg-white p-3">
-              <div className="text-sm font-semibold mb-2">Keywords</div>
+              <div className="text-sm font-semibold mb-2">
+                الكلمات المفتاحية
+              </div>
               <div className="text-sm text-zinc-700">
                 {(page.annotations?.meta.keywords ?? []).join(", ") || "—"}
               </div>
             </div>
 
             <div className="rounded-xl border bg-white p-3">
-              <div className="text-sm font-semibold mb-2">
-                Scene Description
-              </div>
+              <div className="text-sm font-semibold mb-2">وصف المشهد</div>
               <div className="text-sm text-zinc-700">
                 {page.annotations?.meta.sceneDescription ?? "—"}
               </div>
             </div>
 
             <div className="text-xs text-zinc-500">
-              Tip: Use arrow keys in this modal to navigate pages.
+              تلميح: استخدم الأسهم للتنقل داخل المعاينة.
             </div>
           </aside>
         </div>

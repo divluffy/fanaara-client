@@ -45,22 +45,9 @@ import {
 type Viewport = { x: number; y: number; scale: number };
 type GuideLines = { v: number[]; h: number[] };
 
-function statusStroke(status: PageElement["status"]) {
-  switch (status) {
-    case "detected":
-      return "#06b6d4"; // cyan
-    case "edited":
-      return "#f59e0b"; // amber
-    case "confirmed":
-      return "#10b981"; // green
-    case "needs_review":
-      return "#ef4444"; // red
-    case "deleted":
-      return "#a1a1aa"; // zinc
-    default:
-      return "#06b6d4";
-  }
-}
+const EDIT_OUTLINE = "#d946ef"; // فوشيا واضح
+const HUD_W = 380;
+const HUD_H = 64;
 
 function safeNumber(v: any, fallback: number) {
   const n = Number(v);
@@ -79,6 +66,17 @@ function clampInsideImage(
     x: clamp(pos.x, 0, maxX),
     y: clamp(pos.y, 0, maxY),
   };
+}
+
+function clampCenterInsideImage(
+  pos: { x: number; y: number },
+  box: { w: number; h: number },
+  imgW: number,
+  imgH: number,
+) {
+  const topLeft = { x: pos.x - box.w / 2, y: pos.y - box.h / 2 };
+  const clampedTopLeft = clampInsideImage(topLeft, box, imgW, imgH);
+  return { x: clampedTopLeft.x + box.w / 2, y: clampedTopLeft.y + box.h / 2 };
 }
 
 function computeTailBaseEllipse(
@@ -154,6 +152,13 @@ function isBubbleTemplate(t: PageElement["container"]["template_id"]) {
   );
 }
 
+function langModeLabel(mode: LangMode) {
+  return mode === "translated" ? "الترجمة" : "الأصل";
+}
+function viewModeLabel(mode: ViewMode) {
+  return mode === "preview" ? "معاينة" : "تعديل";
+}
+
 export default function CanvasStage({
   page,
   viewMode,
@@ -191,12 +196,16 @@ export default function CanvasStage({
   const [fitLock, setFitLock] = useState(true);
 
   const [spaceDown, setSpaceDown] = useState(false);
+
+  // Pan: left-drag on empty OR Space/middle/right
   const [panning, setPanning] = useState(false);
   const panStartRef = useRef<{
     x: number;
     y: number;
     vx: number;
     vy: number;
+    startedOnEmpty: boolean;
+    forced: boolean;
   } | null>(null);
 
   const [guides, setGuides] = useState<GuideLines>({ v: [], h: [] });
@@ -209,6 +218,43 @@ export default function CanvasStage({
     rect: { x: number; y: number; w: number; h: number };
     dir: "ltr" | "rtl";
   } | null>(null);
+
+  // HUD draggable
+  const [hudMoved, setHudMoved] = useState(false);
+  const [hudPos, setHudPos] = useState({ x: 12, y: 12 });
+  const hudDragRef = useRef<{
+    startX: number;
+    startY: number;
+    baseX: number;
+    baseY: number;
+    pointerId: number;
+  } | null>(null);
+
+  const clampHud = useCallback(
+    (pos: { x: number; y: number }) => {
+      const maxX = Math.max(12, size.w - HUD_W - 12);
+      const maxY = Math.max(12, size.h - HUD_H - 12);
+      return {
+        x: clamp(pos.x, 12, maxX),
+        y: clamp(pos.y, 12, maxY),
+      };
+    },
+    [size.w, size.h],
+  );
+
+  useEffect(() => {
+    // default top-right
+    if (!hudMoved) {
+      setHudPos(
+        clampHud({
+          x: Math.max(12, size.w - HUD_W - 12),
+          y: 12,
+        }),
+      );
+    } else {
+      setHudPos((p) => clampHud(p));
+    }
+  }, [size.w, size.h, hudMoved, clampHud]);
 
   useEffect(() => {
     nodesRef.current = {};
@@ -234,7 +280,6 @@ export default function CanvasStage({
 
   useEffect(() => {
     let cancelled = false;
-
     if (!page?.image?.url) {
       setBg(null);
       return;
@@ -243,12 +288,8 @@ export default function CanvasStage({
     const img = new Image();
     img.src = page.image.url;
 
-    img.onload = () => {
-      if (!cancelled) setBg(img);
-    };
-    img.onerror = () => {
-      if (!cancelled) setBg(null);
-    };
+    img.onload = () => !cancelled && setBg(img);
+    img.onerror = () => !cancelled && setBg(null);
 
     return () => {
       cancelled = true;
@@ -270,6 +311,15 @@ export default function CanvasStage({
     setFitLock(true);
   }, [fitScale, size.w, size.h, imgW, imgH]);
 
+  const zoomToPct = useCallback(
+    (pct: number) => {
+      const ns = clamp((pct / 100) * fitScale, minScale, maxScale);
+      setFitLock(false);
+      setViewport((v) => ({ ...v, scale: ns }));
+    },
+    [fitScale, minScale, maxScale],
+  );
+
   useEffect(() => {
     if (!page?.annotations) return;
     if (fitLock) fitToScreen();
@@ -286,9 +336,7 @@ export default function CanvasStage({
           e.preventDefault();
         }
       }
-      if (e.key === "Escape") {
-        setEditing(null);
-      }
+      if (e.key === "Escape") setEditing(null);
     };
     const onUp = (e: KeyboardEvent) => {
       if (e.code === "Space") setSpaceDown(false);
@@ -300,8 +348,6 @@ export default function CanvasStage({
       window.removeEventListener("keyup", onUp as any);
     };
   }, []);
-
-  const elementsLen = page?.annotations?.elements?.length ?? 0;
 
   const visibleElements = useMemo(() => {
     const els = page?.annotations?.elements ?? [];
@@ -329,12 +375,12 @@ export default function CanvasStage({
     else tr.nodes(node ? [node] : []);
 
     tr.getLayer()?.batchDraw();
-  }, [selectedId, viewMode, elementsLen, visibleElements]);
+  }, [selectedId, viewMode, visibleElements]);
 
   if (!page?.annotations) {
     return (
       <div className="flex-1 flex items-center justify-center text-sm text-zinc-500 bg-zinc-100">
-        No page
+        لا توجد صفحة
       </div>
     );
   }
@@ -344,7 +390,7 @@ export default function CanvasStage({
   function computeSnap(
     nodeId: string,
     box: { x: number; y: number; w: number; h: number },
-    thresholdPx = 8,
+    thresholdWorldPx = 8,
   ) {
     const others = snapBoxes.filter((b) => b.id !== nodeId);
 
@@ -375,7 +421,7 @@ export default function CanvasStage({
     for (const g of vGuides) {
       for (const c of xCandidates) {
         const d = Math.abs(g - c.val);
-        if (d <= thresholdPx) {
+        if (d <= thresholdWorldPx) {
           if (!snapX || d < Math.abs(snapX.guide - snapX.match.val))
             snapX = { guide: g, match: c };
         }
@@ -384,7 +430,7 @@ export default function CanvasStage({
     for (const g of hGuides) {
       for (const c of yCandidates) {
         const d = Math.abs(g - c.val);
-        if (d <= thresholdPx) {
+        if (d <= thresholdWorldPx) {
           if (!snapY || d < Math.abs(snapY.guide - snapY.match.val))
             snapY = { guide: g, match: c };
         }
@@ -436,7 +482,6 @@ export default function CanvasStage({
 
   const zoomPct = Math.round((viewport.scale / fitScale) * 100);
 
-  // minimap rect
   const minimap = useMemo(() => {
     const maxDim = 160;
     const ratio = imgH / imgW;
@@ -454,93 +499,148 @@ export default function CanvasStage({
     const rw = Math.max(8, (worldX1 - worldX0) * s);
     const rh = Math.max(8, (worldY1 - worldY0) * s);
 
-    return { w, h, scale: s, rect: { x: rx, y: ry, w: rw, h: rh } };
+    return { w, h, rect: { x: rx, y: ry, w: rw, h: rh } };
   }, [imgW, imgH, viewport.x, viewport.y, viewport.scale, size.w, size.h]);
 
-  const cursor =
-    spaceDown || panning
-      ? panning
-        ? "grabbing"
-        : "grab"
-      : viewMode === "edit"
-        ? "default"
-        : "default";
+  const cursor = panning ? "grabbing" : spaceDown ? "grab" : "default";
 
   return (
     <div
       ref={containerRef}
       className="flex-1 bg-zinc-100 relative overflow-hidden"
     >
-      {/* HUD */}
-      <div className="absolute top-3 right-3 z-10 flex items-center gap-2 bg-white/90 border rounded-xl px-3 py-2 text-xs shadow-sm">
-        <button
-          className="px-2 py-1 rounded-lg border bg-white hover:bg-zinc-50"
-          onClick={() => {
-            setFitLock(true);
-            fitToScreen();
-          }}
-        >
-          Fit
-        </button>
-
-        <button
-          className="px-2 py-1 rounded-lg border bg-white hover:bg-zinc-50"
-          onClick={() => {
-            setFitLock(false);
-            setViewport((v) => ({
-              ...v,
-              scale: clamp(v.scale * 1.15, minScale, maxScale),
-            }));
-          }}
-        >
-          +
-        </button>
-
-        <button
-          className="px-2 py-1 rounded-lg border bg-white hover:bg-zinc-50"
-          onClick={() => {
-            setFitLock(false);
-            setViewport((v) => ({
-              ...v,
-              scale: clamp(v.scale / 1.15, minScale, maxScale),
-            }));
-          }}
-        >
-          -
-        </button>
-
-        <div className="flex items-center gap-2">
-          <input
-            type="range"
-            min={25}
-            max={600}
-            value={zoomPct}
-            onChange={(e) => {
-              const pct = clamp(Number(e.target.value || 100), 25, 600);
-              const ns = clamp((pct / 100) * fitScale, minScale, maxScale);
-              setFitLock(false);
-              setViewport((v) => ({ ...v, scale: ns }));
+      {/* HUD draggable */}
+      <div
+        className="absolute z-20 select-none"
+        style={{ left: hudPos.x, top: hudPos.y, width: HUD_W }}
+      >
+        <div className="bg-white/95 border rounded-2xl shadow-sm overflow-hidden">
+          <div
+            className="flex items-center justify-between px-3 py-2 bg-zinc-50 border-b cursor-move"
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setHudMoved(true);
+              hudDragRef.current = {
+                startX: e.clientX,
+                startY: e.clientY,
+                baseX: hudPos.x,
+                baseY: hudPos.y,
+                pointerId: e.pointerId,
+              };
+              (e.currentTarget as HTMLDivElement).setPointerCapture(
+                e.pointerId,
+              );
             }}
-          />
-          <div className="w-10 text-right text-zinc-700 font-medium">
-            {zoomPct}%
+            onPointerMove={(e) => {
+              const d = hudDragRef.current;
+              if (!d || d.pointerId !== e.pointerId) return;
+              const nx = d.baseX + (e.clientX - d.startX);
+              const ny = d.baseY + (e.clientY - d.startY);
+              setHudPos(clampHud({ x: nx, y: ny }));
+            }}
+            onPointerUp={(e) => {
+              const d = hudDragRef.current;
+              if (!d || d.pointerId !== e.pointerId) return;
+              hudDragRef.current = null;
+              try {
+                (e.currentTarget as HTMLDivElement).releasePointerCapture(
+                  e.pointerId,
+                );
+              } catch {}
+            }}
+            onPointerCancel={() => {
+              hudDragRef.current = null;
+            }}
+            title="اسحب لتحريك لوحة التحكم"
+          >
+            <div className="text-xs font-semibold text-zinc-800">
+              التحكم بالصورة
+            </div>
+            <div className="text-[11px] text-zinc-500">اسحب للتحريك</div>
+          </div>
+
+          <div className="px-3 py-2 flex items-center gap-2 text-xs">
+            <button
+              className="px-2.5 py-1.5 rounded-xl border bg-white hover:bg-zinc-50"
+              onClick={() => {
+                setFitLock(true);
+                fitToScreen();
+              }}
+              title="ملاءمة داخل الشاشة"
+            >
+              ملاءمة
+            </button>
+
+            <button
+              className="px-2.5 py-1.5 rounded-xl border bg-white hover:bg-zinc-50"
+              onClick={() => zoomToPct(100)}
+              title="100% حسب الملاءمة"
+            >
+              100%
+            </button>
+
+            <button
+              className="px-2.5 py-1.5 rounded-xl border bg-white hover:bg-zinc-50"
+              onClick={() => {
+                setFitLock(false);
+                setViewport((v) => ({
+                  ...v,
+                  scale: clamp(v.scale / 1.15, minScale, maxScale),
+                }));
+              }}
+              title="تصغير"
+            >
+              −
+            </button>
+
+            <button
+              className="px-2.5 py-1.5 rounded-xl border bg-white hover:bg-zinc-50"
+              onClick={() => {
+                setFitLock(false);
+                setViewport((v) => ({
+                  ...v,
+                  scale: clamp(v.scale * 1.15, minScale, maxScale),
+                }));
+              }}
+              title="تكبير"
+            >
+              ＋
+            </button>
+
+            <div className="flex-1 flex items-center gap-2">
+              <input
+                className="w-full"
+                type="range"
+                min={25}
+                max={600}
+                value={zoomPct}
+                onChange={(e) => {
+                  const pct = clamp(Number(e.target.value || 100), 25, 600);
+                  zoomToPct(pct);
+                }}
+              />
+              <div className="w-12 text-left text-zinc-700 font-semibold">
+                {zoomPct}%
+              </div>
+            </div>
+
+            <button
+              className="px-2.5 py-1.5 rounded-xl border bg-white hover:bg-zinc-50 disabled:opacity-50"
+              onClick={centerOnSelection}
+              disabled={!selectedId}
+              title="توسيط على العنصر"
+            >
+              توسيط
+            </button>
           </div>
         </div>
-
-        <button
-          className="px-2 py-1 rounded-lg border bg-white hover:bg-zinc-50"
-          onClick={centerOnSelection}
-          disabled={!selectedId}
-          title="Center selection"
-        >
-          Center
-        </button>
       </div>
 
-      {/* Inline textarea */}
+      {/* Inline edit */}
       {editing && (
         <div
-          className="absolute z-20"
+          className="absolute z-30"
           style={{ left: editing.rect.x, top: editing.rect.y }}
         >
           <textarea
@@ -560,7 +660,7 @@ export default function CanvasStage({
                 setEditing(null);
                 return;
               }
-              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+              if (e.key === "Enter" && e.ctrlKey) {
                 e.preventDefault();
                 const newText = editing.value;
 
@@ -568,7 +668,6 @@ export default function CanvasStage({
                   ...doc,
                   elements: doc.elements.map((x) => {
                     if (x.id !== editing.id) return x;
-
                     const lang =
                       editing.field === "original"
                         ? detectLang(newText)
@@ -595,7 +694,6 @@ export default function CanvasStage({
                 ...doc,
                 elements: doc.elements.map((x) => {
                   if (x.id !== editing.id) return x;
-
                   const lang =
                     editing.field === "original"
                       ? detectLang(newText)
@@ -616,7 +714,7 @@ export default function CanvasStage({
             }}
           />
           <div className="mt-1 text-[11px] text-zinc-600 bg-white/90 border rounded-lg px-2 py-1 inline-block">
-            Ctrl/⌘ + Enter to commit • Esc to cancel
+            Ctrl + Enter للتأكيد • Esc للإلغاء
           </div>
         </div>
       )}
@@ -657,41 +755,69 @@ export default function CanvasStage({
           const stage = e.target.getStage();
           if (!stage) return;
 
-          const isMiddle = (e.evt as MouseEvent).button === 1;
-          const isRight = (e.evt as MouseEvent).button === 2;
+          const btn = (e.evt as MouseEvent).button;
+          const isMiddle = btn === 1;
+          const isRight = btn === 2;
+
+          const p = stage.getPointerPosition();
+          if (!p) return;
+
+          const clickedOnEmpty = e.target === stage;
 
           if (spaceDown || isMiddle || isRight) {
-            const p = stage.getPointerPosition();
-            if (!p) return;
             setPanning(true);
             panStartRef.current = {
               x: p.x,
               y: p.y,
               vx: viewport.x,
               vy: viewport.y,
+              startedOnEmpty: false,
+              forced: true,
             };
             return;
           }
 
-          const clickedOnEmpty = e.target === stage;
+          // left drag on empty to pan
+          if (clickedOnEmpty && btn === 0) {
+            panStartRef.current = {
+              x: p.x,
+              y: p.y,
+              vx: viewport.x,
+              vy: viewport.y,
+              startedOnEmpty: true,
+              forced: false,
+            };
+            return;
+          }
+
           if (clickedOnEmpty) onSelect(null);
         }}
-        onMouseMove={() => {
-          if (!panning) return;
+        onMouseMove={(e) => {
           const stage = stageRef.current;
           if (!stage) return;
-          const p = stage.getPointerPosition();
+
           const start = panStartRef.current;
-          if (!p || !start) return;
+          if (!start) return;
+
+          const p = stage.getPointerPosition();
+          if (!p) return;
+
+          const dx = p.x - start.x;
+          const dy = p.y - start.y;
+
+          if (!panning && start.startedOnEmpty && Math.hypot(dx, dy) < 3)
+            return;
+
+          if (!panning) setPanning(true);
 
           setFitLock(false);
           setViewport((v) => ({
             ...v,
-            x: start.vx + (p.x - start.x),
-            y: start.vy + (p.y - start.y),
+            x: start.vx + dx,
+            y: start.vy + dy,
           }));
         }}
-        onMouseUp={() => {
+        onMouseUp={(e) => {
           setPanning(false);
           panStartRef.current = null;
         }}
@@ -751,7 +877,6 @@ export default function CanvasStage({
                 imgW,
                 imgH,
               );
-
               const padding = safeNumber(el.container.params?.padding, 12);
               const isLocked = !!el.locked;
 
@@ -778,11 +903,17 @@ export default function CanvasStage({
                 }
               }
 
+              const rot = safeNumber(el.geometry.rotation, 0);
+
               return (
                 <Group
                   key={el.id}
-                  x={bboxPx.x}
-                  y={bboxPx.y}
+                  // ✅ center-based positioning to allow rotation nicely
+                  x={bboxPx.x + bboxPx.w / 2}
+                  y={bboxPx.y + bboxPx.h / 2}
+                  offsetX={bboxPx.w / 2}
+                  offsetY={bboxPx.h / 2}
+                  rotation={rot}
                   draggable={viewMode === "edit" && !isLocked && !panning}
                   ref={(node) => {
                     if (node) nodesRef.current[el.id] = node;
@@ -800,7 +931,7 @@ export default function CanvasStage({
                     }
                   }}
                   dragBoundFunc={(pos) =>
-                    clampInsideImage(
+                    clampCenterInsideImage(
                       pos,
                       { w: bboxPx.w, h: bboxPx.h },
                       imgW,
@@ -846,9 +977,10 @@ export default function CanvasStage({
                   onDragMove={(ev) => {
                     if (viewMode !== "edit") return;
                     const node = ev.target as Konva.Group;
+
                     const box = {
-                      x: node.x(),
-                      y: node.y(),
+                      x: node.x() - bboxPx.w / 2,
+                      y: node.y() - bboxPx.h / 2,
                       w: bboxPx.w,
                       h: bboxPx.h,
                     };
@@ -859,17 +991,19 @@ export default function CanvasStage({
                       return;
                     }
 
-                    const snap = computeSnap(el.id, box, 8);
-                    node.x(snap.x);
-                    node.y(snap.y);
+                    const threshold = 8 / Math.max(0.0001, viewport.scale);
+                    const snap = computeSnap(el.id, box, threshold);
+
+                    node.x(snap.x + bboxPx.w / 2);
+                    node.y(snap.y + bboxPx.h / 2);
                     setGuides(snap.guides);
                   }}
                   onDragEnd={(ev) => {
                     const node = ev.target as Konva.Group;
 
                     const nextPx = {
-                      x: node.x(),
-                      y: node.y(),
+                      x: node.x() - bboxPx.w / 2,
+                      y: node.y() - bboxPx.h / 2,
                       w: bboxPx.w,
                       h: bboxPx.h,
                     };
@@ -888,6 +1022,7 @@ export default function CanvasStage({
                             ...x.geometry,
                             container_bbox,
                             anchor: bboxCenter(container_bbox),
+                            rotation: safeNumber(node.rotation(), 0),
                           },
                         };
                       }),
@@ -898,24 +1033,49 @@ export default function CanvasStage({
                     const node = ev.target as Konva.Group;
                     const sx = node.scaleX();
                     const sy = node.scaleY();
+                    const r = safeNumber(node.rotation(), 0);
 
                     const minSize = 24;
                     const newW = Math.max(minSize, bboxPx.w * sx);
                     const newH = Math.max(minSize, bboxPx.h * sy);
 
+                    const mode = el.style.fontSizeMode ?? "auto";
+                    const fontScale = (sx + sy) / 2;
+                    const nextFontSize =
+                      mode === "manual"
+                        ? el.style.fontSize
+                        : clamp(
+                            Math.round(el.style.fontSize * fontScale),
+                            8,
+                            220,
+                          );
+
                     node.scaleX(1);
                     node.scaleY(1);
 
-                    let nextPx = { x: node.x(), y: node.y(), w: newW, h: newH };
+                    node.offsetX(newW / 2);
+                    node.offsetY(newH / 2);
+
+                    let topLeft = {
+                      x: node.x() - newW / 2,
+                      y: node.y() - newH / 2,
+                    };
                     const clampedPos = clampInsideImage(
-                      { x: nextPx.x, y: nextPx.y },
-                      { w: nextPx.w, h: nextPx.h },
+                      topLeft,
+                      { w: newW, h: newH },
                       imgW,
                       imgH,
                     );
-                    nextPx = { ...nextPx, x: clampedPos.x, y: clampedPos.y };
+                    topLeft = { ...topLeft, ...clampedPos };
 
-                    const next = pxToNormBBox(nextPx, imgW, imgH);
+                    node.x(topLeft.x + newW / 2);
+                    node.y(topLeft.y + newH / 2);
+
+                    const next = pxToNormBBox(
+                      { x: topLeft.x, y: topLeft.y, w: newW, h: newH },
+                      imgW,
+                      imgH,
+                    );
 
                     clearGuides();
 
@@ -926,10 +1086,12 @@ export default function CanvasStage({
                         const container_bbox = next;
                         return {
                           ...markEdited(x),
+                          style: { ...x.style, fontSize: nextFontSize },
                           geometry: {
                             ...x.geometry,
                             container_bbox,
                             anchor: bboxCenter(container_bbox),
+                            rotation: r,
                           },
                         };
                       }),
@@ -960,23 +1122,23 @@ export default function CanvasStage({
                     langMode={langMode}
                   />
 
-                  {/* Status outline (edit only) */}
+                  {/* ✅ outline in edit */}
                   {viewMode === "edit" && (
                     <Rect
                       x={0}
                       y={0}
                       width={bboxPx.w}
                       height={bboxPx.h}
-                      stroke={statusStroke(el.status)}
+                      stroke={EDIT_OUTLINE}
                       dash={[6, 4]}
-                      strokeWidth={1}
+                      strokeWidth={1 / viewport.scale}
                       fillEnabled={false}
                       listening={false}
-                      opacity={0.9}
+                      opacity={0.95}
                     />
                   )}
 
-                  {/* Hover outline */}
+                  {/* Hover */}
                   {isHover && !isSel && (
                     <Rect
                       x={0}
@@ -985,14 +1147,14 @@ export default function CanvasStage({
                       height={bboxPx.h}
                       stroke="#111827"
                       dash={[10, 8]}
-                      strokeWidth={1}
+                      strokeWidth={1 / viewport.scale}
                       fillEnabled={false}
                       listening={false}
                       opacity={0.8}
                     />
                   )}
 
-                  {/* Selected outline */}
+                  {/* Selected */}
                   {isSel && viewMode === "edit" && (
                     <Rect
                       x={0}
@@ -1001,27 +1163,27 @@ export default function CanvasStage({
                       height={bboxPx.h}
                       stroke="#111827"
                       dash={[8, 6]}
-                      strokeWidth={2}
+                      strokeWidth={2 / viewport.scale}
                       fillEnabled={false}
                       listening={false}
                     />
                   )}
 
-                  {/* Reading order badge */}
+                  {/* Reading order */}
                   {viewMode === "edit" && (
                     <Group listening={false}>
                       <Rect
                         x={6}
                         y={6}
-                        width={34}
+                        width={36}
                         height={20}
-                        cornerRadius={6}
+                        cornerRadius={8}
                         fill="#000000aa"
                       />
                       <Text
                         x={6}
                         y={8}
-                        width={34}
+                        width={36}
                         height={20}
                         text={`${el.readingOrder}`}
                         fontSize={12}
@@ -1032,7 +1194,7 @@ export default function CanvasStage({
                     </Group>
                   )}
 
-                  {/* Tail tip handle */}
+                  {/* Tail handle */}
                   {isSel &&
                     viewMode === "edit" &&
                     isBubbleTemplate(el.container.template_id) && (
@@ -1048,7 +1210,7 @@ export default function CanvasStage({
                         radius={6}
                         fill="#ffffff"
                         stroke="#111111"
-                        strokeWidth={2}
+                        strokeWidth={2 / viewport.scale}
                         draggable={!isLocked}
                         onDragMove={(ev) => {
                           const n = ev.target as Konva.Circle;
@@ -1093,11 +1255,11 @@ export default function CanvasStage({
                   {/* Lock indicator */}
                   {isLocked && viewMode === "edit" && (
                     <Text
-                      x={bboxPx.w - 42}
+                      x={bboxPx.w - 52}
                       y={6}
-                      width={36}
+                      width={46}
                       height={18}
-                      text={"LOCK"}
+                      text={"مقفول"}
                       fontSize={10}
                       align="center"
                       verticalAlign="middle"
@@ -1115,12 +1277,16 @@ export default function CanvasStage({
             {viewMode === "edit" && (
               <Transformer
                 ref={trRef}
-                rotateEnabled={false}
+                rotateEnabled
                 keepRatio={false}
                 enabledAnchors={[
                   "top-left",
+                  "top-center",
                   "top-right",
+                  "middle-left",
+                  "middle-right",
                   "bottom-left",
+                  "bottom-center",
                   "bottom-right",
                 ]}
                 boundBoxFunc={(oldBox, newBox) => {
@@ -1133,11 +1299,11 @@ export default function CanvasStage({
         </Layer>
       </Stage>
 
-      {/* Mini-map */}
+      {/* Mini map */}
       <div className="absolute bottom-3 right-3 z-10 rounded-xl border bg-white/90 shadow-sm p-2">
         <div className="text-[11px] text-zinc-600 mb-1 flex items-center justify-between">
-          <span>Navigator</span>
-          <span className="text-zinc-500">{spaceDown ? "Pan" : "Zoom"}</span>
+          <span>الخريطة</span>
+          <span className="text-zinc-500">{spaceDown ? "سحب" : "تكبير"}</span>
         </div>
         <div
           className="relative"
@@ -1166,9 +1332,9 @@ export default function CanvasStage({
       </div>
 
       <div className="absolute bottom-3 left-3 bg-white/90 border rounded-xl px-3 py-2 text-xs shadow-sm">
-        {viewMode === "edit" ? "Edit" : "Preview"} • {langMode} •{" "}
-        {spaceDown ? "Pan mode (Space)" : "Wheel to zoom"} • Hold <b>Alt</b> to
-        disable snapping
+        {viewModeLabel(viewMode)} • {langModeLabel(langMode)} •{" "}
+        {spaceDown ? "وضع السحب (Space)" : "اسحب الفراغ لتحريك الصورة"} • اضغط{" "}
+        <b>Alt</b> لتعطيل الالتقاط
       </div>
     </div>
   );
@@ -1331,7 +1497,6 @@ function ElementShape({
   }
 
   if (el.container.template_id === "bubble_cloud") {
-    // simple cloud-ish placeholder
     return (
       <>
         <Rect

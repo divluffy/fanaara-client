@@ -11,14 +11,70 @@ import type {
 } from "./types";
 
 import { TEMPLATE_DEFAULT_STYLE, TEMPLATE_LABELS } from "./templates";
-import { autoFitFontSize, detectLang, dirForLang, normToPxBBox } from "./utils";
-import { cn } from "./ui/cn";
+import {
+  autoFitFontSize,
+  clamp,
+  detectLang,
+  dirForLang,
+  normToPxBBox,
+} from "./utils";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 
 function safeNum(v: any, fallback: number) {
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
+}
+
+function statusLabel(status: PageElement["status"]) {
+  switch (status) {
+    case "detected":
+      return "مكتشف";
+    case "edited":
+      return "مُعدَّل";
+    case "confirmed":
+      return "مؤكد";
+    case "needs_review":
+      return "يحتاج مراجعة";
+    case "deleted":
+      return "محذوف";
+    default:
+      return status;
+  }
+}
+
+function typeLabel(t: PageElement["elementType"]) {
+  switch (t) {
+    case "SPEECH":
+      return "حوار";
+    case "THOUGHT":
+      return "تفكير";
+    case "NARRATION":
+      return "سرد";
+    case "CAPTION":
+      return "توضيح";
+    case "SFX":
+      return "مؤثر";
+    case "SCENE_TEXT":
+      return "نص مشهد";
+    case "SIGNAGE":
+      return "لافتة";
+    default:
+      return t;
+  }
+}
+
+function dirLabel(v: WritingDirection) {
+  switch (v) {
+    case "RTL":
+      return "يمين ← يسار";
+    case "LTR":
+      return "يسار → يمين";
+    case "TTB":
+      return "عمودي";
+    default:
+      return v;
+  }
 }
 
 export default function PropertiesPanel({
@@ -36,16 +92,24 @@ export default function PropertiesPanel({
 }) {
   if (!page?.annotations) {
     return (
-      <aside className="w-[420px] border-l bg-white p-4 text-sm text-zinc-500">
-        No page
+      <aside
+        className="w-[420px] border-l bg-white p-4 text-sm text-zinc-500"
+        dir="rtl"
+        lang="ar"
+      >
+        لا توجد صفحة
       </aside>
     );
   }
 
   if (!selected) {
     return (
-      <aside className="w-[420px] border-l bg-white p-4 text-sm text-zinc-500">
-        Select an element
+      <aside
+        className="w-[420px] border-l bg-white p-4 text-sm text-zinc-500"
+        dir="rtl"
+        lang="ar"
+      >
+        اختر عنصرًا
       </aside>
     );
   }
@@ -96,27 +160,77 @@ export default function PropertiesPanel({
       writingDirection: el.text.writingDirection,
     });
 
-    patchContent({ style: { ...el.style, fontSize: nextFont } });
+    patchContent({
+      style: { ...el.style, fontSize: nextFont, fontSizeMode: "manual" },
+    });
+  }
+
+  function setFontSize(fontSize: number) {
+    patchContent({ style: { ...el.style, fontSize, fontSizeMode: "manual" } });
+  }
+
+  function setFontSizeMode(mode: "auto" | "manual") {
+    patchContent({ style: { ...el.style, fontSizeMode: mode } });
+  }
+
+  // محاذاة بسيطة داخل الصفحة
+  function align(
+    kind: "left" | "right" | "hCenter" | "top" | "bottom" | "vCenter",
+  ) {
+    patchContent({
+      geometry: {
+        ...el.geometry,
+        container_bbox: (() => {
+          const b = el.geometry.container_bbox;
+
+          const nx =
+            kind === "left"
+              ? 0
+              : kind === "right"
+                ? Math.max(0, 1 - b.w)
+                : kind === "hCenter"
+                  ? clamp(0.5 - b.w / 2, 0, 1 - b.w)
+                  : b.x;
+
+          const ny =
+            kind === "top"
+              ? 0
+              : kind === "bottom"
+                ? Math.max(0, 1 - b.h)
+                : kind === "vCenter"
+                  ? clamp(0.5 - b.h / 2, 0, 1 - b.h)
+                  : b.y;
+
+          return { ...b, x: nx, y: ny };
+        })(),
+      },
+    });
   }
 
   const meta = useMemo(() => {
-    return {
-      px: bboxPx,
-      lang: el.text.lang,
-      dir: el.text.writingDirection,
-    };
+    return { px: bboxPx, lang: el.text.lang, dir: el.text.writingDirection };
   }, [bboxPx, el.text.lang, el.text.writingDirection]);
 
+  const originalDir = detectLang(el.text.original) === "ar" ? "rtl" : "ltr";
+  const translatedDir =
+    detectLang(el.text.translated ?? "") === "ar" ? "rtl" : "ltr";
+
   return (
-    <aside className="w-[420px] border-l bg-white min-h-0 flex flex-col">
+    <aside
+      className="w-[420px] border-l bg-white min-h-0 flex flex-col"
+      dir="rtl"
+      lang="ar"
+    >
       <div className="p-4 border-b">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="text-sm font-semibold text-zinc-900 truncate">
-              #{el.readingOrder} • {el.elementType}
+              #{el.readingOrder} • {typeLabel(el.elementType)}
             </div>
             <div className="mt-1 flex items-center gap-2 flex-wrap">
-              <Badge variant="neutral">source: {el.source}</Badge>
+              <Badge variant="neutral">
+                المصدر: {el.source === "ai" ? "ذكاء" : "مستخدم"}
+              </Badge>
               <Badge
                 variant={
                   el.status === "confirmed"
@@ -126,9 +240,9 @@ export default function PropertiesPanel({
                       : "neutral"
                 }
               >
-                {el.status}
+                {statusLabel(el.status)}
               </Badge>
-              <Badge variant="info">conf {el.confidence.toFixed(2)}</Badge>
+              <Badge variant="info">الثقة: {el.confidence.toFixed(2)}</Badge>
             </div>
           </div>
 
@@ -138,14 +252,14 @@ export default function PropertiesPanel({
               variant="outline"
               onClick={() => patchMeta({ locked: !el.locked })}
             >
-              {el.locked ? "Unlock" : "Lock"}
+              {el.locked ? "فتح" : "قفل"}
             </Button>
             <Button
               size="sm"
               variant="outline"
               onClick={() => patchMeta({ hidden: !el.hidden })}
             >
-              {el.hidden ? "Show" : "Hide"}
+              {el.hidden ? "إظهار" : "إخفاء"}
             </Button>
             <Button
               size="sm"
@@ -155,33 +269,32 @@ export default function PropertiesPanel({
                 onSelect(null);
               }}
             >
-              Delete
+              حذف
             </Button>
           </div>
         </div>
       </div>
 
       <div className="flex-1 min-h-0 overflow-auto p-4 space-y-3">
-        {/* Workflow */}
-        <Section title="Workflow">
+        <Section title="سير العمل">
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
-              <div className="text-xs text-zinc-500">Status</div>
+              <div className="text-xs text-zinc-500">الحالة</div>
               <select
                 className="w-full border rounded-lg px-3 py-2 text-sm bg-white"
                 value={el.status}
                 onChange={(e) => patchMeta({ status: e.target.value as any })}
               >
-                <option value="detected">detected</option>
-                <option value="edited">edited</option>
-                <option value="confirmed">confirmed</option>
-                <option value="needs_review">needs_review</option>
-                <option value="deleted">deleted</option>
+                <option value="detected">مكتشف</option>
+                <option value="edited">مُعدَّل</option>
+                <option value="confirmed">مؤكد</option>
+                <option value="needs_review">يحتاج مراجعة</option>
+                <option value="deleted">محذوف</option>
               </select>
             </div>
 
             <div className="space-y-1">
-              <div className="text-xs text-zinc-500">Reading Order</div>
+              <div className="text-xs text-zinc-500">ترتيب القراءة</div>
               <input
                 className="w-full border rounded-lg px-3 py-2 text-sm"
                 type="number"
@@ -200,20 +313,51 @@ export default function PropertiesPanel({
               variant="outline"
               onClick={() => patchMeta({ status: "confirmed" })}
             >
-              Confirm
+              تأكيد
             </Button>
             <Button
               size="sm"
               variant="outline"
               onClick={() => patchMeta({ status: "needs_review" })}
             >
-              Needs review
+              يحتاج مراجعة
             </Button>
           </div>
         </Section>
 
-        {/* Template */}
-        <Section title="Template">
+        <Section title="محاذاة سريعة">
+          <div className="grid grid-cols-3 gap-2">
+            <Button size="sm" variant="outline" onClick={() => align("left")}>
+              يسار
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => align("hCenter")}
+            >
+              وسط أفقي
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => align("right")}>
+              يمين
+            </Button>
+
+            <Button size="sm" variant="outline" onClick={() => align("top")}>
+              أعلى
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => align("vCenter")}
+            >
+              وسط عمودي
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => align("bottom")}>
+              أسفل
+            </Button>
+          </div>
+        </Section>
+
+        <Section title="القالب">
           <div className="flex gap-2">
             <select
               className="w-full border rounded-lg px-3 py-2 text-sm bg-white"
@@ -240,15 +384,14 @@ export default function PropertiesPanel({
                 patchContent({ style: { ...TEMPLATE_DEFAULT_STYLE[t] } });
               }}
             >
-              Reset
+              إعادة ضبط
             </Button>
           </div>
         </Section>
 
-        {/* Container */}
-        <Section title="Container">
+        <Section title="الحاوية">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Fill">
+            <Field label="التعبئة">
               <input
                 className="w-full h-10"
                 type="color"
@@ -259,7 +402,7 @@ export default function PropertiesPanel({
               />
             </Field>
 
-            <Field label="Stroke">
+            <Field label="الحدود">
               <input
                 className="w-full h-10"
                 type="color"
@@ -272,7 +415,7 @@ export default function PropertiesPanel({
               />
             </Field>
 
-            <Field label="Stroke width">
+            <Field label="سماكة الحدود">
               <input
                 className="w-full"
                 type="range"
@@ -294,7 +437,7 @@ export default function PropertiesPanel({
               </div>
             </Field>
 
-            <Field label="Opacity">
+            <Field label="الشفافية">
               <input
                 className="w-full"
                 type="range"
@@ -316,7 +459,7 @@ export default function PropertiesPanel({
               </div>
             </Field>
 
-            <Field label="Padding">
+            <Field label="الحاشية (Padding)">
               <input
                 className="w-full border rounded-lg px-3 py-2 text-sm"
                 type="number"
@@ -334,7 +477,7 @@ export default function PropertiesPanel({
               />
             </Field>
 
-            <Field label="Corner radius">
+            <Field label="تدوير الزوايا">
               <input
                 className="w-full border rounded-lg px-3 py-2 text-sm"
                 type="number"
@@ -355,7 +498,7 @@ export default function PropertiesPanel({
               />
             </Field>
 
-            <Field label="Spikes (burst)">
+            <Field label="عدد الأشواك (Burst)">
               <input
                 className="w-full border rounded-lg px-3 py-2 text-sm"
                 type="number"
@@ -374,7 +517,7 @@ export default function PropertiesPanel({
               />
             </Field>
 
-            <Field label="Tail enabled">
+            <Field label="تفعيل الذيل">
               <label className="flex items-center gap-2 border rounded-lg px-3 py-2 text-sm">
                 <input
                   type="checkbox"
@@ -391,16 +534,15 @@ export default function PropertiesPanel({
                     })
                   }
                 />
-                tail
+                ذيل
               </label>
             </Field>
           </div>
         </Section>
 
-        {/* Text */}
-        <Section title="Text">
+        <Section title="النص">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Font size">
+            <Field label="حجم الخط">
               <input
                 className="w-full"
                 type="range"
@@ -408,21 +550,14 @@ export default function PropertiesPanel({
                 max={80}
                 step={1}
                 value={el.style.fontSize}
-                onChange={(e) =>
-                  patchContent({
-                    style: {
-                      ...el.style,
-                      fontSize: Number(e.target.value || 16),
-                    },
-                  })
-                }
+                onChange={(e) => setFontSize(Number(e.target.value || 16))}
               />
               <div className="text-[11px] text-zinc-500">
                 {el.style.fontSize}px
               </div>
             </Field>
 
-            <Field label="Align">
+            <Field label="محاذاة">
               <select
                 className="w-full border rounded-lg px-3 py-2 text-sm bg-white"
                 value={el.style.align}
@@ -432,13 +567,13 @@ export default function PropertiesPanel({
                   })
                 }
               >
-                <option value="left">left</option>
-                <option value="center">center</option>
-                <option value="right">right</option>
+                <option value="right">يمين</option>
+                <option value="center">وسط</option>
+                <option value="left">يسار</option>
               </select>
             </Field>
 
-            <Field label="Font family">
+            <Field label="نوع الخط">
               <input
                 className="w-full border rounded-lg px-3 py-2 text-sm"
                 value={el.style.fontFamily ?? "Arial"}
@@ -450,7 +585,7 @@ export default function PropertiesPanel({
               />
             </Field>
 
-            <Field label="Font style">
+            <Field label="نمط الخط">
               <select
                 className="w-full border rounded-lg px-3 py-2 text-sm bg-white"
                 value={el.style.fontStyle ?? "normal"}
@@ -460,14 +595,14 @@ export default function PropertiesPanel({
                   })
                 }
               >
-                <option value="normal">normal</option>
-                <option value="bold">bold</option>
-                <option value="italic">italic</option>
-                <option value="bold italic">bold italic</option>
+                <option value="normal">عادي</option>
+                <option value="bold">عريض</option>
+                <option value="italic">مائل</option>
+                <option value="bold italic">عريض مائل</option>
               </select>
             </Field>
 
-            <Field label="Line height">
+            <Field label="ارتفاع السطر">
               <input
                 className="w-full border rounded-lg px-3 py-2 text-sm"
                 type="number"
@@ -484,7 +619,7 @@ export default function PropertiesPanel({
               />
             </Field>
 
-            <Field label="Letter spacing">
+            <Field label="تباعد الحروف">
               <input
                 className="w-full border rounded-lg px-3 py-2 text-sm"
                 type="number"
@@ -501,7 +636,7 @@ export default function PropertiesPanel({
               />
             </Field>
 
-            <Field label="Text fill">
+            <Field label="لون النص">
               <input
                 className="w-full h-10"
                 type="color"
@@ -514,7 +649,7 @@ export default function PropertiesPanel({
               />
             </Field>
 
-            <Field label="Text stroke">
+            <Field label="حدود النص">
               <input
                 className="w-full h-10"
                 type="color"
@@ -527,7 +662,7 @@ export default function PropertiesPanel({
               />
             </Field>
 
-            <Field label="Text stroke width">
+            <Field label="سماكة حدود النص">
               <input
                 className="w-full border rounded-lg px-3 py-2 text-sm"
                 type="number"
@@ -544,7 +679,7 @@ export default function PropertiesPanel({
               />
             </Field>
 
-            <Field label="Text rotation (deg)">
+            <Field label="تدوير النص (درجات)">
               <input
                 className="w-full border rounded-lg px-3 py-2 text-sm"
                 type="number"
@@ -563,7 +698,7 @@ export default function PropertiesPanel({
 
           <div className="mt-3 grid gap-3">
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xs text-zinc-500">Writing direction</div>
+              <div className="text-xs text-zinc-500">اتجاه الكتابة</div>
               <select
                 className="border rounded-lg px-3 py-2 text-sm bg-white"
                 value={el.text.writingDirection}
@@ -576,10 +711,31 @@ export default function PropertiesPanel({
                   })
                 }
               >
-                <option value="LTR">LTR</option>
-                <option value="RTL">RTL</option>
-                <option value="TTB">TTB</option>
+                <option value="RTL">{dirLabel("RTL")}</option>
+                <option value="LTR">{dirLabel("LTR")}</option>
+                <option value="TTB">{dirLabel("TTB")}</option>
               </select>
+            </div>
+
+            <div className="rounded-xl border bg-zinc-50 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-xs text-zinc-700 font-medium">
+                  تكبير/تصغير النص تلقائيًا مع الإطار
+                </div>
+                <label className="inline-flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={(el.style.fontSizeMode ?? "auto") === "auto"}
+                    onChange={(e) =>
+                      setFontSizeMode(e.target.checked ? "auto" : "manual")
+                    }
+                  />
+                  تفعيل
+                </label>
+              </div>
+              <div className="text-[11px] text-zinc-500 mt-1">
+                إذا غيّرت حجم الخط من السلايدر يصبح “يدوي” تلقائيًا.
+              </div>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
@@ -588,25 +744,25 @@ export default function PropertiesPanel({
                 variant="outline"
                 onClick={() => autoFit("original")}
               >
-                Auto-fit Original
+                ملاءمة تلقائية للأصل
               </Button>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => autoFit("translated")}
               >
-                Auto-fit Translated
+                ملاءمة تلقائية للترجمة
               </Button>
             </div>
           </div>
         </Section>
 
-        {/* Text content */}
-        <Section title="Content">
+        <Section title="المحتوى">
           <div className="space-y-2">
-            <div className="text-xs text-zinc-500">Text (original)</div>
+            <div className="text-xs text-zinc-500">النص (الأصل)</div>
             <textarea
               className="w-full border rounded-xl px-3 py-2 min-h-[90px] text-sm"
+              dir={originalDir}
               value={el.text.original}
               onChange={(e) => {
                 const original = e.target.value;
@@ -622,9 +778,10 @@ export default function PropertiesPanel({
               }}
             />
 
-            <div className="text-xs text-zinc-500">Text (translated)</div>
+            <div className="text-xs text-zinc-500">النص (الترجمة)</div>
             <textarea
               className="w-full border rounded-xl px-3 py-2 min-h-[90px] text-sm"
+              dir={translatedDir}
               value={el.text.translated ?? ""}
               onChange={(e) =>
                 patchContent({
@@ -635,8 +792,7 @@ export default function PropertiesPanel({
           </div>
         </Section>
 
-        {/* Notes */}
-        <Section title="Notes">
+        <Section title="ملاحظات">
           <textarea
             className="w-full border rounded-xl px-3 py-2 min-h-[80px] text-sm"
             value={el.notes ?? ""}
@@ -644,8 +800,7 @@ export default function PropertiesPanel({
           />
         </Section>
 
-        {/* Debug */}
-        <Section title="Geometry">
+        <Section title="الهندسة">
           <div className="text-xs text-zinc-600">
             container_bbox: x={el.geometry.container_bbox.x.toFixed(3)} y=
             {el.geometry.container_bbox.y.toFixed(3)} w=
@@ -656,6 +811,10 @@ export default function PropertiesPanel({
           <div className="mt-2 text-xs text-zinc-500">
             px: x={meta.px.x.toFixed(0)} y={meta.px.y.toFixed(0)} w=
             {meta.px.w.toFixed(0)} h={meta.px.h.toFixed(0)}
+          </div>
+
+          <div className="mt-2 text-xs text-zinc-500">
+            rotation: {safeNum(el.geometry.rotation, 0).toFixed(1)}°
           </div>
         </Section>
       </div>
@@ -677,7 +836,7 @@ function Section({
     >
       <summary className="cursor-pointer select-none px-4 py-3 border-b bg-zinc-50 flex items-center justify-between">
         <span className="text-sm font-semibold text-zinc-900">{title}</span>
-        <span className="text-xs text-zinc-500">toggle</span>
+        <span className="text-xs text-zinc-500">فتح/طي</span>
       </summary>
       <div className="p-4">{children}</div>
     </details>

@@ -13,10 +13,9 @@ const PUBLIC_PREFIXES = [
   "/playground",
   "/landing",
   "/policy-terms-center",
-  "/creator",
 ];
 
-const testingPages = ["/creator"];
+const testingPages = ["/creator", "/works"];
 
 function isPublicFile(pathname: string) {
   return /\.[a-zA-Z0-9]+$/.test(pathname);
