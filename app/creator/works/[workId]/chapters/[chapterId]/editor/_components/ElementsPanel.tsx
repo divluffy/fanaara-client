@@ -1,3 +1,4 @@
+// app\creator\works\[workId]\chapters\[chapterId]\editor\_components\ElementsPanel.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";

@@ -1,3 +1,4 @@
+// app\creator\works\[workId]\chapters\[chapterId]\editor\_components\PropertiesPanel.tsx
 "use client";
 
 import React, { useMemo } from "react";

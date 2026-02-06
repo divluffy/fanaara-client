@@ -1,3 +1,4 @@
+// app\creator\works\[workId]\chapters\[chapterId]\editor\_components\ChapterEditorClient.tsx
 "use client";
 
 import Link from "next/link";

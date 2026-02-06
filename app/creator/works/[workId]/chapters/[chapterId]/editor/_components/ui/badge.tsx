@@ -1,3 +1,4 @@
+// app\creator\works\[workId]\chapters\[chapterId]\editor\_components\ui\badge.tsx
 "use client";
 
 import React from "react";
