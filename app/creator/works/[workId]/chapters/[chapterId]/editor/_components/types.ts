@@ -56,7 +56,21 @@ export interface NormalizedPoint {
 export interface ElementGeometry {
   container_bbox: NormalizedBBox;
   text_bbox?: NormalizedBBox;
+
+  /**
+   * Used for reading-order / general anchor (defaults bbox center)
+   */
   anchor: NormalizedPoint;
+
+  /**
+   * Optional tail tip (for speech bubble tail or speaker point)
+   */
+  tailTip?: NormalizedPoint;
+
+  /**
+   * Optional rotation (future use)
+   */
+  rotation?: number;
 }
 
 export interface ContainerInfo {
@@ -83,13 +97,33 @@ export interface TextInfo {
     | "none";
 }
 
+export interface TextShadowStyle {
+  color: string;
+  blur: number;
+  offsetX: number;
+  offsetY: number;
+  opacity: number;
+}
+
 export interface ElementStyle {
+  // container
   fill: string;
   stroke: string;
   strokeWidth: number;
   opacity: number;
+
+  // text
   fontSize: number;
   align: "left" | "center" | "right";
+  fontFamily?: string;
+  fontStyle?: "normal" | "bold" | "italic" | "bold italic";
+  lineHeight?: number; // default 1.2
+  letterSpacing?: number; // px
+  textFill?: string; // default "#111111"
+  textStroke?: string;
+  textStrokeWidth?: number;
+  textShadow?: TextShadowStyle;
+  textRotation?: number; // degrees, useful for SFX
 }
 
 export interface PageElement {
@@ -99,10 +133,15 @@ export interface PageElement {
   elementType: ElementType;
   readingOrder: number;
   confidence: number;
+
   geometry: ElementGeometry;
   container: ContainerInfo;
   text: TextInfo;
   style: ElementStyle;
+
+  // editor QoL
+  locked?: boolean;
+  hidden?: boolean;
   notes?: string;
 }
 

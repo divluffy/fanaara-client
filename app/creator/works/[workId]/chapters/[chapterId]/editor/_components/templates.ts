@@ -1,6 +1,18 @@
 // app\creator\works\[workId]\chapters\[chapterId]\editor\_components\templates.ts
 import { ElementStyle, TemplateId } from "./types";
 
+const BASE_TEXT = {
+  fontFamily: "Arial",
+  fontStyle: "normal" as const,
+  lineHeight: 1.2,
+  letterSpacing: 0,
+  textFill: "#111111",
+  textStroke: undefined as any,
+  textStrokeWidth: 0,
+  textShadow: undefined as any,
+  textRotation: 0,
+};
+
 export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
   bubble_ellipse: {
     fill: "#ffffff",
@@ -9,6 +21,7 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     opacity: 1,
     fontSize: 22,
     align: "center",
+    ...BASE_TEXT,
   },
   bubble_roundrect: {
     fill: "#ffffff",
@@ -17,6 +30,7 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     opacity: 1,
     fontSize: 22,
     align: "center",
+    ...BASE_TEXT,
   },
   bubble_cloud: {
     fill: "#ffffff",
@@ -25,6 +39,7 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     opacity: 1,
     fontSize: 22,
     align: "center",
+    ...BASE_TEXT,
   },
   bubble_burst: {
     fill: "#ffffff",
@@ -33,6 +48,7 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     opacity: 1,
     fontSize: 22,
     align: "center",
+    ...BASE_TEXT,
   },
 
   narration_rect: {
@@ -42,6 +58,7 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     opacity: 1,
     fontSize: 20,
     align: "center",
+    ...BASE_TEXT,
   },
   narration_roundrect: {
     fill: "#f7f7f7",
@@ -50,6 +67,7 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     opacity: 1,
     fontSize: 20,
     align: "center",
+    ...BASE_TEXT,
   },
   caption_box: {
     fill: "#f7f7f7",
@@ -58,6 +76,7 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     opacity: 1,
     fontSize: 20,
     align: "center",
+    ...BASE_TEXT,
   },
 
   scene_label: {
@@ -67,6 +86,7 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     opacity: 1,
     fontSize: 18,
     align: "center",
+    ...BASE_TEXT,
   },
   signage_label: {
     fill: "#ffffffcc",
@@ -75,6 +95,7 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     opacity: 1,
     fontSize: 18,
     align: "center",
+    ...BASE_TEXT,
   },
 
   sfx_burst: {
@@ -82,16 +103,34 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     stroke: "#ff00ff",
     strokeWidth: 2,
     opacity: 1,
-    fontSize: 26,
+    fontSize: 28,
     align: "center",
+    fontFamily: "Impact",
+    fontStyle: "bold",
+    lineHeight: 1.05,
+    letterSpacing: 1,
+    textFill: "#111111",
+    textStroke: "#ffffff",
+    textStrokeWidth: 2,
+    textShadow: { color: "#000000", blur: 6, offsetX: 2, offsetY: 2, opacity: 0.4 },
+    textRotation: 0,
   },
   sfx_outline: {
     fill: "#00000000",
     stroke: "#ff00ff",
     strokeWidth: 2,
     opacity: 1,
-    fontSize: 26,
+    fontSize: 28,
     align: "center",
+    fontFamily: "Impact",
+    fontStyle: "bold",
+    lineHeight: 1.05,
+    letterSpacing: 1,
+    textFill: "#111111",
+    textStroke: "#ffffff",
+    textStrokeWidth: 2,
+    textShadow: { color: "#000000", blur: 6, offsetX: 2, offsetY: 2, opacity: 0.4 },
+    textRotation: 0,
   },
 
   plain_text: {
@@ -101,6 +140,7 @@ export const TEMPLATE_DEFAULT_STYLE: Record<TemplateId, ElementStyle> = {
     opacity: 1,
     fontSize: 20,
     align: "center",
+    ...BASE_TEXT,
   },
 };
 

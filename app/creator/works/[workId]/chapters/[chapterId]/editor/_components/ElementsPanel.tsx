@@ -1,271 +1,408 @@
-// app\creator\works\[workId]\chapters\[chapterId]\editor\_components\ElementsPanel.tsx
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { nanoid } from "nanoid";
-import { EditorPageItem, PageAnnotationsDoc, PageElement } from "./types";
-import { TEMPLATE_DEFAULT_STYLE } from "./templates";
-import { bboxCenter, detectLang, dirForLang } from "./utils";
+import React, { useEffect, useMemo, useState } from "react";
+import type {
+  EditorPageItem,
+  LangMode,
+  PageAnnotationsDoc,
+  PageElement,
+} from "./types";
+import { cn } from "./ui/cn";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import { autoReadingOrder, normalizeReadingOrder } from "./utils";
+
+function statusColor(status: PageElement["status"]) {
+  switch (status) {
+    case "detected":
+      return "info";
+    case "edited":
+      return "warn";
+    case "confirmed":
+      return "success";
+    case "needs_review":
+      return "danger";
+    case "deleted":
+      return "neutral";
+    default:
+      return "neutral";
+  }
+}
+
+function typeLabel(t: PageElement["elementType"]) {
+  switch (t) {
+    case "SPEECH":
+      return "Speech";
+    case "THOUGHT":
+      return "Thought";
+    case "NARRATION":
+      return "Narration";
+    case "CAPTION":
+      return "Caption";
+    case "SFX":
+      return "SFX";
+    case "SCENE_TEXT":
+      return "Scene";
+    case "SIGNAGE":
+      return "Sign";
+    default:
+      return t;
+  }
+}
+
+function textPreview(el: PageElement, langMode: LangMode) {
+  const raw =
+    langMode === "translated"
+      ? (el.text.translated ?? "")
+      : (el.text.original ?? "");
+  const s = raw.trim().replace(/\s+/g, " ");
+  if (!s) return "—";
+  return s.length > 70 ? s.slice(0, 70) + "…" : s;
+}
 
 export default function ElementsPanel({
   page,
   selectedId,
+  hoverId,
+  langMode,
   onSelect,
+  onHover,
   onChangeDoc,
 }: {
   page: EditorPageItem | null;
   selectedId: string | null;
+  hoverId: string | null;
+  langMode: LangMode;
   onSelect: (id: string | null) => void;
+  onHover: (id: string | null) => void;
   onChangeDoc: (
     updater: (doc: PageAnnotationsDoc) => PageAnnotationsDoc,
   ) => void;
 }) {
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | PageElement["status"]
+  >("all");
   const [showDeleted, setShowDeleted] = useState(false);
 
-  const elements = useMemo(() => {
-    if (!page?.annotations) return [];
-    return page.annotations.elements.filter((e) =>
-      showDeleted ? true : e.status !== "deleted",
-    );
-  }, [page, showDeleted]);
+  const els = page?.annotations?.elements ?? [];
 
-  function addElement(kind: PageElement["elementType"]) {
-    if (!page?.annotations) return;
+  const visible = useMemo(() => {
+    let list = els.slice();
 
-    const id = nanoid();
-    const template_id =
-      kind === "SPEECH"
-        ? "bubble_ellipse"
-        : kind === "THOUGHT"
-          ? "bubble_cloud"
-          : kind === "NARRATION"
-            ? "narration_rect"
-            : kind === "CAPTION"
-              ? "caption_box"
-              : kind === "SFX"
-                ? "sfx_outline"
-                : kind === "SIGNAGE"
-                  ? "signage_label"
-                  : kind === "SCENE_TEXT"
-                    ? "scene_label"
-                    : "plain_text";
+    if (!showDeleted) list = list.filter((e) => e.status !== "deleted");
 
-    const style = TEMPLATE_DEFAULT_STYLE[template_id];
+    if (statusFilter !== "all")
+      list = list.filter((e) => e.status === statusFilter);
 
+    const q = query.trim().toLowerCase();
+    if (q) {
+      list = list.filter((e) => {
+        const o = (e.text.original ?? "").toLowerCase();
+        const t = (e.text.translated ?? "").toLowerCase();
+        return (
+          o.includes(q) || t.includes(q) || String(e.readingOrder).includes(q)
+        );
+      });
+    }
+
+    list.sort((a, b) => a.readingOrder - b.readingOrder);
+    return list;
+  }, [els, query, statusFilter, showDeleted]);
+
+  // Scroll selected into view
+  useEffect(() => {
+    if (!selectedId) return;
+    const el = document.getElementById(`layer-${selectedId}`);
+    el?.scrollIntoView({ block: "nearest" });
+  }, [selectedId]);
+
+  const totalAlive = useMemo(
+    () => els.filter((e) => e.status !== "deleted").length,
+    [els],
+  );
+  const trDone = useMemo(
+    () =>
+      els.filter(
+        (e) => e.status !== "deleted" && (e.text.translated ?? "").trim(),
+      ).length,
+    [els],
+  );
+
+  function patchMeta(id: string, p: Partial<PageElement>) {
+    onChangeDoc((doc) => ({
+      ...doc,
+      elements: doc.elements.map((x) => (x.id === id ? { ...x, ...p } : x)),
+      updatedAt: new Date().toISOString(),
+    }));
+  }
+
+  function setStatus(id: string, status: PageElement["status"]) {
+    onChangeDoc((doc) => ({
+      ...doc,
+      elements: doc.elements.map((x) => (x.id === id ? { ...x, status } : x)),
+      updatedAt: new Date().toISOString(),
+    }));
+  }
+
+  function moveOrder(id: string, dir: -1 | 1) {
     onChangeDoc((doc) => {
-      const container_bbox = { x: 0.35, y: 0.35, w: 0.3, h: 0.16 };
-      const el: PageElement = {
-        id,
-        source: "user",
-        status: "edited",
-        elementType: kind,
-        readingOrder: doc.elements.length + 1,
-        confidence: 1,
-        geometry: {
-          container_bbox,
-          anchor: bboxCenter(container_bbox),
-        },
-        container: {
-          shape: template_id === "plain_text" ? "none" : "roundrect",
-          template_id,
-          params: { padding: 12, cornerRadius: 18 },
-        },
-        text: {
-          original: "",
-          translated: "",
-          lang: "unknown",
-          writingDirection: "LTR",
-          sizeHint: "medium",
-          styleHint: "normal",
-        },
-        style,
-      };
+      const alive = doc.elements.filter((e) => e.status !== "deleted");
+      const sorted = alive
+        .slice()
+        .sort((a, b) => a.readingOrder - b.readingOrder);
+      const idx = sorted.findIndex((e) => e.id === id);
+      if (idx < 0) return doc;
+      const tIdx = Math.max(0, Math.min(sorted.length - 1, idx + dir));
+      if (tIdx === idx) return doc;
+
+      const a = sorted[idx];
+      const b = sorted[tIdx];
+
+      const swapped = doc.elements.map((e) => {
+        if (e.id === a.id) return { ...e, readingOrder: b.readingOrder };
+        if (e.id === b.id) return { ...e, readingOrder: a.readingOrder };
+        return e;
+      });
 
       return {
         ...doc,
-        elements: [...doc.elements, el],
+        elements: normalizeReadingOrder(swapped),
         updatedAt: new Date().toISOString(),
       };
     });
-
-    onSelect(id);
-
-    
   }
 
-  if (!page?.annotations) {
-    return (
-      <aside className="w-[320px] border-r p-3">
-        <div className="text-sm text-gray-500">No page loaded.</div>
-      </aside>
-    );
+  function autoOrder() {
+    onChangeDoc((doc) => {
+      const direction = doc.meta?.languageHint === "ar" ? "RTL" : "LTR";
+      const alive = doc.elements.filter((e) => e.status !== "deleted");
+      const sortedAlive = autoReadingOrder({ elements: alive, direction });
+      const map = new Map(sortedAlive.map((e) => [e.id, e.readingOrder]));
+      return {
+        ...doc,
+        elements: doc.elements.map((e) =>
+          map.has(e.id) ? { ...e, readingOrder: map.get(e.id)! } : e,
+        ),
+        updatedAt: new Date().toISOString(),
+      };
+    });
   }
 
   return (
-    <aside className="w-[320px] border-r p-3 flex flex-col gap-3">
-      <div className="space-y-2">
-        <div className="text-sm font-semibold">Tools</div>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            className="px-2 py-2 rounded border"
-            onClick={() => addElement("SPEECH")}
-          >
-            + Speech
-          </button>
-          <button
-            className="px-2 py-2 rounded border"
-            onClick={() => addElement("THOUGHT")}
-          >
-            + Thought
-          </button>
-          <button
-            className="px-2 py-2 rounded border"
-            onClick={() => addElement("NARRATION")}
-          >
-            + Narration
-          </button>
-          <button
-            className="px-2 py-2 rounded border"
-            onClick={() => addElement("CAPTION")}
-          >
-            + Caption
-          </button>
-          <button
-            className="px-2 py-2 rounded border"
-            onClick={() => addElement("SFX")}
-          >
-            + SFX
-          </button>
-          <button
-            className="px-2 py-2 rounded border"
-            onClick={() => addElement("SCENE_TEXT")}
-          >
-            + Scene Text
-          </button>
-          <button
-            className="px-2 py-2 rounded border"
-            onClick={() => addElement("SIGNAGE")}
-          >
-            + Signage
-          </button>
-          <button
-            className="px-2 py-2 rounded border"
-            onClick={() => addElement("UI_TEXT")}
-          >
-            + UI Text
-          </button>
+    <aside className="w-[340px] border-r bg-white min-h-0 flex flex-col">
+      <div className="p-3 border-b">
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-sm font-semibold">Layers</div>
+          <Badge variant="neutral">{visible.length}</Badge>
         </div>
 
-        <label className="flex items-center gap-2 text-xs text-gray-600">
+        <div className="mt-2 flex items-center gap-2">
           <input
-            type="checkbox"
-            checked={showDeleted}
-            onChange={(e) => setShowDeleted(e.target.checked)}
+            className="w-full h-10 rounded-lg border px-3 text-sm bg-white outline-none focus:ring-2 focus:ring-fuchsia-500/40"
+            placeholder="Search text / order…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
-          Show deleted
-        </label>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={autoOrder}
+            title="Auto reading order"
+          >
+            Auto
+          </Button>
+        </div>
+
+        <div className="mt-2 flex items-center justify-between gap-2 text-xs text-zinc-600">
+          <span>
+            TR {trDone}/{totalAlive}
+          </span>
+          <label className="inline-flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={showDeleted}
+              onChange={(e) => setShowDeleted(e.target.checked)}
+            />
+            show deleted
+          </label>
+        </div>
+
+        <div className="mt-2 flex items-center gap-2 flex-wrap">
+          <FilterPill
+            active={statusFilter === "all"}
+            onClick={() => setStatusFilter("all")}
+          >
+            All
+          </FilterPill>
+          <FilterPill
+            active={statusFilter === "detected"}
+            onClick={() => setStatusFilter("detected")}
+          >
+            detected
+          </FilterPill>
+          <FilterPill
+            active={statusFilter === "edited"}
+            onClick={() => setStatusFilter("edited")}
+          >
+            edited
+          </FilterPill>
+          <FilterPill
+            active={statusFilter === "confirmed"}
+            onClick={() => setStatusFilter("confirmed")}
+          >
+            confirmed
+          </FilterPill>
+          <FilterPill
+            active={statusFilter === "needs_review"}
+            onClick={() => setStatusFilter("needs_review")}
+          >
+            needs_review
+          </FilterPill>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
-        <div className="text-sm font-semibold mb-2">Elements</div>
-        {elements.length === 0 ? (
-          <div className="text-sm text-gray-500">No elements.</div>
+      <div className="flex-1 min-h-0 overflow-auto p-3 space-y-2">
+        {!page?.annotations ? (
+          <div className="text-sm text-zinc-500">No page selected.</div>
+        ) : visible.length === 0 ? (
+          <div className="text-sm text-zinc-500">No elements match.</div>
         ) : (
-          <div className="space-y-2">
-            {elements.map((el) => (
+          visible.map((el) => {
+            const active = el.id === selectedId;
+            const hovered = el.id === hoverId;
+
+            const trMissing =
+              langMode === "translated" &&
+              el.status !== "deleted" &&
+              !(el.text.translated ?? "").trim();
+
+            return (
               <div
                 key={el.id}
-                className={[
-                  "border rounded p-2 cursor-pointer",
-                  el.id === selectedId ? "ring-2 ring-black" : "",
-                ].join(" ")}
-                onClick={() => onSelect(el.id)}
+                id={`layer-${el.id}`}
+                className={cn(
+                  "rounded-xl border p-2 shadow-sm hover:shadow transition bg-white",
+                  active
+                    ? "ring-2 ring-fuchsia-500 border-fuchsia-200"
+                    : "border-zinc-200",
+                  hovered && !active ? "ring-1 ring-zinc-400" : "",
+                )}
+                onMouseEnter={() => onHover(el.id)}
+                onMouseLeave={() => onHover(null)}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="text-xs font-semibold">{el.elementType}</div>
-                  <div className="text-[11px] text-gray-500">{el.status}</div>
-                </div>
-                <div className="text-xs text-gray-700 line-clamp-2 mt-1">
-                  {el.text.original || "(empty)"}
-                </div>
+                <button
+                  className="w-full text-left"
+                  onClick={() => onSelect(el.id)}
+                >
+                  <div className="flex items-start gap-2">
+                    <div className="mt-0.5">
+                      <Badge variant={statusColor(el.status) as any}>
+                        {el.status}
+                      </Badge>
+                    </div>
 
-                <div className="flex gap-2 mt-2">
-                  <button
-                    className="text-xs px-2 py-1 rounded border"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onChangeDoc((doc) => ({
-                        ...doc,
-                        elements: doc.elements.map((x) =>
-                          x.id === el.id ? { ...x, status: "confirmed" } : x,
-                        ),
-                        updatedAt: new Date().toISOString(),
-                      }));
-                    }}
-                  >
-                    Confirm
-                  </button>
-                  <button
-                    className="text-xs px-2 py-1 rounded border"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onChangeDoc((doc) => ({
-                        ...doc,
-                        elements: doc.elements.map((x) =>
-                          x.id === el.id ? { ...x, status: "deleted" } : x,
-                        ),
-                        updatedAt: new Date().toISOString(),
-                      }));
-                      if (selectedId === el.id) onSelect(null);
-                    }}
-                  >
-                    Delete
-                  </button>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-sm font-semibold text-zinc-900 truncate">
+                          #{el.readingOrder} • {typeLabel(el.elementType)}
+                        </div>
+                        {trMissing ? (
+                          <Badge variant="warn">missing TR</Badge>
+                        ) : null}
+                      </div>
+
+                      <div className="text-xs text-zinc-600 mt-0.5 line-clamp-2">
+                        {textPreview(el, langMode)}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+
+                <div className="mt-2 flex items-center gap-1 flex-wrap justify-between">
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => moveOrder(el.id, -1)}
+                      title="Move up"
+                    >
+                      ↑
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => moveOrder(el.id, 1)}
+                      title="Move down"
+                    >
+                      ↓
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant={el.locked ? "secondary" : "outline"}
+                      onClick={() => patchMeta(el.id, { locked: !el.locked })}
+                      title="Lock/Unlock"
+                    >
+                      {el.locked ? "Locked" : "Lock"}
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant={el.hidden ? "secondary" : "outline"}
+                      onClick={() => patchMeta(el.id, { hidden: !el.hidden })}
+                      title="Hide/Show"
+                    >
+                      {el.hidden ? "Hidden" : "Hide"}
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setStatus(el.id, "confirmed")}
+                    >
+                      Confirm
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setStatus(el.id, "needs_review")}
+                    >
+                      Review
+                    </Button>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })
         )}
       </div>
-
-      <div className="border-t pt-3 space-y-2">
-        <div className="text-sm font-semibold">Page Meta</div>
-        <div className="space-y-1">
-          <div className="text-xs text-gray-500">
-            Keywords (comma separated)
-          </div>
-          <input
-            className="w-full border rounded px-2 py-2 text-sm"
-            value={(page.annotations.meta.keywords ?? []).join(", ")}
-            onChange={(e) => {
-              const v = e.target.value
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean)
-                .slice(0, 40);
-              onChangeDoc((doc) => ({
-                ...doc,
-                meta: { ...doc.meta, keywords: v },
-                updatedAt: new Date().toISOString(),
-              }));
-            }}
-          />
-        </div>
-        <div className="space-y-1">
-          <div className="text-xs text-gray-500">Scene Description</div>
-          <textarea
-            className="w-full border rounded px-2 py-2 text-sm min-h-[70px]"
-            value={page.annotations.meta.sceneDescription ?? ""}
-            onChange={(e) => {
-              onChangeDoc((doc) => ({
-                ...doc,
-                meta: { ...doc.meta, sceneDescription: e.target.value },
-                updatedAt: new Date().toISOString(),
-              }));
-            }}
-          />
-        </div>
-      </div>
     </aside>
+  );
+}
+
+function FilterPill({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      className={cn(
+        "px-2 py-1 rounded-full text-[11px] border transition",
+        active
+          ? "bg-zinc-900 text-white border-zinc-900"
+          : "bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-50",
+      )}
+      onClick={onClick}
+    >
+      {children}
+    </button>
   );
 }

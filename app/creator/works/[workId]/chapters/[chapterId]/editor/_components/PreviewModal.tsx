@@ -1,8 +1,10 @@
-// app\creator\works\[workId]\chapters\[chapterId]\editor\_components\PreviewModal.tsx
 "use client";
 
-import React from "react";
-import { EditorPageItem, LangMode } from "./types";
+import React, { useEffect, useState } from "react";
+import type { EditorPageItem, LangMode } from "./types";
+import CanvasStage from "./CanvasStage";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
 
 export default function PreviewModal({
   open,
@@ -17,51 +19,105 @@ export default function PreviewModal({
   currentIndex: number;
   langMode: LangMode;
 }) {
+  const [idx, setIdx] = useState(currentIndex);
+
+  useEffect(() => {
+    if (!open) return;
+    setIdx(currentIndex);
+  }, [currentIndex, open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") setIdx((v) => Math.max(0, v - 1));
+      if (e.key === "ArrowRight")
+        setIdx((v) => Math.min(pages.length - 1, v + 1));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose, pages.length]);
+
   if (!open) return null;
 
-  const page = pages[currentIndex];
+  const page = pages[idx];
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-5xl max-h-[90vh] rounded shadow overflow-hidden flex flex-col">
+      <div className="bg-white w-full max-w-7xl h-[92vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col border">
         <div className="border-b px-4 py-3 flex items-center gap-3">
           <div className="font-semibold">Preview</div>
-          <div className="text-xs text-gray-500">({langMode})</div>
-          <button
-            className="ml-auto px-3 py-2 rounded border"
-            onClick={onClose}
-          >
-            Close
-          </button>
+          <Badge variant="info">{langMode}</Badge>
+          <Badge variant="neutral">
+            Page {idx + 1}/{pages.length}
+          </Badge>
+
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setIdx((v) => Math.max(0, v - 1))}
+              disabled={idx <= 0}
+            >
+              Prev
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setIdx((v) => Math.min(pages.length - 1, v + 1))}
+              disabled={idx >= pages.length - 1}
+            >
+              Next
+            </Button>
+            <Button size="sm" variant="secondary" onClick={onClose}>
+              Close
+            </Button>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-auto p-4 space-y-4">
-          <div className="text-sm font-semibold">
-            Page #{page.orderIndex + 1}
+        <div className="flex-1 min-h-0 flex">
+          <div className="flex-1 min-h-0">
+            <CanvasStage
+              page={page}
+              viewMode="preview"
+              langMode={langMode}
+              selectedId={null}
+              hoverId={null}
+              onSelect={() => {}}
+              onChangeDoc={() => {}}
+            />
           </div>
-          <img src={page.image.url} alt="" className="w-full rounded border" />
 
-          <div className="grid md:grid-cols-2 gap-3">
-            <div className="border rounded p-3">
-              <div className="text-sm font-semibold mb-2">Keywords</div>
-              <div className="text-sm text-gray-700">
-                {(page.annotations?.meta.keywords ?? []).join(", ")}
+          <aside className="w-[420px] border-l p-4 overflow-auto space-y-3 bg-zinc-50">
+            <div className="text-sm font-semibold">Page info</div>
+
+            <div className="rounded-xl border bg-white p-3">
+              <div className="text-xs text-zinc-500 mb-1">Filename</div>
+              <div className="text-sm text-zinc-800">
+                {page.image.originalFilename}
               </div>
             </div>
-            <div className="border rounded p-3">
+
+            <div className="rounded-xl border bg-white p-3">
+              <div className="text-sm font-semibold mb-2">Keywords</div>
+              <div className="text-sm text-zinc-700">
+                {(page.annotations?.meta.keywords ?? []).join(", ") || "—"}
+              </div>
+            </div>
+
+            <div className="rounded-xl border bg-white p-3">
               <div className="text-sm font-semibold mb-2">
                 Scene Description
               </div>
-              <div className="text-sm text-gray-700">
-                {page.annotations?.meta.sceneDescription ?? ""}
+              <div className="text-sm text-zinc-700">
+                {page.annotations?.meta.sceneDescription ?? "—"}
               </div>
             </div>
-          </div>
 
-          <div className="text-xs text-gray-500">
-            (ملاحظة) المعاينة هنا تعرض الصورة الأساسية، والـ overlays ستظهر
-            بصرياً داخل الـ Canvas في نفس المحرر.
-          </div>
+            <div className="text-xs text-zinc-500">
+              Tip: Use arrow keys in this modal to navigate pages.
+            </div>
+          </aside>
         </div>
       </div>
     </div>
