@@ -2,7 +2,13 @@
 "use client";
 
 import Link from "next/link";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { nanoid } from "nanoid";
 
 import {
@@ -23,12 +29,18 @@ import type {
   LangMode,
 } from "./types";
 
-import { ensureAnnotations, isTextInputTarget, markEdited } from "./utils";
-import { Button, IconButton } from "./ui/button";
+import {
+  ensureAnnotations,
+  isTextInputTarget,
+  markEdited,
+  bboxCenter,
+  remapClipPathWithBBox,
+} from "./utils";
 import { Badge } from "./ui/badge";
 import { Spinner } from "./ui/spinner";
 import { cn } from "./ui/cn";
 import { Kbd } from "./ui/kbd";
+import { Button } from "@/design/DeButton";
 
 type SaveStatus = "idle" | "dirty" | "saving" | "saved" | "error";
 
@@ -185,6 +197,7 @@ export default function ChapterEditorClient({
     error,
     refetch,
   } = useGetCreatorChapterDraftQuery({ chapterId });
+  console.log("serverPayload: ", serverPayload);
 
   const [saveAnnotationsMutation] = useSaveCreatorPageAnnotationsMutation();
 
@@ -277,7 +290,10 @@ export default function ChapterEditorClient({
           .map((id) => map.get(id))
           .filter(Boolean) as EditorPageItem[];
         const rest = next.filter((p) => !order.includes(p.id));
-        next = [...ordered, ...rest].map((p, idx) => ({ ...p, orderIndex: idx }));
+        next = [...ordered, ...rest].map((p, idx) => ({
+          ...p,
+          orderIndex: idx,
+        }));
       } else {
         pageOrderRef.current = next.map((p) => p.id);
       }
@@ -324,7 +340,10 @@ export default function ChapterEditorClient({
 
         try {
           setSaveStatusById((s) => ({ ...s, [pageId]: "saving" }));
-          await saveAnnotationsMutation({ pageId, annotations: toSave }).unwrap();
+          await saveAnnotationsMutation({
+            pageId,
+            annotations: toSave,
+          }).unwrap();
 
           delete pendingRef.current[pageId];
 
@@ -401,20 +420,27 @@ export default function ChapterEditorClient({
   }, []);
 
   // ---------- History helpers ----------
-  const recordHistory = useCallback((pageId: string, prevDoc: PageAnnotationsDoc) => {
-    const now = Date.now();
-    const h = historyRef.current[pageId] ?? { past: [], future: [], lastMarkAt: 0 };
+  const recordHistory = useCallback(
+    (pageId: string, prevDoc: PageAnnotationsDoc) => {
+      const now = Date.now();
+      const h = historyRef.current[pageId] ?? {
+        past: [],
+        future: [],
+        lastMarkAt: 0,
+      };
 
-    if (now - h.lastMarkAt > 650) {
-      h.past.push(cloneDoc(prevDoc));
-      if (h.past.length > 200) h.past.shift();
-      h.lastMarkAt = now;
-    }
+      if (now - h.lastMarkAt > 650) {
+        h.past.push(cloneDoc(prevDoc));
+        if (h.past.length > 200) h.past.shift();
+        h.lastMarkAt = now;
+      }
 
-    h.future = [];
-    historyRef.current[pageId] = h;
-    setHistoryVersion((v) => v + 1);
-  }, []);
+      h.future = [];
+      historyRef.current[pageId] = h;
+      setHistoryVersion((v) => v + 1);
+    },
+    [],
+  );
 
   const canUndo = useMemo(() => {
     if (!currentPageId) return false;
@@ -472,7 +498,10 @@ export default function ChapterEditorClient({
 
   // ---------- Update annotations ----------
   const updatePageAnnotations = useCallback(
-    (pageId: string, updater: (doc: PageAnnotationsDoc) => PageAnnotationsDoc) => {
+    (
+      pageId: string,
+      updater: (doc: PageAnnotationsDoc) => PageAnnotationsDoc,
+    ) => {
       setPages((prev) => {
         let updatedDoc: PageAnnotationsDoc | null = null;
 
@@ -507,8 +536,10 @@ export default function ChapterEditorClient({
   // ---------- Page navigation ----------
   const goToPage = useCallback(
     async (pageId: string) => {
+      console.log("pageId: ", pageId);
       if (!pageId) return;
       if (currentPageId) void flushSave(currentPageId);
+      console.log("currentPageId: ", currentPageId);
       setCurrentPageId(pageId);
       setSelectedId(null);
       setHoverId(null);
@@ -539,8 +570,6 @@ export default function ChapterEditorClient({
       pushToast({
         variant: "info",
         title: "تم ترتيب الصفحات",
-        message:
-          "تم ترتيب الصفحات داخل الواجهة. (حفظ الترتيب على السيرفر يحتاج API)",
       });
     },
     [pushToast],
@@ -562,7 +591,11 @@ export default function ChapterEditorClient({
   const copySelected = useCallback(() => {
     if (!selectedElement) return;
     clipboardRef.current = cloneDoc(selectedElement);
-    pushToast({ variant: "info", title: "تم النسخ", message: "تم نسخ العنصر." });
+    pushToast({
+      variant: "info",
+      title: "تم النسخ",
+      message: "تم نسخ العنصر.",
+    });
   }, [selectedElement, pushToast]);
 
   const paste = useCallback(() => {
@@ -583,6 +616,16 @@ export default function ChapterEditorClient({
         y: Math.min(0.98, b.y + off),
       };
 
+      const prevB = cloned.geometry.container_bbox;
+      const nextB = nb;
+
+      const prevClip = (cloned.container.params as any)?.clipPath ?? null;
+      const nextClip = remapClipPathWithBBox({
+        clipPath: prevClip,
+        from: prevB,
+        to: nextB,
+      });
+
       const next: PageElement = {
         ...cloned,
         id: newId,
@@ -596,7 +639,11 @@ export default function ChapterEditorClient({
     });
 
     setSelectedId(newId);
-    pushToast({ variant: "info", title: "تم اللصق", message: "تم لصق العنصر." });
+    pushToast({
+      variant: "info",
+      title: "تم اللصق",
+      message: "تم لصق العنصر.",
+    });
   }, [currentPageId, updateCurrentAnnotations, pushToast]);
 
   const duplicateSelected = useCallback(() => {
@@ -607,10 +654,14 @@ export default function ChapterEditorClient({
   const selectNextPrev = useCallback(
     (forward: boolean) => {
       if (!currentAnnotations) return;
-      const alive = currentAnnotations.elements.filter((e) => e.status !== "deleted");
+      const alive = currentAnnotations.elements.filter(
+        (e) => e.status !== "deleted",
+      );
       if (alive.length === 0) return;
 
-      const sorted = alive.slice().sort((a, b) => a.readingOrder - b.readingOrder);
+      const sorted = alive
+        .slice()
+        .sort((a, b) => a.readingOrder - b.readingOrder);
 
       if (!selectedId) {
         setSelectedId(sorted[0]?.id ?? null);
@@ -648,9 +699,30 @@ export default function ChapterEditorClient({
           const b = e.geometry.container_bbox;
           const nx = Math.max(0, Math.min(1 - b.w, b.x + dx));
           const ny = Math.max(0, Math.min(1 - b.h, b.y + dy));
+
+          const prevB = e.geometry.container_bbox;
+          const nextB = { ...prevB, x: nx, y: ny };
+
+          const prevClip = (e.container.params as any)?.clipPath ?? null;
+          const nextClip = remapClipPathWithBBox({
+            clipPath: prevClip,
+            from: prevB,
+            to: nextB,
+          });
           return {
             ...markEdited(e),
-            geometry: { ...e.geometry, container_bbox: { ...b, x: nx, y: ny } },
+            container: {
+              ...e.container,
+              params: {
+                ...(e.container.params ?? {}),
+                clipPath: nextClip ?? null,
+              },
+            },
+            geometry: {
+              ...e.geometry,
+              container_bbox: nextB,
+              anchor: bboxCenter(nextB),
+            },
           };
         }),
         updatedAt: nowIso(),
@@ -763,7 +835,9 @@ export default function ChapterEditorClient({
   const statsTotal = (serverPayload as any)?.stats?.totalPages ?? pages.length;
   const statsAnalyzed =
     (serverPayload as any)?.stats?.analyzedPages ??
-    pages.filter((p) => !!p.annotations && (p.annotations.elements?.length ?? 0) > 0).length;
+    pages.filter(
+      (p) => !!p.annotations && (p.annotations.elements?.length ?? 0) > 0,
+    ).length;
 
   const latestJob = (serverPayload as any)?.latestJob ?? null;
 
@@ -783,7 +857,11 @@ export default function ChapterEditorClient({
   // ---------- Render ----------
   if (isLoading) {
     return (
-      <div className="h-dvh flex items-center justify-center bg-zinc-50" dir="rtl" lang="ar">
+      <div
+        className="h-dvh flex items-center justify-center bg-zinc-50"
+        dir="rtl"
+        lang="ar"
+      >
         <div className="flex items-center gap-3 rounded-xl border bg-white px-4 py-3 shadow-sm">
           <Spinner className="text-fuchsia-600" />
           <div className="text-sm text-zinc-700">جارٍ تحميل المحرّر…</div>
@@ -795,7 +873,9 @@ export default function ChapterEditorClient({
   if (isError) {
     return (
       <div className="p-6 space-y-3" dir="rtl" lang="ar">
-        <div className="text-sm text-rose-700 font-semibold">فشل تحميل المحرّر.</div>
+        <div className="text-sm text-rose-700 font-semibold">
+          فشل تحميل المحرّر.
+        </div>
         <pre className="text-xs text-zinc-700 whitespace-pre-wrap rounded-lg border bg-white p-3">
           {JSON.stringify(error, null, 2)}
         </pre>
@@ -807,178 +887,131 @@ export default function ChapterEditorClient({
   }
 
   return (
-    <div className="h-dvh flex flex-col bg-zinc-50 text-zinc-900" dir="rtl" lang="ar">
+    <div className="h-dvh flex flex-col bg-zinc-50 text-zinc-900">
       {/* Top Bar */}
-      <div className="border-b bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="px-3 py-2 flex items-center gap-3">
-          {/* Left: Nav + title */}
-          <div className="flex items-center gap-2 min-w-0">
-            <Link
-              href="/creator/works"
-              className="text-sm font-medium text-zinc-700 hover:text-zinc-900"
-            >
-              ← الأعمال
-            </Link>
-
-            <div className="w-px h-6 bg-zinc-200" />
-
-            <div className="min-w-0">
+      <div className="sticky top-0 z-40 border-b bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+        <div className="mx-auto max-w-screen-2xl px-3 py-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            {/* Left: Title */}
+            <div className="min-w-0 flex-1">
               <div className="font-semibold truncate">{headerTitle}</div>
-              <div className="text-xs text-zinc-500 truncate">{chapterTitle}</div>
-            </div>
-          </div>
-
-          {/* Middle: stats */}
-          <div className="ml-2 hidden lg:flex items-center gap-2">
-            <Badge variant="info">
-              الصفحات {statsAnalyzed}/{statsTotal}
-            </Badge>
-
-            {latestJob?.status ? (
-              <Badge variant={latestJob.status === "COMPLETED" ? "success" : "warn"}>
-                الذكاء الاصطناعي: {jobStatusLabel(latestJob.status)} • {timeAgo(latestJob.updatedAt)}
-              </Badge>
-            ) : null}
-
-            {dirtyCount > 0 ? <Badge variant="warn">{dirtyCount} غير محفوظ</Badge> : null}
-          </div>
-
-          {/* Right: controls */}
-          <div className="ml-auto flex items-center gap-2 flex-wrap justify-end">
-            {/* Layout toggles */}
-            <div className="flex items-center gap-1">
-              <Button
-                size="sm"
-                variant={showPagesRail ? "secondary" : "outline"}
-                onClick={() => setShowPagesRail((v) => !v)}
-                title="إظهار/إخفاء الصفحات"
-              >
-                الصفحات
-              </Button>
-              <Button
-                size="sm"
-                variant={showLayers ? "secondary" : "outline"}
-                onClick={() => setShowLayers((v) => !v)}
-                title="إظهار/إخفاء العناصر"
-              >
-                العناصر
-              </Button>
-              <Button
-                size="sm"
-                variant={showInspector ? "secondary" : "outline"}
-                onClick={() => setShowInspector((v) => !v)}
-                title="إظهار/إخفاء الخصائص"
-              >
-                الخصائص
-              </Button>
+              <div className="text-xs text-zinc-500 truncate">
+                {chapterTitle}
+              </div>
             </div>
 
-            <div className="w-px h-6 bg-zinc-200 mx-1 hidden sm:block" />
+            {/* Right: Controls */}
+            <div className="ms-auto flex flex-wrap items-center justify-between gap-2 sm:justify-end">
+              {/* Cluster A: History */}
+              <div className="inline-flex items-center">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  tone="neutral"
+                  onClick={undo}
+                  disabled={!canUndo}
+                  tooltip="تراجع (Ctrl+Z)"
+                  group="start"
+                >
+                  تراجع
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  tone="neutral"
+                  onClick={redo}
+                  disabled={!canRedo}
+                  tooltip="إعادة (Ctrl+Shift+Z أو Ctrl+Y)"
+                  group="end"
+                >
+                  إعادة
+                </Button>
+              </div>
 
-            {/* Mode */}
-            <div className="flex items-center rounded-lg border bg-white shadow-sm overflow-hidden">
-              <button className={segBtn(viewMode === "edit")} onClick={() => setViewMode("edit")}>
-                تعديل
-              </button>
-              <button className={segBtn(viewMode === "preview")} onClick={() => setViewMode("preview")}>
-                معاينة
-              </button>
+              <div className="hidden sm:block h-6 w-px bg-zinc-200" />
+
+              {/* Cluster B: Edit */}
+              <div className="inline-flex items-center">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  tone="neutral"
+                  onClick={duplicateSelected}
+                  disabled={!selectedId}
+                  tooltip="تكرار (Ctrl+D)"
+                  group="start"
+                >
+                  تكرار
+                </Button>
+                <Button
+                  size="sm"
+                  variant="solid"
+                  tone="danger"
+                  onClick={deleteSelected}
+                  disabled={!selectedId}
+                  tooltip="حذف (Del)"
+                  group="end"
+                >
+                  حذف
+                </Button>
+              </div>
+
+              <div className="hidden sm:block h-6 w-px bg-zinc-200" />
+
+              {/* Cluster C: Preview / Save / Status / Help */}
+              <div className="flex flex-wrap items-center gap-2 justify-end">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  tone="neutral"
+                  onClick={() => setPreviewOpen(true)}
+                >
+                  نافذة المعاينة
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="solid"
+                  tone="brand"
+                  disabled={!currentPageId}
+                  onClick={() => currentPageId && flushSave(currentPageId)}
+                  tooltip="حفظ الآن (Ctrl+S)"
+                >
+                  حفظ الآن
+                </Button>
+
+                <SaveIndicator
+                  status={currentSaveStatus}
+                  lastSavedAt={lastSavedAtById[currentPageId ?? ""] ?? null}
+                />
+
+                <Button
+                  size="sm"
+                  iconOnly
+                  variant="plain"
+                  tone="neutral"
+                  aria-label="مساعدة / اختصارات"
+                  tooltip="مساعدة / اختصارات"
+                  onClick={() => setHelpOpen(true)}
+                >
+                  ؟
+                </Button>
+              </div>
             </div>
-
-            {/* Lang */}
-            <div className="flex items-center rounded-lg border bg-white shadow-sm overflow-hidden">
-              <button className={segBtn(langMode === "original")} onClick={() => setLangMode("original")}>
-                الأصل
-              </button>
-              <button className={segBtn(langMode === "translated")} onClick={() => setLangMode("translated")}>
-                الترجمة
-              </button>
-            </div>
-
-            <div className="w-px h-6 bg-zinc-200 mx-1 hidden sm:block" />
-
-            {/* Undo/Redo */}
-            <Button size="sm" variant="outline" onClick={undo} disabled={!canUndo} title="تراجع (Ctrl+Z)">
-              تراجع
-            </Button>
-            <Button size="sm" variant="outline" onClick={redo} disabled={!canRedo} title="إعادة (Ctrl+Shift+Z أو Ctrl+Y)">
-              إعادة
-            </Button>
-
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={duplicateSelected}
-              disabled={!selectedId}
-              title="تكرار (Ctrl+D)"
-            >
-              تكرار
-            </Button>
-
-            <Button size="sm" variant="danger" onClick={deleteSelected} disabled={!selectedId} title="حذف (Del)">
-              حذف
-            </Button>
-
-            <div className="w-px h-6 bg-zinc-200 mx-1 hidden sm:block" />
-
-            <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)}>
-              نافذة المعاينة
-            </Button>
-
-            <Link className={cn(ButtonLinkClass, "text-sm")} href={`/creator/works/${workId}/chapters/${chapterId}/setup`}>
-              الإعدادات
-            </Link>
-
-            <Link className={cn(ButtonLinkClass, "text-sm")} href={`/creator/works/${workId}/chapters/${chapterId}/preview`}>
-              صفحة المعاينة
-            </Link>
-
-            <Button size="sm" variant="outline" onClick={() => refetch()}>
-              {isFetching ? (
-                <span className="flex items-center gap-2">
-                  <Spinner className="text-zinc-700" />
-                  يتم التحديث…
-                </span>
-              ) : (
-                "تحديث الروابط"
-              )}
-            </Button>
-
-            <Button
-              size="sm"
-              variant="primary"
-              disabled={!currentPageId}
-              onClick={() => currentPageId && flushSave(currentPageId)}
-              title="حفظ الآن (Ctrl+S)"
-            >
-              حفظ الآن
-            </Button>
-
-            <SaveIndicator
-              status={currentSaveStatus}
-              lastSavedAt={lastSavedAtById[currentPageId ?? ""] ?? null}
-            />
-
-            <IconButton size="sm" variant="ghost" onClick={() => setHelpOpen(true)} title="مساعدة / اختصارات">
-              ؟
-            </IconButton>
           </div>
         </div>
       </div>
 
       {/* Main layout */}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 ">
         {/* Pages rail */}
         {showPagesRail && (
-          <aside className="w-[280px] border-r bg-white min-h-0 flex flex-col">
-            <div className="p-3 border-b">
-              <div className="flex items-center justify-between gap-2">
-                <div className="text-sm font-semibold">الصفحات</div>
-                <Badge variant="neutral">{pages.length}</Badge>
-              </div>
-              <div className="text-[11px] text-zinc-500 mt-1">
-                تلميح: <Kbd>Tab</Kbd> للتنقل • <Kbd>Space</Kbd> للسحب • عجلة الماوس للتكبير • اسحب/أفلت لترتيب الصفحات
-              </div>
+          <aside className="w-max border-r bg-white min-h-0 flex flex-col">
+            <div className="flex  justify-between  p-3 border-b">
+              <div className="text-sm font-semibold">الصفحات</div>
+              <h3>
+                {statsAnalyzed}/{statsTotal}
+              </h3>
             </div>
 
             <div className="flex-1 min-h-0 overflow-auto p-3 space-y-2">
@@ -987,10 +1020,16 @@ export default function ChapterEditorClient({
               ) : (
                 pages.map((p, idx) => {
                   const active = p.id === currentPageId;
-                  const st = saveStatusById[p.id] ?? (dirtyById[p.id] ? "dirty" : "saved");
+                  const st =
+                    saveStatusById[p.id] ??
+                    (dirtyById[p.id] ? "dirty" : "saved");
 
-                  const alive = (p.annotations?.elements ?? []).filter((e) => e.status !== "deleted");
-                  const trDone = alive.filter((e) => (e.text.translated ?? "").trim()).length;
+                  const alive = (p.annotations?.elements ?? []).filter(
+                    (e) => e.status !== "deleted",
+                  );
+                  const trDone = alive.filter((e) =>
+                    (e.text.translated ?? "").trim(),
+                  ).length;
                   const trTotal = alive.length;
 
                   return (
@@ -998,7 +1037,9 @@ export default function ChapterEditorClient({
                       key={p.id}
                       className={cn(
                         "rounded-2xl border overflow-hidden shadow-sm transition",
-                        active ? "ring-2 ring-fuchsia-500 border-fuchsia-200" : "border-zinc-200",
+                        active
+                          ? "ring-2 ring-fuchsia-500 border-fuchsia-200"
+                          : "border-zinc-200",
                       )}
                       draggable
                       onDragStart={(e) => {
@@ -1016,12 +1057,15 @@ export default function ChapterEditorClient({
                       }}
                       title="اسحب وأفلت لتغيير ترتيب الصفحة"
                     >
-                      <button className="w-full text-left" onClick={() => void goToPage(p.id)}>
+                      <button
+                        className="w-full text-left"
+                        onClick={() => void goToPage(p.id)}
+                      >
                         <div className="relative">
                           <img
                             src={p.image.url}
                             alt=""
-                            className="w-full h-28 object-cover bg-zinc-100"
+                            className="w-60 h-30 object-cover bg-zinc-100"
                             loading="lazy"
                           />
 
@@ -1029,23 +1073,21 @@ export default function ChapterEditorClient({
                             <span className="rounded-md bg-black/70 text-white text-[11px] px-2 py-1">
                               #{idx + 1}
                             </span>
-                            <span className={cn("rounded-md text-[11px] px-2 py-1", statusPill(st))}>
+                            <span
+                              className={cn(
+                                "rounded-md text-[11px] px-2 py-1",
+                                statusPill(st),
+                              )}
+                            >
                               {saveStatusLabel(st)}
-                            </span>
-                          </div>
-
-                          <div className="absolute bottom-2 left-2 flex items-center gap-2">
-                            <span className="rounded-md bg-white/90 text-[11px] px-2 py-1">
-                              ترجمة {trDone}/{trTotal}
-                            </span>
-                            <span className="rounded-md bg-white/90 text-[11px] px-2 py-1">
-                              عناصر {alive.length}
                             </span>
                           </div>
                         </div>
 
                         <div className="p-2">
-                          <div className="text-xs text-zinc-700 truncate">{p.image.originalFilename}</div>
+                          <div className="text-xs text-zinc-700 truncate">
+                            {p.image.originalFilename}
+                          </div>
                         </div>
                       </button>
                     </div>
@@ -1056,21 +1098,8 @@ export default function ChapterEditorClient({
           </aside>
         )}
 
-        {/* Layers panel */}
-        {showLayers && (
-          <ElementsPanel
-            page={currentPage}
-            selectedId={selectedId}
-            hoverId={hoverId}
-            langMode={langMode}
-            onSelect={setSelectedId}
-            onHover={setHoverId}
-            onChangeDoc={updateCurrentAnnotations}
-          />
-        )}
-
         {/* Canvas */}
-        <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 relative overflow-hidden">
           <CanvasStage
             page={currentPage}
             viewMode={viewMode}
@@ -1081,35 +1110,6 @@ export default function ChapterEditorClient({
             onSelect={setSelectedId}
             onChangeDoc={updateCurrentAnnotations}
           />
-
-          <div className="border-t bg-white px-3 py-2 text-xs text-zinc-600 flex items-center gap-3">
-            <span className="font-medium text-zinc-800">الاختصارات:</span>
-            <span>
-              <Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> حفظ
-            </span>
-            <span>
-              <Kbd>Ctrl</Kbd>+<Kbd>Z</Kbd> تراجع
-            </span>
-            <span>
-              <Kbd>Ctrl</Kbd>+<Kbd>Shift</Kbd>+<Kbd>Z</Kbd> إعادة
-            </span>
-            <span>
-              <Kbd>Ctrl</Kbd>+<Kbd>D</Kbd> تكرار
-            </span>
-            <span>
-              <Kbd>Del</Kbd> حذف
-            </span>
-
-            <span className="ml-auto">
-              {selectedElement ? (
-                <span className="text-zinc-700">
-                  المحدد: <b>{selectedElement.elementType}</b> • #{selectedElement.readingOrder}
-                </span>
-              ) : (
-                <span className="text-zinc-500">لا يوجد تحديد</span>
-              )}
-            </span>
-          </div>
         </div>
 
         {/* Inspector */}
@@ -1133,21 +1133,13 @@ export default function ChapterEditorClient({
 
       <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
 
-      <ToastStack toasts={toasts} onDismiss={(id) => setToasts((p) => p.filter((t) => t.id !== id))} />
+      <ToastStack
+        toasts={toasts}
+        onDismiss={(id) => setToasts((p) => p.filter((t) => t.id !== id))}
+      />
     </div>
   );
 }
-
-function segBtn(active: boolean) {
-  return cn(
-    "px-3 h-9 text-sm font-medium transition",
-    active ? "bg-zinc-900 text-white" : "bg-transparent text-zinc-700 hover:bg-zinc-50",
-  );
-}
-
-const ButtonLinkClass =
-  "inline-flex items-center justify-center rounded-lg border bg-white/80 px-3 h-10 text-sm font-medium text-zinc-900 " +
-  "hover:bg-white transition shadow-sm border-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500/60";
 
 function statusPill(st: SaveStatus) {
   switch (st) {
@@ -1174,11 +1166,17 @@ function SaveIndicator({
   const s = statusVariant(status);
   return (
     <div className="flex items-center gap-2 rounded-lg border bg-white px-3 h-10 shadow-sm">
-      {status === "saving" ? <Spinner className="text-sky-600" /> : <span className={cn("h-2.5 w-2.5 rounded-full", s.dot)} />}
+      {status === "saving" ? (
+        <Spinner className="text-sky-600" />
+      ) : (
+        <span className={cn("h-2.5 w-2.5 rounded-full", s.dot)} />
+      )}
       <div className="leading-tight">
         <div className="text-[12px] font-semibold text-zinc-900">{s.label}</div>
         <div className="text-[10px] text-zinc-500">
-          {status === "saved" && lastSavedAt ? `آخر حفظ: ${timeAgo(lastSavedAt)}` : " "}
+          {status === "saved" && lastSavedAt
+            ? `آخر حفظ: ${timeAgo(lastSavedAt)}`
+            : " "}
         </div>
       </div>
     </div>
@@ -1193,12 +1191,16 @@ function ToastStack({
   onDismiss: (id: string) => void;
 }) {
   return (
-    <div className="fixed right-4 bottom-4 z-[80] space-y-2" dir="rtl" lang="ar">
+    <div
+      className="fixed right-4 bottom-4 z-[80] space-y-2"
+      dir="rtl"
+      lang="ar"
+    >
       {toasts.map((t) => (
         <div
           key={t.id}
           className={cn(
-            "w-[360px] max-w-[90vw] rounded-xl border bg-white shadow-lg p-3",
+            "w-max max-w-[90vw] rounded-xl border bg-white shadow-lg p-3",
             t.variant === "error" ? "border-rose-200" : "border-zinc-200",
           )}
         >
@@ -1210,11 +1212,18 @@ function ToastStack({
               )}
             />
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-zinc-900">{t.title}</div>
-              {t.message ? <div className="text-xs text-zinc-600 mt-0.5">{t.message}</div> : null}
+              <div className="text-sm font-semibold text-zinc-900">
+                {t.title}
+              </div>
+              {t.message ? (
+                <div className="text-xs text-zinc-600 mt-0.5">{t.message}</div>
+              ) : null}
             </div>
 
-            <button className="ml-auto text-xs text-zinc-500 hover:text-zinc-900" onClick={() => onDismiss(t.id)}>
+            <button
+              className="ml-auto text-xs text-zinc-500 hover:text-zinc-900"
+              onClick={() => onDismiss(t.id)}
+            >
               ✕
             </button>
           </div>
@@ -1237,7 +1246,11 @@ function HelpModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4" dir="rtl" lang="ar">
+    <div
+      className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4"
+      dir="rtl"
+      lang="ar"
+    >
       <div className="w-full max-w-2xl rounded-2xl bg-white shadow-xl border overflow-hidden">
         <div className="px-4 py-3 border-b flex items-center justify-between">
           <div className="font-semibold">اختصارات لوحة المفاتيح</div>
@@ -1264,7 +1277,8 @@ function HelpModal({ open, onClose }: { open: boolean; onClose: () => void }) {
         </div>
 
         <div className="px-4 py-3 border-t text-xs text-zinc-500">
-          تلميح: داخل تعديل النص السريع استخدم <Kbd>Ctrl</Kbd> + <Kbd>Enter</Kbd> للتأكيد بسرعة.
+          تلميح: داخل تعديل النص السريع استخدم <Kbd>Ctrl</Kbd> +{" "}
+          <Kbd>Enter</Kbd> للتأكيد بسرعة.
         </div>
       </div>
     </div>

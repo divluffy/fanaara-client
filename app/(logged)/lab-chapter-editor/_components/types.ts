@@ -25,12 +25,28 @@ export interface NormalizedBBox {
 }
 
 export interface ElementStyle {
-  fill: string;       // css color
-  stroke: string;     // css color
+  fill: string; // css color
+  stroke: string; // css color
   strokeWidth: number;
-  opacity: number;    // 0..1
+  opacity: number; // 0..1
   fontSize: number;
   align: "left" | "center" | "right";
+  textColor?: string;
+  textOpacity?: number;
+  fontWeight?: "thin" | "light" | "normal" | "bold" | "black" | "unknown";
+
+  outlineColor?: string | null;
+  outlineWidth?: number | null;
+  outlineOpacity?: number | null;
+
+  shadowColor?: string | null;
+  shadowBlur?: number | null;
+  shadowOffsetX?: number | null;
+  shadowOffsetY?: number | null;
+  shadowOpacity?: number | null;
+
+  backgroundColor?: string | null;
+  backgroundOpacity?: number | null;
 }
 
 export interface ElementText {

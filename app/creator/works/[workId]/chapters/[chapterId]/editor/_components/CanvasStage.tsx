@@ -4,6 +4,7 @@
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -40,7 +41,13 @@ import {
   normToPxBBox,
   pxToNormBBox,
   toTtbText,
+  clipPathToLocalKonvaPoints,
+  remapClipPathWithBBox,
 } from "./utils";
+import { FiEye, FiEyeOff, FiMap, FiMove, FiZoomIn } from "react-icons/fi";
+import { MiniMapOverlay } from "./common/MiniMapOverlay";
+import { CanvasHud } from "./common/CanvasHud";
+
 
 type Viewport = { x: number; y: number; scale: number };
 type GuideLines = { v: number[]; h: number[] };
@@ -152,13 +159,6 @@ function isBubbleTemplate(t: PageElement["container"]["template_id"]) {
   );
 }
 
-function langModeLabel(mode: LangMode) {
-  return mode === "translated" ? "الترجمة" : "الأصل";
-}
-function viewModeLabel(mode: ViewMode) {
-  return mode === "preview" ? "معاينة" : "تعديل";
-}
-
 export default function CanvasStage({
   page,
   viewMode,
@@ -230,6 +230,8 @@ export default function CanvasStage({
     pointerId: number;
   } | null>(null);
 
+  const hasDoc = !!page?.annotations;
+
   const clampHud = useCallback(
     (pos: { x: number; y: number }) => {
       const maxX = Math.max(12, size.w - HUD_W - 12);
@@ -262,31 +264,49 @@ export default function CanvasStage({
     setEditing(null);
   }, [page?.id]);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
+  // ✅ keep only ONE ResizeObserver path (perf)
+  const measure = useCallback(() => {
     const el = containerRef.current;
-
-    const ro = new ResizeObserver(() => {
-      const r = el.getBoundingClientRect();
-      setSize({ w: Math.floor(r.width), h: Math.floor(r.height) });
-    });
-
-    ro.observe(el);
-    const r = el.getBoundingClientRect();
-    setSize({ w: Math.floor(r.width), h: Math.floor(r.height) });
-
-    return () => ro.disconnect();
+    if (!el) return;
+    const w = Math.max(1, Math.floor(el.clientWidth));
+    const h = Math.max(1, Math.floor(el.clientHeight));
+    setSize((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
   }, []);
+
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    measure();
+
+    let raf = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(measure);
+    });
+    ro.observe(el);
+
+    // fallback لبعض الحالات
+    window.addEventListener("resize", measure);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [measure]);
 
   useEffect(() => {
     let cancelled = false;
-    if (!page?.image?.url) {
+
+    const url = page?.image?.url;
+    if (!url) {
       setBg(null);
       return;
     }
 
     const img = new Image();
-    img.src = page.image.url;
+    img.src = url;
 
     img.onload = () => !cancelled && setBg(img);
     img.onerror = () => !cancelled && setBg(null);
@@ -294,7 +314,7 @@ export default function CanvasStage({
     return () => {
       cancelled = true;
     };
-  }, [page?.image.url]);
+  }, [page?.image?.url]);
 
   const fitScale = useMemo(
     () => Math.min(size.w / imgW, size.h / imgH),
@@ -321,9 +341,9 @@ export default function CanvasStage({
   );
 
   useEffect(() => {
-    if (!page?.annotations) return;
+    if (!hasDoc) return;
     if (fitLock) fitToScreen();
-  }, [page?.id, size.w, size.h, fitLock, fitToScreen, page?.annotations]);
+  }, [hasDoc, page?.id, size.w, size.h, fitLock, fitToScreen]);
 
   useEffect(() => {
     const onDown = (e: KeyboardEvent) => {
@@ -338,11 +358,14 @@ export default function CanvasStage({
       }
       if (e.key === "Escape") setEditing(null);
     };
+
     const onUp = (e: KeyboardEvent) => {
       if (e.code === "Space") setSpaceDown(false);
     };
+
     window.addEventListener("keydown", onDown, { passive: false });
     window.addEventListener("keyup", onUp);
+
     return () => {
       window.removeEventListener("keydown", onDown as any);
       window.removeEventListener("keyup", onUp as any);
@@ -362,7 +385,9 @@ export default function CanvasStage({
   }, [visibleElements, imgW, imgH]);
 
   useEffect(() => {
+    if (!hasDoc) return;
     if (viewMode !== "edit") return;
+
     const tr = trRef.current;
     if (!tr) return;
 
@@ -375,17 +400,33 @@ export default function CanvasStage({
     else tr.nodes(node ? [node] : []);
 
     tr.getLayer()?.batchDraw();
-  }, [selectedId, viewMode, visibleElements]);
+  }, [hasDoc, selectedId, viewMode, visibleElements]);
 
-  if (!page?.annotations) {
-    return (
-      <div className="flex-1 flex items-center justify-center text-sm text-zinc-500 bg-zinc-100">
-        لا توجد صفحة
-      </div>
-    );
-  }
+  const clearGuides = useCallback(() => setGuides({ v: [], h: [] }), []);
 
-  const clearGuides = () => setGuides({ v: [], h: [] });
+  const zoomPct = Math.round((viewport.scale / fitScale) * 100);
+
+  const minimap = useMemo(() => {
+    const maxDim = 160;
+    const ratio = imgH / imgW;
+    const w = ratio >= 1 ? Math.round(maxDim / ratio) : maxDim;
+    const h = ratio >= 1 ? maxDim : Math.round(maxDim * ratio);
+    const s = w / imgW;
+
+    const worldX0 = clamp((0 - viewport.x) / viewport.scale, 0, imgW);
+    const worldY0 = clamp((0 - viewport.y) / viewport.scale, 0, imgH);
+    const worldX1 = clamp((size.w - viewport.x) / viewport.scale, 0, imgW);
+    const worldY1 = clamp((size.h - viewport.y) / viewport.scale, 0, imgH);
+
+    const rx = worldX0 * s;
+    const ry = worldY0 * s;
+    const rw = Math.max(8, (worldX1 - worldX0) * s);
+    const rh = Math.max(8, (worldY1 - worldY0) * s);
+
+    return { w, h, rect: { x: rx, y: ry, w: rw, h: rh } };
+  }, [imgW, imgH, viewport.x, viewport.y, viewport.scale, size.w, size.h]);
+
+  const cursor = panning ? "grabbing" : spaceDown ? "grab" : "default";
 
   function computeSnap(
     nodeId: string,
@@ -427,6 +468,7 @@ export default function CanvasStage({
         }
       }
     }
+
     for (const g of hGuides) {
       for (const c of yCandidates) {
         const d = Math.abs(g - c.val);
@@ -465,891 +507,807 @@ export default function CanvasStage({
     return { x: clamped.x, y: clamped.y, guides: { v: showV, h: showH } };
   }
 
-  function centerOnSelection() {
+  const centerOnSelection = useCallback(() => {
     if (!selectedId) return;
     const sel = visibleElements.find((e) => e.id === selectedId);
     if (!sel) return;
+
     const b = normToPxBBox(sel.geometry.container_bbox, imgW, imgH);
     const cx = b.x + b.w / 2;
     const cy = b.y + b.h / 2;
+
     setFitLock(false);
     setViewport((v) => ({
       ...v,
       x: size.w / 2 - cx * v.scale,
       y: size.h / 2 - cy * v.scale,
     }));
-  }
-
-  const zoomPct = Math.round((viewport.scale / fitScale) * 100);
-
-  const minimap = useMemo(() => {
-    const maxDim = 160;
-    const ratio = imgH / imgW;
-    const w = ratio >= 1 ? Math.round(maxDim / ratio) : maxDim;
-    const h = ratio >= 1 ? maxDim : Math.round(maxDim * ratio);
-    const s = w / imgW;
-
-    const worldX0 = clamp((0 - viewport.x) / viewport.scale, 0, imgW);
-    const worldY0 = clamp((0 - viewport.y) / viewport.scale, 0, imgH);
-    const worldX1 = clamp((size.w - viewport.x) / viewport.scale, 0, imgW);
-    const worldY1 = clamp((size.h - viewport.y) / viewport.scale, 0, imgH);
-
-    const rx = worldX0 * s;
-    const ry = worldY0 * s;
-    const rw = Math.max(8, (worldX1 - worldX0) * s);
-    const rh = Math.max(8, (worldY1 - worldY0) * s);
-
-    return { w, h, rect: { x: rx, y: ry, w: rw, h: rh } };
-  }, [imgW, imgH, viewport.x, viewport.y, viewport.scale, size.w, size.h]);
-
-  const cursor = panning ? "grabbing" : spaceDown ? "grab" : "default";
+  }, [selectedId, visibleElements, imgW, imgH, size.w, size.h]);
 
   return (
     <div
       ref={containerRef}
-      className="flex-1 bg-zinc-100 relative overflow-hidden"
+      className="absolute inset-0 min-h-0 w-full h-full overflow-hidden"
     >
-      {/* HUD draggable */}
-      <div
-        className="absolute z-20 select-none"
-        style={{ left: hudPos.x, top: hudPos.y, width: HUD_W }}
-      >
-        <div className="bg-white/95 border rounded-2xl shadow-sm overflow-hidden">
-          <div
-            className="flex items-center justify-between px-3 py-2 bg-zinc-50 border-b cursor-move"
-            onPointerDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setHudMoved(true);
-              hudDragRef.current = {
-                startX: e.clientX,
-                startY: e.clientY,
-                baseX: hudPos.x,
-                baseY: hudPos.y,
-                pointerId: e.pointerId,
-              };
-              (e.currentTarget as HTMLDivElement).setPointerCapture(
-                e.pointerId,
-              );
+      {!hasDoc ? (
+        <div className="flex-1 w-full h-full flex items-center justify-center text-sm text-zinc-500 bg-zinc-100">
+          لا توجد صفحة
+        </div>
+      ) : (
+        <>
+          {/* HUD draggable */}
+          <CanvasHud
+            size={size}
+            viewport={viewport}
+            fitScale={fitScale}
+            minScale={minScale}
+            maxScale={maxScale}
+            fitLock={fitLock}
+            selectedId={selectedId}
+            onFit={() => {
+              setFitLock(true);
+              fitToScreen();
             }}
-            onPointerMove={(e) => {
-              const d = hudDragRef.current;
-              if (!d || d.pointerId !== e.pointerId) return;
-              const nx = d.baseX + (e.clientX - d.startX);
-              const ny = d.baseY + (e.clientY - d.startY);
-              setHudPos(clampHud({ x: nx, y: ny }));
+            onZoomToPct={zoomToPct}
+            onZoomOut={() => {
+              setFitLock(false);
+              setViewport((v) => ({
+                ...v,
+                scale: clamp(v.scale / 1.15, minScale, maxScale),
+              }));
             }}
-            onPointerUp={(e) => {
-              const d = hudDragRef.current;
-              if (!d || d.pointerId !== e.pointerId) return;
-              hudDragRef.current = null;
-              try {
-                (e.currentTarget as HTMLDivElement).releasePointerCapture(
-                  e.pointerId,
-                );
-              } catch {}
+            onZoomIn={() => {
+              setFitLock(false);
+              setViewport((v) => ({
+                ...v,
+                scale: clamp(v.scale * 1.15, minScale, maxScale),
+              }));
             }}
-            onPointerCancel={() => {
-              hudDragRef.current = null;
-            }}
-            title="اسحب لتحريك لوحة التحكم"
-          >
-            <div className="text-xs font-semibold text-zinc-800">
-              التحكم بالصورة
-            </div>
-            <div className="text-[11px] text-zinc-500">اسحب للتحريك</div>
-          </div>
+            onCenterOnSelection={centerOnSelection}
+          />
 
-          <div className="px-3 py-2 flex items-center gap-2 text-xs">
-            <button
-              className="px-2.5 py-1.5 rounded-xl border bg-white hover:bg-zinc-50"
-              onClick={() => {
-                setFitLock(true);
-                fitToScreen();
-              }}
-              title="ملاءمة داخل الشاشة"
+          {/* Inline edit */}
+          {editing && (
+            <div
+              className="absolute z-30"
+              style={{ left: editing.rect.x, top: editing.rect.y }}
             >
-              ملاءمة
-            </button>
+              <textarea
+                autoFocus
+                className="border rounded-xl p-2 text-sm bg-white/95 shadow-lg outline-none w-full h-full"
+                style={{
+                  width: editing.rect.w,
+                  height: editing.rect.h,
+                  resize: "none",
+                  direction: editing.dir,
+                }}
+                value={editing.value}
+                onChange={(e) =>
+                  setEditing({ ...editing, value: e.target.value })
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    setEditing(null);
+                    return;
+                  }
+                  if (e.key === "Enter" && e.ctrlKey) {
+                    e.preventDefault();
+                    const newText = editing.value;
 
-            <button
-              className="px-2.5 py-1.5 rounded-xl border bg-white hover:bg-zinc-50"
-              onClick={() => zoomToPct(100)}
-              title="100% حسب الملاءمة"
-            >
-              100%
-            </button>
+                    onChangeDoc((doc) => ({
+                      ...doc,
+                      elements: doc.elements.map((x) => {
+                        if (x.id !== editing.id) return x;
+                        const lang =
+                          editing.field === "original"
+                            ? detectLang(newText)
+                            : x.text.lang;
+                        return {
+                          ...markEdited(x),
+                          text: {
+                            ...x.text,
+                            [editing.field]: newText,
+                            lang,
+                            writingDirection: dirForLang(lang),
+                          },
+                        } as any;
+                      }),
+                      updatedAt: new Date().toISOString(),
+                    }));
 
-            <button
-              className="px-2.5 py-1.5 rounded-xl border bg-white hover:bg-zinc-50"
-              onClick={() => {
-                setFitLock(false);
-                setViewport((v) => ({
-                  ...v,
-                  scale: clamp(v.scale / 1.15, minScale, maxScale),
-                }));
-              }}
-              title="تصغير"
-            >
-              −
-            </button>
+                    setEditing(null);
+                  }
+                }}
+                onBlur={() => {
+                  const newText = editing.value;
 
-            <button
-              className="px-2.5 py-1.5 rounded-xl border bg-white hover:bg-zinc-50"
-              onClick={() => {
-                setFitLock(false);
-                setViewport((v) => ({
-                  ...v,
-                  scale: clamp(v.scale * 1.15, minScale, maxScale),
-                }));
-              }}
-              title="تكبير"
-            >
-              ＋
-            </button>
+                  onChangeDoc((doc) => ({
+                    ...doc,
+                    elements: doc.elements.map((x) => {
+                      if (x.id !== editing.id) return x;
+                      const lang =
+                        editing.field === "original"
+                          ? detectLang(newText)
+                          : x.text.lang;
+                      return {
+                        ...markEdited(x),
+                        text: {
+                          ...x.text,
+                          [editing.field]: newText,
+                          lang,
+                          writingDirection: dirForLang(lang),
+                        },
+                      } as any;
+                    }),
+                    updatedAt: new Date().toISOString(),
+                  }));
 
-            <div className="flex-1 flex items-center gap-2">
-              <input
-                className="w-full"
-                type="range"
-                min={25}
-                max={600}
-                value={zoomPct}
-                onChange={(e) => {
-                  const pct = clamp(Number(e.target.value || 100), 25, 600);
-                  zoomToPct(pct);
+                  setEditing(null);
                 }}
               />
-              <div className="w-12 text-left text-zinc-700 font-semibold">
-                {zoomPct}%
+              <div className="mt-1 text-[11px] text-zinc-600 bg-white/90 border rounded-lg px-2 py-1 inline-block">
+                Ctrl + Enter للتأكيد • Esc للإلغاء
               </div>
             </div>
+          )}
 
-            <button
-              className="px-2.5 py-1.5 rounded-xl border bg-white hover:bg-zinc-50 disabled:opacity-50"
-              onClick={centerOnSelection}
-              disabled={!selectedId}
-              title="توسيط على العنصر"
-            >
-              توسيط
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Inline edit */}
-      {editing && (
-        <div
-          className="absolute z-30"
-          style={{ left: editing.rect.x, top: editing.rect.y }}
-        >
-          <textarea
-            autoFocus
-            className="border rounded-xl p-2 text-sm bg-white/95 shadow-lg outline-none w-full h-full"
-            style={{
-              width: editing.rect.w,
-              height: editing.rect.h,
-              resize: "none",
-              direction: editing.dir,
+          <Stage
+            ref={(n) => {
+              stageRef.current = n;
             }}
-            value={editing.value}
-            onChange={(e) => setEditing({ ...editing, value: e.target.value })}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                e.preventDefault();
-                setEditing(null);
+            width={size.w}
+            height={size.h}
+            style={{
+              cursor,
+              background: "green",
+              width: "100%",
+              height: "100%",
+              touchAction: "none",
+            }}
+            onWheel={(e) => {
+              e.evt.preventDefault();
+              const stage = e.target.getStage();
+              if (!stage) return;
+
+              const pointer = stage.getPointerPosition();
+              if (!pointer) return;
+
+              const oldScale = viewport.scale;
+              const scaleBy = e.evt.deltaY > 0 ? 0.9 : 1.1;
+              const newScale = clamp(oldScale * scaleBy, minScale, maxScale);
+
+              const mousePointTo = {
+                x: (pointer.x - viewport.x) / oldScale,
+                y: (pointer.y - viewport.y) / oldScale,
+              };
+
+              const newPos = {
+                x: pointer.x - mousePointTo.x * newScale,
+                y: pointer.y - mousePointTo.y * newScale,
+              };
+
+              setFitLock(false);
+              setViewport({ x: newPos.x, y: newPos.y, scale: newScale });
+            }}
+            onMouseDown={(e) => {
+              const stage = e.target.getStage();
+              if (!stage) return;
+
+              const btn = (e.evt as MouseEvent).button;
+              const isMiddle = btn === 1;
+              const isRight = btn === 2;
+
+              const p = stage.getPointerPosition();
+              if (!p) return;
+
+              const clickedOnEmpty = e.target === stage;
+
+              if (spaceDown || isMiddle || isRight) {
+                setPanning(true);
+                panStartRef.current = {
+                  x: p.x,
+                  y: p.y,
+                  vx: viewport.x,
+                  vy: viewport.y,
+                  startedOnEmpty: false,
+                  forced: true,
+                };
                 return;
               }
-              if (e.key === "Enter" && e.ctrlKey) {
-                e.preventDefault();
-                const newText = editing.value;
 
-                onChangeDoc((doc) => ({
-                  ...doc,
-                  elements: doc.elements.map((x) => {
-                    if (x.id !== editing.id) return x;
-                    const lang =
-                      editing.field === "original"
-                        ? detectLang(newText)
-                        : x.text.lang;
-                    return {
-                      ...markEdited(x),
-                      text: {
-                        ...x.text,
-                        [editing.field]: newText,
-                        lang,
-                        writingDirection: dirForLang(lang),
-                      },
-                    } as any;
-                  }),
-                  updatedAt: new Date().toISOString(),
-                }));
-                setEditing(null);
+              // left drag on empty to pan
+              if (clickedOnEmpty && btn === 0) {
+                panStartRef.current = {
+                  x: p.x,
+                  y: p.y,
+                  vx: viewport.x,
+                  vy: viewport.y,
+                  startedOnEmpty: true,
+                  forced: false,
+                };
+                return;
               }
-            }}
-            onBlur={() => {
-              const newText = editing.value;
 
-              onChangeDoc((doc) => ({
-                ...doc,
-                elements: doc.elements.map((x) => {
-                  if (x.id !== editing.id) return x;
-                  const lang =
-                    editing.field === "original"
-                      ? detectLang(newText)
-                      : x.text.lang;
-                  return {
-                    ...markEdited(x),
-                    text: {
-                      ...x.text,
-                      [editing.field]: newText,
-                      lang,
-                      writingDirection: dirForLang(lang),
-                    },
-                  } as any;
-                }),
-                updatedAt: new Date().toISOString(),
+              if (clickedOnEmpty) onSelect(null);
+            }}
+            onMouseMove={() => {
+              const stage = stageRef.current;
+              if (!stage) return;
+
+              const start = panStartRef.current;
+              if (!start) return;
+
+              const p = stage.getPointerPosition();
+              if (!p) return;
+
+              const dx = p.x - start.x;
+              const dy = p.y - start.y;
+
+              if (!panning && start.startedOnEmpty && Math.hypot(dx, dy) < 3)
+                return;
+
+              if (!panning) setPanning(true);
+
+              setFitLock(false);
+              setViewport((v) => ({
+                ...v,
+                x: start.vx + dx,
+                y: start.vy + dy,
               }));
-              setEditing(null);
             }}
-          />
-          <div className="mt-1 text-[11px] text-zinc-600 bg-white/90 border rounded-lg px-2 py-1 inline-block">
-            Ctrl + Enter للتأكيد • Esc للإلغاء
-          </div>
-        </div>
-      )}
-
-      <Stage
-        ref={(n) => {
-          stageRef.current = n;
-        }}
-        width={size.w}
-        height={size.h}
-        style={{ cursor }}
-        onWheel={(e) => {
-          e.evt.preventDefault();
-          const stage = e.target.getStage();
-          if (!stage) return;
-
-          const pointer = stage.getPointerPosition();
-          if (!pointer) return;
-
-          const oldScale = viewport.scale;
-          const scaleBy = e.evt.deltaY > 0 ? 0.9 : 1.1;
-          const newScale = clamp(oldScale * scaleBy, minScale, maxScale);
-
-          const mousePointTo = {
-            x: (pointer.x - viewport.x) / oldScale,
-            y: (pointer.y - viewport.y) / oldScale,
-          };
-
-          const newPos = {
-            x: pointer.x - mousePointTo.x * newScale,
-            y: pointer.y - mousePointTo.y * newScale,
-          };
-
-          setFitLock(false);
-          setViewport({ x: newPos.x, y: newPos.y, scale: newScale });
-        }}
-        onMouseDown={(e) => {
-          const stage = e.target.getStage();
-          if (!stage) return;
-
-          const btn = (e.evt as MouseEvent).button;
-          const isMiddle = btn === 1;
-          const isRight = btn === 2;
-
-          const p = stage.getPointerPosition();
-          if (!p) return;
-
-          const clickedOnEmpty = e.target === stage;
-
-          if (spaceDown || isMiddle || isRight) {
-            setPanning(true);
-            panStartRef.current = {
-              x: p.x,
-              y: p.y,
-              vx: viewport.x,
-              vy: viewport.y,
-              startedOnEmpty: false,
-              forced: true,
-            };
-            return;
-          }
-
-          // left drag on empty to pan
-          if (clickedOnEmpty && btn === 0) {
-            panStartRef.current = {
-              x: p.x,
-              y: p.y,
-              vx: viewport.x,
-              vy: viewport.y,
-              startedOnEmpty: true,
-              forced: false,
-            };
-            return;
-          }
-
-          if (clickedOnEmpty) onSelect(null);
-        }}
-        onMouseMove={(e) => {
-          const stage = stageRef.current;
-          if (!stage) return;
-
-          const start = panStartRef.current;
-          if (!start) return;
-
-          const p = stage.getPointerPosition();
-          if (!p) return;
-
-          const dx = p.x - start.x;
-          const dy = p.y - start.y;
-
-          if (!panning && start.startedOnEmpty && Math.hypot(dx, dy) < 3)
-            return;
-
-          if (!panning) setPanning(true);
-
-          setFitLock(false);
-          setViewport((v) => ({
-            ...v,
-            x: start.vx + dx,
-            y: start.vy + dy,
-          }));
-        }}
-        onMouseUp={(e) => {
-          setPanning(false);
-          panStartRef.current = null;
-        }}
-        onMouseLeave={() => {
-          setPanning(false);
-          panStartRef.current = null;
-        }}
-        onContextMenu={(e) => e.evt.preventDefault()}
-      >
-        <Layer>
-          <Group
-            x={viewport.x}
-            y={viewport.y}
-            scaleX={viewport.scale}
-            scaleY={viewport.scale}
+            onMouseUp={() => {
+              setPanning(false);
+              panStartRef.current = null;
+            }}
+            onMouseLeave={() => {
+              setPanning(false);
+              panStartRef.current = null;
+            }}
+            onContextMenu={(e) => e.evt.preventDefault()}
           >
-            {bg && (
-              <KImage
-                image={bg}
-                x={0}
-                y={0}
-                width={imgW}
-                height={imgH}
-                listening={false}
-              />
-            )}
-
-            {/* Guides */}
-            {guides.v.map((x, idx) => (
-              <Line
-                key={`gv-${idx}`}
-                points={[x, 0, x, imgH]}
-                stroke="#7c3aed"
-                strokeWidth={1 / viewport.scale}
-                opacity={0.7}
-                listening={false}
-              />
-            ))}
-            {guides.h.map((y, idx) => (
-              <Line
-                key={`gh-${idx}`}
-                points={[0, y, imgW, y]}
-                stroke="#7c3aed"
-                strokeWidth={1 / viewport.scale}
-                opacity={0.7}
-                listening={false}
-              />
-            ))}
-
-            {/* Elements */}
-            {visibleElements.map((el) => {
-              const isSel = el.id === selectedId;
-              const isHover = el.id === hoverId;
-
-              const bboxPx = normToPxBBox(
-                el.geometry.container_bbox,
-                imgW,
-                imgH,
-              );
-              const padding = safeNumber(el.container.params?.padding, 12);
-              const isLocked = !!el.locked;
-
-              const tailEnabled =
-                !!el.container.params?.tailEnabled &&
-                isBubbleTemplate(el.container.template_id);
-
-              const tailTipNorm = el.geometry.tailTip;
-              const tailTipPx = tailTipNorm
-                ? { x: tailTipNorm.x * imgW, y: tailTipNorm.y * imgH }
-                : null;
-
-              let tailBasePx: { x: number; y: number } | null = null;
-              if (tailEnabled && tailTipPx) {
-                const shape = el.container.shape;
-                if (
-                  shape === "ellipse" ||
-                  el.container.template_id === "bubble_cloud" ||
-                  el.container.template_id === "bubble_burst"
-                ) {
-                  tailBasePx = computeTailBaseEllipse(bboxPx, tailTipPx);
-                } else {
-                  tailBasePx = computeTailBaseRect(bboxPx, tailTipPx);
-                }
-              }
-
-              const rot = safeNumber(el.geometry.rotation, 0);
-
-              return (
-                <Group
-                  key={el.id}
-                  // ✅ center-based positioning to allow rotation nicely
-                  x={bboxPx.x + bboxPx.w / 2}
-                  y={bboxPx.y + bboxPx.h / 2}
-                  offsetX={bboxPx.w / 2}
-                  offsetY={bboxPx.h / 2}
-                  rotation={rot}
-                  draggable={viewMode === "edit" && !isLocked && !panning}
-                  ref={(node) => {
-                    if (node) nodesRef.current[el.id] = node;
-                    else delete nodesRef.current[el.id];
-
-                    if (
-                      node &&
-                      viewMode === "edit" &&
-                      el.id === selectedId &&
-                      trRef.current &&
-                      !isLocked
-                    ) {
-                      trRef.current.nodes([node]);
-                      trRef.current.getLayer()?.batchDraw();
-                    }
-                  }}
-                  dragBoundFunc={(pos) =>
-                    clampCenterInsideImage(
-                      pos,
-                      { w: bboxPx.w, h: bboxPx.h },
-                      imgW,
-                      imgH,
-                    )
-                  }
-                  onMouseEnter={() => onHover?.(el.id)}
-                  onMouseLeave={() => onHover?.(null)}
-                  onClick={() => onSelect(el.id)}
-                  onTap={() => onSelect(el.id)}
-                  onDblClick={() => {
-                    if (viewMode !== "edit") return;
-
-                    const field =
-                      langMode === "translated" ? "translated" : "original";
-                    const txt =
-                      (field === "translated"
-                        ? el.text.translated
-                        : el.text.original) ?? "";
-
-                    const rectStage = {
-                      x: viewport.x + (bboxPx.x + padding) * viewport.scale,
-                      y: viewport.y + (bboxPx.y + padding) * viewport.scale,
-                      w: Math.max(
-                        40,
-                        (bboxPx.w - padding * 2) * viewport.scale,
-                      ),
-                      h: Math.max(
-                        40,
-                        (bboxPx.h - padding * 2) * viewport.scale,
-                      ),
-                    };
-
-                    const dir = detectLang(txt) === "ar" ? "rtl" : "ltr";
-                    setEditing({
-                      id: el.id,
-                      field,
-                      value: txt,
-                      rect: rectStage,
-                      dir,
-                    });
-                  }}
-                  onDragMove={(ev) => {
-                    if (viewMode !== "edit") return;
-                    const node = ev.target as Konva.Group;
-
-                    const box = {
-                      x: node.x() - bboxPx.w / 2,
-                      y: node.y() - bboxPx.h / 2,
-                      w: bboxPx.w,
-                      h: bboxPx.h,
-                    };
-
-                    const disableSnap = (ev.evt as MouseEvent).altKey;
-                    if (disableSnap) {
-                      setGuides({ v: [], h: [] });
-                      return;
-                    }
-
-                    const threshold = 8 / Math.max(0.0001, viewport.scale);
-                    const snap = computeSnap(el.id, box, threshold);
-
-                    node.x(snap.x + bboxPx.w / 2);
-                    node.y(snap.y + bboxPx.h / 2);
-                    setGuides(snap.guides);
-                  }}
-                  onDragEnd={(ev) => {
-                    const node = ev.target as Konva.Group;
-
-                    const nextPx = {
-                      x: node.x() - bboxPx.w / 2,
-                      y: node.y() - bboxPx.h / 2,
-                      w: bboxPx.w,
-                      h: bboxPx.h,
-                    };
-                    const next = pxToNormBBox(nextPx, imgW, imgH);
-
-                    clearGuides();
-
-                    onChangeDoc((doc) => ({
-                      ...doc,
-                      elements: doc.elements.map((x) => {
-                        if (x.id !== el.id) return x;
-                        const container_bbox = next;
-                        return {
-                          ...markEdited(x),
-                          geometry: {
-                            ...x.geometry,
-                            container_bbox,
-                            anchor: bboxCenter(container_bbox),
-                            rotation: safeNumber(node.rotation(), 0),
-                          },
-                        };
-                      }),
-                      updatedAt: new Date().toISOString(),
-                    }));
-                  }}
-                  onTransformEnd={(ev) => {
-                    const node = ev.target as Konva.Group;
-                    const sx = node.scaleX();
-                    const sy = node.scaleY();
-                    const r = safeNumber(node.rotation(), 0);
-
-                    const minSize = 24;
-                    const newW = Math.max(minSize, bboxPx.w * sx);
-                    const newH = Math.max(minSize, bboxPx.h * sy);
-
-                    const mode = el.style.fontSizeMode ?? "auto";
-                    const fontScale = (sx + sy) / 2;
-                    const nextFontSize =
-                      mode === "manual"
-                        ? el.style.fontSize
-                        : clamp(
-                            Math.round(el.style.fontSize * fontScale),
-                            8,
-                            220,
-                          );
-
-                    node.scaleX(1);
-                    node.scaleY(1);
-
-                    node.offsetX(newW / 2);
-                    node.offsetY(newH / 2);
-
-                    let topLeft = {
-                      x: node.x() - newW / 2,
-                      y: node.y() - newH / 2,
-                    };
-                    const clampedPos = clampInsideImage(
-                      topLeft,
-                      { w: newW, h: newH },
-                      imgW,
-                      imgH,
-                    );
-                    topLeft = { ...topLeft, ...clampedPos };
-
-                    node.x(topLeft.x + newW / 2);
-                    node.y(topLeft.y + newH / 2);
-
-                    const next = pxToNormBBox(
-                      { x: topLeft.x, y: topLeft.y, w: newW, h: newH },
-                      imgW,
-                      imgH,
-                    );
-
-                    clearGuides();
-
-                    onChangeDoc((doc) => ({
-                      ...doc,
-                      elements: doc.elements.map((x) => {
-                        if (x.id !== el.id) return x;
-                        const container_bbox = next;
-                        return {
-                          ...markEdited(x),
-                          style: { ...x.style, fontSize: nextFontSize },
-                          geometry: {
-                            ...x.geometry,
-                            container_bbox,
-                            anchor: bboxCenter(container_bbox),
-                            rotation: r,
-                          },
-                        };
-                      }),
-                      updatedAt: new Date().toISOString(),
-                    }));
-                  }}
-                >
-                  {/* Tail */}
-                  {tailEnabled && tailTipPx && tailBasePx && (
-                    <Line
-                      points={[
-                        tailBasePx.x - bboxPx.x,
-                        tailBasePx.y - bboxPx.y,
-                        tailTipPx.x - bboxPx.x,
-                        tailTipPx.y - bboxPx.y,
-                      ]}
-                      stroke={el.style.stroke}
-                      strokeWidth={Math.max(1, el.style.strokeWidth)}
-                      opacity={el.style.opacity}
-                      listening={false}
-                    />
-                  )}
-
-                  <ElementShape
-                    el={el}
-                    w={bboxPx.w}
-                    h={bboxPx.h}
-                    langMode={langMode}
+            <Layer>
+              <Group
+                x={viewport.x}
+                y={viewport.y}
+                scaleX={viewport.scale}
+                scaleY={viewport.scale}
+              >
+                {bg && (
+                  <KImage
+                    image={bg}
+                    x={0}
+                    y={0}
+                    width={imgW}
+                    height={imgH}
+                    listening={false}
                   />
+                )}
 
-                  {/* ✅ outline in edit */}
-                  {viewMode === "edit" && (
-                    <Rect
-                      x={0}
-                      y={0}
-                      width={bboxPx.w}
-                      height={bboxPx.h}
-                      stroke={EDIT_OUTLINE}
-                      dash={[6, 4]}
-                      strokeWidth={1 / viewport.scale}
-                      fillEnabled={false}
-                      listening={false}
-                      opacity={0.95}
-                    />
-                  )}
+                {/* Guides */}
+                {guides.v.map((x, idx) => (
+                  <Line
+                    key={`gv-${idx}`}
+                    points={[x, 0, x, imgH]}
+                    stroke="#7c3aed"
+                    strokeWidth={1 / viewport.scale}
+                    opacity={0.7}
+                    listening={false}
+                  />
+                ))}
+                {guides.h.map((y, idx) => (
+                  <Line
+                    key={`gh-${idx}`}
+                    points={[0, y, imgW, y]}
+                    stroke="#7c3aed"
+                    strokeWidth={1 / viewport.scale}
+                    opacity={0.7}
+                    listening={false}
+                  />
+                ))}
 
-                  {/* Hover */}
-                  {isHover && !isSel && (
-                    <Rect
-                      x={0}
-                      y={0}
-                      width={bboxPx.w}
-                      height={bboxPx.h}
-                      stroke="#111827"
-                      dash={[10, 8]}
-                      strokeWidth={1 / viewport.scale}
-                      fillEnabled={false}
-                      listening={false}
-                      opacity={0.8}
-                    />
-                  )}
+                {/* Elements */}
+                {visibleElements.map((el) => {
+                  const isSel = el.id === selectedId;
+                  const isHover = el.id === hoverId;
 
-                  {/* Selected */}
-                  {isSel && viewMode === "edit" && (
-                    <Rect
-                      x={0}
-                      y={0}
-                      width={bboxPx.w}
-                      height={bboxPx.h}
-                      stroke="#111827"
-                      dash={[8, 6]}
-                      strokeWidth={2 / viewport.scale}
-                      fillEnabled={false}
-                      listening={false}
-                    />
-                  )}
+                  const bboxPx = normToPxBBox(
+                    el.geometry.container_bbox,
+                    imgW,
+                    imgH,
+                  );
+                  const padding = safeNumber(el.container.params?.padding, 12);
+                  const isLocked = !!el.locked;
 
-                  {/* Reading order */}
-                  {viewMode === "edit" && (
-                    <Group listening={false}>
-                      <Rect
-                        x={6}
-                        y={6}
-                        width={36}
-                        height={20}
-                        cornerRadius={8}
-                        fill="#000000aa"
-                      />
-                      <Text
-                        x={6}
-                        y={8}
-                        width={36}
-                        height={20}
-                        text={`${el.readingOrder}`}
-                        fontSize={12}
-                        align="center"
-                        verticalAlign="middle"
-                        fill="#fff"
-                      />
-                    </Group>
-                  )}
+                  const tailEnabled =
+                    !!el.container.params?.tailEnabled &&
+                    isBubbleTemplate(el.container.template_id);
 
-                  {/* Tail handle */}
-                  {isSel &&
-                    viewMode === "edit" &&
-                    isBubbleTemplate(el.container.template_id) && (
-                      <Circle
-                        x={
-                          (tailTipPx ? tailTipPx.x : bboxPx.x + bboxPx.w / 2) -
-                          bboxPx.x
+                  const tailTipNorm = el.geometry.tailTip;
+                  const tailTipPx = tailTipNorm
+                    ? { x: tailTipNorm.x * imgW, y: tailTipNorm.y * imgH }
+                    : null;
+
+                  let tailBasePx: { x: number; y: number } | null = null;
+                  if (tailEnabled && tailTipPx) {
+                    const shape = el.container.shape;
+                    if (
+                      shape === "ellipse" ||
+                      el.container.template_id === "bubble_cloud" ||
+                      el.container.template_id === "bubble_burst"
+                    ) {
+                      tailBasePx = computeTailBaseEllipse(bboxPx, tailTipPx);
+                    } else {
+                      tailBasePx = computeTailBaseRect(bboxPx, tailTipPx);
+                    }
+                  }
+
+                  const rot = safeNumber(el.geometry.rotation, 0);
+                  const clipLocalPoints = clipPathToLocalKonvaPoints({
+                    clipPath: (el.container.params as any)?.clipPath ?? null,
+                    bboxPx,
+                    imgW,
+                    imgH,
+                  });
+
+                  return (
+                    <Group
+                      key={el.id}
+                      // center-based positioning (rotation friendly)
+                      x={bboxPx.x + bboxPx.w / 2}
+                      y={bboxPx.y + bboxPx.h / 2}
+                      offsetX={bboxPx.w / 2}
+                      offsetY={bboxPx.h / 2}
+                      rotation={rot}
+                      draggable={viewMode === "edit" && !isLocked && !panning}
+                      ref={(node) => {
+                        if (node) nodesRef.current[el.id] = node;
+                        else delete nodesRef.current[el.id];
+
+                        if (
+                          node &&
+                          viewMode === "edit" &&
+                          el.id === selectedId &&
+                          trRef.current &&
+                          !isLocked
+                        ) {
+                          trRef.current.nodes([node]);
+                          trRef.current.getLayer()?.batchDraw();
                         }
-                        y={
-                          (tailTipPx ? tailTipPx.y : bboxPx.y + bboxPx.h / 2) -
-                          bboxPx.y
-                        }
-                        radius={6}
-                        fill="#ffffff"
-                        stroke="#111111"
-                        strokeWidth={2 / viewport.scale}
-                        draggable={!isLocked}
-                        onDragMove={(ev) => {
-                          const n = ev.target as Konva.Circle;
-                          const gx = clamp(n.x() + bboxPx.x, 0, imgW);
-                          const gy = clamp(n.y() + bboxPx.y, 0, imgH);
-                          n.x(gx - bboxPx.x);
-                          n.y(gy - bboxPx.y);
-                        }}
-                        onDragEnd={(ev) => {
-                          const n = ev.target as Konva.Circle;
-                          const tipAbs = {
-                            x: n.x() + bboxPx.x,
-                            y: n.y() + bboxPx.y,
-                          };
-                          const tipNorm = {
-                            x: clamp01(tipAbs.x / imgW),
-                            y: clamp01(tipAbs.y / imgH),
-                          };
+                      }}
+                      dragBoundFunc={(pos) =>
+                        clampCenterInsideImage(
+                          pos,
+                          { w: bboxPx.w, h: bboxPx.h },
+                          imgW,
+                          imgH,
+                        )
+                      }
+                      onMouseEnter={() => onHover?.(el.id)}
+                      onMouseLeave={() => onHover?.(null)}
+                      onClick={() => onSelect(el.id)}
+                      onTap={() => onSelect(el.id)}
+                      onDblClick={() => {
+                        if (viewMode !== "edit") return;
 
-                          onChangeDoc((doc) => ({
-                            ...doc,
-                            elements: doc.elements.map((x) => {
-                              if (x.id !== el.id) return x;
-                              return {
-                                ...markEdited(x),
-                                geometry: { ...x.geometry, tailTip: tipNorm },
-                                container: {
-                                  ...x.container,
-                                  params: {
-                                    ...(x.container.params ?? {}),
-                                    tailEnabled: true,
-                                  },
+                        const field =
+                          langMode === "translated" ? "translated" : "original";
+                        const txt =
+                          (field === "translated"
+                            ? el.text.translated
+                            : el.text.original) ?? "";
+
+                        const rectStage = {
+                          x: viewport.x + (bboxPx.x + padding) * viewport.scale,
+                          y: viewport.y + (bboxPx.y + padding) * viewport.scale,
+                          w: Math.max(
+                            40,
+                            (bboxPx.w - padding * 2) * viewport.scale,
+                          ),
+                          h: Math.max(
+                            40,
+                            (bboxPx.h - padding * 2) * viewport.scale,
+                          ),
+                        };
+
+                        const dir = detectLang(txt) === "ar" ? "rtl" : "ltr";
+                        setEditing({
+                          id: el.id,
+                          field,
+                          value: txt,
+                          rect: rectStage,
+                          dir,
+                        });
+                      }}
+                      onDragMove={(ev) => {
+                        if (viewMode !== "edit") return;
+                        const node = ev.target as Konva.Group;
+
+                        const box = {
+                          x: node.x() - bboxPx.w / 2,
+                          y: node.y() - bboxPx.h / 2,
+                          w: bboxPx.w,
+                          h: bboxPx.h,
+                        };
+
+                        const disableSnap = (ev.evt as MouseEvent).altKey;
+                        if (disableSnap) {
+                          setGuides({ v: [], h: [] });
+                          return;
+                        }
+
+                        const threshold = 8 / Math.max(0.0001, viewport.scale);
+                        const snap = computeSnap(el.id, box, threshold);
+
+                        node.x(snap.x + bboxPx.w / 2);
+                        node.y(snap.y + bboxPx.h / 2);
+                        setGuides(snap.guides);
+                      }}
+                      onDragEnd={(ev) => {
+                        const node = ev.target as Konva.Group;
+
+                        const nextPx = {
+                          x: node.x() - bboxPx.w / 2,
+                          y: node.y() - bboxPx.h / 2,
+                          w: bboxPx.w,
+                          h: bboxPx.h,
+                        };
+                        const nextB = pxToNormBBox(nextPx, imgW, imgH);
+
+                        clearGuides();
+
+                        onChangeDoc((doc) => ({
+                          ...doc,
+                          elements: doc.elements.map((x) => {
+                            if (x.id !== el.id) return x;
+
+                            const prevB = x.geometry.container_bbox;
+                            const prevClip =
+                              (x.container.params as any)?.clipPath ?? null;
+
+                            const nextClip = remapClipPathWithBBox({
+                              clipPath: prevClip,
+                              from: prevB,
+                              to: nextB,
+                            });
+
+                            return {
+                              ...markEdited(x),
+                              container: {
+                                ...x.container,
+                                params: {
+                                  ...(x.container.params ?? {}),
+                                  clipPath: nextClip ?? null,
                                 },
-                              };
-                            }),
-                            updatedAt: new Date().toISOString(),
-                          }));
-                        }}
+                              },
+                              geometry: {
+                                ...x.geometry,
+                                container_bbox: nextB,
+                                anchor: bboxCenter(nextB),
+                                rotation: safeNumber(node.rotation(), 0),
+                              },
+                            };
+                          }),
+                          updatedAt: new Date().toISOString(),
+                        }));
+                      }}
+                      onTransformEnd={(ev) => {
+                        // ✅ FIX: remove wrong outer "x" usage, compute inside map
+                        const node = ev.target as Konva.Group;
+                        const sx = node.scaleX();
+                        const sy = node.scaleY();
+                        const r = safeNumber(node.rotation(), 0);
+
+                        const minSize = 24;
+                        const newW = Math.max(minSize, bboxPx.w * sx);
+                        const newH = Math.max(minSize, bboxPx.h * sy);
+
+                        const mode = el.style.fontSizeMode ?? "auto";
+                        const fontScale = (sx + sy) / 2;
+                        const nextFontSize =
+                          mode === "manual"
+                            ? el.style.fontSize
+                            : clamp(
+                                Math.round(el.style.fontSize * fontScale),
+                                8,
+                                220,
+                              );
+
+                        node.scaleX(1);
+                        node.scaleY(1);
+
+                        node.offsetX(newW / 2);
+                        node.offsetY(newH / 2);
+
+                        let topLeft = {
+                          x: node.x() - newW / 2,
+                          y: node.y() - newH / 2,
+                        };
+                        const clampedPos = clampInsideImage(
+                          topLeft,
+                          { w: newW, h: newH },
+                          imgW,
+                          imgH,
+                        );
+                        topLeft = { ...topLeft, ...clampedPos };
+
+                        node.x(topLeft.x + newW / 2);
+                        node.y(topLeft.y + newH / 2);
+
+                        const nextB = pxToNormBBox(
+                          { x: topLeft.x, y: topLeft.y, w: newW, h: newH },
+                          imgW,
+                          imgH,
+                        );
+
+                        clearGuides();
+
+                        onChangeDoc((doc) => ({
+                          ...doc,
+                          elements: doc.elements.map((x) => {
+                            if (x.id !== el.id) return x;
+
+                            const prevB = x.geometry.container_bbox;
+                            const prevClip =
+                              (x.container.params as any)?.clipPath ?? null;
+
+                            const nextClip = remapClipPathWithBBox({
+                              clipPath: prevClip,
+                              from: prevB,
+                              to: nextB,
+                            });
+
+                            return {
+                              ...markEdited(x),
+                              container: {
+                                ...x.container,
+                                params: {
+                                  ...(x.container.params ?? {}),
+                                  clipPath: nextClip ?? null,
+                                },
+                              },
+                              style: { ...x.style, fontSize: nextFontSize },
+                              geometry: {
+                                ...x.geometry,
+                                container_bbox: nextB,
+                                anchor: bboxCenter(nextB),
+                                rotation: r,
+                              },
+                            };
+                          }),
+                          updatedAt: new Date().toISOString(),
+                        }));
+                      }}
+                    >
+                      {/* Tail */}
+                      {tailEnabled && tailTipPx && tailBasePx && (
+                        <Line
+                          points={[
+                            tailBasePx.x - bboxPx.x,
+                            tailBasePx.y - bboxPx.y,
+                            tailTipPx.x - bboxPx.x,
+                            tailTipPx.y - bboxPx.y,
+                          ]}
+                          stroke={el.style.stroke}
+                          strokeWidth={Math.max(1, el.style.strokeWidth)}
+                          opacity={el.style.opacity}
+                          listening={false}
+                        />
+                      )}
+
+                      <MemoElementShape
+                        el={el}
+                        w={bboxPx.w}
+                        h={bboxPx.h}
+                        langMode={langMode}
+                        clipLocalPoints={clipLocalPoints}
                       />
-                    )}
 
-                  {/* Lock indicator */}
-                  {isLocked && viewMode === "edit" && (
-                    <Text
-                      x={bboxPx.w - 52}
-                      y={6}
-                      width={46}
-                      height={18}
-                      text={"مقفول"}
-                      fontSize={10}
-                      align="center"
-                      verticalAlign="middle"
-                      fill="#ffffff"
-                      listening={false}
-                      shadowColor="#000"
-                      shadowBlur={6}
-                      shadowOpacity={0.5}
-                    />
-                  )}
-                </Group>
-              );
-            })}
+                      {/* outline in edit */}
+                      {viewMode === "edit" && (
+                        <Rect
+                          x={0}
+                          y={0}
+                          width={bboxPx.w}
+                          height={bboxPx.h}
+                          stroke={EDIT_OUTLINE}
+                          dash={[6, 4]}
+                          strokeWidth={1 / viewport.scale}
+                          fillEnabled={false}
+                          listening={false}
+                          opacity={0.95}
+                        />
+                      )}
 
-            {viewMode === "edit" && (
-              <Transformer
-                ref={trRef}
-                rotateEnabled
-                keepRatio={false}
-                enabledAnchors={[
-                  "top-left",
-                  "top-center",
-                  "top-right",
-                  "middle-left",
-                  "middle-right",
-                  "bottom-left",
-                  "bottom-center",
-                  "bottom-right",
-                ]}
-                boundBoxFunc={(oldBox, newBox) => {
-                  if (newBox.width < 24 || newBox.height < 24) return oldBox;
-                  return newBox;
-                }}
-              />
-            )}
-          </Group>
-        </Layer>
-      </Stage>
+                      {/* Hover */}
+                      {isHover && !isSel && (
+                        <Rect
+                          x={0}
+                          y={0}
+                          width={bboxPx.w}
+                          height={bboxPx.h}
+                          stroke="#111827"
+                          dash={[10, 8]}
+                          strokeWidth={1 / viewport.scale}
+                          fillEnabled={false}
+                          listening={false}
+                          opacity={0.8}
+                        />
+                      )}
 
-      {/* Mini map */}
-      <div className="absolute bottom-3 right-3 z-10 rounded-xl border bg-white/90 shadow-sm p-2">
-        <div className="text-[11px] text-zinc-600 mb-1 flex items-center justify-between">
-          <span>الخريطة</span>
-          <span className="text-zinc-500">{spaceDown ? "سحب" : "تكبير"}</span>
-        </div>
-        <div
-          className="relative"
-          style={{ width: minimap.w, height: minimap.h }}
-        >
-          <img
-            src={page.image.url}
-            alt=""
-            style={{
-              width: minimap.w,
-              height: minimap.h,
-              objectFit: "cover",
-              display: "block",
-            }}
-          />
-          <div
-            className="absolute border-2 border-fuchsia-500 bg-fuchsia-500/10 rounded"
-            style={{
-              left: minimap.rect.x,
-              top: minimap.rect.y,
-              width: minimap.rect.w,
-              height: minimap.rect.h,
-            }}
-          />
-        </div>
-      </div>
+                      {/* Selected */}
+                      {isSel && viewMode === "edit" && (
+                        <Rect
+                          x={0}
+                          y={0}
+                          width={bboxPx.w}
+                          height={bboxPx.h}
+                          stroke="#111827"
+                          dash={[8, 6]}
+                          strokeWidth={2 / viewport.scale}
+                          fillEnabled={false}
+                          listening={false}
+                        />
+                      )}
 
-      <div className="absolute bottom-3 left-3 bg-white/90 border rounded-xl px-3 py-2 text-xs shadow-sm">
-        {viewModeLabel(viewMode)} • {langModeLabel(langMode)} •{" "}
-        {spaceDown ? "وضع السحب (Space)" : "اسحب الفراغ لتحريك الصورة"} • اضغط{" "}
-        <b>Alt</b> لتعطيل الالتقاط
-      </div>
+                      {/* Reading order */}
+                      {viewMode === "edit" && (
+                        <Group listening={false}>
+                          <Rect
+                            x={6}
+                            y={6}
+                            width={36}
+                            height={20}
+                            cornerRadius={8}
+                            fill="#000000aa"
+                          />
+                          <Text
+                            x={6}
+                            y={8}
+                            width={36}
+                            height={20}
+                            text={`${el.readingOrder}`}
+                            fontSize={12}
+                            align="center"
+                            verticalAlign="middle"
+                            fill="#fff"
+                          />
+                        </Group>
+                      )}
+
+                      {/* Tail handle */}
+                      {isSel &&
+                        viewMode === "edit" &&
+                        isBubbleTemplate(el.container.template_id) && (
+                          <Circle
+                            x={
+                              (tailTipPx
+                                ? tailTipPx.x
+                                : bboxPx.x + bboxPx.w / 2) - bboxPx.x
+                            }
+                            y={
+                              (tailTipPx
+                                ? tailTipPx.y
+                                : bboxPx.y + bboxPx.h / 2) - bboxPx.y
+                            }
+                            radius={6}
+                            fill="#ffffff"
+                            stroke="#111111"
+                            strokeWidth={2 / viewport.scale}
+                            draggable={!isLocked}
+                            onDragMove={(ev) => {
+                              const n = ev.target as Konva.Circle;
+                              const gx = clamp(n.x() + bboxPx.x, 0, imgW);
+                              const gy = clamp(n.y() + bboxPx.y, 0, imgH);
+                              n.x(gx - bboxPx.x);
+                              n.y(gy - bboxPx.y);
+                            }}
+                            onDragEnd={(ev) => {
+                              const n = ev.target as Konva.Circle;
+                              const tipAbs = {
+                                x: n.x() + bboxPx.x,
+                                y: n.y() + bboxPx.y,
+                              };
+                              const tipNorm = {
+                                x: clamp01(tipAbs.x / imgW),
+                                y: clamp01(tipAbs.y / imgH),
+                              };
+
+                              onChangeDoc((doc) => ({
+                                ...doc,
+                                elements: doc.elements.map((x) => {
+                                  if (x.id !== el.id) return x;
+                                  return {
+                                    ...markEdited(x),
+                                    geometry: {
+                                      ...x.geometry,
+                                      tailTip: tipNorm,
+                                    },
+                                    container: {
+                                      ...x.container,
+                                      params: {
+                                        ...(x.container.params ?? {}),
+                                        tailEnabled: true,
+                                      },
+                                    },
+                                  };
+                                }),
+                                updatedAt: new Date().toISOString(),
+                              }));
+                            }}
+                          />
+                        )}
+
+                      {/* Lock indicator */}
+                      {isLocked && viewMode === "edit" && (
+                        <Text
+                          x={bboxPx.w - 52}
+                          y={6}
+                          width={46}
+                          height={18}
+                          text={"مقفول"}
+                          fontSize={10}
+                          align="center"
+                          verticalAlign="middle"
+                          fill="#ffffff"
+                          listening={false}
+                          shadowColor="#000"
+                          shadowBlur={6}
+                          shadowOpacity={0.5}
+                        />
+                      )}
+                    </Group>
+                  );
+                })}
+
+                {viewMode === "edit" && (
+                  <Transformer
+                    ref={trRef}
+                    rotateEnabled
+                    keepRatio={false}
+                    enabledAnchors={[
+                      "top-left",
+                      "top-center",
+                      "top-right",
+                      "middle-left",
+                      "middle-right",
+                      "bottom-left",
+                      "bottom-center",
+                      "bottom-right",
+                    ]}
+                    boundBoxFunc={(oldBox, newBox) => {
+                      if (newBox.width < 24 || newBox.height < 24)
+                        return oldBox;
+                      return newBox;
+                    }}
+                  />
+                )}
+              </Group>
+            </Layer>
+          </Stage>
+
+          {/* Mini map */}
+          <MiniMapOverlay page={page} minimap={minimap} spaceDown={spaceDown} />
+        </>
+      )}
     </div>
   );
 }
+
+const MemoElementShape = React.memo(ElementShape);
 
 function ElementShape({
   el,
   w,
   h,
   langMode,
+  clipLocalPoints,
 }: {
   el: PageElement;
   w: number;
   h: number;
   langMode: LangMode;
+  clipLocalPoints?: number[] | null;
 }) {
   const padding = Number(el.container.params?.padding ?? 12);
   const cornerRadius = Number(el.container.params?.cornerRadius ?? 18);
@@ -1371,17 +1329,32 @@ function ElementShape({
   const stroke = el.style.stroke;
   const sw = el.style.strokeWidth;
 
-  const textFill = el.style.textFill ?? "#111111";
-  const textStroke = el.style.textStroke;
-  const textStrokeWidth = el.style.textStrokeWidth ?? 0;
-
   const fontFamily = el.style.fontFamily ?? "Arial";
   const fontStyle = el.style.fontStyle ?? "normal";
   const lineHeight = el.style.lineHeight ?? 1.2;
   const letterSpacing = el.style.letterSpacing ?? 0;
 
   const rot = el.style.textRotation ?? 0;
-  const shadow = el.style.textShadow;
+  const textFill = el.style.textFill ?? el.style.textColor ?? "#111111";
+  const textStroke = el.style.textStroke ?? el.style.outlineColor ?? undefined;
+  const textStrokeWidth =
+    el.style.textStrokeWidth ?? el.style.outlineWidth ?? 0;
+
+  const shadow =
+    el.style.textShadow ??
+    (el.style.shadowColor
+      ? {
+          color: el.style.shadowColor,
+          blur: el.style.shadowBlur ?? 0,
+          offsetX: el.style.shadowOffsetX ?? 0,
+          offsetY: el.style.shadowOffsetY ?? 0,
+          opacity: el.style.shadowOpacity ?? 1,
+        }
+      : undefined);
+
+  const textOpacity = el.style.textOpacity ?? 1;
+  const bgColor = el.style.backgroundColor ?? null;
+  const bgOpacity = el.style.backgroundOpacity ?? null;
 
   const textNode = (
     <Text
@@ -1409,8 +1382,41 @@ function ElementShape({
       shadowOffsetX={shadow?.offsetX}
       shadowOffsetY={shadow?.offsetY}
       shadowOpacity={shadow?.opacity}
+      opacity={textOpacity} // ✅ react-konva uses opacity
     />
   );
+
+  // 1st priority: true outline from server clipPath
+  if (clipLocalPoints && clipLocalPoints.length >= 6) {
+    return (
+      <>
+        <Line
+          points={clipLocalPoints}
+          closed
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={sw}
+          opacity={el.style.opacity}
+          lineJoin="round"
+          lineCap="round"
+        />
+
+        {bgColor ? (
+          <Rect
+            x={textX}
+            y={textY}
+            width={textW}
+            height={textH}
+            fill={bgColor}
+            opacity={bgOpacity ?? 1}
+            listening={false}
+          />
+        ) : null}
+
+        {textNode}
+      </>
+    );
+  }
 
   if (el.container.template_id === "bubble_ellipse") {
     return (

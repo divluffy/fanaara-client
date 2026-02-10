@@ -67,7 +67,12 @@ export interface ElementGeometry {
 export interface ContainerInfo {
   shape: ContainerShape;
   template_id: TemplateId;
-  params: Record<string, any>;
+
+  params: Record<string, any> & {
+    // ✅ from server mapper
+    clipPath?: ClipPathPolygon | null;
+    clipPathCss?: string | null; // optional convenience
+  };
 }
 
 export interface TextInfo {
@@ -75,6 +80,8 @@ export interface TextInfo {
   translated?: string;
   lang: TextLang;
   writingDirection: WritingDirection;
+  translationTarget?: "en";
+
   sizeHint: "small" | "medium" | "large";
   styleHint:
     | "normal"
@@ -142,6 +149,7 @@ export interface PageMeta {
   keywords: string[];
   sceneDescription: string;
   languageHint: TextLang;
+  imageAltEn?: string;
 }
 
 export interface PageAnnotationsDoc {
@@ -179,3 +187,8 @@ export interface EditorPayload {
 
 export type ViewMode = "edit" | "preview";
 export type LangMode = "original" | "translated";
+
+export type ClipPathPolygon = {
+  type: "polygon";
+  points: NormalizedPoint[]; // normalized to FULL PAGE
+};

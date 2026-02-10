@@ -6,6 +6,7 @@ import {
   PageElement,
   TextLang,
   WritingDirection,
+  ClipPathPolygon
 } from "./types";
 
 export function clamp(n: number, min: number, max: number) {
@@ -48,7 +49,8 @@ export function ensureAnnotations(
         keywords: maybe.meta?.keywords ?? [],
         sceneDescription: maybe.meta?.sceneDescription ?? "",
         languageHint: maybe.meta?.languageHint ?? "unknown",
-      },
+       imageAltEn: (maybe.meta as any)?.imageAltEn ?? "",
+ },
       elements: maybe.elements ?? [],
       updatedAt: maybe.updatedAt ?? now,
     };
@@ -232,4 +234,50 @@ export function autoFitFontSize(params: {
   }
 
   return clamp(best, minFontSize, maxFontSize);
+}
+export function clipPathToLocalKonvaPoints(params: {
+  clipPath: ClipPathPolygon | null | undefined;
+  bboxPx: { x: number; y: number; w: number; h: number };
+  imgW: number;
+  imgH: number;
+}): number[] | null {
+  const { clipPath, bboxPx, imgW, imgH } = params;
+  if (!clipPath || clipPath.type !== "polygon") return null;
+
+  const pts = clipPath.points;
+  if (!Array.isArray(pts) || pts.length < 3) return null;
+
+  const out: number[] = [];
+  for (const p of pts) {
+    const px = clamp01(Number(p.x ?? 0)) * imgW;
+    const py = clamp01(Number(p.y ?? 0)) * imgH;
+
+    // local within element bbox group (0,0 at bbox top-left)
+    out.push(px - bboxPx.x, py - bboxPx.y);
+  }
+  return out;
+}
+
+export function remapClipPathWithBBox(params: {
+  clipPath: ClipPathPolygon | null | undefined;
+  from: NormalizedBBox;
+  to: NormalizedBBox;
+}): ClipPathPolygon | null | undefined {
+  const { clipPath, from, to } = params;
+  if (!clipPath || clipPath.type !== "polygon") return clipPath;
+
+  const fw = Math.max(1e-6, from.w);
+  const fh = Math.max(1e-6, from.h);
+
+  const nextPts = clipPath.points.map((p) => {
+    const rx = (Number(p.x) - from.x) / fw;
+    const ry = (Number(p.y) - from.y) / fh;
+
+    return {
+      x: clamp01(to.x + rx * to.w),
+      y: clamp01(to.y + ry * to.h),
+    };
+  });
+
+  return { type: "polygon", points: nextPts };
 }

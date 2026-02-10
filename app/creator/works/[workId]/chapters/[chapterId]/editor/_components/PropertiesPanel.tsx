@@ -9,6 +9,7 @@ import type {
   TemplateId,
   WritingDirection,
 } from "./types";
+import { Button as DeButton } from "@/design/DeButton";
 
 import { TEMPLATE_DEFAULT_STYLE, TEMPLATE_LABELS } from "./templates";
 import {
@@ -17,30 +18,67 @@ import {
   detectLang,
   dirForLang,
   normToPxBBox,
+  bboxCenter,
+  remapClipPathWithBBox,
 } from "./utils";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import {
+  AlignCenter,
+  AlignCenterVertical,
+  AlignEndVertical,
+  AlignLeft,
+  AlignRight,
+  AlignStartVertical,
+  Eye,
+  EyeOff,
+  Lock,
+  Trash2,
+  Unlock,
+} from "lucide-react";
+import { FaAlignLeft, FaAlignCenter, FaAlignRight } from "react-icons/fa";
+import {
+  MdVerticalAlignTop,
+  MdVerticalAlignCenter,
+  MdVerticalAlignBottom,
+  MdOutlineFormatLineSpacing,
+} from "react-icons/md";
+import {
+  FiRefreshCcw,
+  FiChevronDown,
+  FiMinimize2,
+  FiMaximize2,
+  FiRotateCw,
+  FiType,
+  FiAlignCenter,
+  FiBold,
+  FiAlignRight,
+  FiAlignLeft,
+  FiItalic,
+} from "react-icons/fi";
+import { SmartSelect, type SelectOption } from "@/design/DeSelect";
+import { FiCopy, FiTrash2 } from "react-icons/fi";
+import {
+  TbBorderRadius,
+  TbSquareRounded,
+  TbSparkles,
+  TbBorderStyle2,
+  TbPalette,
+} from "react-icons/tb";
+import { MdOpacity } from "react-icons/md";
+import { FaFillDrip } from "react-icons/fa";
+import { HiOutlineScissors } from "react-icons/hi2";
+import { PiArrowBendDownRightBold } from "react-icons/pi";
+import {
+  RiColorFilterLine,
+  RiFontFamily,
+  RiLetterSpacing2,
+} from "react-icons/ri";
+import { HiOutlineSwitchHorizontal } from "react-icons/hi";
 
 function safeNum(v: any, fallback: number) {
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
-}
-
-function statusLabel(status: PageElement["status"]) {
-  switch (status) {
-    case "detected":
-      return "مكتشف";
-    case "edited":
-      return "مُعدَّل";
-    case "confirmed":
-      return "مؤكد";
-    case "needs_review":
-      return "يحتاج مراجعة";
-    case "deleted":
-      return "محذوف";
-    default:
-      return status;
-  }
 }
 
 function typeLabel(t: PageElement["elementType"]) {
@@ -177,32 +215,48 @@ export default function PropertiesPanel({
   function align(
     kind: "left" | "right" | "hCenter" | "top" | "bottom" | "vCenter",
   ) {
+    const oldB = el.geometry.container_bbox;
+
+    const newB = (() => {
+      const b = oldB;
+
+      const nx =
+        kind === "left"
+          ? 0
+          : kind === "right"
+            ? Math.max(0, 1 - b.w)
+            : kind === "hCenter"
+              ? clamp(0.5 - b.w / 2, 0, 1 - b.w)
+              : b.x;
+
+      const ny =
+        kind === "top"
+          ? 0
+          : kind === "bottom"
+            ? Math.max(0, 1 - b.h)
+            : kind === "vCenter"
+              ? clamp(0.5 - b.h / 2, 0, 1 - b.h)
+              : b.y;
+
+      return { ...b, x: nx, y: ny };
+    })();
+
+    const prevClip = (el.container.params as any)?.clipPath ?? null;
+    const nextClip = remapClipPathWithBBox({
+      clipPath: prevClip,
+      from: oldB,
+      to: newB,
+    });
+
     patchContent({
+      container: {
+        ...el.container,
+        params: { ...(el.container.params ?? {}), clipPath: nextClip ?? null },
+      },
       geometry: {
         ...el.geometry,
-        container_bbox: (() => {
-          const b = el.geometry.container_bbox;
-
-          const nx =
-            kind === "left"
-              ? 0
-              : kind === "right"
-                ? Math.max(0, 1 - b.w)
-                : kind === "hCenter"
-                  ? clamp(0.5 - b.w / 2, 0, 1 - b.w)
-                  : b.x;
-
-          const ny =
-            kind === "top"
-              ? 0
-              : kind === "bottom"
-                ? Math.max(0, 1 - b.h)
-                : kind === "vCenter"
-                  ? clamp(0.5 - b.h / 2, 0, 1 - b.h)
-                  : b.y;
-
-          return { ...b, x: nx, y: ny };
-        })(),
+        container_bbox: newB,
+        anchor: bboxCenter(newB),
       },
     });
   }
@@ -215,614 +269,699 @@ export default function PropertiesPanel({
   const translatedDir =
     detectLang(el.text.translated ?? "") === "ar" ? "rtl" : "ltr";
 
+  // new added
+  const options = useMemo<SelectOption[]>(
+    () =>
+      Object.entries(TEMPLATE_LABELS).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [TEMPLATE_LABELS],
+  );
+
+  const clipPointsLen =
+    ((el.container.params as any)?.clipPath?.points?.length as
+      | number
+      | undefined) ?? 0;
+
+  const dirOptions = useMemo<SelectOption[]>(
+    () => [
+      { value: "RTL", label: dirLabel("RTL") },
+      { value: "LTR", label: dirLabel("LTR") },
+      { value: "TTB", label: dirLabel("TTB") },
+    ],
+    [dirLabel],
+  );
+
+  const textColor = (
+    el.style.textFill ??
+    el.style.textColor ??
+    "#111111"
+  ).slice(0, 7);
+
+  const strokeColor = (el.style.textStroke ?? "#000000").slice(0, 7);
+  const alignOptions = useMemo<SelectOption[]>(
+    () => [
+      { value: "right", label: "يمين", icon: <FiAlignRight /> },
+      { value: "center", label: "وسط", icon: <FiAlignCenter /> },
+      { value: "left", label: "يسار", icon: <FiAlignLeft /> },
+    ],
+    [],
+  );
+
+  const styleOptions = useMemo<SelectOption[]>(
+    () => [
+      { value: "normal", label: "عادي", icon: <FiType /> },
+      { value: "bold", label: "عريض", icon: <FiBold /> },
+      { value: "italic", label: "مائل", icon: <FiItalic /> },
+      { value: "bold italic", label: "عريض مائل", icon: <FiBold /> },
+    ],
+    [],
+  );
+
   return (
-    <aside
-      className="w-[420px] border-l bg-white min-h-0 flex flex-col"
-      dir="rtl"
-      lang="ar"
-    >
-      <div className="p-4 border-b">
+    <aside className="w-90 border-l bg-white min-h-0 flex flex-col">
+      <div className="p-4 border-b bg-background">
+        {/* Top row: title + status chips */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-zinc-900 truncate">
-              #{el.readingOrder} • {typeLabel(el.elementType)}
-            </div>
-            <div className="mt-1 flex items-center gap-2 flex-wrap">
-              <Badge variant="neutral">
-                المصدر: {el.source === "ai" ? "ذكاء" : "مستخدم"}
-              </Badge>
-              <Badge
-                variant={
-                  el.status === "confirmed"
-                    ? "success"
-                    : el.status === "needs_review"
-                      ? "danger"
-                      : "neutral"
-                }
-              >
-                {statusLabel(el.status)}
-              </Badge>
-              <Badge variant="info">الثقة: {el.confidence.toFixed(2)}</Badge>
-            </div>
-          </div>
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="text-sm font-semibold text-foreground-strong truncate">
+                #{el.readingOrder} • {typeLabel(el.elementType)}
+              </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => patchMeta({ locked: !el.locked })}
-            >
-              {el.locked ? "فتح" : "قفل"}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => patchMeta({ hidden: !el.hidden })}
-            >
-              {el.hidden ? "إظهار" : "إخفاء"}
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              onClick={() => {
-                patchMeta({ status: "deleted" as any });
-                onSelect(null);
-              }}
-            >
-              حذف
-            </Button>
+              {/* Status chips */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {el.locked && (
+                  <span className="inline-flex items-center rounded-full border border-border-subtle bg-background-soft px-2 py-0.5 text-[11px] font-medium text-foreground">
+                    مقفل
+                  </span>
+                )}
+                {el.hidden && (
+                  <span className="inline-flex items-center rounded-full border border-border-subtle bg-background-soft px-2 py-0.5 text-[11px] font-medium text-foreground">
+                    مخفي
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Optional secondary line */}
+            <div className="mt-1 text-xs text-foreground-muted">
+              إدارة العنصر والتحكم بالظهور والقفل
+            </div>
           </div>
+        </div>
+
+        {/* Bottom actions bar */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <DeButton
+            size="sm"
+            variant="soft"
+            tone="neutral"
+            leftIcon={
+              el.locked ? (
+                <Unlock className="h-4 w-4" />
+              ) : (
+                <Lock className="h-4 w-4" />
+              )
+            }
+            onClick={() => patchMeta({ locked: !el.locked })}
+          >
+            {el.locked ? "فتح" : "قفل"}
+          </DeButton>
+
+          <DeButton
+            size="sm"
+            variant="soft"
+            tone="neutral"
+            leftIcon={
+              el.hidden ? (
+                <Eye className="h-4 w-4" />
+              ) : (
+                <EyeOff className="h-4 w-4" />
+              )
+            }
+            onClick={() => patchMeta({ hidden: !el.hidden })}
+          >
+            {el.hidden ? "إظهار" : "إخفاء"}
+          </DeButton>
+
+          <div className="flex-1" />
+
+          <DeButton
+            size="sm"
+            variant="solid"
+            tone="danger"
+            leftIcon={<Trash2 className="h-4 w-4" />}
+            onClick={() => {
+              patchMeta({ status: "deleted" as any });
+              onSelect(null);
+            }}
+          >
+            حذف
+          </DeButton>
         </div>
       </div>
 
       <div className="flex-1 min-h-0 overflow-auto p-4 space-y-3">
-        <Section title="سير العمل">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <div className="text-xs text-zinc-500">الحالة</div>
-              <select
-                className="w-full border rounded-lg px-3 py-2 text-sm bg-white"
-                value={el.status}
-                onChange={(e) => patchMeta({ status: e.target.value as any })}
-              >
-                <option value="detected">مكتشف</option>
-                <option value="edited">مُعدَّل</option>
-                <option value="confirmed">مؤكد</option>
-                <option value="needs_review">يحتاج مراجعة</option>
-                <option value="deleted">محذوف</option>
-              </select>
-            </div>
-
-            <div className="space-y-1">
-              <div className="text-xs text-zinc-500">ترتيب القراءة</div>
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                type="number"
-                min={1}
-                value={el.readingOrder}
-                onChange={(e) =>
-                  patchMeta({ readingOrder: Number(e.target.value || 1) })
-                }
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap mt-2">
-            <Button
+        <SectionBox title="محاذاة سريعة">
+          <div
+            className="w-full rounded-2xl 
+          border border-zinc-200/70 bg-zinc-50/70 p-2 
+          shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]
+          justify-between flex
+          "
+          >
+            <DeButton
+              iconOnly
               size="sm"
-              variant="outline"
-              onClick={() => patchMeta({ status: "confirmed" })}
+              variant="soft"
+              tone="neutral"
+              shape="circle"
+              aria-label="محاذاة يمين"
+              tooltip="يمين"
+              onClick={() => align("right")}
             >
-              تأكيد
-            </Button>
-            <Button
+              <FaAlignRight />
+            </DeButton>
+            <DeButton
+              iconOnly
               size="sm"
-              variant="outline"
-              onClick={() => patchMeta({ status: "needs_review" })}
-            >
-              يحتاج مراجعة
-            </Button>
-          </div>
-        </Section>
-
-        <Section title="محاذاة سريعة">
-          <div className="grid grid-cols-3 gap-2">
-            <Button size="sm" variant="outline" onClick={() => align("left")}>
-              يسار
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
+              variant="soft"
+              tone="neutral"
+              shape="circle"
+              aria-label="محاذاة وسط أفقي"
+              tooltip="وسط أفقي"
               onClick={() => align("hCenter")}
             >
-              وسط أفقي
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => align("right")}>
-              يمين
-            </Button>
-
-            <Button size="sm" variant="outline" onClick={() => align("top")}>
-              أعلى
-            </Button>
-            <Button
+              <FaAlignCenter />
+            </DeButton>
+            <DeButton
+              iconOnly
               size="sm"
-              variant="outline"
+              variant="soft"
+              tone="neutral"
+              shape="circle"
+              aria-label="محاذاة يسار"
+              tooltip="يسار"
+              onClick={() => align("left")}
+            >
+              <FaAlignLeft />
+            </DeButton>
+
+            <DeButton
+              iconOnly
+              size="sm"
+              variant="soft"
+              tone="neutral"
+              shape="circle"
+              aria-label="محاذاة أعلى"
+              tooltip="أعلى"
+              onClick={() => align("top")}
+            >
+              <MdVerticalAlignTop />
+            </DeButton>
+
+            <DeButton
+              iconOnly
+              size="sm"
+              variant="soft"
+              tone="neutral"
+              shape="circle"
+              aria-label="محاذاة وسط عمودي"
+              tooltip="وسط عمودي"
               onClick={() => align("vCenter")}
             >
-              وسط عمودي
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => align("bottom")}>
-              أسفل
-            </Button>
-          </div>
-        </Section>
+              <MdVerticalAlignCenter />
+            </DeButton>
 
-        <Section title="القالب">
-          <div className="flex gap-2">
-            <select
-              className="w-full border rounded-lg px-3 py-2 text-sm bg-white"
-              value={el.container.template_id}
-              onChange={(e) => {
-                const t = e.target.value as TemplateId;
-                patchContent({
-                  container: { ...el.container, template_id: t },
-                  style: { ...TEMPLATE_DEFAULT_STYLE[t], ...el.style },
-                });
-              }}
+            <DeButton
+              iconOnly
+              size="sm"
+              variant="soft"
+              tone="neutral"
+              shape="circle"
+              aria-label="محاذاة أسفل"
+              tooltip="أسفل"
+              onClick={() => align("bottom")}
             >
-              {Object.entries(TEMPLATE_LABELS).map(([id, label]) => (
-                <option key={id} value={id}>
-                  {label}
-                </option>
-              ))}
-            </select>
+              <MdVerticalAlignBottom />
+            </DeButton>
+          </div>
+        </SectionBox>
 
-            <Button
-              variant="outline"
+        <SectionBox title="القالب">
+          <div className="flex w-full max-w-full items-center gap-2 justify-between">
+            <div className="flex-1">
+              <SmartSelect
+                options={options}
+                value={el.container.template_id}
+                onChange={(value) => {
+                  const t = (value ?? el.container.template_id) as TemplateId;
+
+                  patchContent({
+                    container: { ...el.container, template_id: t },
+                    style: { ...TEMPLATE_DEFAULT_STYLE[t], ...el.style },
+                  });
+                }}
+                searchable
+                size="md"
+                variant="outline"
+                className="w-full"
+                placeholder="اختر قالبًا"
+              />
+            </div>
+
+            <DeButton
+              iconOnly
+              size="md"
+              variant="soft"
+              tone="neutral"
+              shape="circle"
+              aria-label="إعادة ضبط القالب"
+              tooltip="إعادة ضبط"
               onClick={() => {
                 const t = el.container.template_id;
                 patchContent({ style: { ...TEMPLATE_DEFAULT_STYLE[t] } });
               }}
             >
-              إعادة ضبط
-            </Button>
+              <FiRefreshCcw />
+            </DeButton>
           </div>
-        </Section>
+        </SectionBox>
 
-        <Section title="الحاوية">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="التعبئة">
-              <input
-                className="w-full h-10"
-                type="color"
-                value={(el.style.fill || "#ffffff").slice(0, 7)}
-                onChange={(e) =>
-                  patchContent({ style: { ...el.style, fill: e.target.value } })
+        <SectionBox title="الحاوية">
+          <div className="w-full rounded-2xl border border-zinc-200/70 bg-zinc-50/70 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {/* ClipPath */}
+              <Field
+                icon={<HiOutlineScissors />}
+                label="Clip-Path (AI)"
+                right={
+                  <div className="flex items-center gap-1.5">
+                    <DeButton
+                      iconOnly
+                      size="sm"
+                      variant="soft"
+                      tone="neutral"
+                      shape="circle"
+                      aria-label="نسخ ClipPath"
+                      tooltip="نسخ"
+                      className="shrink-0"
+                      onClick={() => {
+                        const v =
+                          (el.container.params as any)?.clipPath ?? null;
+                        navigator.clipboard?.writeText(JSON.stringify(v));
+                      }}
+                    >
+                      <FiCopy />
+                    </DeButton>
+
+                    <DeButton
+                      iconOnly
+                      size="sm"
+                      variant="soft"
+                      tone="danger"
+                      shape="circle"
+                      aria-label="إزالة ClipPath"
+                      tooltip="إزالة"
+                      className="shrink-0"
+                      onClick={() =>
+                        patchContent({
+                          container: {
+                            ...el.container,
+                            params: {
+                              ...(el.container.params ?? {}),
+                              clipPath: null,
+                              clipPathCss: null,
+                            },
+                          },
+                        })
+                      }
+                    >
+                      <FiTrash2 />
+                    </DeButton>
+                  </div>
                 }
-              />
-            </Field>
+              >
+                <div className="text-[11px] text-zinc-600">
+                  {clipPointsLen > 0 ? `نقاط: ${clipPointsLen}` : "—"}
+                </div>
+              </Field>
 
-            <Field label="الحدود">
-              <input
-                className="w-full h-10"
-                type="color"
-                value={(el.style.stroke || "#000000").slice(0, 7)}
-                onChange={(e) =>
-                  patchContent({
-                    style: { ...el.style, stroke: e.target.value },
-                  })
-                }
-              />
-            </Field>
+              {/* Fill */}
+              <Field icon={<FaFillDrip />} label="التعبئة">
+                <ColorInput
+                  value={(el.style.fill || "#ffffff").slice(0, 7)}
+                  onChange={(v) =>
+                    patchContent({ style: { ...el.style, fill: v } })
+                  }
+                />
+              </Field>
 
-            <Field label="سماكة الحدود">
-              <input
-                className="w-full"
-                type="range"
-                min={0}
-                max={10}
-                step={0.5}
-                value={el.style.strokeWidth}
-                onChange={(e) =>
-                  patchContent({
-                    style: {
-                      ...el.style,
-                      strokeWidth: Number(e.target.value || 0),
-                    },
-                  })
-                }
-              />
-              <div className="text-[11px] text-zinc-500">
-                {el.style.strokeWidth}px
-              </div>
-            </Field>
+              {/* Stroke */}
+              <Field icon={<RiColorFilterLine />} label="الحدود">
+                <ColorInput
+                  value={(el.style.stroke || "#000000").slice(0, 7)}
+                  onChange={(v) =>
+                    patchContent({ style: { ...el.style, stroke: v } })
+                  }
+                />
+              </Field>
 
-            <Field label="الشفافية">
-              <input
-                className="w-full"
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={el.style.opacity}
-                onChange={(e) =>
-                  patchContent({
-                    style: {
-                      ...el.style,
-                      opacity: Number(e.target.value || 1),
-                    },
-                  })
-                }
-              />
-              <div className="text-[11px] text-zinc-500">
-                {el.style.opacity}
-              </div>
-            </Field>
+              {/* Stroke width */}
+              <Field icon={<TbSquareRounded />} label="سماكة الحدود">
+                <RangeRow
+                  min={0}
+                  max={10}
+                  step={0.5}
+                  value={el.style.strokeWidth}
+                  onChange={(n) =>
+                    patchContent({
+                      style: { ...el.style, strokeWidth: Number(n || 0) },
+                    })
+                  }
+                  suffix={`${el.style.strokeWidth}px`}
+                />
+              </Field>
 
-            <Field label="الحاشية (Padding)">
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                type="number"
-                min={0}
-                value={safeNum(el.container.params?.padding, 12)}
-                onChange={(e) => {
-                  const v = Number(e.target.value || 0);
-                  patchContent({
-                    container: {
-                      ...el.container,
-                      params: { ...(el.container.params ?? {}), padding: v },
-                    },
-                  });
-                }}
-              />
-            </Field>
+              {/* Opacity */}
+              <Field icon={<MdOpacity />} label="الشفافية">
+                <RangeRow
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={el.style.opacity}
+                  onChange={(n) =>
+                    patchContent({
+                      style: { ...el.style, opacity: Number(n || 1) },
+                    })
+                  }
+                  suffix={`${el.style.opacity}`}
+                />
+              </Field>
 
-            <Field label="تدوير الزوايا">
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                type="number"
-                min={0}
-                value={safeNum(el.container.params?.cornerRadius, 18)}
-                onChange={(e) => {
-                  const v = Number(e.target.value || 0);
-                  patchContent({
-                    container: {
-                      ...el.container,
-                      params: {
-                        ...(el.container.params ?? {}),
-                        cornerRadius: v,
+              {/* Padding */}
+              <Field icon={<TbBorderRadius />} label="الحاشية (Padding)">
+                <NumberInput
+                  min={0}
+                  value={safeNum(el.container.params?.padding, 12)}
+                  onChange={(n) => {
+                    const v = Number(n || 0);
+                    patchContent({
+                      container: {
+                        ...el.container,
+                        params: { ...(el.container.params ?? {}), padding: v },
                       },
-                    },
-                  });
-                }}
-              />
-            </Field>
+                    });
+                  }}
+                />
+              </Field>
 
-            <Field label="عدد الأشواك (Burst)">
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                type="number"
-                min={3}
-                max={32}
-                value={safeNum(el.container.params?.spikes, 10)}
-                onChange={(e) => {
-                  const v = Number(e.target.value || 10);
-                  patchContent({
-                    container: {
-                      ...el.container,
-                      params: { ...(el.container.params ?? {}), spikes: v },
-                    },
-                  });
-                }}
-              />
-            </Field>
-
-            <Field label="تفعيل الذيل">
-              <label className="flex items-center gap-2 border rounded-lg px-3 py-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={!!el.container.params?.tailEnabled}
-                  onChange={(e) =>
+              {/* Corner radius */}
+              <Field icon={<TbSquareRounded />} label="تدوير الزوايا">
+                <NumberInput
+                  min={0}
+                  value={safeNum(el.container.params?.cornerRadius, 18)}
+                  onChange={(n) => {
+                    const v = Number(n || 0);
                     patchContent({
                       container: {
                         ...el.container,
                         params: {
                           ...(el.container.params ?? {}),
-                          tailEnabled: e.target.checked,
+                          cornerRadius: v,
+                        },
+                      },
+                    });
+                  }}
+                />
+              </Field>
+
+              {/* Spikes */}
+              <Field icon={<TbSparkles />} label="عدد الأشواك (Burst)">
+                <NumberInput
+                  min={3}
+                  max={32}
+                  value={safeNum(el.container.params?.spikes, 10)}
+                  onChange={(n) => {
+                    const v = Number(n || 10);
+                    patchContent({
+                      container: {
+                        ...el.container,
+                        params: { ...(el.container.params ?? {}), spikes: v },
+                      },
+                    });
+                  }}
+                />
+              </Field>
+
+              {/* Tail */}
+              <Field icon={<PiArrowBendDownRightBold />} label="تفعيل الذيل">
+                <ToggleRow
+                  checked={!!el.container.params?.tailEnabled}
+                  onChange={(checked) =>
+                    patchContent({
+                      container: {
+                        ...el.container,
+                        params: {
+                          ...(el.container.params ?? {}),
+                          tailEnabled: checked,
                         },
                       },
                     })
                   }
                 />
-                ذيل
-              </label>
-            </Field>
+              </Field>
+            </div>
           </div>
-        </Section>
+        </SectionBox>
 
-        <Section title="النص">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="حجم الخط">
-              <input
-                className="w-full"
-                type="range"
-                min={8}
-                max={80}
-                step={1}
-                value={el.style.fontSize}
-                onChange={(e) => setFontSize(Number(e.target.value || 16))}
-              />
-              <div className="text-[11px] text-zinc-500">
-                {el.style.fontSize}px
-              </div>
-            </Field>
+        <SectionBox title="النص">
+          <div className="w-full rounded-2xl border border-zinc-200/70 bg-zinc-50/70 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {/* Font size */}
+              <Field icon={<FiType />} label="حجم الخط">
+                <RangeRow
+                  min={8}
+                  max={80}
+                  step={1}
+                  value={el.style.fontSize}
+                  onChange={(n) => setFontSize(Number(n || 16))}
+                  suffix={`${el.style.fontSize}px`}
+                />
+              </Field>
 
-            <Field label="محاذاة">
-              <select
-                className="w-full border rounded-lg px-3 py-2 text-sm bg-white"
-                value={el.style.align}
-                onChange={(e) =>
-                  patchContent({
-                    style: { ...el.style, align: e.target.value as any },
-                  })
-                }
-              >
-                <option value="right">يمين</option>
-                <option value="center">وسط</option>
-                <option value="left">يسار</option>
-              </select>
-            </Field>
+              {/* Align (SmartSelect) */}
+              <Field icon={<FiAlignCenter />} label="محاذاة">
+                <SmartSelect
+                  options={alignOptions}
+                  value={el.style.align ?? "right"}
+                  onChange={(value) =>
+                    patchContent({
+                      style: { ...el.style, align: (value as any) ?? "right" },
+                    })
+                  }
+                  searchable={false}
+                  size="md"
+                  variant="outline"
+                  className="w-full"
+                />
+              </Field>
 
-            <Field label="نوع الخط">
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                value={el.style.fontFamily ?? "Arial"}
-                onChange={(e) =>
-                  patchContent({
-                    style: { ...el.style, fontFamily: e.target.value },
-                  })
-                }
-              />
-            </Field>
+              {/* Font family */}
+              <Field icon={<RiFontFamily />} label="نوع الخط">
+                <TextInput
+                  value={el.style.fontFamily ?? "Arial"}
+                  onChange={(v) =>
+                    patchContent({ style: { ...el.style, fontFamily: v } })
+                  }
+                />
+              </Field>
 
-            <Field label="نمط الخط">
-              <select
-                className="w-full border rounded-lg px-3 py-2 text-sm bg-white"
-                value={el.style.fontStyle ?? "normal"}
-                onChange={(e) =>
-                  patchContent({
-                    style: { ...el.style, fontStyle: e.target.value as any },
-                  })
-                }
-              >
-                <option value="normal">عادي</option>
-                <option value="bold">عريض</option>
-                <option value="italic">مائل</option>
-                <option value="bold italic">عريض مائل</option>
-              </select>
-            </Field>
+              {/* Font style (SmartSelect) */}
+              <Field icon={<FiBold />} label="نمط الخط">
+                <SmartSelect
+                  options={styleOptions}
+                  value={el.style.fontStyle ?? "normal"}
+                  onChange={(value) =>
+                    patchContent({
+                      style: {
+                        ...el.style,
+                        fontStyle: (value as any) ?? "normal",
+                      },
+                    })
+                  }
+                  searchable={false}
+                  size="md"
+                  variant="outline"
+                  className="w-full"
+                />
+              </Field>
 
-            <Field label="ارتفاع السطر">
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                type="number"
-                step={0.05}
-                value={el.style.lineHeight ?? 1.2}
-                onChange={(e) =>
-                  patchContent({
-                    style: {
-                      ...el.style,
-                      lineHeight: Number(e.target.value || 1.2),
-                    },
-                  })
-                }
-              />
-            </Field>
+              {/* Line height */}
+              <Field icon={<MdOutlineFormatLineSpacing />} label="ارتفاع السطر">
+                <NumberInput
+                  step={0.05}
+                  value={el.style.lineHeight ?? 1.2}
+                  onChange={(n) =>
+                    patchContent({
+                      style: { ...el.style, lineHeight: Number(n || 1.2) },
+                    })
+                  }
+                />
+              </Field>
 
-            <Field label="تباعد الحروف">
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                type="number"
-                step={0.5}
-                value={el.style.letterSpacing ?? 0}
-                onChange={(e) =>
-                  patchContent({
-                    style: {
-                      ...el.style,
-                      letterSpacing: Number(e.target.value || 0),
-                    },
-                  })
-                }
-              />
-            </Field>
+              {/* Letter spacing */}
+              <Field icon={<RiLetterSpacing2 />} label="تباعد الحروف">
+                <NumberInput
+                  step={0.5}
+                  value={el.style.letterSpacing ?? 0}
+                  onChange={(n) =>
+                    patchContent({
+                      style: { ...el.style, letterSpacing: Number(n || 0) },
+                    })
+                  }
+                />
+              </Field>
 
-            <Field label="لون النص">
-              <input
-                className="w-full h-10"
-                type="color"
-                value={(el.style.textFill ?? "#111111").slice(0, 7)}
-                onChange={(e) =>
-                  patchContent({
-                    style: { ...el.style, textFill: e.target.value },
-                  })
-                }
-              />
-            </Field>
+              {/* Text color */}
+              <Field icon={<TbPalette />} label="لون النص">
+                <ColorInput
+                  value={textColor}
+                  onChange={(v) =>
+                    patchContent({
+                      style: {
+                        ...el.style,
+                        textFill: v,
+                        textColor: v,
+                      },
+                    })
+                  }
+                />
+              </Field>
 
-            <Field label="حدود النص">
-              <input
-                className="w-full h-10"
-                type="color"
-                value={(el.style.textStroke ?? "#000000").slice(0, 7)}
-                onChange={(e) =>
-                  patchContent({
-                    style: { ...el.style, textStroke: e.target.value },
-                  })
-                }
-              />
-            </Field>
+              {/* Text stroke color */}
+              <Field icon={<TbBorderStyle2 />} label="حدود النص">
+                <ColorInput
+                  value={strokeColor}
+                  onChange={(v) =>
+                    patchContent({
+                      style: { ...el.style, textStroke: v },
+                    })
+                  }
+                />
+              </Field>
 
-            <Field label="سماكة حدود النص">
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                type="number"
-                min={0}
-                value={el.style.textStrokeWidth ?? 0}
-                onChange={(e) =>
-                  patchContent({
-                    style: {
-                      ...el.style,
-                      textStrokeWidth: Number(e.target.value || 0),
-                    },
-                  })
-                }
-              />
-            </Field>
+              {/* Text stroke width */}
+              <Field icon={<TbBorderStyle2 />} label="سماكة حدود النص">
+                <NumberInput
+                  min={0}
+                  value={el.style.textStrokeWidth ?? 0}
+                  onChange={(n) =>
+                    patchContent({
+                      style: {
+                        ...el.style,
+                        textStrokeWidth: Number(n || 0),
+                      },
+                    })
+                  }
+                />
+              </Field>
 
-            <Field label="تدوير النص (درجات)">
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                type="number"
-                value={el.style.textRotation ?? 0}
-                onChange={(e) =>
-                  patchContent({
-                    style: {
-                      ...el.style,
-                      textRotation: Number(e.target.value || 0),
-                    },
-                  })
-                }
-              />
-            </Field>
-          </div>
-
-          <div className="mt-3 grid gap-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="text-xs text-zinc-500">اتجاه الكتابة</div>
-              <select
-                className="border rounded-lg px-3 py-2 text-sm bg-white"
-                value={el.text.writingDirection}
-                onChange={(e) =>
-                  patchContent({
-                    text: {
-                      ...el.text,
-                      writingDirection: e.target.value as WritingDirection,
-                    },
-                  })
-                }
-              >
-                <option value="RTL">{dirLabel("RTL")}</option>
-                <option value="LTR">{dirLabel("LTR")}</option>
-                <option value="TTB">{dirLabel("TTB")}</option>
-              </select>
+              {/* Rotation */}
+              <Field icon={<FiRotateCw />} label="تدوير النص (درجات)">
+                <NumberInput
+                  value={el.style.textRotation ?? 0}
+                  onChange={(n) =>
+                    patchContent({
+                      style: {
+                        ...el.style,
+                        textRotation: Number(n || 0),
+                      },
+                    })
+                  }
+                />
+              </Field>
             </div>
 
-            <div className="rounded-xl border bg-zinc-50 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <div className="text-xs text-zinc-700 font-medium">
-                  تكبير/تصغير النص تلقائيًا مع الإطار
+            {/* Bottom controls */}
+            <div className="mt-3 grid gap-3">
+              <div className="rounded-2xl border border-zinc-200/70 bg-white/70 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200/70 bg-zinc-50 text-zinc-700">
+                      <HiOutlineSwitchHorizontal />
+                    </span>
+                    <span className="text-xs font-semibold text-zinc-900">
+                      اتجاه الكتابة
+                    </span>
+                  </div>
                 </div>
-                <label className="inline-flex items-center gap-2 text-xs">
-                  <input
-                    type="checkbox"
-                    checked={(el.style.fontSizeMode ?? "auto") === "auto"}
-                    onChange={(e) =>
-                      setFontSizeMode(e.target.checked ? "auto" : "manual")
-                    }
-                  />
-                  تفعيل
-                </label>
+
+                <SmartSelect
+                  options={dirOptions}
+                  value={el.text.writingDirection}
+                  onChange={(value) =>
+                    patchContent({
+                      text: {
+                        ...el.text,
+                        writingDirection: (value as WritingDirection) ?? "RTL",
+                      },
+                    })
+                  }
+                  searchable={false}
+                  size="md"
+                  variant="outline"
+                  className="w-full"
+                />
               </div>
-              <div className="text-[11px] text-zinc-500 mt-1">
-                إذا غيّرت حجم الخط من السلايدر يصبح “يدوي” تلقائيًا.
+
+              <div className="rounded-2xl border border-zinc-200/70 bg-white/70 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200/70 bg-zinc-50 text-zinc-700">
+                      <MdOpacity />
+                    </span>
+                    <div className="text-xs font-semibold text-zinc-900">
+                      تكبير/تصغير النص تلقائيًا مع الإطار
+                    </div>
+                  </div>
+
+                  <label className="inline-flex items-center gap-2 text-xs text-zinc-700">
+                    <input
+                      type="checkbox"
+                      checked={(el.style.fontSizeMode ?? "auto") === "auto"}
+                      onChange={(e) =>
+                        setFontSizeMode(e.target.checked ? "auto" : "manual")
+                      }
+                    />
+                  </label>
+                </div>
+
+                <div className="mt-1 text-[11px] text-zinc-500">
+                  إذا غيّرت حجم الخط من السلايدر يصبح “يدوي” تلقائيًا.
+                </div>
+
+                <div className="mt-3 flex items-center gap-2 flex-wrap">
+                  <DeButton
+                    leftIcon={<FiMaximize2 />}
+                    size="sm"
+                    variant="soft"
+                    tone="neutral"
+                    onClick={() => autoFit("original")}
+                  >
+                    ملاءمة للأصل
+                  </DeButton>
+
+                  <DeButton
+                    leftIcon={<FiMinimize2 />}
+                    size="sm"
+                    variant="soft"
+                    tone="neutral"
+                    onClick={() => autoFit("translated")}
+                  >
+                    ملاءمة للترجمة
+                  </DeButton>
+                </div>
               </div>
             </div>
-
-            <div className="flex items-center gap-2 flex-wrap">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => autoFit("original")}
-              >
-                ملاءمة تلقائية للأصل
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => autoFit("translated")}
-              >
-                ملاءمة تلقائية للترجمة
-              </Button>
-            </div>
           </div>
-        </Section>
+        </SectionBox>
 
-        <Section title="المحتوى">
-          <div className="space-y-2">
-            <div className="text-xs text-zinc-500">النص (الأصل)</div>
-            <textarea
-              className="w-full border rounded-xl px-3 py-2 min-h-[90px] text-sm"
-              dir={originalDir}
-              value={el.text.original}
-              onChange={(e) => {
-                const original = e.target.value;
-                const lang = detectLang(original);
-                patchContent({
-                  text: {
-                    ...el.text,
-                    original,
-                    lang,
-                    writingDirection: dirForLang(lang),
-                  },
-                });
-              }}
-            />
-
-            <div className="text-xs text-zinc-500">النص (الترجمة)</div>
-            <textarea
-              className="w-full border rounded-xl px-3 py-2 min-h-[90px] text-sm"
-              dir={translatedDir}
-              value={el.text.translated ?? ""}
-              onChange={(e) =>
-                patchContent({
-                  text: { ...el.text, translated: e.target.value },
-                })
-              }
-            />
-          </div>
-        </Section>
-
-        <Section title="ملاحظات">
+        <SectionBox title="ملاحظات">
           <textarea
             className="w-full border rounded-xl px-3 py-2 min-h-[80px] text-sm"
             value={el.notes ?? ""}
             onChange={(e) => patchMeta({ notes: e.target.value })}
           />
-        </Section>
-
-        <Section title="الهندسة">
-          <div className="text-xs text-zinc-600">
-            container_bbox: x={el.geometry.container_bbox.x.toFixed(3)} y=
-            {el.geometry.container_bbox.y.toFixed(3)} w=
-            {el.geometry.container_bbox.w.toFixed(3)} h=
-            {el.geometry.container_bbox.h.toFixed(3)}
-          </div>
-
-          <div className="mt-2 text-xs text-zinc-500">
-            px: x={meta.px.x.toFixed(0)} y={meta.px.y.toFixed(0)} w=
-            {meta.px.w.toFixed(0)} h={meta.px.h.toFixed(0)}
-          </div>
-
-          <div className="mt-2 text-xs text-zinc-500">
-            rotation: {safeNum(el.geometry.rotation, 0).toFixed(1)}°
-          </div>
-        </Section>
+        </SectionBox>
       </div>
     </aside>
   );
 }
 
-function Section({
+function SectionBox({
   title,
   children,
 }: {
@@ -831,29 +970,161 @@ function Section({
 }) {
   return (
     <details
-      className="rounded-2xl border bg-white shadow-sm overflow-hidden"
+      className="group w-full max-w-full overflow-hidden rounded-2xl border border-zinc-200/70 bg-white/70 shadow-sm ring-1 ring-black/5 backdrop-blur supports-[backdrop-filter]:bg-white/50"
       open
     >
-      <summary className="cursor-pointer select-none px-4 py-3 border-b bg-zinc-50 flex items-center justify-between">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-zinc-200/60 bg-gradient-to-b from-white to-zinc-50/70 px-4 py-3 select-none [&::-webkit-details-marker]:hidden">
         <span className="text-sm font-semibold text-zinc-900">{title}</span>
-        <span className="text-xs text-zinc-500">فتح/طي</span>
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200/70 bg-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+          <FiChevronDown className="text-zinc-600 transition-transform duration-200 group-open:rotate-180" />
+        </span>
       </summary>
-      <div className="p-4">{children}</div>
+
+      <div className="p-3">{children}</div>
     </details>
   );
 }
 
 function Field({
+  icon,
   label,
+  right,
   children,
 }: {
+  icon: React.ReactNode;
   label: string;
+  right?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1">
-      <div className="text-xs text-zinc-500">{label}</div>
-      {children}
+    <div className="rounded-2xl border border-zinc-200/70 bg-white/70 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+      <div className="mb-2 flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200/70 bg-zinc-50 text-zinc-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+            {icon}
+          </span>
+          <span className="truncate text-xs font-semibold text-zinc-900">
+            {label}
+          </span>
+        </div>
+        {right ? <div className="shrink-0">{right}</div> : null}
+      </div>
+
+      <div className="space-y-2">{children}</div>
     </div>
+  );
+}
+
+function ColorInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="flex items-center gap-2 rounded-xl border border-zinc-200/70 bg-white px-2 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+      <input
+        className="h-9 w-10 cursor-pointer rounded-lg border border-zinc-200"
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label="color"
+      />
+      <div className="flex-1 min-w-0 rounded-lg border border-zinc-200/70 bg-zinc-50 px-2 py-1.5 text-[11px] text-zinc-700 tabular-nums">
+        {value.toUpperCase()}
+      </div>
+    </label>
+  );
+}
+
+function NumberInput({
+  value,
+  onChange,
+  min,
+  max,
+}: {
+  value: number;
+  onChange: (n: number) => void;
+  min?: number;
+  max?: number;
+}) {
+  return (
+    <input
+      className="w-full rounded-xl border border-zinc-200/70 bg-white px-3 py-2 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] focus:outline-none focus:ring-2 focus:ring-zinc-200"
+      type="number"
+      min={min}
+      max={max}
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value || 0))}
+    />
+  );
+}
+
+function RangeRow({
+  min,
+  max,
+  step,
+  value,
+  onChange,
+  suffix,
+}: {
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  onChange: (n: number) => void;
+  suffix: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <input
+        className="w-full accent-black"
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+      <div className="text-[11px] text-zinc-500 tabular-nums">{suffix}</div>
+    </div>
+  );
+}
+
+function ToggleRow({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200/70 bg-white px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+      <span className="text-sm text-zinc-800">ذيل</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="h-4 w-4"
+        aria-label="tail"
+      />
+    </label>
+  );
+}
+
+function TextInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <input
+      className="w-full rounded-xl border border-zinc-200/70 bg-white px-3 py-2 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] focus:outline-none focus:ring-2 focus:ring-zinc-200"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
   );
 }

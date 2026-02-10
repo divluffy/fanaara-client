@@ -22,6 +22,9 @@ const HomePage = ({ user }: { user?: UserProps }) => {
 
   return (
     <main className="min-h-screen  bg-amber-300">
+
+      <hr />
+      <hr />
       <h1 className="text-2xl font-semibold">
         أهلاً
         {/* {user?.name}  */}

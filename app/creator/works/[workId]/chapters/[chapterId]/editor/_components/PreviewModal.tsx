@@ -104,6 +104,13 @@ export default function PreviewModal({
                 {page.image.originalFilename}
               </div>
             </div>
+            
+            <div className="rounded-xl border bg-white p-3">
+              <div className="text-sm font-semibold mb-2">Alt (EN)</div>
+              <div className="text-sm text-zinc-700">
+                {page.annotations?.meta.imageAltEn ?? "—"}
+              </div>
+            </div>
 
             <div className="rounded-xl border bg-white p-3">
               <div className="text-sm font-semibold mb-2">
