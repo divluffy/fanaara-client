@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8be9fd" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ff79c6" stop-opacity="0.28"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b2f3a"/>
+      <stop offset="1" stop-color="#1b1e26"/>
+    </linearGradient>
+    <linearGradient id="hood" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2dd4bf" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#a78bfa" stop-opacity="0.85"/>
+    </linearGradient>
+  </defs>
+
+  <!-- soft background blob -->
+  <circle cx="320" cy="320" r="260" fill="url(#bg)"/>
+  <circle cx="210" cy="250" r="110" fill="#ffffff" opacity="0.18"/>
+  <circle cx="430" cy="390" r="130" fill="#ffffff" opacity="0.10"/>
+
+  <!-- shadow -->
+  <ellipse cx="320" cy="540" rx="170" ry="34" fill="#000" opacity="0.12"/>
+
+  <!-- hoodie -->
+  <path d="M190 520c10-130 70-210 130-220h0c60 10 120 90 130 220"
+        fill="url(#hood)" stroke="#ffffff" stroke-opacity="0.22" stroke-width="10" stroke-linecap="round"/>
+  <path d="M240 520c8-90 40-145 80-152h0c40 7 72 62 80 152"
+        fill="#0b1220" opacity="0.18"/>
+
+  <!-- face -->
+  <circle cx="320" cy="275" r="130" fill="#ffd8c8" stroke="#ffffff" stroke-opacity="0.24" stroke-width="10"/>
+
+  <!-- hair back -->
+  <path d="M205 290c-10-90 35-160 115-175 105-20 175 65 150 190
+           -10-55-35-80-60-95-25 35-65 60-120 62-35 1-60 8-85 18z"
+        fill="url(#hair)"/>
+
+  <!-- bangs -->
+  <path d="M220 220c35-60 90-95 165-70 35 12 55 40 60 72
+           -30-30-60-35-85-22-18 10-38 30-68 38-30 8-52 2-72-18z"
+        fill="#222633" opacity="0.95"/>
+
+  <!-- eyes -->
+  <path d="M265 285c18-18 40-18 58 0" fill="none" stroke="#2b2f3a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M355 285c18-18 40-18 58 0" fill="none" stroke="#2b2f3a" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- blush -->
+  <ellipse cx="250" cy="325" rx="26" ry="16" fill="#ff6b9a" opacity="0.22"/>
+  <ellipse cx="390" cy="325" rx="26" ry="16" fill="#ff6b9a" opacity="0.22"/>
+
+  <!-- sad mouth -->
+  <path d="M290 370c18-20 42-20 60 0" fill="none" stroke="#2b2f3a" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- tear -->
+  <path d="M410 312c18 22 18 52 0 72-18-20-18-50 0-72z" fill="#60a5fa" opacity="0.9"/>
+  <circle cx="410" cy="380" r="10" fill="#60a5fa" opacity="0.85"/>
+
+  <!-- broken tiny heart -->
+  <path d="M470 180c18-20 45-6 45 15 0 30-45 55-45 55s-45-25-45-55c0-21 27-35 45-15z"
+        fill="#ff3b7a" opacity="0.25"/>
+  <path d="M470 180l10 18-12 15 14 20" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- caption -->
+  <text x="320" y="610" text-anchor="middle"
+        font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial"
+        font-size="22" font-weight="800" fill="#ffffff" opacity="0.85">
+    No results... try another filter
+  </text>
+</svg>

@@ -1,7 +1,13 @@
 // app/(logged)/ranks/_components/RanksClient.tsx
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -25,7 +31,10 @@ import {
 } from "react-icons/io5";
 
 import { Button as DeButton } from "@/design/DeButton";
-import { RanksListSkeleton, RanksTop3Skeleton } from "./_components/RanksListSkeleton";
+import {
+  RanksListSkeleton,
+  RanksTop3Skeleton,
+} from "./_components/RanksListSkeleton";
 
 /* -------------------------------------------------------------------------------------------------
  * Types
@@ -110,7 +119,13 @@ type UserItem = RankItemBase & {
   badge: "Creator" | "Fan" | "Moderator";
 };
 
-type RankItem = AnimeItem | MangaItem | CharacterItem | StudioItem | EpisodeItem | UserItem;
+type RankItem =
+  | AnimeItem
+  | MangaItem
+  | CharacterItem
+  | StudioItem
+  | EpisodeItem
+  | UserItem;
 
 type TabConfig = {
   id: RankKind;
@@ -174,7 +189,10 @@ function pick<T>(r: () => number, arr: T[]) {
 function compactNumber(n: number, dir: Dir) {
   try {
     const locale = dir === "rtl" ? "ar" : "en";
-    return new Intl.NumberFormat(locale, { notation: "compact", maximumFractionDigits: 1 }).format(n);
+    return new Intl.NumberFormat(locale, {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(n);
   } catch {
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
     if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
@@ -182,7 +200,11 @@ function compactNumber(n: number, dir: Dir) {
   }
 }
 
-function formatMetricValue(v: number, fmt: "score" | "compact" | undefined, dir: Dir) {
+function formatMetricValue(
+  v: number,
+  fmt: "score" | "compact" | undefined,
+  dir: Dir,
+) {
   if (fmt === "score") return v.toFixed(2);
   return compactNumber(Math.round(v), dir);
 }
@@ -213,20 +235,34 @@ function useDocumentDir(): Dir {
  * Config (Tabs, Metrics, Filters, Time, Sort)
  * ------------------------------------------------------------------------------------------------- */
 
-const TIME_RANGES: Array<{ id: TimeRangeId; label: { ar: string; en: string } }> = [
+const TIME_RANGES: Array<{
+  id: TimeRangeId;
+  label: { ar: string; en: string };
+}> = [
   { id: "24h", label: { ar: "آخر 24 ساعة", en: "Last 24h" } },
   { id: "week", label: { ar: "هذا الأسبوع", en: "This week" } },
   { id: "month", label: { ar: "هذا الشهر", en: "This month" } },
   { id: "all", label: { ar: "كل الوقت", en: "All time" } },
 ];
 
-const SORTS: Array<{ id: SortId; label: { ar: string; en: string }; icon: React.ComponentType<{ className?: string }> }> =
-  [
-    { id: "top", label: { ar: "الأعلى", en: "Top" }, icon: IoTrendingUp },
-    { id: "worst", label: { ar: "الأسوأ", en: "Worst" }, icon: IoTrendingDown },
-    { id: "rising", label: { ar: "الأكثر صعودًا", en: "Rising" }, icon: IoTrendingUp },
-    { id: "falling", label: { ar: "الأكثر هبوطًا", en: "Falling" }, icon: IoTrendingDown },
-  ];
+const SORTS: Array<{
+  id: SortId;
+  label: { ar: string; en: string };
+  icon: React.ComponentType<{ className?: string }>;
+}> = [
+  { id: "top", label: { ar: "الأعلى", en: "Top" }, icon: IoTrendingUp },
+  { id: "worst", label: { ar: "الأسوأ", en: "Worst" }, icon: IoTrendingDown },
+  {
+    id: "rising",
+    label: { ar: "الأكثر صعودًا", en: "Rising" },
+    icon: IoTrendingUp,
+  },
+  {
+    id: "falling",
+    label: { ar: "الأكثر هبوطًا", en: "Falling" },
+    icon: IoTrendingDown,
+  },
+];
 
 const TABS: TabConfig[] = [
   {
@@ -235,10 +271,30 @@ const TABS: TabConfig[] = [
     icon: IoPlayCircleOutline,
     defaultMetric: "score",
     metrics: [
-      { id: "score", label: { ar: "التقييم", en: "Score" }, icon: IoStar, format: "score" },
-      { id: "hype", label: { ar: "الزخم", en: "Hype" }, icon: IoTrendingUp, format: "compact" },
-      { id: "saves", label: { ar: "الحفظ", en: "Saves" }, icon: IoBookmarkOutline, format: "compact" },
-      { id: "discussed", label: { ar: "النقاش", en: "Discussed" }, icon: IoChatbubbleEllipsesOutline, format: "compact" },
+      {
+        id: "score",
+        label: { ar: "التقييم", en: "Score" },
+        icon: IoStar,
+        format: "score",
+      },
+      {
+        id: "hype",
+        label: { ar: "الزخم", en: "Hype" },
+        icon: IoTrendingUp,
+        format: "compact",
+      },
+      {
+        id: "saves",
+        label: { ar: "الحفظ", en: "Saves" },
+        icon: IoBookmarkOutline,
+        format: "compact",
+      },
+      {
+        id: "discussed",
+        label: { ar: "النقاش", en: "Discussed" },
+        icon: IoChatbubbleEllipsesOutline,
+        format: "compact",
+      },
     ],
     filters: [
       {
@@ -271,10 +327,30 @@ const TABS: TabConfig[] = [
     icon: IoBookOutline,
     defaultMetric: "score",
     metrics: [
-      { id: "score", label: { ar: "التقييم", en: "Score" }, icon: IoStar, format: "score" },
-      { id: "saves", label: { ar: "الحفظ", en: "Saves" }, icon: IoBookmarkOutline, format: "compact" },
-      { id: "discussed", label: { ar: "النقاش", en: "Discussed" }, icon: IoChatbubbleEllipsesOutline, format: "compact" },
-      { id: "hype", label: { ar: "الزخم", en: "Hype" }, icon: IoTrendingUp, format: "compact" },
+      {
+        id: "score",
+        label: { ar: "التقييم", en: "Score" },
+        icon: IoStar,
+        format: "score",
+      },
+      {
+        id: "saves",
+        label: { ar: "الحفظ", en: "Saves" },
+        icon: IoBookmarkOutline,
+        format: "compact",
+      },
+      {
+        id: "discussed",
+        label: { ar: "النقاش", en: "Discussed" },
+        icon: IoChatbubbleEllipsesOutline,
+        format: "compact",
+      },
+      {
+        id: "hype",
+        label: { ar: "الزخم", en: "Hype" },
+        icon: IoTrendingUp,
+        format: "compact",
+      },
     ],
     filters: [
       {
@@ -307,9 +383,24 @@ const TABS: TabConfig[] = [
     icon: IoPeopleOutline,
     defaultMetric: "favorites",
     metrics: [
-      { id: "favorites", label: { ar: "المفضلة", en: "Favorites" }, icon: IoHeartOutline, format: "compact" },
-      { id: "hype", label: { ar: "الزخم", en: "Hype" }, icon: IoTrendingUp, format: "compact" },
-      { id: "discussed", label: { ar: "الذكر", en: "Mentions" }, icon: IoChatbubbleEllipsesOutline, format: "compact" },
+      {
+        id: "favorites",
+        label: { ar: "المفضلة", en: "Favorites" },
+        icon: IoHeartOutline,
+        format: "compact",
+      },
+      {
+        id: "hype",
+        label: { ar: "الزخم", en: "Hype" },
+        icon: IoTrendingUp,
+        format: "compact",
+      },
+      {
+        id: "discussed",
+        label: { ar: "الذكر", en: "Mentions" },
+        icon: IoChatbubbleEllipsesOutline,
+        format: "compact",
+      },
     ],
     filters: [
       {
@@ -342,9 +433,24 @@ const TABS: TabConfig[] = [
     icon: IoShareSocialOutline,
     defaultMetric: "followers",
     metrics: [
-      { id: "followers", label: { ar: "المتابعون", en: "Followers" }, icon: IoPeopleOutline, format: "compact" },
-      { id: "output", label: { ar: "الإنتاج", en: "Output" }, icon: IoTrendingUp, format: "compact" },
-      { id: "score", label: { ar: "متوسط التقييم", en: "Avg score" }, icon: IoStar, format: "score" },
+      {
+        id: "followers",
+        label: { ar: "المتابعون", en: "Followers" },
+        icon: IoPeopleOutline,
+        format: "compact",
+      },
+      {
+        id: "output",
+        label: { ar: "الإنتاج", en: "Output" },
+        icon: IoTrendingUp,
+        format: "compact",
+      },
+      {
+        id: "score",
+        label: { ar: "متوسط التقييم", en: "Avg score" },
+        icon: IoStar,
+        format: "score",
+      },
     ],
     filters: [
       {
@@ -377,9 +483,24 @@ const TABS: TabConfig[] = [
     icon: IoTimeOutline,
     defaultMetric: "reactions",
     metrics: [
-      { id: "reactions", label: { ar: "التفاعل", en: "Reactions" }, icon: IoHeartOutline, format: "compact" },
-      { id: "discussed", label: { ar: "التعليقات", en: "Comments" }, icon: IoChatbubbleEllipsesOutline, format: "compact" },
-      { id: "hype", label: { ar: "الزخم", en: "Hype" }, icon: IoTrendingUp, format: "compact" },
+      {
+        id: "reactions",
+        label: { ar: "التفاعل", en: "Reactions" },
+        icon: IoHeartOutline,
+        format: "compact",
+      },
+      {
+        id: "discussed",
+        label: { ar: "التعليقات", en: "Comments" },
+        icon: IoChatbubbleEllipsesOutline,
+        format: "compact",
+      },
+      {
+        id: "hype",
+        label: { ar: "الزخم", en: "Hype" },
+        icon: IoTrendingUp,
+        format: "compact",
+      },
     ],
     filters: [
       {
@@ -411,10 +532,30 @@ const TABS: TabConfig[] = [
     icon: IoPeopleOutline,
     defaultMetric: "senko",
     metrics: [
-      { id: "senko", label: { ar: "سينكو", en: "Senko" }, icon: IoStar, format: "compact" },
-      { id: "ashbiya", label: { ar: "العشبية", en: "Ashbiya" }, icon: IoTrendingUp, format: "compact" },
-      { id: "followers", label: { ar: "المتابعون", en: "Followers" }, icon: IoPeopleOutline, format: "compact" },
-      { id: "discussed", label: { ar: "التفاعل", en: "Engagement" }, icon: IoChatbubbleEllipsesOutline, format: "compact" },
+      {
+        id: "senko",
+        label: { ar: "سينكو", en: "Senko" },
+        icon: IoStar,
+        format: "compact",
+      },
+      {
+        id: "ashbiya",
+        label: { ar: "العشبية", en: "Ashbiya" },
+        icon: IoTrendingUp,
+        format: "compact",
+      },
+      {
+        id: "followers",
+        label: { ar: "المتابعون", en: "Followers" },
+        icon: IoPeopleOutline,
+        format: "compact",
+      },
+      {
+        id: "discussed",
+        label: { ar: "التفاعل", en: "Engagement" },
+        icon: IoChatbubbleEllipsesOutline,
+        format: "compact",
+      },
     ],
     filters: [
       {
@@ -519,8 +660,30 @@ function generateRankItems(params: {
   const seed = `${kind}|${metric}|${timeRange}|${sort}|${filterA}|${filterB}`;
   const rand = mulberry32(hashStringToInt(seed));
 
-  const titleAtomsAr = ["أسطورة", "شظايا", "ليلة", "نار", "قمر", "ظلال", "عاصفة", "ومضة", "نجم", "بوابة"];
-  const titleAtomsEn = ["Legend", "Shards", "Night", "Ember", "Moon", "Shadows", "Storm", "Spark", "Star", "Gate"];
+  const titleAtomsAr = [
+    "أسطورة",
+    "شظايا",
+    "ليلة",
+    "نار",
+    "قمر",
+    "ظلال",
+    "عاصفة",
+    "ومضة",
+    "نجم",
+    "بوابة",
+  ];
+  const titleAtomsEn = [
+    "Legend",
+    "Shards",
+    "Night",
+    "Ember",
+    "Moon",
+    "Shadows",
+    "Storm",
+    "Spark",
+    "Star",
+    "Gate",
+  ];
 
   const tagsPool = [
     "أكشن",
@@ -535,13 +698,25 @@ function generateRankItems(params: {
     "ملحمي",
   ];
 
-  const studios = ["MAPPA-ish", "Kyoto-ish", "Bones-ish", "Wit-ish", "Clover-ish"];
+  const studios = [
+    "MAPPA-ish",
+    "Kyoto-ish",
+    "Bones-ish",
+    "Wit-ish",
+    "Clover-ish",
+  ];
   const magazines = ["Jump-ish", "Young-ish", "Ultra-ish", "Edge-ish"];
   const origins = ["Fanaara", "Shonen", "Seinen"];
 
   // volatility: 24h > week > month > all
   const trendMax =
-    timeRange === "24h" ? 12 : timeRange === "week" ? 9 : timeRange === "month" ? 6 : 3;
+    timeRange === "24h"
+      ? 12
+      : timeRange === "week"
+        ? 9
+        : timeRange === "month"
+          ? 6
+          : 3;
 
   const count = 100;
 
@@ -570,9 +745,36 @@ function generateRankItems(params: {
 
     // Metric value (tab-aware)
     const scoreBase = 9.85 - idx * 0.025 + (rand() - 0.5) * 0.18;
-    const hypeBase = (count - idx) * (timeRange === "24h" ? 180 : timeRange === "week" ? 120 : timeRange === "month" ? 80 : 40) + rand() * 90;
-    const savesBase = (count - idx) * (timeRange === "24h" ? 70 : timeRange === "week" ? 90 : timeRange === "month" ? 110 : 150) + rand() * 120;
-    const discussedBase = (count - idx) * (timeRange === "24h" ? 45 : timeRange === "week" ? 60 : timeRange === "month" ? 85 : 120) + rand() * 70;
+    const hypeBase =
+      (count - idx) *
+        (timeRange === "24h"
+          ? 180
+          : timeRange === "week"
+            ? 120
+            : timeRange === "month"
+              ? 80
+              : 40) +
+      rand() * 90;
+    const savesBase =
+      (count - idx) *
+        (timeRange === "24h"
+          ? 70
+          : timeRange === "week"
+            ? 90
+            : timeRange === "month"
+              ? 110
+              : 150) +
+      rand() * 120;
+    const discussedBase =
+      (count - idx) *
+        (timeRange === "24h"
+          ? 45
+          : timeRange === "week"
+            ? 60
+            : timeRange === "month"
+              ? 85
+              : 120) +
+      rand() * 70;
     const favoritesBase = (count - idx) * 120 + rand() * 240;
     const followersBase = (count - idx) * 220 + rand() * 500;
     const outputBase = (count - idx) * 4 + rand() * 8;
@@ -651,7 +853,12 @@ function generateRankItems(params: {
     }
 
     if (kind === "manga") {
-      const format = pick(rand, ["Manga", "Manhwa", "Novel", "One-shot"] as const);
+      const format = pick(rand, [
+        "Manga",
+        "Manhwa",
+        "Novel",
+        "One-shot",
+      ] as const);
       const status = pick(rand, ["Publishing", "Finished"] as const);
       const volumes = format === "One-shot" ? 1 : Math.floor(rand() * 22) + 2;
       const magazine = pick(rand, magazines);
@@ -757,7 +964,8 @@ function generateRankItems(params: {
         if (season !== filterB) return false;
       }
       if (it.kind === "user") {
-        const bucket = it.level <= 20 ? "1-20" : it.level <= 50 ? "21-50" : "51+";
+        const bucket =
+          it.level <= 20 ? "1-20" : it.level <= 50 ? "21-50" : "51+";
         if (bucket !== filterB) return false;
       }
     }
@@ -847,32 +1055,71 @@ function RankDelta({
             : `Down ${Math.abs(delta)}`
       }
     >
-      {up ? <IoTrendingUp className="text-[14px]" /> : <IoTrendingDown className="text-[14px]" />}
+      {up ? (
+        <IoTrendingUp className="text-[14px]" />
+      ) : (
+        <IoTrendingDown className="text-[14px]" />
+      )}
       <span>{Math.abs(delta)}</span>
     </span>
   );
 }
 
 function RankEmblem({ rank }: { rank: number }) {
-  if (rank === 1) return <span aria-hidden className="text-base">👑</span>;
-  if (rank === 2) return <span aria-hidden className="text-base">🥈</span>;
-  if (rank === 3) return <span aria-hidden className="text-base">🥉</span>;
-  if (rank <= 10) return <span aria-hidden className="text-base">✦</span>;
-  return <span aria-hidden className="text-base">•</span>;
+  if (rank === 1)
+    return (
+      <span aria-hidden className="text-base">
+        👑
+      </span>
+    );
+  if (rank === 2)
+    return (
+      <span aria-hidden className="text-base">
+        🥈
+      </span>
+    );
+  if (rank === 3)
+    return (
+      <span aria-hidden className="text-base">
+        🥉
+      </span>
+    );
+  if (rank <= 10)
+    return (
+      <span aria-hidden className="text-base">
+        ✦
+      </span>
+    );
+  return (
+    <span aria-hidden className="text-base">
+      •
+    </span>
+  );
 }
 
 function MangaBackdrop({ reduceMotion }: { reduceMotion: boolean }) {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+    >
       {/* Gradient blobs (subtle, reduce-motion safe) */}
       <motion.div
         className="absolute -top-28 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-violet-500/20 blur-[120px]"
-        animate={reduceMotion ? undefined : { scale: [1, 1.08, 1], opacity: [0.65, 1, 0.65] }}
+        animate={
+          reduceMotion
+            ? undefined
+            : { scale: [1, 1.08, 1], opacity: [0.65, 1, 0.65] }
+        }
         transition={{ duration: 8.5, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
         className="absolute -bottom-24 right-[-60px] h-[380px] w-[380px] rounded-full bg-cyan-400/14 blur-[130px]"
-        animate={reduceMotion ? undefined : { scale: [1, 1.06, 1], opacity: [0.55, 0.9, 0.55] }}
+        animate={
+          reduceMotion
+            ? undefined
+            : { scale: [1, 1.06, 1], opacity: [0.55, 0.9, 0.55] }
+        }
         transition={{ duration: 9.2, repeat: Infinity, ease: "easeInOut" }}
       />
 
@@ -960,7 +1207,12 @@ function Chip({
  * Cards (tab-specific)
  * ------------------------------------------------------------------------------------------------- */
 
-const spring = { type: "spring" as const, stiffness: 520, damping: 36, mass: 0.9 };
+const spring = {
+  type: "spring" as const,
+  stiffness: 520,
+  damping: 36,
+  mass: 0.9,
+};
 
 function RowCard({
   item,
@@ -988,7 +1240,11 @@ function RowCard({
       ? "bg-brand-500/10 border border-brand-500/15"
       : "bg-surface-soft border border-border-subtle";
 
-  const metricValueText = formatMetricValue(item.metricValue, metricFormat, dir);
+  const metricValueText = formatMetricValue(
+    item.metricValue,
+    metricFormat,
+    dir,
+  );
 
   const actionStop = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -1018,10 +1274,21 @@ function RowCard({
             <IoPlayCircleOutline className="text-[14px] text-brand-500" />
             <span className="font-semibold">{it.format}</span>
             <span className="opacity-70">•</span>
-            <span>{it.episodes}{dir === "rtl" ? " حلقة" : " eps"}</span>
+            <span>
+              {it.episodes}
+              {dir === "rtl" ? " حلقة" : " eps"}
+            </span>
           </span>
           <span className="opacity-60">•</span>
-          <span className="font-semibold">{it.status === "Airing" ? (dir === "rtl" ? "يعرض الآن" : "Airing") : (dir === "rtl" ? "مكتمل" : "Finished")}</span>
+          <span className="font-semibold">
+            {it.status === "Airing"
+              ? dir === "rtl"
+                ? "يعرض الآن"
+                : "Airing"
+              : dir === "rtl"
+                ? "مكتمل"
+                : "Finished"}
+          </span>
           <span className="opacity-60">•</span>
           <span className="truncate max-w-[160px]">{it.studio}</span>
         </div>
@@ -1036,10 +1303,21 @@ function RowCard({
             <IoBookOutline className="text-[14px] text-brand-500" />
             <span className="font-semibold">{it.format}</span>
             <span className="opacity-70">•</span>
-            <span>{it.volumes}{dir === "rtl" ? " مجلد" : " vols"}</span>
+            <span>
+              {it.volumes}
+              {dir === "rtl" ? " مجلد" : " vols"}
+            </span>
           </span>
           <span className="opacity-60">•</span>
-          <span className="font-semibold">{it.status === "Publishing" ? (dir === "rtl" ? "ينشر الآن" : "Publishing") : (dir === "rtl" ? "مكتمل" : "Finished")}</span>
+          <span className="font-semibold">
+            {it.status === "Publishing"
+              ? dir === "rtl"
+                ? "ينشر الآن"
+                : "Publishing"
+              : dir === "rtl"
+                ? "مكتمل"
+                : "Finished"}
+          </span>
           <span className="opacity-60">•</span>
           <span className="truncate max-w-[160px]">{it.magazine}</span>
         </div>
@@ -1053,11 +1331,23 @@ function RowCard({
           <span className="inline-flex items-center gap-1">
             <IoPeopleOutline className="text-[14px] text-brand-500" />
             <span className="font-semibold">
-              {it.role === "Hero" ? (dir === "rtl" ? "بطل" : "Hero") : it.role === "Villain" ? (dir === "rtl" ? "خصم" : "Villain") : (dir === "rtl" ? "مساعد" : "Support")}
+              {it.role === "Hero"
+                ? dir === "rtl"
+                  ? "بطل"
+                  : "Hero"
+                : it.role === "Villain"
+                  ? dir === "rtl"
+                    ? "خصم"
+                    : "Villain"
+                  : dir === "rtl"
+                    ? "مساعد"
+                    : "Support"}
             </span>
           </span>
           <span className="opacity-60">•</span>
-          <span className="font-semibold">{dir === "rtl" ? "الأصل:" : "Origin:"}</span>
+          <span className="font-semibold">
+            {dir === "rtl" ? "الأصل:" : "Origin:"}
+          </span>
           <span>{it.origin}</span>
         </div>
       );
@@ -1069,12 +1359,16 @@ function RowCard({
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-foreground-muted">
           <span className="inline-flex items-center gap-1">
             <IoShareSocialOutline className="text-[14px] text-brand-500" />
-            <span className="font-semibold">{dir === "rtl" ? "منطقة" : "Region"}</span>
+            <span className="font-semibold">
+              {dir === "rtl" ? "منطقة" : "Region"}
+            </span>
             <span className="opacity-70">•</span>
             <span>{it.region}</span>
           </span>
           <span className="opacity-60">•</span>
-          <span className="font-semibold">{dir === "rtl" ? "معروف بـ" : "Known for"}</span>
+          <span className="font-semibold">
+            {dir === "rtl" ? "معروف بـ" : "Known for"}
+          </span>
           <span>{it.knownFor}</span>
         </div>
       );
@@ -1087,7 +1381,15 @@ function RowCard({
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-foreground-muted">
           <span className="inline-flex items-center gap-1">
             <IoTimeOutline className="text-[14px] text-brand-500" />
-            <span className="font-semibold">{it.type === "Episode" ? (dir === "rtl" ? "حلقة" : "Episode") : (dir === "rtl" ? "فصل" : "Chapter")}</span>
+            <span className="font-semibold">
+              {it.type === "Episode"
+                ? dir === "rtl"
+                  ? "حلقة"
+                  : "Episode"
+                : dir === "rtl"
+                  ? "فصل"
+                  : "Chapter"}
+            </span>
             <span className="opacity-70">•</span>
             <span>#{it.number}</span>
             <span className="opacity-70">•</span>
@@ -1112,7 +1414,17 @@ function RowCard({
         <span>{it.level}</span>
         <span className="opacity-60">•</span>
         <span className="font-semibold">
-          {it.badge === "Creator" ? (dir === "rtl" ? "صانع" : "Creator") : it.badge === "Moderator" ? (dir === "rtl" ? "مشرف" : "Moderator") : (dir === "rtl" ? "متابع" : "Fan")}
+          {it.badge === "Creator"
+            ? dir === "rtl"
+              ? "صانع"
+              : "Creator"
+            : it.badge === "Moderator"
+              ? dir === "rtl"
+                ? "مشرف"
+                : "Moderator"
+              : dir === "rtl"
+                ? "متابع"
+                : "Fan"}
         </span>
       </div>
     );
@@ -1134,7 +1446,12 @@ function RowCard({
           {/* subtle panel overlay */}
           <div className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:18px_100%]" />
 
-          <div className={cx("relative flex items-center gap-3", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
+          <div
+            className={cx(
+              "relative flex items-center gap-3",
+              dir === "rtl" ? "flex-row-reverse" : "flex-row",
+            )}
+          >
             {/* Rank */}
             <div className="shrink-0 flex flex-col items-center gap-2">
               <div
@@ -1209,7 +1526,12 @@ function RowCard({
             </div>
 
             {/* Hover actions (purposeful: appear only when user intends) */}
-            <div className={cx("shrink-0 flex items-center gap-1.5", "opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity")}>
+            <div
+              className={cx(
+                "shrink-0 flex items-center gap-1.5",
+                "opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity",
+              )}
+            >
               <div className="hidden sm:flex items-center gap-1.5">
                 <DeButton
                   iconOnly
@@ -1297,11 +1619,15 @@ function PodiumTop3({
           <span className="rounded-full border border-border-subtle bg-surface-soft px-2 py-1">
             {dir === "rtl" ? "منصة التوب" : "Top podium"}
           </span>
-          <span className="text-foreground-muted">{dir === "rtl" ? "أفضل 3 الآن" : "Top 3 right now"}</span>
+          <span className="text-foreground-muted">
+            {dir === "rtl" ? "أفضل 3 الآن" : "Top 3 right now"}
+          </span>
         </div>
 
         <div className="text-[11px] font-semibold text-foreground-muted">
-          {dir === "rtl" ? "تلميح: غيّر المعيار لإعادة الترتيب" : "Tip: change metric to re-rank"}
+          {dir === "rtl"
+            ? "تلميح: غيّر المعيار لإعادة الترتيب"
+            : "Tip: change metric to re-rank"}
         </div>
       </div>
 
@@ -1309,7 +1635,11 @@ function PodiumTop3({
         {top3.map((it, index) => {
           const big = index === 0;
 
-          const metricValueText = formatMetricValue(it.metricValue, metricFormat, dir);
+          const metricValueText = formatMetricValue(
+            it.metricValue,
+            metricFormat,
+            dir,
+          );
 
           const accent =
             it.rank === 1
@@ -1324,7 +1654,10 @@ function PodiumTop3({
               initial={reduceMotion ? false : { opacity: 0, y: 10 }}
               animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
               transition={spring}
-              className={cx("rounded-3xl p-[1px]", `bg-gradient-to-br ${accent}`)}
+              className={cx(
+                "rounded-3xl p-[1px]",
+                `bg-gradient-to-br ${accent}`,
+              )}
             >
               <Link
                 href={it.href}
@@ -1336,14 +1669,22 @@ function PodiumTop3({
               >
                 <div className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:radial-gradient(currentColor_1px,transparent_1px)] [background-size:18px_18px]" />
 
-                <div className={cx("relative flex items-start gap-3", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
+                <div
+                  className={cx(
+                    "relative flex items-start gap-3",
+                    dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                  )}
+                >
                   <div className="relative shrink-0 overflow-hidden rounded-2xl border border-border-subtle bg-surface-soft">
                     <Image
                       src={it.image}
                       alt={it.title}
                       width={big ? 76 : 64}
                       height={big ? 108 : 92}
-                      className={cx("object-cover", big ? "h-[108px] w-[76px]" : "h-[92px] w-[64px]")}
+                      className={cx(
+                        "object-cover",
+                        big ? "h-[108px] w-[76px]" : "h-[92px] w-[64px]",
+                      )}
                       unoptimized
                       priority={it.rank === 1}
                     />
@@ -1351,27 +1692,53 @@ function PodiumTop3({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className={cx("flex items-center gap-2", dir === "rtl" ? "justify-end" : "justify-start")}>
+                    <div
+                      className={cx(
+                        "flex items-center gap-2",
+                        dir === "rtl" ? "justify-end" : "justify-start",
+                      )}
+                    >
                       <span className="grid size-9 place-items-center rounded-2xl border border-border-subtle bg-surface-soft text-sm font-black tabular-nums">
                         {it.rank}
                       </span>
                       <span className="text-base" aria-hidden>
                         {it.rank === 1 ? "👑" : it.rank === 2 ? "🥈" : "🥉"}
                       </span>
-                      <RankDelta rank={it.rank} prevRank={it.prevRank} dir={dir} />
+                      <RankDelta
+                        rank={it.rank}
+                        prevRank={it.prevRank}
+                        dir={dir}
+                      />
                     </div>
 
-                    <h3 className={cx("mt-2 truncate text-sm font-extrabold text-foreground-strong", dir === "rtl" ? "text-right" : "text-left")}>
+                    <h3
+                      className={cx(
+                        "mt-2 truncate text-sm font-extrabold text-foreground-strong",
+                        dir === "rtl" ? "text-right" : "text-left",
+                      )}
+                    >
                       <bdi>{it.title}</bdi>
                     </h3>
-                    <p className={cx("mt-0.5 truncate text-[11px] font-medium text-foreground-muted", dir === "rtl" ? "text-right" : "text-left")}>
+                    <p
+                      className={cx(
+                        "mt-0.5 truncate text-[11px] font-medium text-foreground-muted",
+                        dir === "rtl" ? "text-right" : "text-left",
+                      )}
+                    >
                       <bdi>{it.titleEn}</bdi>
                     </p>
 
-                    <div className={cx("mt-3 flex items-end justify-between gap-3", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
+                    <div
+                      className={cx(
+                        "mt-3 flex items-end justify-between gap-3",
+                        dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                      )}
+                    >
                       <div className="min-w-0">
                         <div className="text-[10px] font-semibold text-foreground-muted">
-                          {dir === "rtl" ? it.metricLabel.ar : it.metricLabel.en}
+                          {dir === "rtl"
+                            ? it.metricLabel.ar
+                            : it.metricLabel.en}
                         </div>
                         <div className="mt-0.5 text-lg font-black tabular-nums text-foreground-strong">
                           {metricValueText}
@@ -1382,7 +1749,13 @@ function PodiumTop3({
                         variant="soft"
                         tone="brand"
                         size="sm"
-                        rightIcon={dir === "rtl" ? <span aria-hidden>←</span> : <span aria-hidden>→</span>}
+                        rightIcon={
+                          dir === "rtl" ? (
+                            <span aria-hidden>←</span>
+                          ) : (
+                            <span aria-hidden>→</span>
+                          )
+                        }
                         className="shrink-0"
                       >
                         {dir === "rtl" ? "فتح" : "Open"}
@@ -1423,8 +1796,12 @@ export default function RanksClient() {
   const [metric, setMetric] = useState<MetricId>(tab.defaultMetric);
   const [sort, setSort] = useState<SortId>("top");
 
-  const [filterA, setFilterA] = useState<FilterValue>(tab.filters[0]?.defaultValue ?? "all");
-  const [filterB, setFilterB] = useState<FilterValue>(tab.filters[1]?.defaultValue ?? "all");
+  const [filterA, setFilterA] = useState<FilterValue>(
+    tab.filters[0]?.defaultValue ?? "all",
+  );
+  const [filterB, setFilterB] = useState<FilterValue>(
+    tab.filters[1]?.defaultValue ?? "all",
+  );
 
   const [state, setState] = useState<LoadState>("loading");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -1438,7 +1815,10 @@ export default function RanksClient() {
   const [sortOpen, setSortOpen] = useState(false);
   const sortBtnRef = useRef<HTMLButtonElement | null>(null);
 
-  const metricFormat = useMemo(() => tab.metrics.find((m) => m.id === metric)?.format, [tab.metrics, metric]);
+  const metricFormat = useMemo(
+    () => tab.metrics.find((m) => m.id === metric)?.format,
+    [tab.metrics, metric],
+  );
 
   const ui = useMemo(() => {
     const isRTL = dir === "rtl";
@@ -1454,11 +1834,19 @@ export default function RanksClient() {
       loadMore: isRTL ? "عرض المزيد" : "Load more",
       retry: isRTL ? "إعادة المحاولة" : "Retry",
       reset: isRTL ? "إعادة ضبط الفلاتر" : "Reset filters",
-      emptyTitle: isRTL ? "لا توجد نتائج بهذه التصفية" : "No results for this filter",
-      emptyDesc: isRTL ? "جرّب تغيير المعيار أو الفلاتر." : "Try changing metric or filters.",
+      emptyTitle: isRTL
+        ? "لا توجد نتائج بهذه التصفية"
+        : "No results for this filter",
+      emptyDesc: isRTL
+        ? "جرّب تغيير المعيار أو الفلاتر."
+        : "Try changing metric or filters.",
       errorTitle: isRTL ? "تعذّر تحميل التصنيفات" : "Couldn't load ranks",
-      errorDesc: isRTL ? "تحقق من الإعدادات وحاول مجددًا." : "Check settings and try again.",
-      hint: isRTL ? "تلميح: غيّر المعيار لتشاهد إعادة الترتيب" : "Tip: change metric to watch re-ranking",
+      errorDesc: isRTL
+        ? "تحقق من الإعدادات وحاول مجددًا."
+        : "Check settings and try again.",
+      hint: isRTL
+        ? "تلميح: غيّر المعيار لتشاهد إعادة الترتيب"
+        : "Tip: change metric to watch re-ranking",
     };
   }, [dir]);
 
@@ -1476,7 +1864,10 @@ export default function RanksClient() {
     setErrorMsg(null);
 
     const shouldFail =
-      activeTab === "studio" && timeRange === "24h" && metric === "output" && sort === "worst"; // deterministic (for testing error state)
+      activeTab === "studio" &&
+      timeRange === "24h" &&
+      metric === "output" &&
+      sort === "worst"; // deterministic (for testing error state)
 
     const t = window.setTimeout(() => {
       try {
@@ -1568,7 +1959,10 @@ export default function RanksClient() {
     return () => obs.disconnect();
   }, [state, items.length]);
 
-  const visibleItems = useMemo(() => items.slice(0, visibleCount), [items, visibleCount]);
+  const visibleItems = useMemo(
+    () => items.slice(0, visibleCount),
+    [items, visibleCount],
+  );
   const canLoadMore = state === "ready" && visibleCount < items.length;
 
   const ActiveTabIcon = tab.icon;
@@ -1589,15 +1983,31 @@ export default function RanksClient() {
         <MangaBackdrop reduceMotion={Boolean(reduceMotion)} />
 
         <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6">
-          <div className={cx("flex items-start justify-between gap-4", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
+          <div
+            className={cx(
+              "flex items-start justify-between gap-4",
+              dir === "rtl" ? "flex-row-reverse" : "flex-row",
+            )}
+          >
             <div className="min-w-0">
-              <div className={cx("inline-flex items-center gap-2 rounded-full border border-border-subtle bg-background-elevated/60 px-3 py-1.5", "text-[11px] font-black text-foreground-muted")}>
+              <div
+                className={cx(
+                  "inline-flex items-center gap-2 rounded-full border border-border-subtle bg-background-elevated/60 px-3 py-1.5",
+                  "text-[11px] font-black text-foreground-muted",
+                )}
+              >
                 <IoTrendingUp className="text-[14px] text-brand-500" />
-                <span>{dir === "rtl" ? "تصنيفات فمنارة" : "Fanaara Ranks"}</span>
+                <span>
+                  {dir === "rtl" ? "تصنيفات فمنارة" : "Fanaara Ranks"}
+                </span>
                 <span className="opacity-60">•</span>
                 <span className="inline-flex items-center gap-1">
                   <IoTimeOutline className="text-[14px]" />
-                  {TIME_RANGES.find((t) => t.id === timeRange)?.label[dir === "rtl" ? "ar" : "en"]}
+                  {
+                    TIME_RANGES.find((t) => t.id === timeRange)?.label[
+                      dir === "rtl" ? "ar" : "en"
+                    ]
+                  }
                 </span>
               </div>
 
@@ -1616,7 +2026,9 @@ export default function RanksClient() {
             {/* Mini badge */}
             <div className="shrink-0 hidden sm:flex">
               <div className="rounded-3xl border border-border-subtle bg-background-elevated/60 p-3">
-                <div className="text-[11px] font-semibold text-foreground-muted">{ui.hint}</div>
+                <div className="text-[11px] font-semibold text-foreground-muted">
+                  {ui.hint}
+                </div>
               </div>
             </div>
           </div>
@@ -1631,7 +2043,14 @@ export default function RanksClient() {
               )}
             >
               <div className="mx-auto max-w-6xl px-4 sm:px-6">
-                <div className={cx("flex items-center gap-2 overflow-x-auto py-3 no-scrollbar", dir === "rtl" ? "flex-row-reverse" : "flex-row")} role="tablist" aria-label={ui.tabsLabel}>
+                <div
+                  className={cx(
+                    "flex items-center gap-2 overflow-x-auto py-3 no-scrollbar",
+                    dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                  )}
+                  role="tablist"
+                  aria-label={ui.tabsLabel}
+                >
                   {TABS.map((t) => {
                     const isActive = t.id === activeTab;
                     const Icon = t.icon;
@@ -1653,8 +2072,20 @@ export default function RanksClient() {
                             : "border-border-subtle bg-surface-soft text-foreground-muted hover:bg-surface-muted",
                         )}
                       >
-                        <span className={cx("inline-flex items-center gap-2", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
-                          <Icon className={cx("text-[16px]", isActive ? "text-brand-500" : "text-foreground-muted")} />
+                        <span
+                          className={cx(
+                            "inline-flex items-center gap-2",
+                            dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                          )}
+                        >
+                          <Icon
+                            className={cx(
+                              "text-[16px]",
+                              isActive
+                                ? "text-brand-500"
+                                : "text-foreground-muted",
+                            )}
+                          />
                           <span>{t.label[dir === "rtl" ? "ar" : "en"]}</span>
                         </span>
 
@@ -1675,11 +2106,31 @@ export default function RanksClient() {
 
           {/* Filters Tray */}
           <div className="mt-6 rounded-3xl border border-border-subtle bg-background-elevated/55 p-3 backdrop-blur-xl">
-            <div className={cx("flex flex-col gap-3", dir === "rtl" ? "text-right" : "text-left")}>
+            <div
+              className={cx(
+                "flex flex-col gap-3",
+                dir === "rtl" ? "text-right" : "text-left",
+              )}
+            >
               {/* Row 1: time + sort */}
-              <div className={cx("flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between", dir === "rtl" ? "sm:flex-row-reverse" : "sm:flex-row")}>
-                <div className={cx("flex items-center gap-2 overflow-x-auto no-scrollbar", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
-                  <div className={cx("inline-flex items-center gap-2 text-[11px] font-bold text-foreground-muted", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
+              <div
+                className={cx(
+                  "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+                  dir === "rtl" ? "sm:flex-row-reverse" : "sm:flex-row",
+                )}
+              >
+                <div
+                  className={cx(
+                    "flex items-center gap-2 overflow-x-auto no-scrollbar",
+                    dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                  )}
+                >
+                  <div
+                    className={cx(
+                      "inline-flex items-center gap-2 text-[11px] font-bold text-foreground-muted",
+                      dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                    )}
+                  >
                     <IoTimeOutline className="text-[14px]" />
                     <span>{dir === "rtl" ? "الوقت:" : "Time:"}</span>
                   </div>
@@ -1698,8 +2149,18 @@ export default function RanksClient() {
                   </div>
                 </div>
 
-                <div className={cx("flex items-center gap-2", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
-                  <div className={cx("inline-flex items-center gap-2 text-[11px] font-bold text-foreground-muted", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
+                <div
+                  className={cx(
+                    "flex items-center gap-2",
+                    dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                  )}
+                >
+                  <div
+                    className={cx(
+                      "inline-flex items-center gap-2 text-[11px] font-bold text-foreground-muted",
+                      dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                    )}
+                  >
                     <IoFilter className="text-[14px]" />
                     <span>{ui.sortLabel}:</span>
                   </div>
@@ -1722,10 +2183,18 @@ export default function RanksClient() {
                       aria-haspopup="menu"
                     >
                       {(() => {
-                        const SIcon = SORTS.find((s) => s.id === sort)?.icon ?? IoTrendingUp;
+                        const SIcon =
+                          SORTS.find((s) => s.id === sort)?.icon ??
+                          IoTrendingUp;
                         return <SIcon className="text-[16px] text-brand-500" />;
                       })()}
-                      <span>{SORTS.find((s) => s.id === sort)?.label[dir === "rtl" ? "ar" : "en"]}</span>
+                      <span>
+                        {
+                          SORTS.find((s) => s.id === sort)?.label[
+                            dir === "rtl" ? "ar" : "en"
+                          ]
+                        }
+                      </span>
                       <span aria-hidden className="text-[12px] opacity-70">
                         {dir === "rtl" ? "▾" : "▾"}
                       </span>
@@ -1761,22 +2230,61 @@ export default function RanksClient() {
                                 className={cx(
                                   "w-full px-3 py-2.5",
                                   "flex items-center justify-between gap-2",
-                                  dir === "rtl" ? "flex-row-reverse text-right" : "flex-row text-left",
+                                  dir === "rtl"
+                                    ? "flex-row-reverse text-right"
+                                    : "flex-row text-left",
                                   "border-b border-border-subtle last:border-b-0",
-                                  active ? "bg-brand-500/10" : "hover:bg-surface-soft",
+                                  active
+                                    ? "bg-brand-500/10"
+                                    : "hover:bg-surface-soft",
                                   "transition-colors",
                                 )}
                               >
-                                <div className={cx("flex items-center gap-2", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
-                                  <span className={cx("grid size-9 place-items-center rounded-xl border", active ? "border-brand-500/25 bg-brand-500/10" : "border-border-subtle bg-surface-soft")}>
-                                    <Icon className={cx("text-[16px]", active ? "text-brand-500" : "text-foreground-muted")} />
+                                <div
+                                  className={cx(
+                                    "flex items-center gap-2",
+                                    dir === "rtl"
+                                      ? "flex-row-reverse"
+                                      : "flex-row",
+                                  )}
+                                >
+                                  <span
+                                    className={cx(
+                                      "grid size-9 place-items-center rounded-xl border",
+                                      active
+                                        ? "border-brand-500/25 bg-brand-500/10"
+                                        : "border-border-subtle bg-surface-soft",
+                                    )}
+                                  >
+                                    <Icon
+                                      className={cx(
+                                        "text-[16px]",
+                                        active
+                                          ? "text-brand-500"
+                                          : "text-foreground-muted",
+                                      )}
+                                    />
                                   </span>
-                                  <span className={cx("text-[12px] font-bold", active ? "text-foreground-strong" : "text-foreground-muted")}>
+                                  <span
+                                    className={cx(
+                                      "text-[12px] font-bold",
+                                      active
+                                        ? "text-foreground-strong"
+                                        : "text-foreground-muted",
+                                    )}
+                                  >
                                     {s.label[dir === "rtl" ? "ar" : "en"]}
                                   </span>
                                 </div>
 
-                                {active && <span aria-hidden className="text-[12px] font-black text-brand-500">✓</span>}
+                                {active && (
+                                  <span
+                                    aria-hidden
+                                    className="text-[12px] font-black text-brand-500"
+                                  >
+                                    ✓
+                                  </span>
+                                )}
                               </button>
                             );
                           })}
@@ -1790,8 +2298,18 @@ export default function RanksClient() {
               {/* Row 2: metrics + contextual filters */}
               <div className="flex flex-col gap-3">
                 {/* Metric chips */}
-                <div className={cx("flex items-center gap-2 overflow-x-auto no-scrollbar", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
-                  <div className={cx("inline-flex items-center gap-2 text-[11px] font-bold text-foreground-muted", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
+                <div
+                  className={cx(
+                    "flex items-center gap-2 overflow-x-auto no-scrollbar",
+                    dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                  )}
+                >
+                  <div
+                    className={cx(
+                      "inline-flex items-center gap-2 text-[11px] font-bold text-foreground-muted",
+                      dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                    )}
+                  >
                     <ActiveTabIcon className="text-[14px]" />
                     <span>{dir === "rtl" ? "المعيار:" : "Metric:"}</span>
                   </div>
@@ -1809,13 +2327,29 @@ export default function RanksClient() {
                           setVisibleCount(28);
                         }}
                       >
-                        <span className={cx("inline-flex items-center gap-2", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
-                          <Icon className={cx("text-[14px]", active ? "text-brand-500" : "text-foreground-muted")} />
+                        <span
+                          className={cx(
+                            "inline-flex items-center gap-2",
+                            dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                          )}
+                        >
+                          <Icon
+                            className={cx(
+                              "text-[14px]",
+                              active
+                                ? "text-brand-500"
+                                : "text-foreground-muted",
+                            )}
+                          />
                           <span>{m.label[dir === "rtl" ? "ar" : "en"]}</span>
 
                           {/* for user metrics show emoji hint */}
-                          {activeTab === "user" && m.id === "senko" && <span aria-hidden>🪙</span>}
-                          {activeTab === "user" && m.id === "ashbiya" && <span aria-hidden>🌿</span>}
+                          {activeTab === "user" && m.id === "senko" && (
+                            <span aria-hidden>🪙</span>
+                          )}
+                          {activeTab === "user" && m.id === "ashbiya" && (
+                            <span aria-hidden>🌿</span>
+                          )}
                         </span>
                       </Chip>
                     );
@@ -1823,18 +2357,35 @@ export default function RanksClient() {
                 </div>
 
                 {/* Context filters */}
-                <div className={cx("flex items-center gap-2 overflow-x-auto no-scrollbar", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
-                  <div className={cx("inline-flex items-center gap-2 text-[11px] font-bold text-foreground-muted", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
+                <div
+                  className={cx(
+                    "flex items-center gap-2 overflow-x-auto no-scrollbar",
+                    dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                  )}
+                >
+                  <div
+                    className={cx(
+                      "inline-flex items-center gap-2 text-[11px] font-bold text-foreground-muted",
+                      dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                    )}
+                  >
                     <IoFilter className="text-[14px]" />
                     <span>{ui.filtersLabel}:</span>
                   </div>
 
                   {tab.filters.map((g) => {
                     const value = g.id === "filterA" ? filterA : filterB;
-                    const setValue = g.id === "filterA" ? setFilterA : setFilterB;
+                    const setValue =
+                      g.id === "filterA" ? setFilterA : setFilterB;
 
                     return (
-                      <div key={g.id} className={cx("flex items-center gap-2", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
+                      <div
+                        key={g.id}
+                        className={cx(
+                          "flex items-center gap-2",
+                          dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                        )}
+                      >
                         <span className="text-[11px] font-semibold text-foreground-muted">
                           {g.label[dir === "rtl" ? "ar" : "en"]}
                         </span>
@@ -1891,14 +2442,25 @@ export default function RanksClient() {
 
             {state === "error" && (
               <div className="rounded-3xl border border-border-subtle bg-background-elevated/60 p-6">
-                <div className={cx("flex items-start gap-4", dir === "rtl" ? "flex-row-reverse text-right" : "flex-row text-left")}>
+                <div
+                  className={cx(
+                    "flex items-start gap-4",
+                    dir === "rtl"
+                      ? "flex-row-reverse text-right"
+                      : "flex-row text-left",
+                  )}
+                >
                   <div className="grid size-12 shrink-0 place-items-center rounded-2xl border border-rose-500/20 bg-rose-500/10 text-rose-600">
                     <IoAlertCircleOutline className="text-[22px]" />
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="text-base font-black text-foreground-strong">{ui.errorTitle}</div>
-                    <div className="mt-1 text-sm font-medium text-foreground-muted">{ui.errorDesc}</div>
+                    <div className="text-base font-black text-foreground-strong">
+                      {ui.errorTitle}
+                    </div>
+                    <div className="mt-1 text-sm font-medium text-foreground-muted">
+                      {ui.errorDesc}
+                    </div>
 
                     <div className="mt-4 flex gap-2">
                       <DeButton
@@ -1939,14 +2501,25 @@ export default function RanksClient() {
 
             {state === "empty" && (
               <div className="rounded-3xl border border-border-subtle bg-background-elevated/60 p-6">
-                <div className={cx("flex items-start gap-4", dir === "rtl" ? "flex-row-reverse text-right" : "flex-row text-left")}>
+                <div
+                  className={cx(
+                    "flex items-start gap-4",
+                    dir === "rtl"
+                      ? "flex-row-reverse text-right"
+                      : "flex-row text-left",
+                  )}
+                >
                   <div className="grid size-12 shrink-0 place-items-center rounded-2xl border border-border-subtle bg-surface-soft text-foreground-muted">
                     <IoFilter className="text-[22px]" />
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="text-base font-black text-foreground-strong">{ui.emptyTitle}</div>
-                    <div className="mt-1 text-sm font-medium text-foreground-muted">{ui.emptyDesc}</div>
+                    <div className="text-base font-black text-foreground-strong">
+                      {ui.emptyTitle}
+                    </div>
+                    <div className="mt-1 text-sm font-medium text-foreground-muted">
+                      {ui.emptyDesc}
+                    </div>
 
                     <div className="mt-4">
                       <DeButton
@@ -1970,11 +2543,21 @@ export default function RanksClient() {
 
             {state === "ready" && (
               <div className="space-y-5">
-                <PodiumTop3 items={items} metricFormat={metricFormat} dir={dir} reduceMotion={Boolean(reduceMotion)} />
+                <PodiumTop3
+                  items={items}
+                  metricFormat={metricFormat}
+                  dir={dir}
+                  reduceMotion={Boolean(reduceMotion)}
+                />
 
                 {/* List */}
                 <div className="rounded-3xl border border-border-subtle bg-background-elevated/45 p-3">
-                  <div className={cx("mb-3 flex items-center justify-between gap-2", dir === "rtl" ? "flex-row-reverse" : "flex-row")}>
+                  <div
+                    className={cx(
+                      "mb-3 flex items-center justify-between gap-2",
+                      dir === "rtl" ? "flex-row-reverse" : "flex-row",
+                    )}
+                  >
                     <div className="flex items-center gap-2 text-xs font-black text-foreground-strong">
                       <span className="rounded-full border border-border-subtle bg-surface-soft px-2 py-1">
                         {ui.top100}
@@ -2011,7 +2594,9 @@ export default function RanksClient() {
                           key={it.id}
                           layout
                           initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-                          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                          animate={
+                            reduceMotion ? undefined : { opacity: 1, y: 0 }
+                          }
                           exit={reduceMotion ? undefined : { opacity: 0, y: 8 }}
                           transition={{
                             ...spring,
@@ -2021,7 +2606,12 @@ export default function RanksClient() {
                                 : 0,
                           }}
                         >
-                          <RowCard item={it} metricFormat={metricFormat} dir={dir} reduceMotion={Boolean(reduceMotion)} />
+                          <RowCard
+                            item={it}
+                            metricFormat={metricFormat}
+                            dir={dir}
+                            reduceMotion={Boolean(reduceMotion)}
+                          />
                         </motion.div>
                       ))}
                     </AnimatePresence>
@@ -2036,7 +2626,9 @@ export default function RanksClient() {
                       <DeButton
                         variant="soft"
                         tone="neutral"
-                        onClick={() => setVisibleCount((c) => Math.min(items.length, c + 18))}
+                        onClick={() =>
+                          setVisibleCount((c) => Math.min(items.length, c + 18))
+                        }
                         leftIcon={<IoTrendingUp className="text-[16px]" />}
                       >
                         {ui.loadMore}

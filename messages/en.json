@@ -1,9 +1,512 @@
 {
   "select": {
-    "noResults": "No results found",
-    "searchPlaceholder": "Type to search...",
-    "clear": "clear"
+    "placeholder": "Select…",
+    "searchPlaceholder": "Search…",
+    "noResults": "No results",
+    "clear": "Clear",
+    "remove": "Remove",
+    "create": "Create new option:"
   },
+  "signup": {
+    "step04": {
+      "title": "Tell us your vibe",
+      "subtitle": "A few picks to personalize your feed.",
+      "fields": {
+        "purpose": "Why did you join? (pick at least 1)",
+        "interests": "What are you into? (pick at least 3)",
+        "genres": "Preferred genres (pick at least 3)"
+      },
+      "actions": {
+        "continue": "Continue",
+        "loading": "Loading…"
+      },
+      "validation": {
+        "min1": "Pick at least 1 item.",
+        "min3": "Pick at least 3 items."
+      },
+      "tip": "✨ Anime UI tip: these picks later become a personalized feed + follow suggestions.",
+      "groups": {
+        "purpose": {
+          "community": "Community",
+          "discoverTrack": "Discover & Track",
+          "createShare": "Create & Share",
+          "workspace": "Workspace"
+        },
+        "interests": {
+          "discussion": "Discussion",
+          "creation": "Creation",
+          "discovery": "Discovery",
+          "culture": "Culture",
+          "collecting": "Collecting",
+          "games": "Games",
+          "fun": "Fun",
+          "workspace": "Workspace"
+        },
+        "genres": {
+          "demographic": "Demographic",
+          "formatOrigin": "Format & Origin",
+          "core": "Core",
+          "themes": "Themes",
+          "relationships": "Relationships",
+          "tone": "Tone"
+        }
+      },
+      "options": {
+        "purpose": {
+          "make-friends": {
+            "label": "Make friends",
+            "description": "Meet fans & build your circle"
+          },
+          "join-clubs": {
+            "label": "Join clubs",
+            "description": "Fandom groups & communities"
+          },
+          "watch-parties": {
+            "label": "Watch parties",
+            "description": "Group streams & episode nights"
+          },
+          "reading-rooms": {
+            "label": "Reading rooms",
+            "description": "Manga / comics reading sessions"
+          },
+          "meetups-events": {
+            "label": "Meetups & events",
+            "description": "Local + online hangouts"
+          },
+          "find-crew": {
+            "label": "Find a crew",
+            "description": "People with the same taste"
+          },
+          "discover-titles": {
+            "label": "Discover titles",
+            "description": "Find new anime, manga & comics"
+          },
+          "recommendations": {
+            "label": "Get recommendations",
+            "description": "Personalized suggestions"
+          },
+          "seasonal": {
+            "label": "Seasonal hub",
+            "description": "What’s airing / trending"
+          },
+          "track-lists": {
+            "label": "Track my lists",
+            "description": "Watchlist / reading list"
+          },
+          "stats": {
+            "label": "Stats & insights",
+            "description": "See your taste + progress"
+          },
+          "reviews": {
+            "label": "Write reviews",
+            "description": "Ratings, reactions, and breakdowns"
+          },
+          "posts": {
+            "label": "Post & discuss",
+            "description": "Threads, opinions, and takes"
+          },
+          "fanart": {
+            "label": "Share fanart",
+            "description": "Illustrations, sketches & art"
+          },
+          "edits-amv": {
+            "label": "Share edits / AMVs",
+            "description": "Clips, edits, and videos"
+          },
+          "cosplay": {
+            "label": "Cosplay showcase",
+            "description": "Fits, builds & photos"
+          },
+          "fanfiction": {
+            "label": "Write fanfiction",
+            "description": "Stories, one-shots & series"
+          },
+          "portfolio": {
+            "label": "Build a portfolio",
+            "description": "Creator profile + showcase"
+          },
+          "workspace-projects": {
+            "label": "Workspace projects",
+            "description": "Organize programs & projects"
+          },
+          "collaboration": {
+            "label": "Collaborate",
+            "description": "Find teammates & build together"
+          },
+          "challenges": {
+            "label": "Challenges",
+            "description": "Art, writing, cosplay challenges"
+          },
+          "learning": {
+            "label": "Learn & improve",
+            "description": "Tutorials, feedback, practice"
+          },
+          "focus-rooms": {
+            "label": "Focus rooms",
+            "description": "Study / grind / build sessions"
+          },
+          "teams-guilds": {
+            "label": "Teams / guilds",
+            "description": "Run groups like a squad"
+          }
+        },
+        "interests": {
+          "episode-discussion": {
+            "label": "Episode discussions",
+            "description": "Weekly episode threads"
+          },
+          "chapter-discussion": {
+            "label": "Chapter discussions",
+            "description": "Manga / comics chapter talk"
+          },
+          "theories": {
+            "label": "Theories",
+            "description": "Predictions & lore"
+          },
+          "analysis": {
+            "label": "Analysis",
+            "description": "Deep dives & breakdowns"
+          },
+          "character-talk": {
+            "label": "Characters",
+            "description": "Favorites, arcs, and rankings"
+          },
+          "ships": { "label": "Ships", "description": "Romance & pairings" },
+          "powerscaling": {
+            "label": "Power scaling",
+            "description": "Matchups & debates"
+          },
+          "spoilers": {
+            "label": "Spoilers zone",
+            "description": "Spoiler-friendly threads"
+          },
+          "fanart": {
+            "label": "Fanart",
+            "description": "Art posts & galleries"
+          },
+          "cosplay": {
+            "label": "Cosplay",
+            "description": "Builds, wigs, armor, photos"
+          },
+          "amv-edits": {
+            "label": "AMVs / edits",
+            "description": "Edits, clips & montages"
+          },
+          "writing": {
+            "label": "Writing",
+            "description": "Fanfic, scripts, storytelling"
+          },
+          "oc-worldbuilding": {
+            "label": "OCs & worldbuilding",
+            "description": "Original characters & lore"
+          },
+          "art-tutorials": {
+            "label": "Art tutorials",
+            "description": "Tips, brushes, process"
+          },
+          "voice-acting": {
+            "label": "Voice acting",
+            "description": "Dubs, clips & practice"
+          },
+          "music-ops": {
+            "label": "Openings / endings",
+            "description": "OP/ED talk & playlists"
+          },
+          "ost": { "label": "OST", "description": "Soundtracks & composers" },
+          "recommendations": {
+            "label": "Recommendations",
+            "description": "What should I watch/read next?"
+          },
+          "seasonal": {
+            "label": "Seasonal releases",
+            "description": "Airing charts & hype"
+          },
+          "news": { "label": "News", "description": "Industry updates" },
+          "announcements": {
+            "label": "Announcements",
+            "description": "New seasons, adaptations, trailers"
+          },
+          "conventions": {
+            "label": "Conventions",
+            "description": "Cons, meetups, and photos"
+          },
+          "japan-culture": {
+            "label": "Japanese culture",
+            "description": "Language, food, traditions"
+          },
+          "k-culture": {
+            "label": "K-culture",
+            "description": "Manhwa, webtoons, trends"
+          },
+          "collecting": {
+            "label": "Collecting",
+            "description": "Figures & merch"
+          },
+          "figures": {
+            "label": "Figures",
+            "description": "Hauls, displays, reviews"
+          },
+          "tcg": {
+            "label": "Trading cards",
+            "description": "TCG, packs & decks"
+          },
+          "manga-hauls": {
+            "label": "Manga hauls",
+            "description": "Shelfies & collections"
+          },
+          "gaming": { "label": "Gaming", "description": "Anime games & JRPGs" },
+          "gacha": {
+            "label": "Gacha games",
+            "description": "Pulls, meta, events"
+          },
+          "visual-novels": {
+            "label": "Visual novels",
+            "description": "Routes, endings, stories"
+          },
+          "memes": { "label": "Memes", "description": "Fun & chaos" },
+          "quizzes": {
+            "label": "Quizzes",
+            "description": "Trivia & personality tests"
+          },
+          "polls": { "label": "Polls", "description": "Vote on anything" },
+          "workspace-projects": {
+            "label": "Workspace projects",
+            "description": "Build programs & collabs"
+          },
+          "collab-teams": {
+            "label": "Collab teams",
+            "description": "Find artists/writers/editors"
+          },
+          "challenges": {
+            "label": "Challenges",
+            "description": "Community challenges & sprints"
+          },
+          "focus-rooms": {
+            "label": "Focus rooms",
+            "description": "Study / build / grind sessions"
+          }
+        },
+        "genres": {
+          "kodomo": { "label": "Kodomo", "description": "Kids / family" },
+          "shonen": { "label": "Shonen", "description": "Action & growth" },
+          "shojo": { "label": "Shojo", "description": "Romance & emotions" },
+          "seinen": { "label": "Seinen", "description": "Mature themes" },
+          "josei": { "label": "Josei", "description": "Adult romance & life" },
+          "manga": { "label": "Manga", "description": "Japanese comics" },
+          "manhwa": { "label": "Manhwa", "description": "Korean comics" },
+          "manhua": { "label": "Manhua", "description": "Chinese comics" },
+          "webtoon": {
+            "label": "Webtoon",
+            "description": "Vertical scroll format"
+          },
+          "western-comics": {
+            "label": "Western comics",
+            "description": "US/EU comics"
+          },
+          "graphic-novel": {
+            "label": "Graphic novel",
+            "description": "Long-form comics"
+          },
+          "light-novel": {
+            "label": "Light novel",
+            "description": "LN adaptations / vibe"
+          },
+          "action": { "label": "Action", "description": "Fights & intensity" },
+          "adventure": {
+            "label": "Adventure",
+            "description": "Journeys & quests"
+          },
+          "comedy": { "label": "Comedy", "description": "Laughs & chaos" },
+          "drama": { "label": "Drama", "description": "Heavy emotions" },
+          "romance": { "label": "Romance", "description": "Love stories" },
+          "fantasy": { "label": "Fantasy", "description": "Magic & worlds" },
+          "sci-fi": { "label": "Sci-Fi", "description": "Tech & space" },
+          "mystery": { "label": "Mystery", "description": "Secrets & clues" },
+          "thriller": {
+            "label": "Thriller",
+            "description": "Tension & twists"
+          },
+          "horror": { "label": "Horror", "description": "Fear & darkness" },
+          "supernatural": {
+            "label": "Supernatural",
+            "description": "Spirits & powers"
+          },
+          "psychological": {
+            "label": "Psychological",
+            "description": "Mind games"
+          },
+          "slice-of-life": {
+            "label": "Slice of Life",
+            "description": "Everyday vibes"
+          },
+          "sports": { "label": "Sports", "description": "Competition" },
+          "music": {
+            "label": "Music",
+            "description": "Bands, idols, performances"
+          },
+          "historical": { "label": "Historical", "description": "Past eras" },
+          "crime": { "label": "Crime", "description": "Mafia, gangs, cases" },
+          "war": { "label": "War", "description": "Conflict & survival" },
+          "military": { "label": "Military", "description": "Units & tactics" },
+          "mecha": { "label": "Mecha", "description": "Robots & pilots" },
+          "magical-girl": {
+            "label": "Magical Girl",
+            "description": "Transformations & teams"
+          },
+          "superhero": {
+            "label": "Superhero",
+            "description": "Heroes & villains"
+          },
+          "isekai": { "label": "Isekai", "description": "Another world" },
+          "reincarnation": {
+            "label": "Reincarnation",
+            "description": "Second life"
+          },
+          "time-travel": {
+            "label": "Time Travel",
+            "description": "Loops & rewinds"
+          },
+          "school-life": {
+            "label": "School Life",
+            "description": "Clubs & drama"
+          },
+          "college-life": {
+            "label": "College Life",
+            "description": "Campus stories"
+          },
+          "workplace": { "label": "Workplace", "description": "Office / jobs" },
+          "coming-of-age": {
+            "label": "Coming of Age",
+            "description": "Growing up"
+          },
+          "found-family": {
+            "label": "Found Family",
+            "description": "Chosen bonds"
+          },
+          "tournament": {
+            "label": "Tournament Arc",
+            "description": "Brackets & battles"
+          },
+          "martial-arts": {
+            "label": "Martial Arts",
+            "description": "Techniques & discipline"
+          },
+          "samurai": { "label": "Samurai", "description": "Swords & honor" },
+          "ninja": { "label": "Ninja", "description": "Stealth & clans" },
+          "pirates": { "label": "Pirates", "description": "Seas & treasure" },
+          "space": { "label": "Space", "description": "Cosmic adventures" },
+          "space-opera": {
+            "label": "Space Opera",
+            "description": "Epic scale sci-fi"
+          },
+          "cyberpunk": {
+            "label": "Cyberpunk",
+            "description": "Neon + dystopia"
+          },
+          "steampunk": {
+            "label": "Steampunk",
+            "description": "Gears & airships"
+          },
+          "post-apocalyptic": {
+            "label": "Post-Apocalyptic",
+            "description": "After the fall"
+          },
+          "dystopian": {
+            "label": "Dystopian",
+            "description": "Broken systems"
+          },
+          "survival": {
+            "label": "Survival",
+            "description": "Last one standing"
+          },
+          "zombies": { "label": "Zombies", "description": "Undead threats" },
+          "vampires": { "label": "Vampires", "description": "Night legends" },
+          "werewolves": {
+            "label": "Werewolves",
+            "description": "Beasts & curses"
+          },
+          "monsters": {
+            "label": "Monsters",
+            "description": "Creatures & hunts"
+          },
+          "kaiju": { "label": "Kaiju", "description": "Giant monsters" },
+          "aliens": {
+            "label": "Aliens",
+            "description": "Visitors & invasions"
+          },
+          "detective": {
+            "label": "Detective",
+            "description": "Cases & mysteries"
+          },
+          "heist": { "label": "Heist", "description": "Plans & betrayals" },
+          "spy": { "label": "Spy", "description": "Agents & missions" },
+          "political": {
+            "label": "Political",
+            "description": "Power & strategy"
+          },
+          "medical": {
+            "label": "Medical",
+            "description": "Hospitals & surgeons"
+          },
+          "legal": { "label": "Legal", "description": "Courts & trials" },
+          "business": { "label": "Business", "description": "Money & hustle" },
+          "gourmet": {
+            "label": "Gourmet / Cooking",
+            "description": "Food & recipes"
+          },
+          "gaming": {
+            "label": "Game World",
+            "description": "MMO / VR / game life"
+          },
+          "idol": { "label": "Idol", "description": "Showbiz & stages" },
+          "parody": { "label": "Parody", "description": "Spoofs & references" },
+          "satire": { "label": "Satire", "description": "Sharp humor" },
+          "tragedy": { "label": "Tragedy", "description": "Tearjerkers" },
+          "harem": { "label": "Harem", "description": "Many love interests" },
+          "reverse-harem": {
+            "label": "Reverse Harem",
+            "description": "Many suitors"
+          },
+          "bl": {
+            "label": "Boys’ Love (BL)",
+            "description": "Romance between men"
+          },
+          "gl": {
+            "label": "Girls’ Love (GL)",
+            "description": "Romance between women"
+          },
+          "otome": { "label": "Otome", "description": "Romance game vibe" },
+          "love-triangle": {
+            "label": "Love Triangle",
+            "description": "Complicated feelings"
+          },
+          "dark-fantasy": {
+            "label": "Dark Fantasy",
+            "description": "Grim worlds"
+          },
+          "urban-fantasy": {
+            "label": "Urban Fantasy",
+            "description": "Magic in modern cities"
+          },
+          "noir": { "label": "Noir", "description": "Gritty mystery vibe" },
+          "wholesome": {
+            "label": "Wholesome",
+            "description": "Feel-good stories"
+          },
+          "iyashikei": {
+            "label": "Iyashikei",
+            "description": "Healing & calm"
+          },
+          "mature": { "label": "Mature", "description": "Adult themes" },
+          "ecchi": {
+            "label": "Ecchi",
+            "description": "Fanservice (not explicit)"
+          }
+        }
+      }
+    }
+  },
+
   "signup_steps": {
     "title": "Prepare your list… and start the journey!",
     "subtitle": "One account to track anime and comics and share your taste with the community.",
@@ -239,27 +742,40 @@
     "link": "Profile"
   },
   "login": {
-    "headline": "✨ Welcome back to the world of Anime & Manga!",
-    "subheadline": "Log in to rejoin your otaku crew, continue your story, and never miss a new episode 🚀",
-    "email_label": "Email address",
-    "email_placeholder": "Enter the email you used for your account",
-    "password_label": "Password",
-    "password_placeholder": "Enter your secret password",
-    "remember_me": "Keep me logged in",
-    "forgot_password": "Forgot your password?",
-    "primary_button": "Enter the world",
-    "primary_button_loading": "Summoning your account...",
-    "or": "or continue with",
-    "login_with_google": "Continue with Google",
-    "login_with_apple": "Continue with Apple",
-    "no_account": "New to the community?",
-    "signup_link": "Create a new account",
-    "generic_error": "Something went wrong. Please try again.",
-    "email_required": "Please enter your email address.",
-    "email_invalid": "Please enter a valid email address.",
-    "password_required": "Please enter your password.",
-    "password_min": "Password must be at least 8 characters."
+    "title": "✨ Welcome back to Fanaara ✨",
+    "subtitle": "Log in to continue your adventure, join the hype, and never miss a new chapter 🚀",
+    "identifier": {
+      "label": "Email or username",
+      "placeholder": "name@domain.com or luffy",
+      "hint": "You can use your email or your username."
+    },
+    "password": {
+      "label": "Password",
+      "placeholder": "Enter your password",
+      "show": "Show password",
+      "hide": "Hide password"
+    },
+    "links": {
+      "tip": "Trouble signing in?",
+      "forgot": "Forgot password?"
+    },
+    "submit": {
+      "button": "Enter your world",
+      "loading": "Opening your gate…"
+    },
+    "divider": "or continue with",
+    "social": {
+      "google": "Continue with Google",
+      "apple": "Continue with Apple",
+      "microsoft": "Continue with Microsoft"
+    },
+    "footer": {
+      "text": "New here?",
+      "link": "Create an account"
+    }
   },
+
+
   "Metadata": {
     "landing": {
       "title": "Fanara | Anime & comics community",

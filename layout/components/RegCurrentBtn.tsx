@@ -1,7 +1,7 @@
 // layout\components\RegCurrentBtn.tsx
 "use client";
 
-import { Button } from "@/design";
+import { Button } from "@/design/DeButton";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

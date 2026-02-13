@@ -1,8 +1,7 @@
-// layout/PublicLayout.tsx
+// layout\PublicLayout.tsx
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { cn } from "@/utils";
 import { getTranslations } from "next-intl/server";
 import ClientNavActions from "./components/ClientNavActions";
 
@@ -16,13 +15,7 @@ export default async function PublicLayout({
   const t = await getTranslations("g");
 
   return (
-    <div
-      className={cn(
-        "relative w-full",
-        "min-h-screen supports-[height:100dvh]:min-h-dvh",
-        "overflow-x-hidden",
-      )}
-    >
+    <div className="relative w-full min-h-screen supports-[height:100dvh]:min-h-dvh overflow-x-hidden">
       {/* Background */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <Image
@@ -37,10 +30,16 @@ export default async function PublicLayout({
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70" />
       </div>
 
-      <nav className={cn("fixed top-4 z-20 w-full px-4")}>
+      <nav className={"fixed top-4 z-20 w-full px-4"}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2">
-            <Image alt="logo" src="/logo/logo.png" width={30} height={30} />
+            <Image
+              alt="logo"
+              src="/logo/logo.png"
+              width={30}
+              height={30}
+              priority
+            />
             <h3 className="text-xl font-semibold text-white drop-shadow">
               {t("platform_name")}
             </h3>

@@ -1,3 +1,5 @@
+
+// app\(logged)\chat\error.tsx
 "use client";
 
 import React from "react";
@@ -30,3 +32,4 @@ export default function Error({ reset }: { error: Error & { digest?: string }; r
     </div>
   );
 }
+

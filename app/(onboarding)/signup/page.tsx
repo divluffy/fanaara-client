@@ -1,4 +1,4 @@
-// app/[locale]/signup/page.tsx
+// app\(onboarding)\signup\page.tsx
 
 import SignupFeature from "@/features/signup";
 import { serverMe } from "@/lib/server-auth";

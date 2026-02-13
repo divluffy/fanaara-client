@@ -1,3 +1,4 @@
+// app\(logged)\swipes\page.tsx
 "use client";
 
 import React, {

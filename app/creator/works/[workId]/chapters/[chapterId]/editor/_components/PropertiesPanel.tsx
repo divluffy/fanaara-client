@@ -404,6 +404,8 @@ export default function PropertiesPanel({
       </div>
 
       <div className="flex-1 min-h-0 overflow-auto p-4 space-y-3">
+{/* add here section tampletes  */}
+
         <SectionBox title="محاذاة سريعة">
           <div
             className="w-full rounded-2xl 

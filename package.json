@@ -23,6 +23,7 @@
     "framer-motion": "^12.23.25",
     "konva": "^10.2.0",
     "lucide-react": "^0.562.0",
+    "masonic": "^4.1.0",
     "nanoid": "^5.1.6",
     "next": "16.0.6",
     "next-intl": "^4.5.8",

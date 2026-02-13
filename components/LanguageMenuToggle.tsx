@@ -238,7 +238,7 @@ export default function LanguageMenuToggle() {
                     "hover:bg-lang-hover",
                     "focus:bg-lang-hover focus:outline-none",
                     isRTL && "flex-row-reverse text-right",
-                    isActive ? "text-lang-active" : "text-muted",
+                    isActive ? "text-lang-active" : "text-foreground-muted",
                     isSwitching && "cursor-wait opacity-60",
                   )}
                 >

@@ -1,3 +1,5 @@
+
+
 // app\(logged)\chat\_components\MessagesSkeleton.tsx
 import React from "react";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
@@ -82,3 +84,4 @@ export default function Loading() {
     </div>
   );
 }
+

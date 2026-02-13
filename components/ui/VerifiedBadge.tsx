@@ -1,3 +1,4 @@
+// components\ui\VerifiedBadge.tsx
 import * as React from "react";
 
 type VerifiedBadgeProps = {

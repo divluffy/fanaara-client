@@ -1,4 +1,4 @@
-// app/(logged)/gallery/_components/GalleryMasonrySkeleton.tsx
+// app\(logged)\gallery\_components\GalleryMasonrySkeleton.tsx
 "use client";
 
 import React, { useMemo } from "react";

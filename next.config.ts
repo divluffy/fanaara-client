@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
       "images.unsplash.com",
       "picsum.photos",
       "alphacoders.com",
+      "source.unsplash.com",
       "picfiles.alphacoders.com",
       "images4.alphacoders.com",
       "avatarfiles.alphacoders.com",
@@ -39,6 +40,7 @@ const nextConfig: NextConfig = {
       "images7.alphacoders.com",
       "i.pinimg.com",
       "images6.alphacoders.com",
+      "placehold.co",
     ],
   },
 
