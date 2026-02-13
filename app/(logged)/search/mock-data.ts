@@ -1,487 +1,469 @@
-// app/search/mock-data.ts
-// Mock-only dataset (NO APIs). Real image URLs for UI testing.
+import type {
+  HistoryEntry,
+  MockDb,
+  PostEntity,
+  SavedSearch,
+  UserEntity,
+  WorkEntity,
+} from "./_types";
+import { normalizeText } from "./_lib/search";
 
-export type UserRole = "user" | "creator" | "influencer";
-export type WorkType = "anime" | "manga" | "comic";
-export type WorkStatus = "ongoing" | "completed" | "hiatus";
-export type PostType = "post" | "review" | "article";
+function mulberry32(seed: number) {
+  return function () {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
-export type UserEntity = {
-  kind: "user";
-  id: string;
-  username: string;
-  displayName: string;
-  role: UserRole;
-  verified?: boolean;
-  followers: number;
-  bio: string;
-  avatarUrl?: string;
-};
+function int(rand: () => number, min: number, max: number) {
+  return Math.floor(rand() * (max - min + 1)) + min;
+}
 
-export type WorkEntity = {
-  kind: "work";
-  id: string;
-  workType: WorkType;
-  title: string;
-  year?: number;
-  studio?: string;
-  status?: WorkStatus;
-  rating: number; // 0..10
-  genres: string[];
-  coverUrl: string;
-};
+function pick<T>(rand: () => number, arr: T[]): T {
+  return arr[Math.floor(rand() * arr.length)]!;
+}
 
-export type StudioEntity = {
-  kind: "studio";
-  id: string;
-  name: string;
-  country: string;
-  verified?: boolean;
-  worksCount: number;
-  logoUrl?: string;
-};
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
 
-export type CommunityEntity = {
-  kind: "community";
-  id: string;
-  name: string;
-  description: string;
-  members: number;
-  postsPerDay: number;
-  isOfficial?: boolean;
-  bannerUrl: string;
-};
+// Real direct URLs (MyAnimeList CDN). Mixed selection.
+const COVER_URLS = [
+  "https://cdn.myanimelist.net/images/anime/10/47347.jpg", // Attack on Titan
+  "https://cdn.myanimelist.net/images/anime/9/9453.jpg", // Death Note
+  "https://cdn.myanimelist.net/images/anime/13/17405.jpg", // Naruto
+  // From large public dataset diff (still MAL CDN)
+  "https://cdn.myanimelist.net/images/anime/8/8968.jpg",
+  "https://cdn.myanimelist.net/images/anime/10/45710.jpg",
+  "https://cdn.myanimelist.net/images/anime/1374/110110.jpg",
+  "https://cdn.myanimelist.net/images/anime/5/30501.jpg",
+  "https://cdn.myanimelist.net/images/anime/7/73542.jpg",
+  "https://cdn.myanimelist.net/images/anime/11/21327.jpg",
+  "https://cdn.myanimelist.net/images/anime/7/74585.jpg",
+  "https://cdn.myanimelist.net/images/anime/1849/94636.jpg",
+  "https://cdn.myanimelist.net/images/anime/7/56697.jpg",
+  "https://cdn.myanimelist.net/images/anime/10/31023.jpg",
+  "https://cdn.myanimelist.net/images/anime/10/32137.jpg",
+  "https://cdn.myanimelist.net/images/anime/13/59711.jpg",
+  "https://cdn.myanimelist.net/images/anime/13/59631.jpg",
+  "https://cdn.myanimelist.net/images/anime/12/56683.jpg",
+  "https://cdn.myanimelist.net/images/anime/12/81128.jpg",
+  "https://cdn.myanimelist.net/images/anime/5/47062.jpg",
+  "https://cdn.myanimelist.net/images/anime/2/65131.jpg",
+  "https://cdn.myanimelist.net/images/anime/9/85584.jpg",
+  "https://cdn.myanimelist.net/images/anime/12/52163.jpg",
+  "https://cdn.myanimelist.net/images/anime/12/71943.jpg",
+  "https://cdn.myanimelist.net/images/anime/1162/105836.jpg",
+  "https://cdn.myanimelist.net/images/anime/9/70629.jpg",
+  "https://cdn.myanimelist.net/images/anime/1572/93453.jpg",
+  "https://cdn.myanimelist.net/images/anime/1918/98698.jpg",
+  "https://cdn.myanimelist.net/images/anime/1268/107370.jpg",
+  "https://cdn.myanimelist.net/images/anime/1575/101999.jpg",
+  "https://cdn.myanimelist.net/images/anime/1506/98695.jpg",
+  "https://cdn.myanimelist.net/images/anime/1209/107860.jpg",
+  "https://cdn.myanimelist.net/images/anime/1416/105573.jpg",
+  "https://cdn.myanimelist.net/images/anime/1232/98709.jpg",
+  "https://cdn.myanimelist.net/images/anime/1957/110202.jpg",
+  "https://cdn.myanimelist.net/images/anime/1411/104116.jpg",
+  "https://cdn.myanimelist.net/images/anime/1470/98700.jpg",
+  "https://cdn.myanimelist.net/images/anime/1050/105963.jpg",
+  "https://cdn.myanimelist.net/images/anime/1191/104117.jpg",
+  "https://cdn.myanimelist.net/images/anime/1914/106717.jpg",
+];
 
-export type PostEntity = {
-  kind: "post";
-  id: string;
-  title: string;
-  excerpt: string;
-  authorId: string;
-  type: PostType;
-  createdAt: number;
-  reactions: number;
-  comments: number;
-  tags: string[];
-  hasSpoiler?: boolean;
-};
+const FIRST = [
+  "Aiden",
+  "Mika",
+  "Hana",
+  "Leo",
+  "Sora",
+  "Yuki",
+  "Kai",
+  "Noah",
+  "Aria",
+  "Rin",
+  "Eli",
+  "Nina",
+  "Zane",
+  "Mina",
+];
+const LAST = [
+  "Takeda",
+  "Hayashi",
+  "Kuroda",
+  "Ishikawa",
+  "Sato",
+  "Kobayashi",
+  "Watanabe",
+  "Fujimoto",
+  "Sakai",
+  "Mori",
+  "Yamamoto",
+];
 
-export const IMG = {
-  // AniList CDN (anime covers)
-  onePieceCover:
-    "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21-YCDoj1EkAxFn.jpg",
-  aotCover:
-    "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16498-C6FPmWm59CyP.jpg",
-  demonSlayerCover:
-    "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101922-PEn1CTc93blC.jpg",
-  jjkAnimeCover:
-    "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx113415-bbBWj4pEFseh.jpg",
+const USER_ADJ = [
+  "cosmic",
+  "otaku",
+  "pixel",
+  "neon",
+  "shonen",
+  "sliceoflife",
+  "mecha",
+  "moon",
+  "kawaii",
+  "senpai",
+  "manga",
+  "anime",
+];
+const BIO = [
+  "Anime & manga explorer. I collect arcs like trophies.",
+  "Posting reviews, hot takes, and spoiler-free impressions.",
+  "Creator program member — commissions & collabs open.",
+  "I track seasonal anime like it’s a full-time job.",
+  "Manga panels > everything. Also: coffee addicted.",
+  "Clean UI enjoyer. I judge apps by their search.",
+];
 
-  // Wikipedia / Wikimedia (manga & comics covers)
-  berserkCover:
-    "https://upload.wikimedia.org/wikipedia/en/4/4a/Berserk_vol01.png",
-  chainsawManCover:
-    "https://upload.wikimedia.org/wikipedia/it/c/cb/Chainsaw_Man_Volume_1.jpg",
-  onePunchManCover:
-    "https://upload.wikimedia.org/wikipedia/en/c/c3/OnePunchMan_manga_cover.png",
-  vagabondCover:
-    "https://upload.wikimedia.org/wikipedia/en/7/7a/Vagabond_vol01.png",
+const POST_TAGS = [
+  "review",
+  "discussion",
+  "spoiler-free",
+  "theory",
+  "news",
+  "recommendation",
+  "ranking",
+  "art",
+  "cosplay",
+  "memes",
+];
+const POST_TITLES = [
+  "Top 10 fights that still give chills",
+  "Spoiler-free first impressions",
+  "Why this arc works so well",
+  "Underrated anime you should watch",
+  "Manga vs Anime: the real difference",
+  "Studio choices that changed everything",
+  "Character writing done right",
+  "Seasonal watchlist: my picks",
+  "If you liked this, try these",
+  "The soundtrack is criminally good",
+];
 
-  killingJokeCover:
-    "https://upload.wikimedia.org/wikipedia/en/3/32/Killingjoke.JPG",
-  watchmenCover:
-    "https://upload.wikimedia.org/wikipedia/en/a/a2/Watchmen%2C_issue_1.jpg",
+const WORK_ANIME_TITLES = [
+  "Attack on Titan",
+  "Naruto",
+  "One Piece",
+  "Jujutsu Kaisen",
+  "Demon Slayer",
+  "Spy x Family",
+  "Vinland Saga",
+  "Haikyuu!!",
+  "Fullmetal Alchemist: Brotherhood",
+  "Death Note",
+  "Steins;Gate",
+  "Mob Psycho 100",
+  "Dr. Stone",
+  "Chainsaw Man",
+  "Re:ZERO",
+  "My Hero Academia",
+  "Code Geass",
+  "Gintama",
+  "Frieren: Beyond Journey’s End",
+  "Oshi no Ko",
+];
 
-  // Avatars (Wikimedia Commons / Wikipedia)
-  luffyAvatar:
-    "https://upload.wikimedia.org/wikipedia/commons/b/bf/Cosplay_-_AWA15_-_Monkey_D._Luffy_%283982426960%29.jpg",
-  narutoAvatar:
-    "https://upload.wikimedia.org/wikipedia/commons/6/6b/Cosplay_-_AWA15_-_Naruto_Uzumaki_%283982533553%29.jpg",
-  mikasaAvatar:
-    "https://upload.wikimedia.org/wikipedia/commons/9/9b/New_York_Comic_Con_2013_-_Mikasa_cropped_image_%2810275581946%29.jpg",
-  gojoAvatar:
-    "https://upload.wikimedia.org/wikipedia/commons/4/4c/Satoru_Goj%C5%8D_cosplay.jpg",
+const WORK_MANGA_TITLES = [
+  "Berserk",
+  "Vagabond",
+  "Monster",
+  "20th Century Boys",
+  "Tokyo Ghoul",
+  "Blue Lock",
+  "One Punch Man",
+  "Kingdom",
+  "Dorohedoro",
+  "Claymore",
+  "Slam Dunk",
+  "Bleach",
+  "Naruto (Manga)",
+  "One Piece (Manga)",
+  "Chainsaw Man (Manga)",
+  "Jujutsu Kaisen (Manga)",
+  "The Promised Neverland",
+  "Goodnight Punpun",
+  "Vinland Saga (Manga)",
+  "Haikyuu!! (Manga)",
+];
 
-  // Studio logos (Wikimedia Commons)
-  toeiLogo:
-    "https://upload.wikimedia.org/wikipedia/commons/0/09/Toei_Animation_Logo.png",
-  mappaLogo:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/MAPPA_Logo.svg/3840px-MAPPA_Logo.svg.png",
-};
+export const TRENDING_QUERIES = [
+  "one piece",
+  "jujutsu",
+  "attack on titan",
+  "spy family",
+  "vinland",
+  "best opening",
+  "manga recommendations",
+  "creator program",
+];
 
-export const USERS: UserEntity[] = [
+function makeUsers(): UserEntity[] {
+  const rand = mulberry32(42);
+  const now = Date.now();
+
+  const out: UserEntity[] = [];
+  const total = 80;
+
+  for (let i = 1; i <= total; i++) {
+    const first = pick(rand, FIRST);
+    const last = pick(rand, LAST);
+    const role = i % 6 === 0 ? "creator" : "user";
+
+    const handle =
+      `${pick(rand, USER_ADJ)}_${first.toLowerCase()}${pad2(i)}`.toLowerCase();
+    const displayName = `${first} ${last}`;
+    const avatarUrl = `https://i.pravatar.cc/150?img=${(i % 70) + 1}`;
+
+    const createdAt = now - int(rand, 3, 900) * 24 * 3600 * 1000;
+    const updatedAt = createdAt + int(rand, 1, 120) * 24 * 3600 * 1000;
+
+    const followers =
+      role === "creator" ? int(rand, 5000, 250000) : int(rand, 50, 80000);
+    const bio = pick(rand, BIO);
+
+    const searchText = normalizeText(
+      `${displayName} @${handle} ${bio} ${role}`,
+    );
+
+    out.push({
+      kind: "user",
+      id: `u_${i}`,
+      username: handle,
+      displayName,
+      avatarUrl,
+      bio,
+      role,
+      followers,
+      createdAt,
+      updatedAt,
+      searchText,
+    });
+  }
+
+  return out;
+}
+
+function makeWorks(): WorkEntity[] {
+  const rand = mulberry32(77);
+  const now = Date.now();
+
+  const out: WorkEntity[] = [];
+  let id = 1;
+
+  // 60 anime
+  for (let i = 0; i < 60; i++) {
+    const base = WORK_ANIME_TITLES[i % WORK_ANIME_TITLES.length]!;
+    const suffix =
+      i >= WORK_ANIME_TITLES.length ? ` (Season ${1 + (i % 4)})` : "";
+    const title = `${base}${suffix}`;
+
+    const year = int(rand, 1999, 2026);
+    const score = Math.round((6.8 + rand() * 2.8) * 10) / 10;
+    const coverUrl = COVER_URLS[i % COVER_URLS.length]!;
+    const updatedAt = now - int(rand, 1, 900) * 24 * 3600 * 1000;
+
+    const searchText = normalizeText(`${title} anime ${year}`);
+
+    out.push({
+      kind: "work",
+      id: `w_${id++}`,
+      workType: "anime",
+      title,
+      year,
+      score,
+      coverUrl,
+      updatedAt,
+      searchText,
+    });
+  }
+
+  // 50 manga
+  for (let i = 0; i < 50; i++) {
+    const base = WORK_MANGA_TITLES[i % WORK_MANGA_TITLES.length]!;
+    const suffix = i >= WORK_MANGA_TITLES.length ? ` Vol. ${1 + (i % 12)}` : "";
+    const title = `${base}${suffix}`;
+
+    const year = int(rand, 1995, 2026);
+    const score = Math.round((6.6 + rand() * 2.9) * 10) / 10;
+    const coverUrl = COVER_URLS[(i + 11) % COVER_URLS.length]!;
+    const updatedAt = now - int(rand, 1, 1200) * 24 * 3600 * 1000;
+
+    const searchText = normalizeText(`${title} manga ${year}`);
+
+    out.push({
+      kind: "work",
+      id: `w_${id++}`,
+      workType: "manga",
+      title,
+      year,
+      score,
+      coverUrl,
+      updatedAt,
+      searchText,
+    });
+  }
+
+  return out;
+}
+
+function makePosts(users: UserEntity[]): PostEntity[] {
+  const rand = mulberry32(99);
+  const now = Date.now();
+
+  const out: PostEntity[] = [];
+  const total = 90;
+
+  for (let i = 1; i <= total; i++) {
+    const author = pick(rand, users);
+    const title = pick(rand, POST_TITLES);
+
+    const tags = Array.from(
+      new Set([
+        pick(rand, POST_TAGS),
+        pick(rand, POST_TAGS),
+        pick(rand, POST_TAGS),
+      ]),
+    ).slice(0, int(rand, 2, 3));
+
+    const createdAt = now - int(rand, 1, 240) * 24 * 3600 * 1000;
+    const updatedAt = createdAt + int(rand, 0, 72) * 3600 * 1000;
+
+    const reactions = int(rand, 0, 12000);
+    const comments = int(rand, 0, 900);
+
+    const excerpt =
+      "Quick breakdown: pacing, characters, and what the anime adaptation nailed (and missed). Drop your thoughts — spoiler tags welcome.";
+
+    const searchText = normalizeText(
+      `${title} ${excerpt} ${tags.join(" ")} ${author.displayName} @${author.username}`,
+    );
+
+    out.push({
+      kind: "post",
+      id: `p_${i}`,
+      authorId: author.id,
+      title,
+      excerpt,
+      tags,
+      reactions,
+      comments,
+      createdAt,
+      updatedAt,
+      searchText,
+    });
+  }
+
+  return out;
+}
+
+function makeSuggestionPool(db: {
+  users: UserEntity[];
+  posts: PostEntity[];
+  works: WorkEntity[];
+}): string[] {
+  const set = new Map<string, string>();
+
+  // Titles
+  for (const w of db.works) {
+    const n = normalizeText(w.title);
+    if (n) set.set(n, w.title);
+  }
+
+  // Handles + display names
+  for (const u of db.users) {
+    const a = normalizeText(u.displayName);
+    const b = normalizeText(`@${u.username}`);
+    if (a) set.set(a, u.displayName);
+    if (b) set.set(b, `@${u.username}`);
+  }
+
+  // A few post titles
+  for (const p of db.posts.slice(0, 40)) {
+    const n = normalizeText(p.title);
+    if (n) set.set(n, p.title);
+  }
+
+  return Array.from(set.values()).slice(0, 250);
+}
+
+export const MOCK_DB: MockDb = (() => {
+  const users = makeUsers();
+  const works = makeWorks();
+  const posts = makePosts(users);
+
+  const usersById: Record<string, UserEntity> = {};
+  for (const u of users) usersById[u.id] = u;
+
+  const suggestionPool = makeSuggestionPool({ users, posts, works });
+
+  return { users, posts, works, usersById, suggestionPool };
+})();
+
+// Seed history/saved (only used if localStorage is empty)
+export const INITIAL_HISTORY: HistoryEntry[] = [
   {
-    kind: "user",
-    id: "u_1",
-    username: "dev.luffy",
-    displayName: "dev.luffy",
-    role: "creator",
-    verified: true,
-    followers: 48210,
-    bio: "Founder @ Fanaara • Clean Architecture • scaling community systems",
-    avatarUrl: IMG.luffyAvatar,
+    id: "h_seed_1",
+    query: "attack on titan",
+    type: "anime",
+    executedAt: Date.now() - 3 * 3600 * 1000,
   },
   {
-    kind: "user",
-    id: "u_2",
-    username: "gojo.sensei",
-    displayName: "Gojo Sensei",
-    role: "influencer",
-    verified: true,
-    followers: 129004,
-    bio: "Edits • weekly reviews • spoiler-safe hot takes",
-    avatarUrl: IMG.gojoAvatar,
+    id: "h_seed_2",
+    query: "@neon_mika06",
+    type: "users",
+    executedAt: Date.now() - 9 * 3600 * 1000,
   },
   {
-    kind: "user",
-    id: "u_3",
-    username: "mikasa.guard",
-    displayName: "Mikasa Guard",
-    role: "creator",
-    verified: false,
-    followers: 22140,
-    bio: "Panel breakdowns • OST appreciation • rewatch threads",
-    avatarUrl: IMG.mikasaAvatar,
+    id: "h_seed_3",
+    query: "manga recommendations",
+    type: "all",
+    executedAt: Date.now() - 28 * 3600 * 1000,
   },
   {
-    kind: "user",
-    id: "u_4",
-    username: "naruto.runner",
-    displayName: "Naruto Runner",
-    role: "user",
-    verified: false,
-    followers: 2210,
-    bio: "I watch anything with great pacing 🔥",
-    avatarUrl: IMG.narutoAvatar,
+    id: "h_seed_4",
+    query: "spoiler-free first impressions",
+    type: "posts",
+    executedAt: Date.now() - 2 * 24 * 3600 * 1000,
   },
   {
-    kind: "user",
-    id: "u_5",
-    username: "studio.insider",
-    displayName: "Studio Insider",
-    role: "influencer",
-    verified: false,
-    followers: 9870,
-    bio: "Production nerd • staff tracking • PV breakdowns",
-    avatarUrl: IMG.mappaLogo,
-  },
-  {
-    kind: "user",
-    id: "u_6",
-    username: "manga.lab",
-    displayName: "Manga Lab",
-    role: "creator",
-    verified: true,
-    followers: 64210,
-    bio: "Seinen & shonen reviews • theory threads (tagged spoilers)",
-  },
-  {
-    kind: "user",
-    id: "u_7",
-    username: "comic.shelf",
-    displayName: "Comic Shelf",
-    role: "creator",
-    verified: false,
-    followers: 13120,
-    bio: "Comics recs • character arcs • classic runs",
+    id: "h_seed_5",
+    query: "creator program",
+    type: "creators",
+    executedAt: Date.now() - 5 * 24 * 3600 * 1000,
   },
 ];
 
-export const WORKS: WorkEntity[] = [
-  // Anime
+export const INITIAL_SAVED: SavedSearch[] = [
   {
-    kind: "work",
-    id: "w_a_1",
-    workType: "anime",
-    title: "One Piece",
-    year: 1999,
-    studio: "Toei Animation",
-    status: "ongoing",
-    rating: 9.0,
-    genres: ["Adventure", "Action", "Fantasy"],
-    coverUrl: IMG.onePieceCover,
+    id: "s_seed_1",
+    name: "Seasonal picks",
+    query: "seasonal watchlist",
+    type: "posts",
+    createdAt: Date.now() - 10 * 24 * 3600 * 1000,
   },
   {
-    kind: "work",
-    id: "w_a_2",
-    workType: "anime",
-    title: "Attack on Titan",
-    year: 2013,
-    studio: "Wit Studio",
-    status: "completed",
-    rating: 8.9,
-    genres: ["Action", "Drama", "Dark Fantasy"],
-    coverUrl: IMG.aotCover,
+    id: "s_seed_2",
+    name: "Top anime",
+    query: "best opening",
+    type: "anime",
+    createdAt: Date.now() - 18 * 24 * 3600 * 1000,
   },
   {
-    kind: "work",
-    id: "w_a_3",
-    workType: "anime",
-    title: "Demon Slayer: Kimetsu no Yaiba",
-    year: 2019,
-    studio: "ufotable",
-    status: "ongoing",
-    rating: 8.6,
-    genres: ["Action", "Historical", "Supernatural"],
-    coverUrl: IMG.demonSlayerCover,
-  },
-  {
-    kind: "work",
-    id: "w_a_4",
-    workType: "anime",
-    title: "Jujutsu Kaisen",
-    year: 2020,
-    studio: "MAPPA",
-    status: "ongoing",
-    rating: 8.5,
-    genres: ["Action", "Supernatural"],
-    coverUrl: IMG.jjkAnimeCover,
-  },
-
-  // Manga
-  {
-    kind: "work",
-    id: "w_m_1",
-    workType: "manga",
-    title: "Berserk",
-    year: 1989,
-    studio: "Young Animal",
-    status: "hiatus",
-    rating: 9.3,
-    genres: ["Seinen", "Dark Fantasy", "Drama"],
-    coverUrl: IMG.berserkCover,
-  },
-  {
-    kind: "work",
-    id: "w_m_2",
-    workType: "manga",
-    title: "Chainsaw Man",
-    year: 2018,
-    studio: "Shueisha",
-    status: "ongoing",
-    rating: 8.7,
-    genres: ["Action", "Horror", "Dark Comedy"],
-    coverUrl: IMG.chainsawManCover,
-  },
-  {
-    kind: "work",
-    id: "w_m_3",
-    workType: "manga",
-    title: "One-Punch Man",
-    year: 2012,
-    studio: "Shueisha",
-    status: "ongoing",
-    rating: 8.5,
-    genres: ["Action", "Comedy", "Superhero"],
-    coverUrl: IMG.onePunchManCover,
-  },
-  {
-    kind: "work",
-    id: "w_m_4",
-    workType: "manga",
-    title: "Vagabond",
-    year: 1998,
-    studio: "Kodansha",
-    status: "hiatus",
-    rating: 9.1,
-    genres: ["Seinen", "Historical", "Drama"],
-    coverUrl: IMG.vagabondCover,
-  },
-
-  // Comics
-  {
-    kind: "work",
-    id: "w_c_1",
-    workType: "comic",
-    title: "Batman: The Killing Joke",
-    year: 1988,
-    studio: "DC Comics",
-    status: "completed",
-    rating: 8.8,
-    genres: ["Superhero", "Crime", "Psychological"],
-    coverUrl: IMG.killingJokeCover,
-  },
-  {
-    kind: "work",
-    id: "w_c_2",
-    workType: "comic",
-    title: "Watchmen (Issue #1)",
-    year: 1986,
-    studio: "DC Comics",
-    status: "completed",
-    rating: 9.0,
-    genres: ["Superhero", "Drama", "Mystery"],
-    coverUrl: IMG.watchmenCover,
+    id: "s_seed_3",
+    name: "Creators to follow",
+    query: "creator",
+    type: "creators",
+    createdAt: Date.now() - 25 * 24 * 3600 * 1000,
   },
 ];
-
-export const STUDIOS: StudioEntity[] = [
-  {
-    kind: "studio",
-    id: "s_1",
-    name: "Toei Animation",
-    country: "JP",
-    verified: true,
-    worksCount: 250,
-    logoUrl: IMG.toeiLogo,
-  },
-  {
-    kind: "studio",
-    id: "s_2",
-    name: "MAPPA",
-    country: "JP",
-    verified: true,
-    worksCount: 45,
-    logoUrl: IMG.mappaLogo,
-  },
-  {
-    kind: "studio",
-    id: "s_3",
-    name: "Wit Studio",
-    country: "JP",
-    verified: false,
-    worksCount: 18,
-  },
-  {
-    kind: "studio",
-    id: "s_4",
-    name: "ufotable",
-    country: "JP",
-    verified: false,
-    worksCount: 22,
-  },
-];
-
-export const COMMUNITIES: CommunityEntity[] = [
-  {
-    kind: "community",
-    id: "c_1",
-    name: "Spoiler‑Safe One Piece",
-    description:
-      "No-spoiler discussions • episode threads • theories (tagged).",
-    members: 50210,
-    postsPerDay: 146,
-    isOfficial: true,
-    bannerUrl: IMG.onePieceCover,
-  },
-  {
-    kind: "community",
-    id: "c_2",
-    name: "JJK Power System Lab",
-    description: "Cursed energy breakdowns • domains • staff trivia.",
-    members: 18340,
-    postsPerDay: 57,
-    bannerUrl: IMG.jjkAnimeCover,
-  },
-  {
-    kind: "community",
-    id: "c_3",
-    name: "Attack on Titan Analysis",
-    description: "Rewatch threads • symbolism • soundtrack moments.",
-    members: 9250,
-    postsPerDay: 18,
-    bannerUrl: IMG.aotCover,
-  },
-  {
-    kind: "community",
-    id: "c_4",
-    name: "Manga Panel Clinic",
-    description: "Panel-by-panel critique • composition • pacing.",
-    members: 12200,
-    postsPerDay: 31,
-    bannerUrl: IMG.berserkCover,
-  },
-];
-
-export const POSTS: PostEntity[] = [
-  {
-    kind: "post",
-    id: "p_1",
-    title: "How to read PVs without doomposting (production signals 101)",
-    excerpt:
-      "A practical guide: staff credits, schedule hints, and what actually matters when judging production.",
-    authorId: "u_5",
-    type: "article",
-    createdAt: Date.now() - 1000 * 60 * 60 * 6,
-    reactions: 1280,
-    comments: 194,
-    tags: ["Production", "Studios", "Guide"],
-  },
-  {
-    kind: "post",
-    id: "p_2",
-    title: "Jujutsu Kaisen — direction & cuts (spoiler‑safe)",
-    excerpt:
-      "Why the scene feels fast even with fewer cuts — timing, camera distance, and sound design.",
-    authorId: "u_2",
-    type: "review",
-    createdAt: Date.now() - 1000 * 60 * 60 * 30,
-    reactions: 9320,
-    comments: 865,
-    tags: ["Review", "Anime", "JJK"],
-  },
-  {
-    kind: "post",
-    id: "p_3",
-    title: "Attack on Titan: ending discussion thread (SPOILERS)",
-    excerpt:
-      "Themes, character arcs, and why the last stretch is divisive — keep it respectful.",
-    authorId: "u_3",
-    type: "post",
-    createdAt: Date.now() - 1000 * 60 * 60 * 55,
-    reactions: 4210,
-    comments: 512,
-    tags: ["Discussion", "AoT", "Spoilers"],
-    hasSpoiler: true,
-  },
-  {
-    kind: "post",
-    id: "p_4",
-    title: "Best OST moments this week",
-    excerpt:
-      "A small playlist of scenes where music carried the emotion — drop your picks!",
-    authorId: "u_4",
-    type: "post",
-    createdAt: Date.now() - 1000 * 60 * 120,
-    reactions: 740,
-    comments: 88,
-    tags: ["OST", "Weekly"],
-  },
-  {
-    kind: "post",
-    id: "p_5",
-    title: "Berserk: why composition matters (chapter spotlight)",
-    excerpt:
-      "A look at panel rhythm, negative space, and how action reads on the page.",
-    authorId: "u_6",
-    type: "article",
-    createdAt: Date.now() - 1000 * 60 * 60 * 80,
-    reactions: 3180,
-    comments: 263,
-    tags: ["Manga", "Panels", "Berserk"],
-  },
-];
-
-export const TRENDING_QUERIES: Array<{ q: string; meta: string }> = [
-  { q: "One Piece", meta: "Anime" },
-  { q: "MAPPA", meta: "Studio" },
-  { q: "Berserk", meta: "Manga" },
-  { q: "Spoiler‑Safe", meta: "Communities" },
-  { q: "production", meta: "Articles" },
-];
-
-export const WORK_GENRES = Array.from(
-  new Set(WORKS.flatMap((w) => w.genres)),
-).sort((a, b) => a.localeCompare(b));
-
-export const WORK_YEARS = Array.from(
-  new Set(WORKS.map((w) => w.year).filter(Boolean) as number[]),
-).sort((a, b) => b - a);
-
-export const POST_TAGS = Array.from(new Set(POSTS.flatMap((p) => p.tags))).sort(
-  (a, b) => a.localeCompare(b),
-);
-
-export const STUDIO_COUNTRIES = Array.from(
-  new Set(STUDIOS.map((s) => s.country)),
-).sort((a, b) => a.localeCompare(b));
